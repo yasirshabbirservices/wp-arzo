@@ -7,8 +7,8 @@
 
 A comprehensive WordPress maintenance and system administration tool designed for developers, system administrators, and site owners who need advanced control over their WordPress installations.
 
-[![Watch the video](https://github.com/yasirshabbirservices/maintenance-tool/blob/main/screenshot.png)](https://komododecks.com/recordings/NuYsHyzxirWxfosHv0Hk?onlyRecording=1)
 
+[![Watch the video](https://github.com/yasirshabbirservices/maintenance-tool/blob/main/screenshot.png)](https://komododecks.com/recordings/NuYsHyzxirWxfosHv0Hk?onlyRecording=1)
 
 ## 🚀 Features
 
@@ -58,6 +58,20 @@ A comprehensive WordPress maintenance and system administration tool designed fo
 - **Theme Information**: Version and status details
 - **Theme Switching**: Quick theme activation
 
+### 🚧 Maintenance Modes
+- **Multiple Mode Options**: Choose from maintenance, coming soon, or payment request modes
+- **Custom Messaging**: Personalized titles and messages for each mode
+- **Social Contact Integration**: Display developer contact information (email, phone, WhatsApp, Skype)
+- **SEO-Friendly**: Proper HTTP status codes and noindex meta tags
+- **Bypass Access**: Administrators and bypass URL users can access the site normally
+- **Custom CSS Support**: Add custom styling to maintenance pages
+- **Real-time Preview**: Live preview and management of active modes
+
+#### Available Modes:
+- **🔧 Maintenance Mode**: Display maintenance message with 503 status code (temporary unavailable)
+- **🚀 Coming Soon Mode**: Show coming soon page with 200 status code and email collection
+- **💰 Payment Request Mode**: Display payment request message with 402 status code for unpaid projects
+
 ### 🔧 Debug Management
 - **Visual Debug Controls**: Interactive interface to enable/disable WordPress debug settings
 - **Real-time Debug Status**: Live monitoring of WP_DEBUG, WP_DEBUG_LOG, WP_DEBUG_DISPLAY, SCRIPT_DEBUG, and SAVEQUERIES
@@ -66,11 +80,20 @@ A comprehensive WordPress maintenance and system administration tool designed fo
 - **Debug Information Panel**: Comprehensive debug environment details and file status
 - **Debug Settings Guide**: Built-in documentation and recommended configurations
 
+### 🎨 User Interface & Experience
+- **Font Awesome Icons**: Professional icon system with 6.4.0 CDN integration
+- **Branding Color Variables**: Consistent design system with CSS custom properties
+- **Interactive Lightbox Modals**: Enhanced user experience for complex instructions
+- **Responsive Design**: Mobile-friendly interface with modern styling
+- **Visual Feedback**: Clear status indicators and error messages with contextual icons
+
 ### 🎯 Emergency Features
 - **Locked Out Recovery**: Multiple methods to regain access
-- **Maintenance Mode**: Safe system maintenance capabilities
+- **Maintenance Mode**: Safe system maintenance capabilities with multiple mode options
 - **Backup Verification**: Verify backup integrity and restoration
 - **System Diagnostics**: Troubleshoot common WordPress issues
+- **Frontend Installation Guide**: Interactive lightbox with detailed setup instructions
+- **Visual Error Indicators**: Clear warnings with Font Awesome icons for missing components
 
 ## 📋 Requirements
 
@@ -134,9 +157,40 @@ Ensure proper file permissions for full functionality:
 ## 🚦 Usage
 
 ### Basic Access
+
 1. Navigate to `https://yoursite.com/maintenance-tool.php?key=YOUR_ACCESS_KEY`
 2. Use the navigation menu to access different features
 3. Each section provides specific functionality for WordPress management
+
+### Maintenance Modes Usage
+
+#### Setting Up Maintenance Modes
+1. **Install Frontend Handler**: Download and install the `maintenance-tool-frontend.php` file to `wp-content/mu-plugins/`
+2. **Configure Social Contacts**: Set up developer contact information (email, phone, WhatsApp, Skype)
+3. **Choose Mode**: Select from maintenance, coming soon, or payment request modes
+4. **Customize Content**: Add custom titles, messages, and CSS styling
+5. **Activate Mode**: Click the respective activation button
+
+#### Mode Features
+- **🔧 Maintenance Mode**: Perfect for scheduled maintenance, updates, or repairs
+  - Returns HTTP 503 status (Service Unavailable)
+  - Includes noindex meta tag to prevent search engine indexing
+  - Shows maintenance message with estimated completion time
+
+- **🚀 Coming Soon Mode**: Ideal for new websites under development
+  - Returns HTTP 200 status (OK)
+  - Includes noindex meta tag and email collection form
+  - Professional coming soon page with social contact options
+
+- **💰 Payment Request Mode**: For projects with pending payments
+  - Returns HTTP 402 status (Payment Required)
+  - Includes noindex meta tag and contact information
+  - Clear payment request message with developer contact details
+
+#### Bypass Access
+- **Administrator Access**: Logged-in administrators can always access the site
+- **Bypass URL**: Use `?maintenance_bypass=YOUR_ACCESS_KEY` to view the normal site
+- **Preview Mode**: Real-time preview of maintenance pages before activation
 
 ### Emergency Access
 If locked out of WordPress admin:
@@ -266,7 +320,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Yasir Shabbir**
 - Website: [yasirshabbir.com](https://yasirshabbir.com)
 - Email: [contact@yasirshabbir.com](mailto:contact@yasirshabbir.com)
-- GitHub: [@yasirshabbir](https://github.com/yasirshabbir)
+- GitHub: [@yasirshabbir](https://github.com/yasirshabbirservices/maintenance-tool)
 
 ## 🙏 Acknowledgments
 
@@ -289,6 +343,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **NEW: Real-time Debug Monitoring** - Live status of all debug constants
 - **NEW: Debug Log Viewer** - Built-in viewer for debug.log with recent entries
 - **NEW: wp-config.php Auto-editing** - Safe automatic configuration updates
+- **NEW: Enhanced Frontend Installation Guide** - Interactive lightbox modal with step-by-step instructions
+- **NEW: Font Awesome Icons Integration** - Professional icon system throughout the interface
+- **NEW: Branding Color Variables** - Consistent design system with customizable color scheme
+- **NEW: Maintenance Modes System** - Complete maintenance mode functionality with multiple options
+  - 🔧 Maintenance Mode (HTTP 503) for scheduled maintenance
+  - 🚀 Coming Soon Mode (HTTP 200) for new websites
+  - 💰 Payment Request Mode (HTTP 402) for pending payments
+  - Social contact integration (email, phone, WhatsApp, Skype)
+  - Custom messaging and CSS styling support
+  - SEO-friendly with proper status codes and noindex tags
+  - Administrator and bypass URL access
 - Enhanced file management system with improved performance
 - Advanced user authentication and management capabilities
 - Optimized database operations and monitoring
