@@ -320,7 +320,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Yasir Shabbir**
 - Website: [yasirshabbir.com](https://yasirshabbir.com)
 - Email: [contact@yasirshabbir.com](mailto:contact@yasirshabbir.com)
-- GitHub: [@yasirshabbir](https://github.com/yasirshabbirservices/maintenance-tool)
+- GitHub: [@yasirshabbirservices](https://github.com/yasirshabbirservices/maintenance-tool)
 
 ## 🙏 Acknowledgments
 
