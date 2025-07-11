@@ -1,7 +1,7 @@
 <?php
 /**
  * WordPress Maintenance Tool
- * Version: 5.0
+ * Version: 1.0
  * Developer: Yasir Shabbir
  * Contact: contact@yasirshabbir.com
  * Description: System maintenance and backup verification tool
@@ -1085,6 +1085,7 @@ $action = $_GET['action'] ?? 'info';
             <a href="?key=<?php echo ACCESS_KEY; ?>&action=plugins" <?php echo ($action === 'plugins') ? 'class="active"' : ''; ?>>Plugins</a>
             <a href="?key=<?php echo ACCESS_KEY; ?>&action=themes" <?php echo ($action === 'themes') ? 'class="active"' : ''; ?>>Themes</a>
             <a href="?key=<?php echo ACCESS_KEY; ?>&action=debug" <?php echo ($action === 'debug') ? 'class="active"' : ''; ?>>Debug</a>
+            <a href="?key=<?php echo ACCESS_KEY; ?>&action=maintenance" <?php echo ($action === 'maintenance') ? 'class="active"' : ''; ?>>Maintenance Modes</a>
             <a href="?key=<?php echo ACCESS_KEY; ?>&action=login" <?php echo ($action === 'login') ? 'class="active"' : ''; ?>>Quick Login</a>
         </div>
 
@@ -1124,6 +1125,9 @@ $action = $_GET['action'] ?? 'info';
             case 'debug':
                 handleDebug();
                 break;
+            case 'maintenance':
+                handleMaintenanceModes();
+                break;
             case 'login':
                 handleQuickLogin();
                 break;
@@ -1156,6 +1160,25 @@ $action = $_GET['action'] ?? 'info';
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeLightbox();
+                closeFrontendInstructions();
+            }
+        });
+        
+        // Frontend instructions lightbox functionality
+        function showFrontendInstructions() {
+            document.getElementById('frontend-instructions-lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeFrontendInstructions() {
+            document.getElementById('frontend-instructions-lightbox').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close frontend instructions lightbox when clicking outside
+        document.getElementById('frontend-instructions-lightbox').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFrontendInstructions();
             }
         });
         
@@ -1888,6 +1911,255 @@ function handleDebug() {
             <h4 style="margin-top: 20px;">Recommended Settings:</h4>
             <p><strong>Development:</strong> All enabled (true)</p>
             <p><strong>Production:</strong> WP_DEBUG=true, WP_DEBUG_LOG=true, WP_DEBUG_DISPLAY=false</p>
+        </div>
+    </div>
+    <?php
+}
+
+function handleMaintenanceModes() {
+    // Handle form submissions
+    $message = '';
+    $developer_email = get_option('maintenance_tool_developer_email', 'contact@yasirshabbir.com');
+    
+    // Handle social contact settings update
+    if (isset($_POST['update_social_contacts'])) {
+        $email = sanitize_email($_POST['developer_email']);
+        $phone = sanitize_text_field($_POST['developer_phone']);
+        $whatsapp = sanitize_text_field($_POST['developer_whatsapp']);
+        $skype = sanitize_text_field($_POST['developer_skype']);
+        
+        update_option('maintenance_tool_developer_email', $email);
+        update_option('maintenance_tool_developer_phone', $phone);
+        update_option('maintenance_tool_developer_whatsapp', $whatsapp);
+        update_option('maintenance_tool_developer_skype', $skype);
+        
+        $developer_email = $email;
+        $message = '<div class="success">Social contact settings updated successfully!</div>';
+    }
+    
+    // Handle mode activation
+    if (isset($_POST['activate_mode'])) {
+        $mode = sanitize_text_field($_POST['mode']);
+        $custom_message = wp_kses_post($_POST['custom_message'] ?? '');
+        $custom_title = sanitize_text_field($_POST['custom_title'] ?? '');
+        $custom_css = wp_strip_all_tags($_POST['custom_css'] ?? '');
+        $show_social_contacts = isset($_POST['show_social_contacts']) ? 1 : 0;
+        
+        // Check if frontend file exists
+        $frontend_file = ABSPATH . 'wp-content/mu-plugins/maintenance-tool-frontend.php';
+        if (!file_exists($frontend_file)) {
+            $message = '<div class="error"><span style="color: var(--primary-text);"><i class="fas fa-exclamation-triangle"></i> Frontend file is missing! Please download and install the frontend file first.</span> <a href="#" onclick="showFrontendInstructions(); return false;" style="color: var(--accent-color); text-decoration: underline;"><i class="fas fa-clipboard-list"></i> Click here for instructions</a></div>';
+        } else {
+            // Save mode settings
+            update_option('maintenance_tool_active_mode', $mode);
+            update_option('maintenance_tool_custom_message', $custom_message);
+            update_option('maintenance_tool_custom_title', $custom_title);
+            update_option('maintenance_tool_custom_css', $custom_css);
+            update_option('maintenance_tool_show_social_contacts', $show_social_contacts);
+            
+            $message = '<div class="success">Maintenance mode "' . ucfirst($mode) . '" activated successfully!</div>';
+        }
+    }
+    
+    // Handle mode deactivation
+    if (isset($_POST['deactivate_mode'])) {
+        delete_option('maintenance_tool_active_mode');
+        $message = '<div class="success">Maintenance mode deactivated successfully!</div>';
+    }
+    
+
+    
+    $current_mode = get_option('maintenance_tool_active_mode', '');
+    $custom_message = get_option('maintenance_tool_custom_message', '');
+    $custom_title = get_option('maintenance_tool_custom_title', '');
+    $custom_css = get_option('maintenance_tool_custom_css', '');
+    $show_social_contacts = get_option('maintenance_tool_show_social_contacts', 1);
+    
+    // Get social contact settings
+    $developer_phone = get_option('maintenance_tool_developer_phone', '');
+    $developer_whatsapp = get_option('maintenance_tool_developer_whatsapp', '');
+    $developer_skype = get_option('maintenance_tool_developer_skype', '');
+    
+    ?>
+    <div class="content">
+        <h2>Maintenance Modes</h2>
+        
+        <?php echo $message; ?>
+        
+        <?php if ($current_mode): ?>
+            <div class="success" style="margin-bottom: 20px;">
+                <strong>Active Mode:</strong> <?php echo ucfirst($current_mode); ?> Mode
+                <form method="post" style="display: inline; margin-left: 15px;">
+                    <button type="submit" name="deactivate_mode" class="btn btn-danger" onclick="return confirm('Are you sure you want to deactivate maintenance mode?')">Deactivate Mode</button>
+                </form>
+            </div>
+        <?php endif; ?>
+        
+        <!-- Social Contact Settings -->
+        <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-bottom: 20px;">
+            <h3>Social Contact Settings</h3>
+            <form method="post">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" name="developer_email" value="<?php echo esc_attr($developer_email); ?>" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone:</label>
+                        <input type="text" name="developer_phone" value="<?php echo esc_attr($developer_phone); ?>" placeholder="+1234567890" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px;">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp:</label>
+                        <input type="text" name="developer_whatsapp" value="<?php echo esc_attr($developer_whatsapp); ?>" placeholder="+1234567890" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Skype:</label>
+                        <input type="text" name="developer_skype" value="<?php echo esc_attr($developer_skype); ?>" placeholder="your.skype.username" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px;">
+                    </div>
+                </div>
+                <button type="submit" name="update_social_contacts" class="btn btn-primary">Update Contact Settings</button>
+            </form>
+        </div>
+        
+        <!-- Mode Selection -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            
+            <!-- Maintenance Mode -->
+            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333;">
+                <h3 style="color: #ff9800;">🔧 Maintenance Mode</h3>
+                <p>Display a maintenance message while you work on the site. Includes noindex meta tag to prevent search engine indexing.</p>
+                <form method="post">
+                    <input type="hidden" name="mode" value="maintenance">
+                    <div class="form-group">
+                        <label>Custom Title:</label>
+                        <input type="text" name="custom_title" value="<?php echo $current_mode === 'maintenance' ? esc_attr($custom_title) : 'Site Under Maintenance'; ?>" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px; margin-bottom: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Custom Message:</label>
+                        <textarea name="custom_message" rows="3" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px; margin-bottom: 10px;"><?php echo $current_mode === 'maintenance' ? esc_textarea($custom_message) : 'We are currently performing scheduled maintenance. Please check back soon.'; ?></textarea>
+                    </div>
+
+                    <button type="submit" name="activate_mode" class="btn btn-warning">Activate Maintenance Mode</button>
+                </form>
+            </div>
+            
+            <!-- Coming Soon Mode -->
+            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333;">
+                <h3 style="color: #4CAF50;">🚀 Coming Soon Mode</h3>
+                <p>Show a coming soon page for new websites. Includes noindex meta tag and email collection form.</p>
+                <form method="post">
+                    <input type="hidden" name="mode" value="coming_soon">
+                    <div class="form-group">
+                        <label>Custom Title:</label>
+                        <input type="text" name="custom_title" value="<?php echo $current_mode === 'coming_soon' ? esc_attr($custom_title) : 'Coming Soon'; ?>" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px; margin-bottom: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Custom Message:</label>
+                        <textarea name="custom_message" rows="3" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px; margin-bottom: 10px;"><?php echo $current_mode === 'coming_soon' ? esc_textarea($custom_message) : 'Something amazing is coming soon! Stay tuned for updates.'; ?></textarea>
+                    </div>
+
+                    <button type="submit" name="activate_mode" class="btn btn-success">Activate Coming Soon Mode</button>
+                </form>
+            </div>
+            
+            <!-- Money Request Mode -->
+            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333;">
+                <h3 style="color: #dc3545;">💰 Payment Request Mode</h3>
+                <p>Display a payment request message for clients who haven't paid. Includes noindex and contact form.</p>
+                <form method="post">
+                    <input type="hidden" name="mode" value="payment_request">
+                    <div class="form-group">
+                        <label>Custom Title:</label>
+                        <input type="text" name="custom_title" value="<?php echo $current_mode === 'payment_request' ? esc_attr($custom_title) : 'Payment Required'; ?>" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px; margin-bottom: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Custom Message:</label>
+                        <textarea name="custom_message" rows="3" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px; margin-bottom: 10px;"><?php echo $current_mode === 'payment_request' ? esc_textarea($custom_message) : 'This website has been completed but payment is still pending. Please contact us to resolve this matter and restore full access to your website.'; ?></textarea>
+                    </div>
+
+                    <button type="submit" name="activate_mode" class="btn btn-danger">Activate Payment Request Mode</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Custom CSS -->
+        <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-bottom: 20px;">
+            <h3>Custom CSS (Optional)</h3>
+            <p style="color: #999; margin-bottom: 10px;">Add custom CSS to style your maintenance page:</p>
+            <textarea name="custom_css" rows="6" style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px; font-family: monospace;" placeholder="/* Add your custom CSS here */"><?php echo esc_textarea($custom_css); ?></textarea>
+        </div>
+        
+        <!-- Preview Links -->
+        <?php if ($current_mode): ?>
+            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333;">
+                <h3>Preview & Management</h3>
+                <p><strong>Current Mode:</strong> <?php echo ucfirst(str_replace('_', ' ', $current_mode)); ?></p>
+                <p><strong>Frontend URL:</strong> <a href="<?php echo home_url(); ?>" target="_blank" style="color: var(--accent-color);"><?php echo home_url(); ?></a></p>
+                <p><strong>Bypass URL:</strong> <a href="<?php echo home_url('?maintenance_bypass=' . ACCESS_KEY); ?>" target="_blank" style="color: var(--accent-color);"><?php echo home_url('?maintenance_bypass=' . ACCESS_KEY); ?></a></p>
+                <p style="font-size: 12px; color: #999;">Use the bypass URL to view your site normally while maintenance mode is active.</p>
+            </div>
+        <?php endif; ?>
+        
+        <!-- SEO Information -->
+        <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border-left: 4px solid var(--accent-color); margin-top: 20px;">
+            <h3>SEO & Search Engine Information</h3>
+            <ul style="line-height: 1.6;">
+                <li><strong>Maintenance Mode:</strong> Returns 503 status code + noindex meta tag (prevents indexing)</li>
+                <li><strong>Coming Soon Mode:</strong> Returns 200 status code + noindex meta tag (prevents indexing)</li>
+                <li><strong>Payment Request Mode:</strong> Returns 402 status code + noindex meta tag (prevents indexing)</li>
+                <li><strong>Bypass Access:</strong> Logged-in administrators and bypass URL users see normal site</li>
+                <li><strong>Search Engines:</strong> Will not index pages while any mode is active</li>
+            </ul>
+        </div>
+        
+        <!-- Frontend Installation Instructions Lightbox -->
+        <div id="frontend-instructions-lightbox" class="lightbox">
+            <div class="lightbox-content" style="width: 90vw; max-width: 800px; background: var(--background-dark); border: 1px solid var(--border-color);">
+                <div class="lightbox-header" style="background: var(--background-light); border-bottom: 1px solid var(--border-color);">
+                    <h3 style="color: var(--primary-text); display: flex; align-items: center; gap: 10px;"><i class="fas fa-download"></i> Frontend File Installation Required</h3>
+                    <button class="lightbox-close" onclick="closeFrontendInstructions()" style="color: var(--secondary-text); background: transparent; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <div class="lightbox-body" style="color: var(--primary-text);">
+                    <p style="margin-bottom: 20px; color: var(--secondary-text);"><i class="fas fa-bolt"></i> To activate maintenance modes, you need to install the frontend file. Follow these steps:</p>
+                    
+                    <div style="background: var(--background-light); padding: 20px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid var(--success-color, #4CAF50); border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--success-color, #4CAF50); margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-folder-open"></i> Step 1: Download the Frontend File</h4>
+                        <p style="margin-bottom: 15px; color: var(--primary-text);">Visit the GitHub repository to download the <code style="background: var(--background-dark); color: var(--accent-color); padding: 2px 6px; border-radius: 3px;">maintenance-tool-frontend.php</code> file:</p>
+                        <a href="https://github.com/yasirshabbirservices/maintenance-tool" 
+                           target="_blank" 
+                           class="btn btn-success"
+                           style="display: inline-flex; align-items: center; gap: 8px; margin: 10px 0; background: var(--success-color, #4CAF50); color: white; text-decoration: none; padding: 10px 16px; border-radius: 4px; border: none;">
+                            <i class="fab fa-github"></i> Visit GitHub Repository
+                        </a>
+                        <p style="font-size: 14px; color: var(--secondary-text); margin-top: 10px;"><i class="fas fa-lightbulb"></i> Navigate to the repository and download the <code style="background: var(--background-dark); color: var(--accent-color); padding: 2px 6px; border-radius: 3px;">maintenance-tool-frontend.php</code> file.</p>
+                    </div>
+                    
+                    <div style="background: var(--background-light); padding: 20px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid var(--info-color, #2196F3); border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--info-color, #2196F3); margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-upload"></i> Step 2: Upload to WordPress</h4>
+                        <p style="margin-bottom: 15px; color: var(--primary-text);"><i class="fas fa-folder"></i> Upload the downloaded file to your WordPress installation:</p>
+                        <ul style="margin: 15px 0; padding-left: 20px; line-height: 1.8; color: var(--primary-text);">
+                            <li><strong><i class="fas fa-bullseye"></i> Target Path:</strong> <code style="background: var(--background-dark); color: var(--accent-color); padding: 2px 6px; border-radius: 3px;">/wp-content/mu-plugins/maintenance-tool-frontend.php</code></li>
+                             <li><strong><i class="fas fa-folder-plus"></i> Create Directory:</strong> If the <code style="background: var(--background-dark); color: var(--accent-color); padding: 2px 6px; border-radius: 3px;">mu-plugins</code> folder doesn't exist, create it first</li>
+                             <li><strong><i class="fas fa-lock"></i> File Permissions:</strong> Ensure the file has proper read permissions (644)</li>
+                             <li><strong><i class="fas fa-plug"></i> Must-Use Plugin:</strong> WordPress will automatically load this file</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: var(--background-light); padding: 20px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid var(--warning-color, #ff9800); border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--warning-color, #ff9800); margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-check-circle"></i> Step 3: Verify Installation</h4>
+                        <p style="margin-bottom: 15px; color: var(--primary-text);"><i class="fas fa-sync-alt"></i> After uploading, refresh this page and try activating a maintenance mode again.</p>
+                        <button onclick="location.reload()" class="btn btn-warning" style="display: inline-flex; align-items: center; gap: 8px; background: var(--warning-color, #ff9800); color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer;"><i class="fas fa-redo"></i> Refresh Page</button>
+                    </div>
+                    
+                    <div style="background: var(--background-light); padding: 15px; border-radius: 6px; border-left: 4px solid var(--accent-color); border: 1px solid var(--border-color);">
+                        <p style="margin: 0; font-size: 14px; color: var(--secondary-text); display: flex; align-items: flex-start; gap: 8px;"><strong><i class="fas fa-info-circle"></i> Note:</strong> <span>The frontend file is a "Must-Use Plugin" that WordPress loads automatically. It handles the display of maintenance pages to your visitors while the backend tool manages settings and configuration.</span></p>
+                    </div>
+                </div>
+                <div class="lightbox-actions" style="background: var(--background-light); border-top: 1px solid var(--border-color); padding: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeFrontendInstructions()" style="background: var(--background-dark); color: var(--secondary-text); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fas fa-times"></i> Close</button>
+                     <a href="https://github.com/yasirshabbirservices/maintenance-tool" target="_blank" class="btn btn-primary" style="background: var(--accent-color); color: white; text-decoration: none; padding: 10px 16px; border-radius: 4px; border: none; display: flex; align-items: center; gap: 6px;"><i class="fab fa-github"></i> Open GitHub Repository</a>
+                </div>
+            </div>
         </div>
     </div>
     <?php
