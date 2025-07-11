@@ -7,7 +7,8 @@
 
 A comprehensive WordPress maintenance and system administration tool designed for developers, system administrators, and site owners who need advanced control over their WordPress installations.
 
-<div style="position: relative; width: 100%; height: 0px; overflow: hidden; padding-bottom: min(41.88%, 95vh);"><iframe allowfullscreen="" mozallowfullscreen="" webkitallowfullscreen="" playsinline="" allow="autoplay; fullscreen" src="https://komododecks.com/embed/recordings/NuYsHyzxirWxfosHv0Hk?onlyRecording=1" width="100%" height="100%" style="border: 0px; position: absolute; inset: 0px;"></iframe></div>
+[![Watch the video](https://github.com/yasirshabbirservices/maintenance-tool/blob/main/screenshot.png)](https://komododecks.com/recordings/NuYsHyzxirWxfosHv0Hk?onlyRecording=1)
+
 
 ## 🚀 Features
 
