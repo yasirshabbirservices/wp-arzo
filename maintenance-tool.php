@@ -1,7 +1,7 @@
 <?php
 /**
  * WordPress Maintenance Tool
- * Version: 1.0
+ * Version: 5.0
  * Developer: Yasir Shabbir
  * Contact: contact@yasirshabbir.com
  * Description: System maintenance and backup verification tool
@@ -1084,6 +1084,7 @@ $action = $_GET['action'] ?? 'info';
             <a href="?key=<?php echo ACCESS_KEY; ?>&action=files" <?php echo ($action === 'files') ? 'class="active"' : ''; ?>>Files</a>
             <a href="?key=<?php echo ACCESS_KEY; ?>&action=plugins" <?php echo ($action === 'plugins') ? 'class="active"' : ''; ?>>Plugins</a>
             <a href="?key=<?php echo ACCESS_KEY; ?>&action=themes" <?php echo ($action === 'themes') ? 'class="active"' : ''; ?>>Themes</a>
+            <a href="?key=<?php echo ACCESS_KEY; ?>&action=debug" <?php echo ($action === 'debug') ? 'class="active"' : ''; ?>>Debug</a>
             <a href="?key=<?php echo ACCESS_KEY; ?>&action=login" <?php echo ($action === 'login') ? 'class="active"' : ''; ?>>Quick Login</a>
         </div>
 
@@ -1119,6 +1120,9 @@ $action = $_GET['action'] ?? 'info';
                 break;
             case 'themes':
                 showThemes();
+                break;
+            case 'debug':
+                handleDebug();
                 break;
             case 'login':
                 handleQuickLogin();
@@ -1702,6 +1706,188 @@ function handleQuickLogin() {
                 3. Use "Login as Existing User" - if you know existing users<br>
                 4. Check the Users tab to see all available accounts
             </p>
+        </div>
+    </div>
+    <?php
+}
+
+function handleDebug() {
+    $wp_config_path = ABSPATH . 'wp-config.php';
+    $config_content = '';
+    $config_writable = false;
+    $debug_settings = [];
+    
+    // Check if wp-config.php is readable and writable
+    if (file_exists($wp_config_path)) {
+        $config_content = file_get_contents($wp_config_path);
+        $config_writable = is_writable($wp_config_path);
+        
+        // Parse current debug settings
+        $debug_settings = [
+            'WP_DEBUG' => [
+                'current' => defined('WP_DEBUG') ? (WP_DEBUG ? 'true' : 'false') : 'undefined',
+                'description' => 'Enable/disable WordPress debug mode'
+            ],
+            'WP_DEBUG_LOG' => [
+                'current' => defined('WP_DEBUG_LOG') ? (WP_DEBUG_LOG ? 'true' : 'false') : 'undefined',
+                'description' => 'Enable debug logging to /wp-content/debug.log'
+            ],
+            'WP_DEBUG_DISPLAY' => [
+                'current' => defined('WP_DEBUG_DISPLAY') ? (WP_DEBUG_DISPLAY ? 'true' : 'false') : 'undefined',
+                'description' => 'Display debug messages on screen'
+            ],
+            'SCRIPT_DEBUG' => [
+                'current' => defined('SCRIPT_DEBUG') ? (SCRIPT_DEBUG ? 'true' : 'false') : 'undefined',
+                'description' => 'Use unminified versions of CSS and JS files'
+            ],
+            'SAVEQUERIES' => [
+                'current' => defined('SAVEQUERIES') ? (SAVEQUERIES ? 'true' : 'false') : 'undefined',
+                'description' => 'Save database queries for analysis'
+            ]
+        ];
+    }
+    
+    // Handle form submission
+    if (isset($_POST['update_debug_settings']) && $config_writable) {
+        $new_config = $config_content;
+        
+        foreach ($debug_settings as $setting => $info) {
+            $new_value = isset($_POST[$setting]) ? $_POST[$setting] : 'false';
+            $define_pattern = "/define\s*\(\s*['\"]" . $setting . "['\"]\s*,\s*[^)]+\s*\)\s*;/";
+            $new_define = "define('" . $setting . "', " . $new_value . ");"; 
+            
+            if (preg_match($define_pattern, $new_config)) {
+                // Replace existing define
+                $new_config = preg_replace($define_pattern, $new_define, $new_config);
+            } else {
+                // Add new define before the "That's all" comment or at the end
+                $insert_position = strpos($new_config, "/* That's all, stop editing!");
+                if ($insert_position === false) {
+                    $insert_position = strpos($new_config, "?>");
+                }
+                if ($insert_position !== false) {
+                    $new_config = substr_replace($new_config, $new_define . "\n\n", $insert_position, 0);
+                } else {
+                    $new_config .= "\n" . $new_define;
+                }
+            }
+        }
+        
+        // Write the updated config
+        if (file_put_contents($wp_config_path, $new_config)) {
+            echo '<div class="success">Debug settings updated successfully! Please refresh the page to see current values.</div>';
+            echo '<script>setTimeout(function() { location.reload(); }, 2000);</script>';
+        } else {
+            echo '<div class="error">Failed to update wp-config.php. Check file permissions.</div>';
+        }
+    }
+    
+    ?>
+    <div class="content">
+        <h2>WordPress Debug Settings</h2>
+        
+        <?php if (!file_exists($wp_config_path)): ?>
+            <div class="error">
+                <strong>Error:</strong> wp-config.php file not found at: <?php echo $wp_config_path; ?>
+            </div>
+        <?php elseif (!$config_writable): ?>
+            <div class="error">
+                <strong>Warning:</strong> wp-config.php is not writable. You'll need to manually edit the file or change permissions.
+                <br><strong>File location:</strong> <?php echo $wp_config_path; ?>
+            </div>
+        <?php endif; ?>
+        
+        <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-bottom: 20px;">
+            <h3>Current Debug Status</h3>
+            <table>
+                <tr><th>Setting</th><th>Current Value</th><th>Description</th></tr>
+                <?php foreach ($debug_settings as $setting => $info): ?>
+                    <tr>
+                        <td><code><?php echo $setting; ?></code></td>
+                        <td>
+                            <span style="color: <?php echo $info['current'] === 'true' ? '#4CAF50' : ($info['current'] === 'false' ? '#f44336' : '#ff9800'); ?>">
+                                <?php echo strtoupper($info['current']); ?>
+                            </span>
+                        </td>
+                        <td><?php echo $info['description']; ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+        
+        <?php if ($config_writable): ?>
+            <form method="post" style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333;">
+                <h3>Update Debug Settings</h3>
+                <p style="color: #999; margin-bottom: 20px;">Configure WordPress debug settings. Changes will be written to wp-config.php.</p>
+                
+                <?php foreach ($debug_settings as $setting => $info): ?>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;"><?php echo $setting; ?></label>
+                        <p style="font-size: 12px; color: #999; margin-bottom: 8px;"><?php echo $info['description']; ?></p>
+                        <select name="<?php echo $setting; ?>" style="width: 200px; padding: 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 3px;">
+                            <option value="false" <?php echo ($info['current'] === 'false') ? 'selected' : ''; ?>>false (Disabled)</option>
+                            <option value="true" <?php echo ($info['current'] === 'true') ? 'selected' : ''; ?>>true (Enabled)</option>
+                        </select>
+                    </div>
+                <?php endforeach; ?>
+                
+                <button type="submit" name="update_debug_settings" class="btn" style="margin-top: 15px;">Update Debug Settings</button>
+            </form>
+        <?php endif; ?>
+        
+        <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-top: 20px;">
+            <h3>Debug Information</h3>
+            <table>
+                <tr><th>Item</th><th>Value</th></tr>
+                <tr><td>Debug Log File</td><td><?php echo WP_CONTENT_DIR . '/debug.log'; ?></td></tr>
+                <tr><td>Log File Exists</td><td><?php echo file_exists(WP_CONTENT_DIR . '/debug.log') ? 'Yes' : 'No'; ?></td></tr>
+                <tr><td>Log File Size</td><td>
+                    <?php 
+                    $log_file = WP_CONTENT_DIR . '/debug.log';
+                    if (file_exists($log_file)) {
+                        $size = filesize($log_file);
+                        echo $size > 0 ? size_format($size) : '0 bytes';
+                    } else {
+                        echo 'N/A';
+                    }
+                    ?>
+                </td></tr>
+                <tr><td>Error Reporting Level</td><td><?php echo error_reporting(); ?></td></tr>
+                <tr><td>Display Errors</td><td><?php echo ini_get('display_errors') ? 'On' : 'Off'; ?></td></tr>
+                <tr><td>Log Errors</td><td><?php echo ini_get('log_errors') ? 'On' : 'Off'; ?></td></tr>
+            </table>
+        </div>
+        
+        <?php if (file_exists(WP_CONTENT_DIR . '/debug.log')): ?>
+            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-top: 20px;">
+                <h3>Recent Debug Log Entries</h3>
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 3px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; white-space: pre-wrap;">
+                    <?php
+                    $log_content = file_get_contents(WP_CONTENT_DIR . '/debug.log');
+                    $log_lines = explode("\n", $log_content);
+                    $recent_lines = array_slice($log_lines, -50); // Show last 50 lines
+                    echo htmlspecialchars(implode("\n", $recent_lines));
+                    ?>
+                </div>
+                <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                    Showing last 50 lines. Full log: <?php echo WP_CONTENT_DIR . '/debug.log'; ?>
+                </p>
+            </div>
+        <?php endif; ?>
+        
+        <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border-left: 4px solid var(--accent-color); margin-top: 20px;">
+            <h3>Debug Settings Guide</h3>
+            <ul style="line-height: 1.6;">
+                <li><strong>WP_DEBUG:</strong> Master switch for debug mode. Must be true to enable other debug features.</li>
+                <li><strong>WP_DEBUG_LOG:</strong> Saves debug messages to /wp-content/debug.log file.</li>
+                <li><strong>WP_DEBUG_DISPLAY:</strong> Shows debug messages on screen. Recommended: false for production.</li>
+                <li><strong>SCRIPT_DEBUG:</strong> Uses unminified CSS/JS files for easier debugging.</li>
+                <li><strong>SAVEQUERIES:</strong> Saves all database queries for performance analysis.</li>
+            </ul>
+            
+            <h4 style="margin-top: 20px;">Recommended Settings:</h4>
+            <p><strong>Development:</strong> All enabled (true)</p>
+            <p><strong>Production:</strong> WP_DEBUG=true, WP_DEBUG_LOG=true, WP_DEBUG_DISPLAY=false</p>
         </div>
     </div>
     <?php
