@@ -55,6 +55,14 @@ A comprehensive WordPress maintenance and system administration tool designed fo
 - **Theme Information**: Version and status details
 - **Theme Switching**: Quick theme activation
 
+### 🔧 Debug Management
+- **Visual Debug Controls**: Interactive interface to enable/disable WordPress debug settings
+- **Real-time Debug Status**: Live monitoring of WP_DEBUG, WP_DEBUG_LOG, WP_DEBUG_DISPLAY, SCRIPT_DEBUG, and SAVEQUERIES
+- **Debug Log Viewer**: Built-in viewer for recent debug log entries with real-time monitoring
+- **wp-config.php Auto-editing**: Safe automatic modification of WordPress configuration
+- **Debug Information Panel**: Comprehensive debug environment details and file status
+- **Debug Settings Guide**: Built-in documentation and recommended configurations
+
 ### 🎯 Emergency Features
 - **Locked Out Recovery**: Multiple methods to regain access
 - **Maintenance Mode**: Safe system maintenance capabilities
@@ -146,6 +154,13 @@ If locked out of WordPress admin:
 2. Monitor "Database" for connection status
 3. Review "Users" for account management
 
+### Debug Management
+1. Navigate to the "Debug" tab
+2. View current debug settings status with color-coded indicators
+3. Enable/disable debug settings using the interactive form
+4. Monitor debug log file size and recent entries
+5. Use the built-in guide for recommended configurations
+
 ## ⚠️ Security Considerations
 
 ### Access Control
@@ -189,7 +204,13 @@ If locked out of WordPress admin:
 - Review MySQL/MariaDB logs
 
 ### Debug Mode
-Enable WordPress debug mode for detailed error information:
+Use the built-in Debug Management feature to easily configure WordPress debug settings:
+1. Go to the "Debug" tab in the maintenance tool
+2. Use the visual interface to enable/disable debug options
+3. Monitor debug logs in real-time
+4. The tool automatically updates wp-config.php with proper settings
+
+Alternatively, manually enable debug mode:
 ```php
 define('WP_DEBUG', true);
 define('WP_DEBUG_LOG', true);
@@ -242,7 +263,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Yasir Shabbir**
 - Website: [yasirshabbir.com](https://yasirshabbir.com)
 - Email: [contact@yasirshabbir.com](mailto:contact@yasirshabbir.com)
-- GitHub: [@yasirshabbir](https://github.com/yasirshabbirservices)
+- GitHub: [@yasirshabbir](https://github.com/yasirshabbir)
 
 ## 🙏 Acknowledgments
 
@@ -261,6 +282,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔄 Changelog
 
 ### Version 5.0 (Current)
+- **NEW: Debug Management System** - Visual interface for WordPress debug settings
+- **NEW: Real-time Debug Monitoring** - Live status of all debug constants
+- **NEW: Debug Log Viewer** - Built-in viewer for debug.log with recent entries
+- **NEW: wp-config.php Auto-editing** - Safe automatic configuration updates
 - Enhanced file management system with improved performance
 - Advanced user authentication and management capabilities
 - Optimized database operations and monitoring
