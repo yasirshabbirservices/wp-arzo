@@ -1,7 +1,7 @@
 <?php
 /**
  * WordPress Maintenance Tool
- * Version: 1.0
+ * Version: 5.0
  * Developer: Yasir Shabbir
  * Contact: contact@yasirshabbir.com
  * Description: System maintenance and backup verification tool
