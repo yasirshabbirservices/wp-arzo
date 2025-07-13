@@ -1,4 +1,4 @@
-# WordPress Maintenance Tool
+# Introducing WP Arzo: The Ultimate WordPress Maintenance & Administration Suite
 
 ![Version](https://img.shields.io/badge/version-5.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -8,7 +8,7 @@
 A comprehensive WordPress maintenance and system administration tool designed for developers, system administrators, and site owners who need advanced control over their WordPress installations.
 
 
-[![Watch the video](https://github.com/yasirshabbirservices/arzo-tool/blob/main/screenshot.png)](https://komododecks.com/recordings/NuYsHyzxirWxfosHv0Hk?onlyRecording=1)
+[![Watch the video](https://github.com/yasirshabbirservices/arzo-tool/blob/main/screenshot.png)](https://video.yasirshabbir.com/recordings/dIng2Kod7xx5Y35VCXlg)
 
 ## 🚀 Features
 
@@ -107,28 +107,28 @@ A comprehensive WordPress maintenance and system administration tool designed fo
 
 1. **Download the Tool**
    ```bash
-   wget https://github.com/yasirshabbirservices/arzo-tool/archive/refs/heads/main.zip
+   wget https://github.com/yasirshabbirservices/wp-arzo/archive/refs/heads/main.zip
    unzip main.zip
    ```
 
 2. **Upload to WordPress Root**
-   - Upload `arzo-tool.php` to your WordPress root directory
+   - Upload `wp-arzo.php` to your WordPress root directory
    - Ensure it's in the same directory as `wp-config.php`
 
 3. **Configure Security Key**
    ```php
-   // Edit line 11 in arzo-tool.php
+   // Edit line 11 in wp-arzo.php
    define('ACCESS_KEY', 'your-unique-secure-key-here');
    ```
 
 4. **Set Permissions**
    ```bash
-   chmod 644 arzo-tool.php
+   chmod 644 wp-arzo.php
    ```
 
 5. **Access the Tool**
    ```
-   https://yoursite.com/arzo-tool.php?key=your-unique-secure-key-here
+   https://yoursite.com/wp-arzo.php?key=your-unique-secure-key-here
    ```
 
 ## 🔧 Configuration
@@ -158,7 +158,7 @@ Ensure proper file permissions for full functionality:
 
 ### Basic Access
 
-1. Navigate to `https://yoursite.com/arzo-tool.php?key=YOUR_ACCESS_KEY`
+1. Navigate to `https://yoursite.com/wp-arzo.php?key=YOUR_ACCESS_KEY`
 2. Use the navigation menu to access different features
 3. Each section provides specific functionality for WordPress management
 
@@ -262,7 +262,7 @@ If locked out of WordPress admin:
 
 ### Debug Mode
 Use the built-in Debug Management feature to easily configure WordPress debug settings:
-1. Go to the "Debug" tab in the maintenance tool
+1. Go to the "Debug" tab
 2. Use the visual interface to enable/disable debug options
 3. Monitor debug logs in real-time
 4. The tool automatically updates wp-config.php with proper settings
@@ -320,7 +320,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Yasir Shabbir**
 - Website: [yasirshabbir.com](https://yasirshabbir.com)
 - Email: [contact@yasirshabbir.com](mailto:contact@yasirshabbir.com)
-- GitHub: [@yasirshabbirservices](https://github.com/yasirshabbirservices/arzo-tool)
+- GitHub: [@yasirshabbirservices](https://github.com/yasirshabbirservices/wp-arzo)
 
 ## 🙏 Acknowledgments
 
