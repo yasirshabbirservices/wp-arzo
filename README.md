@@ -112,23 +112,23 @@ A comprehensive WordPress maintenance and system administration tool designed fo
    ```
 
 2. **Upload to WordPress Root**
-   - Upload `maintenance-tool.php` to your WordPress root directory
+   - Upload `arzo-tool.php` to your WordPress root directory
    - Ensure it's in the same directory as `wp-config.php`
 
 3. **Configure Security Key**
    ```php
-   // Edit line 11 in maintenance-tool.php
+   // Edit line 11 in arzo-tool.php
    define('ACCESS_KEY', 'your-unique-secure-key-here');
    ```
 
 4. **Set Permissions**
    ```bash
-   chmod 644 maintenance-tool.php
+   chmod 644 arzo-tool.php
    ```
 
 5. **Access the Tool**
    ```
-   https://yoursite.com/maintenance-tool.php?key=your-unique-secure-key-here
+   https://yoursite.com/arzo-tool.php?key=your-unique-secure-key-here
    ```
 
 ## 🔧 Configuration
@@ -158,7 +158,7 @@ Ensure proper file permissions for full functionality:
 
 ### Basic Access
 
-1. Navigate to `https://yoursite.com/maintenance-tool.php?key=YOUR_ACCESS_KEY`
+1. Navigate to `https://yoursite.com/arzo-tool.php?key=YOUR_ACCESS_KEY`
 2. Use the navigation menu to access different features
 3. Each section provides specific functionality for WordPress management
 
