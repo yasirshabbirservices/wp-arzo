@@ -107,7 +107,7 @@ A comprehensive WordPress maintenance and system administration tool designed fo
 
 1. **Download the Tool**
    ```bash
-   wget https://github.com/yasirshabbirservices/maintenance-tool/archive/refs/heads/main.zip
+   wget https://github.com/yasirshabbirservices/arzo-tool/archive/refs/heads/main.zip
    unzip main.zip
    ```
 
@@ -320,7 +320,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Yasir Shabbir**
 - Website: [yasirshabbir.com](https://yasirshabbir.com)
 - Email: [contact@yasirshabbir.com](mailto:contact@yasirshabbir.com)
-- GitHub: [@yasirshabbirservices](https://github.com/yasirshabbirservices/maintenance-tool)
+- GitHub: [@yasirshabbirservices](https://github.com/yasirshabbirservices/arzo-tool)
 
 ## 🙏 Acknowledgments
 
