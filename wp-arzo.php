@@ -4,7 +4,7 @@
  * Version: 5.0
  * Developer: Yasir Shabbir
  * Contact: contact@yasirshabbir.com
- * Description: System maintenance and backup verification tool
+ * Description: Ultimate WordPress Maintenance & Administration Suite
  */
 
 // Start output buffering to prevent header issues
