@@ -262,7 +262,7 @@ If locked out of WordPress admin:
 
 ### Debug Mode
 Use the built-in Debug Management feature to easily configure WordPress debug settings:
-1. Go to the "Debug" tab in the maintenance tool
+1. Go to the "Debug" tab
 2. Use the visual interface to enable/disable debug options
 3. Monitor debug logs in real-time
 4. The tool automatically updates wp-config.php with proper settings
