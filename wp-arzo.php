@@ -248,6 +248,20 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax' && isset($_GET['operati
     }
     
     switch ($operation) {
+        case 'clear_debug_log':
+            $log_file = WP_CONTENT_DIR . '/debug.log';
+            if (file_exists($log_file)) {
+                // Clear the debug log file by writing an empty string to it
+                if (file_put_contents($log_file, '') !== false) {
+                    $response = ['success' => true, 'message' => 'Debug log cleared successfully'];
+                } else {
+                    $response = ['success' => false, 'message' => 'Failed to clear debug log'];
+                }
+            } else {
+                $response = ['success' => false, 'message' => 'Debug log file does not exist'];
+            }
+            break;
+            
         case 'view_file':
             if (isset($_GET['file'])) {
                 $file_path = normalizePath($_GET['file']);
@@ -370,14 +384,24 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax' && isset($_GET['operati
             break;
             
         case 'log_debug_change':
-            if (isset($_POST['setting']) && isset($_POST['value']) && isset($_POST['old_value'])) {
-                $setting = sanitize_text_field($_POST['setting']);
-                $value = sanitize_text_field($_POST['value']);
-                $old_value = sanitize_text_field($_POST['old_value']);
+            if (isset($_POST['setting_name']) && isset($_POST['new_value'])) {
+                $setting = sanitize_text_field($_POST['setting_name']);
+                $value = sanitize_text_field($_POST['new_value']);
                 
                 // Create log entry
                 $timestamp = date('Y-m-d H:i:s');
-                $log_entry = "[{$timestamp}] Debug setting '{$setting}' changed from '{$old_value}' to '{$value}'\n";
+                $log_entry = "[{$timestamp}] Debug setting '{$setting}' changed to: " . ($value == '1' ? 'enabled' : 'disabled') . "\n";
+                
+                // Write to debug log file
+                $log_file = WP_CONTENT_DIR . '/debug.log';
+                if (file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX) !== false) {
+                    $response = ['success' => true, 'message' => 'Debug change logged successfully'];
+                } else {
+                    $response = ['success' => false, 'message' => 'Failed to write to debug log'];
+                }
+            } else if (isset($_POST['log_entry'])) {
+                // Alternative method using direct log entry
+                $log_entry = sanitize_text_field($_POST['log_entry']) . "\n";
                 
                 // Write to debug log file
                 $log_file = WP_CONTENT_DIR . '/debug.log';
@@ -1388,6 +1412,82 @@ $action = $_GET['action'] ?? 'info';
                 .catch(error => {
                     console.error('Error logging debug change:', error);
                 });
+        }
+        
+        // Copy debug log function
+         function copyDebugLog() {
+             // Get the debug log content
+             const logContent = document.getElementById('debug-log-content').innerText;
+             
+             // Create a temporary textarea element to copy from
+             const textarea = document.createElement('textarea');
+             textarea.value = logContent;
+             document.body.appendChild(textarea);
+             
+             // Select and copy the text
+             textarea.select();
+             document.execCommand('copy');
+             
+             // Remove the temporary textarea
+             document.body.removeChild(textarea);
+             
+             // Show a temporary checkmark icon
+             const copyIcon = document.querySelector('.fa-copy');
+             const originalColor = copyIcon.style.color;
+             
+             // Change to checkmark icon and green color
+             copyIcon.classList.remove('fa-copy');
+             copyIcon.classList.add('fa-check');
+             copyIcon.style.color = 'var(--success-color)';
+             
+             // Revert back after 1.5 seconds
+             setTimeout(function() {
+                 copyIcon.classList.remove('fa-check');
+                 copyIcon.classList.add('fa-copy');
+                 copyIcon.style.color = originalColor;
+             }, 1500);
+        }
+        
+        // Clear debug log function
+        function clearDebugLog() {
+            if (confirm('Are you sure you want to clear the debug log?')) {
+                // Send AJAX request to clear the debug log
+                fetch('?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=clear_debug_log', {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Clear the debug log content in the UI
+                            document.getElementById('debug-log-content').innerHTML = '<div style="color: #28a745; margin-bottom: 2px; padding: 2px 8px; border-left: 3px solid #28a745; padding-left: 12px;">Debug log has been cleared.</div>';
+                            
+                            // Show a temporary success message
+                            const message = document.createElement('div');
+                            message.textContent = 'Debug log cleared successfully!';
+                            message.style.position = 'fixed';
+                            message.style.top = '20px';
+                            message.style.left = '50%';
+                            message.style.transform = 'translateX(-50%)';
+                            message.style.padding = '10px 20px';
+                            message.style.background = 'var(--accent-color)';
+                            message.style.color = '#fff';
+                            message.style.borderRadius = '3px';
+                            message.style.zIndex = '9999';
+                            document.body.appendChild(message);
+                            
+                            // Remove the message after 2 seconds
+                            setTimeout(function() {
+                                document.body.removeChild(message);
+                            }, 2000);
+                        } else {
+                            alert('Error clearing debug log: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error clearing debug log');
+                    });
+            }
         }
     </script>
 </body>
@@ -2428,9 +2528,13 @@ function handleDebug() {
         </div>
         
         <?php if (file_exists(WP_CONTENT_DIR . '/debug.log')): ?>
-            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-top: 20px;">
+            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-top: 20px; position: relative;">
                 <h3>Recent Debug Log Entries</h3>
-                <div style="background: #1a1a1a; padding: 15px; border-radius: 3px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
+                <div style="position: absolute; top: 20px; right: 20px;">
+                    <i class="fas fa-copy" onclick="copyDebugLog()" style="cursor: pointer; margin-right: 10px; color: var(--accent-color);" title="Copy debug log"></i>
+                    <i class="fas fa-trash-alt" onclick="clearDebugLog()" style="cursor: pointer; color: var(--danger-color);" title="Clear debug log"></i>
+                </div>
+                <div id="debug-log-content" style="background: #1a1a1a; padding: 15px; border-radius: 3px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
                     <?php
                     $log_content = file_get_contents(WP_CONTENT_DIR . '/debug.log');
                     $log_lines = explode("\n", $log_content);
