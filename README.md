@@ -1,6 +1,6 @@
 # Introducing WP Arzo: The Ultimate WordPress Maintenance & Administration Suite
 
-![Version](https://img.shields.io/badge/version-5.0-blue.svg)
+![Version](https://img.shields.io/badge/version-5.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue.svg)
 ![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)
@@ -22,6 +22,7 @@ A comprehensive WordPress maintenance and system administration tool designed fo
 - **Server Information**: PHP version, memory limits, and server configuration
 - **Database Status**: Connection details and basic statistics
 - **Performance Metrics**: Memory usage and execution time monitoring
+- **PHP Limits Configuration**: Modify and reset PHP memory limits, execution time, upload size, and post size
 
 ### 👥 User Management
 - **User Listing**: View all WordPress users with roles and details
@@ -88,6 +89,13 @@ A comprehensive WordPress maintenance and system administration tool designed fo
 - **wp-config.php Auto-editing**: Safe automatic modification of WordPress configuration
 - **Debug Information Panel**: Comprehensive debug environment details and file status
 - **Debug Settings Guide**: Built-in documentation and recommended configurations
+
+### ⚙️ Extra Options & PHP Configuration
+- **PHP Limits Management**: Modify memory limit, execution time, upload size, and post size
+- **Multi-file Configuration**: Update settings in wp-config.php, .htaccess, or php.ini
+- **One-Click Reset**: Restore default PHP configuration values with a single click
+- **Real-time Feedback**: Visual confirmation of successful updates and changes
+- **Server-Specific Options**: Tailor PHP settings to your specific hosting environment
 
 ### 🎨 User Interface & Experience
 - **Ajax Pagination**: Smooth, dynamic loading of data without full page refreshes
@@ -231,6 +239,13 @@ If locked out of WordPress admin:
 4. Monitor debug log file size and recent entries
 5. Use the built-in guide for recommended configurations
 
+### PHP Limits Configuration
+1. Navigate to the "Extra Options" tab
+2. Select the target configuration file (wp-config.php, .htaccess, or php.ini)
+3. Set custom values for Memory Limit, Max Execution Time, Upload Max Filesize, and Post Max Size
+4. Click "Update PHP Limits" to apply changes
+5. Use "Reset to Defaults" to restore standard values (Memory: 128M, Execution: 30s, Upload/Post: 64M)
+
 ## ⚠️ Security Considerations
 
 ### Access Control
@@ -351,7 +366,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔄 Changelog
 
-### Version 5.0 (Current)
+### Version 5.1 (Current)
+- **NEW: PHP Limits Reset Functionality** - One-click reset of PHP configuration limits to default values
+- **IMPROVED: Extra Options Interface** - Enhanced PHP limits configuration with reset capability
+
+### Version 5.0
 - **NEW: Ajax Pagination System** - Smooth, dynamic loading for Users, Database Tables, and Plugins
 - **NEW: Scrollable Interfaces** - Convenient scrollbars for browsing large data lists
 - **NEW: Cache-Busting Technology** - Real-time data updates without browser caching issues
