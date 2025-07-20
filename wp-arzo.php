@@ -2279,8 +2279,8 @@ function handleUsers()
 
         function loadUsersPage(page) {
             fetch(
-                    `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_users_page&page=${page}&per_page=${perPage}`
-                    )
+                    `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_users_page&page=${page}&per_page=${perPage}&nocache=${new Date().getTime()}`
+                )
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -2478,8 +2478,8 @@ function handleDatabase()
 
         function loadTablesPage(page) {
             fetch(
-                    `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_db_tables_page&page=${page}&per_page=${perPage}`
-                    )
+                    `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_db_tables_page&page=${page}&per_page=${perPage}&nocache=${new Date().getTime()}`
+                )
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -2746,8 +2746,8 @@ function showPlugins()
 
         function loadPluginsPage(page) {
             fetch(
-                    `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_plugins_page&page=${page}&per_page=${perPage}`
-                    )
+                    `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_plugins_page&page=${page}&per_page=${perPage}&nocache=${new Date().getTime()}`
+                )
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
