@@ -1535,6 +1535,25 @@ $action = $_GET['action'] ?? 'info';
         if (e.key === 'Escape') {
             closeLightbox();
             closeFrontendInstructions();
+            closeCreateUserLightbox();
+        }
+    });
+    
+    // Create User lightbox functionality
+    function showCreateUserLightbox() {
+        document.getElementById('createUserLightbox').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCreateUserLightbox() {
+        document.getElementById('createUserLightbox').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+    
+    // Close Create User lightbox when clicking outside
+    document.getElementById('createUserLightbox').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCreateUserLightbox();
         }
     });
 
@@ -2225,7 +2244,10 @@ function handleUsers()
 
 ?>
 <div class="content">
-    <h2>User Management</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>User Management</h2>
+        <button type="button" onclick="showCreateUserLightbox()" class="btn btn-primary"><i class="fas fa-user-plus"></i> Create New User</button>
+    </div>
 
     <h3>Existing Users</h3>
     <div
@@ -2383,21 +2405,28 @@ function handleUsers()
     </script>
 
     </table>
-
-    <h3>Create New User</h3>
-    <form method="post">
-        <div class="form-group">
-            <label>Username:</label>
-            <input type="text" name="username" required>
-        </div>
-        <div class="form-group">
-            <label>Email:</label>
-            <input type="email" name="email" required>
-        </div>
-        <div class="form-group">
-            <label>Password:</label>
-            <input type="password" name="password" required>
-        </div>
+    
+    <!-- Hidden form that will be shown in lightbox -->
+    <div id="createUserLightbox" class="lightbox">
+        <div class="lightbox-content">
+            <div class="lightbox-header">
+                <h3>Create New User</h3>
+                <button class="lightbox-close" onclick="closeCreateUserLightbox()">&times;</button>
+            </div>
+            <div class="lightbox-body">
+                <form method="post" id="createUserForm">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" name="password" required>
+                    </div>
         <div class="form-group">
             <label>Role:</label>
             <select name="role">
@@ -2408,8 +2437,14 @@ function handleUsers()
                 <option value="subscriber">Subscriber</option>
             </select>
         </div>
-        <button type="submit" name="create_user" class="btn">Create User</button>
-    </form>
+                    <div class="lightbox-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCreateUserLightbox()">Cancel</button>
+                        <button type="submit" name="create_user" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 <?php
 }
