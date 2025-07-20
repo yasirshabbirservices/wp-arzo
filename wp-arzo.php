@@ -43,11 +43,6 @@ if (!function_exists('wp_delete_user')) {
     require_once(ABSPATH . 'wp-admin/includes/user.php');
 }
 
-// Load WordPress plugin functions
-if (!function_exists('activate_plugin')) {
-    require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-}
-
 // Handle login actions before any output
 $login_message = '';
 $login_redirect = '';
@@ -280,95 +275,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax' && isset($_GET['operati
     }
 
     switch ($operation) {
-        case 'toggle_plugin':
-            if (isset($_POST['plugin']) && isset($_POST['action'])) {
-                $plugin = $_POST['plugin'];
-                $action = $_POST['action'];
-
-                // Get current active plugins
-                $active_plugins = get_option('active_plugins', array());
-
-                if ($action === 'activate') {
-                    // Normalize plugin path (ensure forward slashes)
-                    $plugin = str_replace('\\', '/', $plugin);
-                    error_log("Normalized plugin path: " . $plugin);
-
-                    // Add to active plugins if not already active
-                    if (!in_array($plugin, $active_plugins)) {
-                        // Try the WordPress function first
-                        if (function_exists('activate_plugin')) {
-                            error_log("Activating plugin using WP function: " . $plugin);
-                            activate_plugin($plugin);
-                        } else {
-                            error_log("activate_plugin function does not exist");
-                        }
-
-                        // Always update our custom tracking
-                        $active_plugins[] = $plugin;
-                        update_option('active_plugins', $active_plugins);
-                        error_log("Updated active_plugins option: " . print_r($active_plugins, true));
-                    } else {
-                        error_log("Plugin already active: " . $plugin);
-                    }
-
-                    $is_active = in_array($plugin, $active_plugins);
-                    error_log("Final is_active status: " . ($is_active ? 'true' : 'false'));
-                    $response = [
-                        'success' => true,
-                        'message' => 'Plugin activated successfully',
-                        'is_active' => $is_active
-                    ];
-                } else if ($action === 'deactivate') {
-                    // Normalize plugin path (ensure forward slashes)
-                    $plugin = str_replace('\\', '/', $plugin);
-                    error_log("Normalized plugin path for deactivation: " . $plugin);
-
-                    // Remove from active plugins
-                    $key = array_search($plugin, $active_plugins);
-                    error_log("Deactivating plugin: " . $plugin . ", found at key: " . ($key !== false ? $key : 'not found'));
-                    
-                    // Even if the plugin is not found in the active_plugins array,
-                    // we should still return success with is_active = false
-                    // This ensures the UI correctly shows the plugin as inactive
-                    if ($key !== false) {
-                        // Try the WordPress function first
-                        if (function_exists('deactivate_plugins')) {
-                            error_log("Deactivating plugin using WP function: " . $plugin);
-                            deactivate_plugins($plugin);
-                        } else {
-                            error_log("deactivate_plugins function does not exist");
-                        }
-
-                        // Always update our custom tracking
-                        unset($active_plugins[$key]);
-                        $active_plugins = array_values($active_plugins); // Reindex array
-                        update_option('active_plugins', $active_plugins);
-                        error_log("Updated active_plugins option after deactivation: " . print_r($active_plugins, true));
-                    } else {
-                        error_log("Plugin not found in active plugins array");
-                        // Even if the plugin is not in the array, we should still consider it inactive
-                        // and return success to update the UI correctly
-                    }
-
-                    // Double-check the plugin is not in the active_plugins array
-                    $is_active = in_array($plugin, $active_plugins);
-                    error_log("Final is_active status after deactivation: " . ($is_active ? 'true' : 'false'));
-                    
-                    // Always return success with is_active = false for deactivation
-                    // This ensures the UI correctly shows the plugin as inactive
-                    $response = [
-                        'success' => true, 
-                        'message' => 'Plugin deactivated successfully',
-                        'is_active' => $is_active
-                    ];
-                } else {
-                    $response = ['success' => false, 'message' => 'Invalid action'];
-                }
-            } else {
-                $response = ['success' => false, 'message' => 'Missing plugin or action parameter'];
-            }
-            break;
-
         case 'get_users_page':
             if (isset($_GET['page']) && isset($_GET['per_page'])) {
                 $page = intval($_GET['page']);
@@ -457,21 +363,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax' && isset($_GET['operati
                     if (isset($plugin_keys[$i])) {
                         $plugin_file = $plugin_keys[$i];
                         $plugin_data = $plugins[$plugin_file];
-
-                        // Get active plugins and check if this plugin is active
-                        $active_plugins = get_option('active_plugins', array());
-
-                        // Normalize plugin path (ensure forward slashes)
-                        $normalized_plugin_file = str_replace('\\', '/', $plugin_file);
-                        error_log("get_plugins_page - Original plugin: " . $plugin_file);
-                        error_log("get_plugins_page - Normalized plugin: " . $normalized_plugin_file);
-                        error_log("get_plugins_page - Active plugins: " . print_r($active_plugins, true));
-
-                        $is_active = in_array($normalized_plugin_file, $active_plugins);
-                        error_log("get_plugins_page - Is plugin active: " . ($is_active ? 'true' : 'false'));
+                        $is_active = is_plugin_active($plugin_file);
 
                         $plugins_data[] = [
-                            'file' => $normalized_plugin_file, // Use normalized path for consistency
+                            'file' => $plugin_file,
                             'name' => $plugin_data['Name'],
                             'version' => $plugin_data['Version'],
                             'is_active' => $is_active
@@ -1532,7 +1427,7 @@ $action = $_GET['action'] ?? 'info';
                 </div>
             </div>
             <div>
-                v5.1
+                v5.0
                 <a href="https://github.com/yasirshabbirservices/maintenance-tool" target="_blank"
                     style="color: var(--accent-color); text-decoration: none; font-size: 14px; margin-left: 10px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
@@ -2385,7 +2280,7 @@ function handleUsers()
         function loadUsersPage(page) {
             fetch(
                     `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_users_page&page=${page}&per_page=${perPage}`
-                )
+                    )
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -2584,7 +2479,7 @@ function handleDatabase()
         function loadTablesPage(page) {
             fetch(
                     `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_db_tables_page&page=${page}&per_page=${perPage}`
-                )
+                    )
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -2799,8 +2694,17 @@ function handleFiles()
 
 function showPlugins()
 {
-    // We're now handling plugin activation/deactivation via AJAX
-    // This prevents the traditional form submission from interfering with our AJAX functionality
+    if (isset($_POST['activate_plugin'])) {
+        $plugin = $_POST['plugin'];
+        activate_plugin($plugin);
+        echo '<div class="success">Plugin activated!</div>';
+    }
+
+    if (isset($_POST['deactivate_plugin'])) {
+        $plugin = $_POST['plugin'];
+        deactivate_plugins($plugin);
+        echo '<div class="success">Plugin deactivated!</div>';
+    }
 
 ?>
 <div class="content">
@@ -2843,7 +2747,7 @@ function showPlugins()
         function loadPluginsPage(page) {
             fetch(
                     `?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=get_plugins_page&page=${page}&per_page=${perPage}`
-                )
+                    )
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -2874,8 +2778,7 @@ function showPlugins()
                 html += `<td>${plugin.version}</td>`;
                 html += `<td>${plugin.is_active ? 'Active' : 'Inactive'}</td>`;
                 html += '<td>';
-                html +=
-                    `<form style="display:inline;" onsubmit="handlePluginAction(event, '${plugin.file}', ${plugin.is_active})">`;
+                html += `<form method="post" style="display:inline;">`;
                 html += `<input type="hidden" name="plugin" value="${plugin.file}">`;
                 if (plugin.is_active) {
                     html +=
@@ -2919,85 +2822,6 @@ function showPlugins()
 
         // Make loadPluginsPage function globally available
         window.loadPluginsPage = loadPluginsPage;
-
-        // Handle plugin activation/deactivation via AJAX
-        window.handlePluginAction = function(event, pluginFile, isActive) {
-            event.preventDefault();
-
-            const action = isActive ? 'deactivate' : 'activate';
-            const formData = new FormData();
-            formData.append('plugin', pluginFile);
-            formData.append('action', action);
-
-            // Log for debugging
-            console.log('Sending request to toggle plugin:', pluginFile, 'Action:', action,
-                'Current status:', isActive ? 'Active' : 'Inactive');
-
-            // Show loading indicator
-            const button = event.target.closest('button');
-            const originalText = button.textContent;
-            button.textContent = 'Processing...';
-            button.disabled = true;
-
-            fetch(`?key=<?php echo ACCESS_KEY; ?>&action=ajax&operation=toggle_plugin`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Response received:', data);
-
-                    // Reset button state
-                    button.disabled = false;
-
-                    if (data.success) {
-                        // Get the actual status from the server response
-                        const newIsActive = data.is_active;
-                        console.log('Server reported plugin is now:', newIsActive ? 'Active' : 'Inactive');
-                        
-                        // Update button text based on the actual status from server
-                        button.textContent = newIsActive ? 'Deactivate' : 'Activate';
-
-                        // Update the status cell in the same row
-                        const row = button.closest('tr');
-                        const statusCell = row.cells[2]; // The status cell (3rd column)
-                        statusCell.textContent = newIsActive ? 'Active' : 'Inactive';
-
-                        // Update the onclick handler with the new status from server
-                        const form = button.closest('form');
-                        form.onsubmit = function(e) {
-                            handlePluginAction(e, pluginFile, newIsActive);
-                        };
-
-                        // Show success message
-                        const successDiv = document.createElement('div');
-                        successDiv.className = 'success';
-                        successDiv.textContent = data.message;
-
-                        // Insert the success message at the top of the content div
-                        const contentDiv = document.querySelector('.content');
-                        contentDiv.insertBefore(successDiv, contentDiv.firstChild);
-
-                        // Remove the success message after 3 seconds
-                        setTimeout(() => {
-                            successDiv.remove();
-                        }, 3000);
-                    } else {
-                        // Show error message and restore original button text
-                        console.error('Error from server:', data.message);
-                        button.disabled = false;
-                        button.textContent = originalText;
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    // Reset button state
-                    button.disabled = false;
-                    button.textContent = originalText;
-                    alert('An error occurred while processing your request.');
-                });
-        };
 
         // Initial load
         loadPluginsPage(currentPage);
