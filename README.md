@@ -8,7 +8,7 @@
 A comprehensive WordPress maintenance and system administration tool designed for developers, system administrators, and site owners who need advanced control over their WordPress installations.
 
 
-[![Watch the video](https://github.com/yasirshabbirservices/wp-arzo/blob/main/wp-arzo.png)](https://video.yasirshabbir.com/recordings/dIng2Kod7xx5Y35VCXlg)
+[![Watch the video]([https://github.com/yasirshabbirservices/wp-arzo/blob/main/wp-arzo.png](https://github.com/yasirshabbirservices/wp-arzo/blob/main/wp-arzo.png))](https://video.yasirshabbir.com/recordings/dIng2Kod7xx5Y35VCXlg)
 
 ## 🚀 Features
 
