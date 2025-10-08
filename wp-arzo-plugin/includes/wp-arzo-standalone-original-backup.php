@@ -548,9 +548,7 @@ if ($action === 'wp_arzo_standalone') {
 <head>
     <title>System Maintenance Tool</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo WP_ARZO_PLUGIN_URL . 'assets/css/wp-arzo.css?v=' . WP_ARZO_VERSION; ?>">
-    <style style="display:none;">
-    /* CSS moved to external file: assets/css/wp-arzo.css */
+    <style>
     @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
 
     :root {
@@ -1395,7 +1393,6 @@ if ($action === 'wp_arzo_standalone') {
         }
     }
     </style>
-    <!-- External CSS loaded above -->
 </head>
 
 <body>
@@ -1753,17 +1750,6 @@ if ($action === 'wp_arzo_standalone') {
         }
     }
     </script>
-
-    <!-- External JavaScript -->
-    <script>
-        // Configuration for external JavaScript file
-        var wpArzoConfig = {
-            ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
-            adminUrl: '<?php echo admin_url(); ?>',
-            pluginUrl: '<?php echo WP_ARZO_PLUGIN_URL; ?>'
-        };
-    </script>
-    <script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/js/wp-arzo.js?v=' . WP_ARZO_VERSION; ?>"></script>
 </body>
 
 </html>
