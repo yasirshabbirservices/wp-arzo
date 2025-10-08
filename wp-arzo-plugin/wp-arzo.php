@@ -168,8 +168,8 @@ function wp_arzo_handle_standalone() {
         wp_die('You do not have sufficient permissions to access this page.');
     }
 
-    // Include the main tool file
-    include(WP_ARZO_PLUGIN_DIR . 'includes/wp-arzo-standalone.php');
+    // Include the modular tool file
+    include(WP_ARZO_PLUGIN_DIR . 'includes/wp-arzo-modular.php');
     exit;
 }
 add_action('wp_ajax_wp_arzo_standalone', 'wp_arzo_handle_standalone');
