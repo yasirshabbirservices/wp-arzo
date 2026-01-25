@@ -31,11 +31,18 @@ $feature_files = [
 ];
 
 // Check for file download or AJAX file operations which need to run before headers if they happen to be in a feature file
-if (isset($_GET['tab']) && $_GET['tab'] === 'files' && (isset($_GET['download']) || (isset($_GET['operation']) && in_array($_GET['operation'], ['view_file', 'edit_file', 'save_file'])))) {
-    // We need to load files.php immediately for these operations
-    if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/files.php')) {
-        include(WP_ARZO_PLUGIN_DIR . 'features/files.php');
-        exit;
+if (isset($_GET['tab'])) {
+    if ($_GET['tab'] === 'files' && (isset($_GET['download']) || (isset($_GET['operation']) && in_array($_GET['operation'], ['view_file', 'edit_file', 'save_file'])))) {
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/files.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/files.php');
+            exit;
+        }
+    }
+    if ($_GET['tab'] === 'database' && isset($_GET['operation']) && $_GET['operation'] === 'get_db_tables_page') {
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/database.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/database.php');
+            exit;
+        }
     }
 }
 if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features/' . $feature_files[$action])) {
