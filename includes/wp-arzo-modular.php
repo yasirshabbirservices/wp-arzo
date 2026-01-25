@@ -59,6 +59,9 @@ $feature_files = [
     'users' => 'users.php',
     'database' => 'database.php',
     'files' => 'files.php',
+    'plugins' => 'plugins.php',
+    'debug' => 'debug.php',
+    'maintenance' => 'maintenance.php',
     // Others will be added one by one
 ];
 
