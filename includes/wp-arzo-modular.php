@@ -42,6 +42,12 @@ if (isset($_GET['tab'])) {
             exit;
         }
     }
+    if ($_GET['tab'] === 'debug' && isset($_GET['operation']) && in_array($_GET['operation'], ['clear_debug_log', 'log_debug_change'])) {
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/debug.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/debug.php');
+            exit;
+        }
+    }
 }
 
 // Include the header (everything before switch statement - lines 1-1464)
