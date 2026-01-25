@@ -2,3 +2,13 @@
 /wp-reset-pro-v617
 wpr_recovery_rqlcxwrivlqigzjygscszqiszlwrkwmm.php
 wpr_recovery.php
+.vscode
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tar
+*.gz
+wp-arzo-plugin/EXTERNAL-ASSETS-SUMMARY.md
+.versal
+.claude

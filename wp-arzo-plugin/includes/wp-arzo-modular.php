@@ -26,9 +26,18 @@ $feature_files = [
     'info' => 'site-info.php',
     'users' => 'users.php',
     'database' => 'database.php',
+    'files' => 'files.php',
     // Others will be added one by one
 ];
 
+// Check for file download or AJAX file operations which need to run before headers if they happen to be in a feature file
+if (isset($_GET['tab']) && $_GET['tab'] === 'files' && (isset($_GET['download']) || (isset($_GET['operation']) && in_array($_GET['operation'], ['view_file', 'edit_file', 'save_file'])))) {
+    // We need to load files.php immediately for these operations
+    if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/files.php')) {
+        include(WP_ARZO_PLUGIN_DIR . 'features/files.php');
+        exit;
+    }
+}
 if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features/' . $feature_files[$action])) {
     // Load modular feature
     include(WP_ARZO_PLUGIN_DIR . 'features/' . $feature_files[$action]);
@@ -46,54 +55,65 @@ if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features
     }
 
     // Execute the functions code in current scope
-    eval('?>' . $functions_code);
+    eval ('?>' . $functions_code);
 
     // Call the appropriate function based on action
     switch ($action) {
         case 'users':
-            if (function_exists('handleUsers')) handleUsers();
+            if (function_exists('handleUsers'))
+                handleUsers();
             break;
         case 'database':
-            if (function_exists('handleDatabase')) handleDatabase();
+            if (function_exists('handleDatabase'))
+                handleDatabase();
             break;
         case 'files':
-            if (function_exists('handleFiles')) handleFiles();
+            if (function_exists('handleFiles'))
+                handleFiles();
             break;
         case 'plugins':
-            if (function_exists('showPlugins')) showPlugins();
+            if (function_exists('showPlugins'))
+                showPlugins();
             break;
         case 'themes':
-            if (function_exists('showThemes')) showThemes();
+            if (function_exists('showThemes'))
+                showThemes();
             break;
         case 'debug':
-            if (function_exists('handleDebug')) handleDebug();
+            if (function_exists('handleDebug'))
+                handleDebug();
             break;
         case 'maintenance':
-            if (function_exists('handleMaintenanceModes')) handleMaintenanceModes();
+            if (function_exists('handleMaintenanceModes'))
+                handleMaintenanceModes();
             break;
         case 'extra_options':
-            if (function_exists('handleExtraOptions')) handleExtraOptions();
+            if (function_exists('handleExtraOptions'))
+                handleExtraOptions();
             break;
         case 'login':
-            if (function_exists('handleQuickLogin')) handleQuickLogin();
+            if (function_exists('handleQuickLogin'))
+                handleQuickLogin();
             break;
         case 'info':
         default:
-            if (function_exists('showSiteInfo')) showSiteInfo();
+            if (function_exists('showSiteInfo'))
+                showSiteInfo();
     }
 }
 ?>
-    </div>
+</div>
 
-    <!-- External JavaScript -->
-    <script>
-        // Configuration for external JavaScript file
-        var wpArzoConfig = {
-            ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
-            adminUrl: '<?php echo admin_url(); ?>',
-            pluginUrl: '<?php echo WP_ARZO_PLUGIN_URL; ?>'
-        };
-    </script>
-    <script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/js/wp-arzo.js?v=' . WP_ARZO_VERSION; ?>"></script>
+<!-- External JavaScript -->
+<script>
+    // Configuration for external JavaScript file
+    var wpArzoConfig = {
+        ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
+        adminUrl: '<?php echo admin_url(); ?>',
+        pluginUrl: '<?php echo WP_ARZO_PLUGIN_URL; ?>'
+    };
+</script>
+<script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/js/wp-arzo.js?v=' . WP_ARZO_VERSION; ?>"></script>
 </body>
+
 </html>
