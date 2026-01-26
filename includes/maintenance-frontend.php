@@ -262,12 +262,7 @@ function wp_arzo_maintenance_display_mode()
                 </div>
             <?php endif; ?>
 
-            <div class="site-info">
-                <p><?php echo get_bloginfo('name'); ?></p>
-                <?php if ($active_mode === 'maintenance'): ?>
-                    <p>Expected completion: Please check back in a few hours</p>
-                <?php endif; ?>
-            </div>
+
         </div>
     </body>
 
