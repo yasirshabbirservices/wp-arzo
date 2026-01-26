@@ -11,6 +11,30 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Handle AJAX operations
+if (isset($_GET['operation']) && $_GET['operation'] === 'update_maintenance_option') {
+    header('Content-Type: application/json');
+
+    if (isset($_POST['option_name']) && isset($_POST['option_value'])) {
+        $option = sanitize_text_field($_POST['option_name']);
+        $value = sanitize_text_field($_POST['option_value']);
+
+        // Map frontend option names to database option names if needed, 
+        // or just ensure we only allow specific options for security
+        $allowed_options = ['maintenance_tool_show_social_contacts'];
+
+        if (in_array($option, $allowed_options)) {
+            update_option($option, $value);
+            echo json_encode(['success' => true, 'message' => 'Option updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid option']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Missing parameters']);
+    }
+    exit;
+}
+
 function handleMaintenanceModes()
 {
     // Handle form submissions
@@ -39,14 +63,18 @@ function handleMaintenanceModes()
         $custom_message = wp_kses_post($_POST['custom_message'] ?? '');
         $custom_title = sanitize_text_field($_POST['custom_title'] ?? '');
         $custom_css = wp_strip_all_tags($_POST['custom_css'] ?? '');
-        $show_social_contacts = isset($_POST['show_social_contacts']) ? 1 : 0;
+        // Note: show_social_contacts is now handled by the toggle directly or preserved if not explicitly sent here (though forms send checkbox data)
+        // We'll prioritize what's in the form if submitted
+        if (isset($_POST['show_social_contacts_submit'])) {
+            $show_social_contacts = isset($_POST['show_social_contacts']) ? 1 : 0;
+            update_option('maintenance_tool_show_social_contacts', $show_social_contacts);
+        }
 
         // Save mode settings
         update_option('maintenance_tool_active_mode', $mode);
         update_option('maintenance_tool_custom_message', $custom_message);
         update_option('maintenance_tool_custom_title', $custom_title);
         update_option('maintenance_tool_custom_css', $custom_css);
-        update_option('maintenance_tool_show_social_contacts', $show_social_contacts);
 
         $message = '<div class="success">Maintenance mode "' . ucfirst($mode) . '" activated successfully!</div>';
     }
@@ -69,6 +97,26 @@ function handleMaintenanceModes()
     $developer_skype = get_option('maintenance_tool_developer_skype', '');
 
     ?>
+    <style>
+        .mode-card {
+            background: #2A2A2A;
+            padding: 20px;
+            border-radius: 3px;
+            border: 1px solid #333333;
+            transition: all 0.3s ease;
+        }
+
+        .mode-card.active {
+            border: 2px solid var(--accent-color, #16e791);
+            box-shadow: 0 0 15px rgba(22, 231, 145, 0.1);
+            background: #252525;
+        }
+
+        .mode-card h3 {
+            margin-top: 0;
+        }
+    </style>
+
     <div class="content">
         <h2>Maintenance Modes</h2>
 
@@ -126,7 +174,7 @@ function handleMaintenanceModes()
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
 
             <!-- Maintenance Mode -->
-            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333;">
+            <div class="mode-card <?php echo $current_mode === 'maintenance' ? 'active' : ''; ?>">
                 <h3 style="color: #ff9800;">🔧 Maintenance Mode</h3>
                 <p>Display a maintenance message while you work on the site. Includes noindex meta tag to prevent search
                     engine indexing.</p>
@@ -146,18 +194,28 @@ function handleMaintenanceModes()
 
                     <div class="form-group" style="margin-top: 10px; margin-bottom: 15px;">
                         <label class="switch">
-                            <input type="checkbox" name="show_social_contacts" value="1" <?php echo ($current_mode === 'maintenance' && $show_social_contacts) || ($current_mode !== 'maintenance') ? 'checked' : ''; ?>>
+                            <input type="checkbox" name="show_social_contacts" value="1" <?php echo ($show_social_contacts) ? 'checked' : ''; ?>
+                                onchange="toggleMaintenanceOption('maintenance_tool_show_social_contacts', this.checked)">
                             <span class="slider round"></span>
                         </label>
                         <span style="margin-left: 10px; vertical-align: middle;">Show Social Contacts</span>
+                        <input type="hidden" name="show_social_contacts_submit" value="1">
                     </div>
 
-                    <button type="submit" name="activate_mode" class="btn btn-warning">Activate Maintenance Mode</button>
+                    <button type="submit" name="activate_mode" class="btn btn-warning"
+                        style="<?php echo $current_mode === 'maintenance' ? 'background: transparent; border: 1px solid #ff9800; color: #ff9800;' : ''; ?>">
+                        <?php echo $current_mode === 'maintenance' ? 'Update Maintenance Settings' : 'Activate Maintenance Mode'; ?>
+                    </button>
+                    <!-- Visual indicator for active mode -->
+                    <?php if ($current_mode === 'maintenance'): ?>
+                        <div style="margin-top: 10px; font-size: 12px; color: #16e791; font-weight: bold;"><i
+                                class="fas fa-check-circle"></i> Mode Active</div>
+                    <?php endif; ?>
                 </form>
             </div>
 
             <!-- Coming Soon Mode -->
-            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333;">
+            <div class="mode-card <?php echo $current_mode === 'coming_soon' ? 'active' : ''; ?>">
                 <h3 style="color: #4CAF50;">🚀 Coming Soon Mode</h3>
                 <p>Show a coming soon page for new websites. Includes noindex meta tag and email collection form.</p>
                 <form method="post">
@@ -176,18 +234,27 @@ function handleMaintenanceModes()
 
                     <div class="form-group" style="margin-top: 10px; margin-bottom: 15px;">
                         <label class="switch">
-                            <input type="checkbox" name="show_social_contacts" value="1" <?php echo ($current_mode === 'coming_soon' && $show_social_contacts) || ($current_mode !== 'coming_soon') ? 'checked' : ''; ?>>
+                            <input type="checkbox" name="show_social_contacts" value="1" <?php echo ($show_social_contacts) ? 'checked' : ''; ?>
+                                onchange="toggleMaintenanceOption('maintenance_tool_show_social_contacts', this.checked)">
                             <span class="slider round"></span>
                         </label>
                         <span style="margin-left: 10px; vertical-align: middle;">Show Social Contacts</span>
+                        <input type="hidden" name="show_social_contacts_submit" value="1">
                     </div>
 
-                    <button type="submit" name="activate_mode" class="btn btn-success">Activate Coming Soon Mode</button>
+                    <button type="submit" name="activate_mode" class="btn btn-success"
+                        style="<?php echo $current_mode === 'coming_soon' ? 'background: transparent; border: 1px solid #4CAF50; color: #4CAF50;' : ''; ?>">
+                        <?php echo $current_mode === 'coming_soon' ? 'Update Coming Soon Settings' : 'Activate Coming Soon Mode'; ?>
+                    </button>
+                    <?php if ($current_mode === 'coming_soon'): ?>
+                        <div style="margin-top: 10px; font-size: 12px; color: #16e791; font-weight: bold;"><i
+                                class="fas fa-check-circle"></i> Mode Active</div>
+                    <?php endif; ?>
                 </form>
             </div>
 
             <!-- Money Request Mode -->
-            <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333;">
+            <div class="mode-card <?php echo $current_mode === 'payment_request' ? 'active' : ''; ?>">
                 <h3 style="color: #dc3545;">💰 Payment Request Mode</h3>
                 <p>Display a payment request message for clients who haven't paid. Includes noindex and contact form.</p>
                 <form method="post">
@@ -206,13 +273,22 @@ function handleMaintenanceModes()
 
                     <div class="form-group" style="margin-top: 10px; margin-bottom: 15px;">
                         <label class="switch">
-                            <input type="checkbox" name="show_social_contacts" value="1" <?php echo ($current_mode === 'payment_request' && $show_social_contacts) || ($current_mode !== 'payment_request') ? 'checked' : ''; ?>>
+                            <input type="checkbox" name="show_social_contacts" value="1" <?php echo ($show_social_contacts) ? 'checked' : ''; ?>
+                                onchange="toggleMaintenanceOption('maintenance_tool_show_social_contacts', this.checked)">
                             <span class="slider round"></span>
                         </label>
                         <span style="margin-left: 10px; vertical-align: middle;">Show Social Contacts</span>
+                        <input type="hidden" name="show_social_contacts_submit" value="1">
                     </div>
 
-                    <button type="submit" name="activate_mode" class="btn btn-danger">Activate Payment Request Mode</button>
+                    <button type="submit" name="activate_mode" class="btn btn-danger"
+                        style="<?php echo $current_mode === 'payment_request' ? 'background: transparent; border: 1px solid #dc3545; color: #dc3545;' : ''; ?>">
+                        <?php echo $current_mode === 'payment_request' ? 'Update Payment Settings' : 'Activate Payment Request Mode'; ?>
+                    </button>
+                    <?php if ($current_mode === 'payment_request'): ?>
+                        <div style="margin-top: 10px; font-size: 12px; color: #16e791; font-weight: bold;"><i
+                                class="fas fa-check-circle"></i> Mode Active</div>
+                    <?php endif; ?>
                 </form>
             </div>
         </div>
@@ -262,6 +338,45 @@ function handleMaintenanceModes()
             </ul>
         </div>
     </div>
+
+    <script>
+        function toggleMaintenanceOption(optionName, isChecked) {
+            // Base URL for AJAX
+            const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>';
+
+            // Prepare data
+            const formData = new FormData();
+            formData.append('option_name', optionName);
+            formData.append('option_value', isChecked ? '1' : '0');
+
+            // Send request
+            fetch(`${baseUrl}&tab=maintenance&operation=update_maintenance_option`, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Sync all checkboxes with this name
+                        const checkboxes = document.querySelectorAll(`input[name="show_social_contacts"]`);
+                        checkboxes.forEach(cb => {
+                            cb.checked = isChecked;
+                        });
+
+                        // Optional: show a small toast notification
+                        // console.log('Setting updated');
+                    } else {
+                        alert('Failed to update setting: ' + data.message);
+                        // Revert checkbox state
+                        document.querySelector(`input[name="show_social_contacts"]`).checked = !isChecked;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating settings');
+                });
+        }
+    </script>
     <?php
 }
 
