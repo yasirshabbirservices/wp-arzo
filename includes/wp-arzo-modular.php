@@ -48,6 +48,12 @@ if (isset($_GET['tab'])) {
             exit;
         }
     }
+    if ($_GET['tab'] === 'maintenance' && isset($_GET['operation']) && in_array($_GET['operation'], ['update_maintenance_option'])) {
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/maintenance.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/maintenance.php');
+            exit;
+        }
+    }
 }
 
 // Include the header (everything before switch statement - lines 1-1464)
