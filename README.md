@@ -184,13 +184,6 @@ Ensure proper file permissions for full functionality:
 
 ### Maintenance Modes Usage
 
-#### Setting Up Maintenance Modes
-1. **Install Frontend Handler**: Download and install the `maintenance-tool-frontend.php` file to `wp-content/mu-plugins/`
-2. **Configure Social Contacts**: Set up developer contact information (email, phone, WhatsApp, Skype)
-3. **Choose Mode**: Select from maintenance, coming soon, or payment request modes
-4. **Customize Content**: Add custom titles, messages, and CSS styling
-5. **Activate Mode**: Click the respective activation button
-
 #### Mode Features
 - **🔧 Maintenance Mode**: Perfect for scheduled maintenance, updates, or repairs
   - Returns HTTP 503 status (Service Unavailable)
