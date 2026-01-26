@@ -4,7 +4,7 @@
  * Loads HTML structure and routes to modular feature files
  *
  * @package WP_Arzo
- * @version 5.1
+ * @version 6.0
  */
 
 // Security check
