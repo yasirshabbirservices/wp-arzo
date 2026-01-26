@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
- * Plugin URI: https://github.com/yasirshabbirservices/maintenance-tool
+ * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 5.1
+ * Version: 6.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WP_ARZO_VERSION', '5.1');
+define('WP_ARZO_VERSION', '6.0');
 define('WP_ARZO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WP_ARZO_PLUGIN_URL', plugin_dir_url(__FILE__));
 
