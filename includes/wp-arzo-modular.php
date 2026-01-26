@@ -81,10 +81,10 @@ if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features
     $standalone_file = WP_ARZO_PLUGIN_DIR . 'includes/wp-arzo-standalone.php';
     $all_lines = file($standalone_file);
 
-    // Extract just the functions part (from line 1771 onwards, but skip the closing HTML/JS at end)
-    // The functions start at line 1771 (index 1770) and we need to find where they end
+    // Extract just the functions part (from line 1761 onwards, but skip the closing HTML/JS at end)
+    // The functions start at line 1761 (index 1760) and we need to find where they end
     $functions_code = '';
-    for ($i = 1770; $i < count($all_lines); $i++) {
+    for ($i = 1760; $i < count($all_lines); $i++) {
         $functions_code .= $all_lines[$i];
     }
 
