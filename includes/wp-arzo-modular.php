@@ -48,7 +48,7 @@ if (isset($_GET['tab'])) {
             exit;
         }
     }
-    if ($_GET['tab'] === 'maintenance' && isset($_GET['operation']) && in_array($_GET['operation'], ['update_maintenance_option'])) {
+    if ($_GET['tab'] === 'maintenance' && isset($_GET['operation']) && in_array($_GET['operation'], ['update_maintenance_option', 'activate_mode', 'deactivate_mode'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/maintenance.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/maintenance.php');
             exit;
