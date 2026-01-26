@@ -248,6 +248,11 @@ function handleMaintenanceModes()
             font-size: 12px;
         }
 
+        /* Header Icon Spacing */
+        .settings-box h3 i {
+            margin-right: 10px;
+        }
+
         /* Form Groups - IMproved Inputs */
         .form-group {
             margin-bottom: 15px;
@@ -264,7 +269,7 @@ function handleMaintenanceModes()
             width: 100%;
             padding: 12px;
             background: #151515;
-            /* Darker background */
+            /* Standard Dark background */
             border: 1px solid #444;
             /* Distinct border */
             color: #fff;
