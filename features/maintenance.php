@@ -98,7 +98,7 @@ function handleMaintenanceModes()
 
         /* Card Styling (Plugin Colors) */
         .mode-card {
-            background: #2A2A2A;
+            background: #252525;
             border-radius: 6px;
             border: 1px solid #333;
             padding: 25px;
@@ -398,7 +398,7 @@ function handleMaintenanceModes()
 
         /* Settings Box */
         .settings-box {
-            background: #2A2A2A;
+            background: #252525;
             padding: 25px;
             border-radius: 6px;
             border: 1px solid #333;
