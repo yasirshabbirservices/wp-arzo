@@ -1410,8 +1410,8 @@ if ($action === 'wp_arzo_standalone') {
                 </div>
             </div>
             <div>
-                v5.1
-                <a href="https://github.com/yasirshabbirservices/maintenance-tool" target="_blank"
+                v6.0
+                <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
                     style="color: var(--accent-color); text-decoration: none; font-size: 14px; margin-left: 10px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
                         style="vertical-align: middle; margin-right: 5px;">
