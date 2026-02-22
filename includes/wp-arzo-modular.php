@@ -39,9 +39,23 @@ if (isset($_GET['tab'])) {
         }
     }
     // Handle Plugin operations
-    if (($_GET['tab'] === 'plugins' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && $_GET['operation'] === 'get_plugins_page') {
+    if (($_GET['tab'] === 'plugins' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['get_plugins_page', 'toggle_plugin'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/plugins.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/plugins.php');
+            exit;
+        }
+    }
+    // Handle Theme operations
+    if (($_GET['tab'] === 'themes' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['get_themes_page', 'activate_theme'])) {
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/themes.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/themes.php');
+            exit;
+        }
+    }
+    // Handle User operations
+    if (($_GET['tab'] === 'users' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && $_GET['operation'] === 'get_users_page') {
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/users.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/users.php');
             exit;
         }
     }
