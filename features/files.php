@@ -1,4 +1,5 @@
 <?php
+
 /**
  * File Manager Feature
  *
@@ -12,6 +13,99 @@ if (!defined('ABSPATH')) {
 }
 
 // Helper functions for file operations are loaded from wp-arzo-header.php
+
+// Ensure helper functions are available
+if (!function_exists('normalizePath')) {
+    function normalizePath($path)
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $path = str_replace('/', '\\', $path);
+        }
+        return $path;
+    }
+}
+
+if (!function_exists('isEditableFile')) {
+    function isEditableFile($file_path)
+    {
+        $editable_extensions = ['php', 'html', 'htm', 'css', 'js', 'json', 'xml', 'txt', 'md', 'sql', 'htaccess', 'log', 'ini', 'conf', 'yml', 'yaml'];
+        $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+        return in_array($extension, $editable_extensions) || basename($file_path) === '.htaccess';
+    }
+}
+
+if (!function_exists('isImageFile')) {
+    function isImageFile($file_path)
+    {
+        $image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+        $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+        return in_array($extension, $image_extensions);
+    }
+}
+
+if (!function_exists('isBinaryFile')) {
+    function isBinaryFile($file_path)
+    {
+        if (!file_exists($file_path) || !is_file($file_path)) {
+            return false;
+        }
+
+        $binary_extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'pdf', 'zip', 'rar', 'tar', 'gz', 'exe', 'dll', 'so', 'dylib'];
+        $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+
+        if (in_array($extension, $binary_extensions)) {
+            return true;
+        }
+
+        // Check file content for binary data
+        $handle = fopen($file_path, 'rb');
+        $chunk = fread($handle, 1024);
+        fclose($handle);
+
+        return strpos($chunk, "\0") !== false;
+    }
+}
+
+if (!function_exists('getFileIcon')) {
+    function getFileIcon($file_path)
+    {
+        $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+        $icon_map = [
+            'pdf' => '📄',
+            'doc' => '📝',
+            'docx' => '📝',
+            'xls' => '📊',
+            'xlsx' => '📊',
+            'ppt' => '📽️',
+            'pptx' => '📽️',
+            'zip' => '🗜️',
+            'rar' => '🗜️',
+            'tar' => '🗜️',
+            'gz' => '🗜️',
+            'mp3' => '🎵',
+            'wav' => '🎵',
+            'flac' => '🎵',
+            'mp4' => '🎬',
+            'avi' => '🎬',
+            'mov' => '🎬',
+            'mkv' => '🎬',
+            'jpg' => '🖼️',
+            'jpeg' => '🖼️',
+            'png' => '🖼️',
+            'gif' => '🖼️',
+            'bmp' => '🖼️',
+            'webp' => '🖼️',
+            'exe' => '⚙️',
+            'msi' => '⚙️',
+            'sql' => '🗃️',
+            'php' => '🐘',
+            'js' => '📜',
+            'css' => '🎨',
+            'html' => '🌐'
+        ];
+        return isset($icon_map[$extension]) ? $icon_map[$extension] : '📄';
+    }
+}
 
 
 // Handle file download
@@ -222,7 +316,7 @@ function handleFiles()
         }
     }
 
-    ?>
+?>
     <div class="content">
         <h2>File Manager</h2>
         <p><strong>Current Directory:</strong> <?php echo $current_dir; ?></p>
@@ -317,7 +411,7 @@ function handleFiles()
         </div>
 
     </div>
-    <?php
+<?php
 }
 
 // Call the function
