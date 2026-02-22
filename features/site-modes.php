@@ -70,19 +70,33 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'deactivate_mode') {
 // Handle Emergency Script Generation
 if (isset($_GET['operation']) && $_GET['operation'] === 'generate_emergency_script') {
     header('Content-Type: application/json');
-    if (isset($_POST['password'])) {
-        $password = $_POST['password'];
-        $hash = password_hash($password, PASSWORD_DEFAULT);
+    $password = isset($_POST['password']) ? $_POST['password'] : wp_generate_password(20, true, true);
+    $hash = password_hash($password, PASSWORD_DEFAULT);
 
-        $config_file = WP_ARZO_PLUGIN_DIR . 'arzo-safe.php';
-        $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
+    $config_file = WP_ARZO_PLUGIN_DIR . 'arzo-safe.php';
+    $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
 
-        if (file_put_contents($config_file, $config_content)) {
-            $script_url = home_url('/wp-arzo/emergency/');
-            echo json_encode(['success' => true, 'url' => $script_url]);
+    if (file_put_contents($config_file, $config_content)) {
+        $script_url = home_url('/wp-arzo/emergency/');
+        echo json_encode(['success' => true, 'url' => $script_url, 'password' => $password]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to write config file.']);
+    }
+    exit;
+}
+
+// Handle Emergency Script Deletion
+if (isset($_GET['operation']) && $_GET['operation'] === 'delete_emergency_script') {
+    header('Content-Type: application/json');
+    $config_file = WP_ARZO_PLUGIN_DIR . 'arzo-safe.php';
+    if (file_exists($config_file)) {
+        if (unlink($config_file)) {
+            echo json_encode(['success' => true]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to write config file.']);
+            echo json_encode(['success' => false, 'message' => 'Failed to delete config file.']);
         }
+    } else {
+        echo json_encode(['success' => true]); // Already gone
     }
     exit;
 }
@@ -429,7 +443,8 @@ function handleMaintenanceModes()
         /* Emergency Mode Specifics */
         .mode-emergency {
             border-color: #ff4d4d !important;
-            grid-column: 1 / -1; /* Make it full width */
+            grid-column: 1 / -1;
+            /* Make it full width */
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -438,26 +453,77 @@ function handleMaintenanceModes()
         }
 
         .mode-emergency .card-header {
-            margin-bottom: 0;
+            margin-bottom: 5px;
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
+
         .mode-emergency .mode-desc {
             margin-bottom: 0;
             margin-right: auto;
             max-width: 500px;
+            color: #999;
+            font-size: 13px;
         }
 
-        .mode-emergency .form-group {
-            margin-bottom: 0;
-            flex-grow: 1;
-            max-width: 300px;
+        .mode-emergency .controls-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-left: auto;
         }
-        
-        .mode-emergency .btn-mode {
-            width: auto;
-            margin-bottom: 0;
-            padding: 10px 20px;
+
+        .mode-emergency .active-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-action {
+            background: #2A2A2A;
+            border: 1px solid #444;
+            color: #ccc;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .btn-action.success {
+            border-color: var(--accent-color, #16e791);
+            color: var(--accent-color, #16e791);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .mode-emergency .mode-icon {
@@ -485,26 +551,29 @@ function handleMaintenanceModes()
             word-break: break-all;
             font-size: 12px;
         }
-        
+
         .emergency-active-link:hover {
             background: rgba(255, 77, 77, 0.2);
         }
-        
+
         /* Responsive adjustments for emergency card */
         @media (max-width: 900px) {
             .mode-emergency {
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 15px;
             }
-            .mode-emergency .form-group, 
-            .mode-emergency .btn-mode,
-            .mode-emergency .mode-desc {
+
+            .mode-emergency .controls-container {
                 width: 100%;
-                max-width: none;
-                margin-bottom: 15px;
+                justify-content: space-between;
+                margin-left: 0;
+                flex-wrap: wrap;
             }
-            .mode-emergency .card-header {
-                margin-bottom: 15px;
+
+            .mode-emergency .active-controls {
+                width: 100%;
+                flex-wrap: wrap;
             }
         }
 
@@ -727,42 +796,49 @@ function handleMaintenanceModes()
                     <i class="fas fa-eye"></i> View Active Mode
                 </a>
             </div>
-            
+
             <!-- Emergency Mode -->
             <div class="mode-card mode-emergency <?php echo $emergency_configured ? 'active' : ''; ?>" id="card-emergency">
                 <?php if ($emergency_configured): ?>
                     <div class="status-badge" style="background: #ff4d4d; color: #fff;">ACTIVE</div>
                 <?php endif; ?>
 
-                <div class="card-header">
-                    <i class="fas fa-ambulance mode-icon"></i>
-                    <h3>Emergency Mode</h3>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <div class="card-header">
+                        <i class="fas fa-ambulance mode-icon"></i>
+                        <h3>Emergency Mode</h3>
+                    </div>
+                    <p class="mode-desc">Standalone recovery script to access your site if WordPress breaks (WSOD, plugin conflicts, etc.).</p>
                 </div>
 
-                <p class="mode-desc">Standalone recovery script to access your site if WordPress breaks (WSOD, plugin conflicts, etc.).</p>
+                <div class="controls-container">
+                    <?php if ($emergency_configured): ?>
+                        <div class="active-controls" id="emergency-active-controls">
+                            <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo home_url('/wp-arzo/emergency/'); ?>', this)">
+                                <i class="fas fa-link"></i> Copy Link
+                            </button>
+                            <!-- Password is not stored in plain text, so we can't show "Copy Password" on reload, only after fresh generation. 
+                                 However, user requested persistent buttons. We'll handle this via JS for fresh generation 
+                                 and maybe show a "Reset" option here if needed. For now, following instructions. -->
+                            <button type="button" class="btn-action" style="border-color: #ff4d4d; color: #ff4d4d;" onclick="deleteEmergencyScript()">
+                                <i class="fas fa-trash-alt"></i> Deactivate
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <div id="emergency-inactive-controls">
+                            <!-- Placeholder for consistency -->
+                        </div>
+                    <?php endif; ?>
 
-                <?php if ($emergency_configured): ?>
-                    <div class="info-alert" style="background: rgba(255, 77, 77, 0.1); border-color: rgba(255, 77, 77, 0.3);">
-                        <svg viewBox="0 0 20 20" style="fill: #ff4d4d;">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="info-alert-text" style="color: #ff4d4d;">Emergency script is active.</span>
+                    <div class="switch-wrapper" style="margin: 0; padding: 0; border: none;">
+                        <label class="switch">
+                            <input type="checkbox" id="emergency-toggle"
+                                onchange="toggleEmergencyMode(this.checked)"
+                                <?php echo $emergency_configured ? 'checked' : ''; ?>>
+                            <span class="slider round"></span>
+                        </label>
                     </div>
-                    
-                    <a href="<?php echo home_url('/wp-arzo/emergency/'); ?>" target="_blank" class="emergency-active-link">
-                        <i class="fas fa-external-link-alt"></i> <?php echo home_url('/wp-arzo/emergency/'); ?>
-                    </a>
-                    <p style="color: #999; font-size: 11px; margin-top: 5px;">Save this URL! It works even if WP Admin is inaccessible.</p>
-                <?php else: ?>
-                    <div class="form-group">
-                        <label>Set Recovery Password</label>
-                        <input type="password" id="emergency-pass" class="form-control" placeholder="Enter a secure password">
-                    </div>
-
-                    <button type="button" class="btn-mode btn-activate" onclick="generateEmergencyScript()">
-                        <i class="fas fa-bolt"></i> Generate Script
-                    </button>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
@@ -773,6 +849,130 @@ function handleMaintenanceModes()
     <script>
         const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>&tab=site_modes';
         let currentMode = '<?php echo $current_mode; ?>';
+
+        // --- Emergency Mode Logic ---
+        function toggleEmergencyMode(isChecked) {
+            const controlsContainer = document.querySelector('.controls-container');
+            const activeControls = document.getElementById('emergency-active-controls');
+
+            // Show loading state
+            const toggle = document.getElementById('emergency-toggle');
+            const originalDisplay = toggle.style.display;
+            toggle.style.display = 'none';
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            toggle.parentElement.appendChild(spinner);
+
+            if (isChecked) {
+                // Generate Script
+                fetch(`${baseUrl}&operation=generate_emergency_script`, {
+                        method: 'POST'
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Emergency Mode Activated');
+                            document.getElementById('card-emergency').classList.add('active');
+
+                            // Create persistent buttons dynamically
+                            const btnContainer = document.createElement('div');
+                            btnContainer.className = 'active-controls';
+                            btnContainer.id = 'emergency-active-controls';
+
+                            // Copy Password Button
+                            const btnPass = document.createElement('button');
+                            btnPass.className = 'btn-action';
+                            btnPass.innerHTML = '<i class="fas fa-key"></i> Copy Password';
+                            btnPass.onclick = function() {
+                                copyToClipboard(data.password, this);
+                            };
+
+                            // Copy Link Button
+                            const btnLink = document.createElement('button');
+                            btnLink.className = 'btn-action';
+                            btnLink.innerHTML = '<i class="fas fa-link"></i> Copy Link';
+                            btnLink.onclick = function() {
+                                copyToClipboard(data.url, this);
+                            };
+
+                            btnContainer.appendChild(btnPass);
+                            btnContainer.appendChild(btnLink);
+
+                            // Replace or Append
+                            const existing = document.getElementById('emergency-active-controls');
+                            if (existing) existing.remove();
+
+                            controlsContainer.insertBefore(btnContainer, controlsContainer.lastElementChild);
+                        } else {
+                            alert('Error: ' + data.message);
+                            toggle.checked = false;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Request failed');
+                        toggle.checked = false;
+                    })
+                    .finally(() => {
+                        spinner.remove();
+                        toggle.style.display = originalDisplay;
+                    });
+            } else {
+                // Deactivate / Delete Script
+                if (!confirm('Are you sure? This will delete the recovery script.')) {
+                    toggle.checked = true;
+                    spinner.remove();
+                    toggle.style.display = originalDisplay;
+                    return;
+                }
+
+                fetch(`${baseUrl}&operation=delete_emergency_script`, {
+                        method: 'POST'
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Emergency Mode Deactivated');
+                            document.getElementById('card-emergency').classList.remove('active');
+                            const controls = document.getElementById('emergency-active-controls');
+                            if (controls) controls.remove();
+                        } else {
+                            alert('Error: ' + data.message);
+                            toggle.checked = true;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        toggle.checked = true;
+                    })
+                    .finally(() => {
+                        spinner.remove();
+                        toggle.style.display = originalDisplay;
+                    });
+            }
+        }
+
+        function deleteEmergencyScript() {
+            // Helper for the separate delete button if present
+            const toggle = document.getElementById('emergency-toggle');
+            toggle.checked = false;
+            toggleEmergencyMode(false);
+        }
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.classList.add('success');
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('success');
+                }, 2000);
+            }).catch(err => {
+                console.error('Copy failed', err);
+                alert('Failed to copy');
+            });
+        }
 
         // --- Toast ---
         function showToast(message) {
