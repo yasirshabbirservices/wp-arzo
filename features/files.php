@@ -37,7 +37,22 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
                 'trashHash'     => 't1_Lw',                     // elFinder's hash of trash folder
                 'winHashFix'    => DIRECTORY_SEPARATOR !== '/', // to make hash same to Linux one on windows too
                 'uploadDeny'    => array('all'),                // All Mimetypes not allowed to upload
-                'uploadAllow'   => array('image', 'text/plain', 'application/pdf', 'application/zip', 'application/x-zip-compressed'), // Mimetype `image` and `text/plain` allowed to upload
+                'uploadAllow'   => array(
+                    'image', 
+                    'text/plain', 
+                    'application/pdf', 
+                    'application/zip', 
+                    'application/x-zip-compressed',
+                    'text/css', 
+                    'text/html', 
+                    'application/javascript', 
+                    'text/javascript', 
+                    'text/x-php', 
+                    'application/x-php',
+                    'application/json',
+                    'text/xml',
+                    'application/xml'
+                ), 
                 'uploadOrder'   => array('deny', 'allow'),      // allowed Mimetype `image` and `text/plain` only
                 'accessControl' => 'access',                    // disable and hide dot starting files (OPTIONAL)
                 'alias'         => 'Home',
@@ -97,14 +112,16 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
         };
     </script>
     
+    <!-- elFinder JS -->
     <script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/libs/elFinder/js/elfinder.full.js'; ?>"></script>
+    
+    <!-- Editors Support -->
+    <script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/libs/elFinder/js/extras/editors.default.js'; ?>"></script>
 
     <!-- elFinder Container -->
     <div id="elfinder" style="height: 100%;"></div>
 
     <script type="text/javascript" charset="utf-8">
-        // Documentation for client options:
-        // https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
         $(document).ready(function() {
             // Calculate height to fit window
             var height = $(window).height() - 180; // Adjust for header/nav
@@ -119,6 +136,13 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
                 defaultView: 'list',
                 themes : {
                     'material-gray' : '<?php echo WP_ARZO_PLUGIN_URL . 'assets/themes/material/material-gray/material-gray.min.css'; ?>'
+                },
+                // Enable Editors via CDN
+                cdns : {
+                    ace : 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12',
+                    codemirror : 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13',
+                    simplemde : 'https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2',
+                    ckeditor : 'https://cdnjs.cloudflare.com/ajax/libs/ckeditor/4.22.1'
                 },
                 uiOptions : {
                     // toolbar configuration
@@ -140,9 +164,7 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
                     ],
                     // directories tree options
                     tree : {
-                        // expand current root on init
                         openRootOnLoad : true,
-                        // auto load current dir parents
                         syncTree : true
                     },
                     // navbar options
@@ -152,16 +174,12 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
                     },
                     // current working directory options
                     cwd : {
-                        // display parent directory in listing as ".."
                         oldSchool : false
                     }
                 },
                 contextmenu : {
-                    // navbarfolder menu
                     navbar : ['open', '|', 'copy', 'cut', 'paste', 'duplicate', '|', 'rm', '|', 'info'],
-                    // current directory menu
                     cwd    : ['reload', 'back', '|', 'upload', 'mkdir', 'mkfile', 'paste', '|', 'info'],
-                    // current directory file menu
                     files  : [
                         'getfile', '|','open', 'quicklook', '|', 'download', '|', 'copy', 'cut', 'paste', 'duplicate', '|',
                         'rm', '|', 'edit', 'rename', 'resize', '|', 'archive', 'extract', '|', 'info'
@@ -179,16 +197,116 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
     </script>
     
     <style>
-        /* Custom overrides to match WP Arzo perfectly */
+        /* Custom overrides to match WP Arzo perfectly (Dark/Green Theme) */
+        
+        /* General Background & Text */
+        .elfinder-workzone {
+            background-color: #121212 !important;
+        }
         .elfinder-cwd-view-list .elfinder-cwd-file .elfinder-cwd-filename {
-            color: #e0e0e0;
+            color: #e0e0e0 !important;
         }
         .elfinder-cwd-view-list .elfinder-cwd-file:hover {
-            background: #2a2a2a;
+            background: #2a2a2a !important;
         }
         .elfinder-statusbar {
-            color: #999;
+            color: #999 !important;
+            background: #1e1e1e !important;
+            border-top: 1px solid #333 !important;
         }
-        /* Fix icon path if needed - usually handled by CSS but relative paths might be tricky */
+        
+        /* Navbar (Sidebar) */
+        .elfinder-navbar {
+            background: #1e1e1e !important;
+            border-right: 1px solid #333 !important;
+        }
+        .elfinder-navbar-dir {
+            color: #ccc !important;
+        }
+        .elfinder-navbar-dir:hover {
+            background: #2a2a2a !important;
+            color: #fff !important;
+        }
+        
+        /* Active States & Accents */
+        .ui-state-active, 
+        .ui-widget-content .ui-state-active, 
+        .ui-widget-header .ui-state-active,
+        .elfinder-cwd-view-list .elfinder-cwd-file.ui-selected {
+            border: 1px solid #16e791 !important;
+            background: #16e791 !important;
+            color: #121212 !important;
+        }
+        
+        /* Toolbar */
+        .elfinder-toolbar {
+            background: #1e1e1e !important;
+            border-bottom: 1px solid #333 !important;
+        }
+        .elfinder-button {
+            border: 1px solid transparent !important;
+        }
+        .elfinder-button:hover {
+            background: #2a2a2a !important;
+            border-color: #444 !important;
+        }
+        
+        /* Dialogs (Info, Edit, etc) */
+        .elfinder-dialog {
+            background: #1e1e1e !important;
+            color: #ddd !important;
+            border: 1px solid #333 !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+        }
+        .elfinder-dialog-title {
+            color: #fff !important;
+        }
+        .elfinder-dialog-icon {
+            opacity: 0.8;
+        }
+        .ui-dialog-buttonpane {
+            background: #1e1e1e !important;
+            border-top: 1px solid #333 !important;
+        }
+        
+        /* Context Menu */
+        .elfinder-contextmenu {
+            background: #1e1e1e !important;
+            border: 1px solid #333 !important;
+            color: #ddd !important;
+        }
+        .elfinder-contextmenu-item:hover {
+            background: #2a2a2a !important;
+            color: #16e791 !important;
+        }
+        
+        /* Ace Editor Customization */
+        #ace_settingsmenu {
+            background: #1e1e1e !important;
+            color: #ddd !important;
+        }
+        
+        /* Input fields */
+        .elfinder-dialog input, .elfinder-dialog select, .elfinder-dialog textarea {
+            background: #2a2a2a !important;
+            color: #fff !important;
+            border: 1px solid #444 !important;
+        }
+        
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121212; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
     </style>
 </div>
