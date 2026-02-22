@@ -62,6 +62,16 @@ function wp_arzo_activate()
 }
 register_activation_hook(__FILE__, 'wp_arzo_activate');
 
+// Ensure rewrite rules are flushed if they don't exist
+function wp_arzo_check_rewrite_rules() {
+    $rules = get_option('rewrite_rules');
+    if (!isset($rules['^wp-arzo/emergency/?$'])) {
+        wp_arzo_add_rewrite_rules();
+        flush_rewrite_rules();
+    }
+}
+add_action('admin_init', 'wp_arzo_check_rewrite_rules');
+
 // Load Maintenance Mode Frontend
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/maintenance-frontend.php');
 
