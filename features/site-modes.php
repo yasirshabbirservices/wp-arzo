@@ -816,15 +816,11 @@ function handleMaintenanceModes()
                 <div class="controls-container">
                     <?php if ($emergency_configured): ?>
                         <div class="active-controls" id="emergency-active-controls">
-                            <span class="active-label" style="color: #16e791; font-size: 12px; font-weight: bold; margin-right: 10px;"><i class="fas fa-check-circle"></i> Active</span>
                             <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo home_url('/wp-arzo/emergency/'); ?>', this)">
                                 <i class="fas fa-link"></i> Copy Link
                             </button>
-                            <!-- Password is not stored in plain text, so we can't show "Copy Password" on reload, only after fresh generation. 
-                                 However, user requested persistent buttons. We'll handle this via JS for fresh generation 
-                                 and maybe show a "Reset" option here if needed. For now, following instructions. -->
-                            <button type="button" class="btn-action" style="border-color: #ff4d4d; color: #ff4d4d;" onclick="deleteEmergencyScript()">
-                                <i class="fas fa-trash-alt"></i> Deactivate
+                            <button type="button" class="btn-action" onclick="resetEmergencyPassword(this)">
+                                <i class="fas fa-key"></i> Reset Password
                             </button>
                         </div>
                     <?php else: ?>
@@ -882,14 +878,6 @@ function handleMaintenanceModes()
                             btnContainer.className = 'active-controls';
                             btnContainer.id = 'emergency-active-controls';
 
-                            // Copy Password Button
-                            const btnPass = document.createElement('button');
-                            btnPass.className = 'btn-action';
-                            btnPass.innerHTML = '<i class="fas fa-key"></i> Copy Password';
-                            btnPass.onclick = function() {
-                                copyToClipboard(data.password, this);
-                            };
-
                             // Copy Link Button
                             const btnLink = document.createElement('button');
                             btnLink.className = 'btn-action';
@@ -898,8 +886,16 @@ function handleMaintenanceModes()
                                 copyToClipboard(data.url, this);
                             };
 
-                            btnContainer.appendChild(btnPass);
+                            // Copy Password Button
+                            const btnPass = document.createElement('button');
+                            btnPass.className = 'btn-action';
+                            btnPass.innerHTML = '<i class="fas fa-key"></i> Copy Password';
+                            btnPass.onclick = function() {
+                                copyToClipboard(data.password, this);
+                            };
+
                             btnContainer.appendChild(btnLink);
+                            btnContainer.appendChild(btnPass);
 
                             // Replace or Append
                             const existing = document.getElementById('emergency-active-controls');
@@ -955,11 +951,40 @@ function handleMaintenanceModes()
             }
         }
 
-        function deleteEmergencyScript() {
-            // Helper for the separate delete button if present
-            const toggle = document.getElementById('emergency-toggle');
-            toggle.checked = false;
-            toggleEmergencyMode(false);
+        function resetEmergencyPassword(btn) {
+            if (!confirm('This will generate a new password. The old one will stop working. Continue?')) return;
+
+            // Show loading state on button
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:1px;"></span>';
+            btn.disabled = true;
+
+            fetch(`${baseUrl}&operation=generate_emergency_script`, {
+                    method: 'POST'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Password Reset Successfully');
+
+                        // Transform button to Copy Password
+                        btn.innerHTML = '<i class="fas fa-key"></i> Copy Password';
+                        btn.disabled = false;
+                        btn.onclick = function() {
+                            copyToClipboard(data.password, this);
+                        };
+                    } else {
+                        alert('Error: ' + data.message);
+                        btn.innerHTML = originalContent;
+                        btn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Request failed');
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                });
         }
 
         function copyToClipboard(text, btn) {
