@@ -188,6 +188,53 @@ function scan_file_for_malware($file) {
     return false;
 }
 
+// Helper: Pagination
+function get_pagination_html($total_items, $items_per_page, $current_page, $base_url, $tab) {
+    $total_pages = ceil($total_items / $items_per_page);
+    if ($total_pages <= 1) return '';
+
+    $html = '<div class="pagination-container">';
+    $html .= '<div class="pagination-info">';
+    $html .= sprintf('Showing %d to %d of %d items', 
+        ($current_page - 1) * $items_per_page + 1, 
+        min($current_page * $items_per_page, $total_items), 
+        $total_items);
+    $html .= '</div>';
+    $html .= '<div class="pagination-controls">';
+
+    // Previous Button
+    $disabled = ($current_page <= 1) ? 'disabled' : '';
+    $prev_link = $disabled ? '#' : $base_url . "&tab=$tab&p=" . ($current_page - 1);
+    $html .= "<button onclick=\"location.href='$prev_link'\" $disabled><i class=\"fas fa-chevron-left\"></i> Previous</button>";
+
+    // Page Numbers
+    $start_page = max(1, $current_page - 2);
+    $end_page = min($total_pages, $current_page + 2);
+
+    if ($start_page > 1) {
+        $html .= "<button onclick=\"location.href='$base_url&tab=$tab&p=1'\">1</button>";
+        if ($start_page > 2) $html .= '<span style="color:#999; padding:5px;">...</span>';
+    }
+
+    for ($i = $start_page; $i <= $end_page; $i++) {
+        $active = ($i == $current_page) ? 'active' : '';
+        $html .= "<button class=\"$active\" onclick=\"location.href='$base_url&tab=$tab&p=$i'\">$i</button>";
+    }
+
+    if ($end_page < $total_pages) {
+        if ($end_page < $total_pages - 1) $html .= '<span style="color:#999; padding:5px;">...</span>';
+        $html .= "<button onclick=\"location.href='$base_url&tab=$tab&p=$total_pages'\">$total_pages</button>";
+    }
+
+    // Next Button
+    $disabled = ($current_page >= $total_pages) ? 'disabled' : '';
+    $next_link = $disabled ? '#' : $base_url . "&tab=$tab&p=" . ($current_page + 1);
+    $html .= "<button onclick=\"location.href='$next_link'\" $disabled>Next <i class=\"fas fa-chevron-right\"></i></button>";
+
+    $html .= '</div></div>';
+    return $html;
+}
+
 // MAIN LOGIC
 if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     verify_nonce();
@@ -440,13 +487,47 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
     .badge { padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
     .badge-active { background: rgba(22, 231, 145, 0.2); color: var(--accent-color); }
     .badge-inactive { background: rgba(108, 117, 125, 0.2); color: #999; }
+    
+    /* Branding Header */
+    .developer-info { display: flex; justify-content: space-between; align-items: center; background: var(--background-medium); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; margin-bottom: 20px; font-size: 13px; }
+    .developer-logo { display: flex; align-items: center; gap: 12px; }
+    .developer-logo img { width: 32px; height: 32px; border-radius: 50%; }
+    .developer-logo a { color: var(--accent-color); text-decoration: none; }
+
+    /* Pagination */
+    .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+    .pagination-info { color: #999; font-size: 13px; }
+    .pagination-controls { display: flex; gap: 5px; }
+    .pagination-controls button { background: var(--background-light); border: 1px solid var(--border-color); color: var(--secondary-text); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .pagination-controls button:hover:not(:disabled) { border-color: var(--accent-color); color: var(--accent-color); }
+    .pagination-controls button.active { background: var(--accent-color); color: var(--background-dark); border-color: var(--accent-color); }
+    .pagination-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+    
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Branding Header -->
+        <div class="developer-info">
+            <div class="developer-logo">
+                <img src="https://avatars.githubusercontent.com/u/10263378?v=4" alt="Yasir Shabbir">
+                <div>
+                    <div>Yasir Shabbir</div>
+                    <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="color:var(--accent-color);">v<?php echo WP_ARZO_EMERGENCY_VERSION; ?></span>
+                <a href="https://github.com/yasirshabbir/wp-arzo" target="_blank" style="text-decoration:none; color:var(--primary-text); display:flex; align-items:center; gap:5px;">
+                    <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                    GitHub
+                </a>
+            </div>
+        </div>
+
         <div class="flex-between" style="margin-bottom: 20px;">
-            <h1>WP Arzo Recovery</h1>
+            <h1>WP Arzo - Administration Suite (Recovery Mode)</h1>
             <?php if ($is_authenticated): ?>
                 <form method="post" style="margin:0;"><input type="hidden" name="action" value="logout"><button type="submit" class="btn btn-danger">Logout</button></form>
             <?php endif; ?>
@@ -481,6 +562,12 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                 $stylesheet_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'stylesheet'");
                 $active_theme = ($stylesheet_res && $row = $stylesheet_res->fetch_assoc()) ? $row['option_value'] : '';
 
+                // Pagination Setup
+                $items_per_page = 10;
+                $current_page = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
+                $current_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
+                $base_url = '?'; // Since it's standalone
+
                 // Get Lists via file scan
                 $all_plugins = [];
                 $plugin_dir = WP_CONTENT_DIR . '/plugins';
@@ -497,6 +584,10 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                         }
                     }
                 }
+                // Pagination for Plugins
+                $total_plugins = count($all_plugins);
+                $plugins_offset = ($current_page - 1) * $items_per_page;
+                $display_plugins = array_slice($all_plugins, $plugins_offset, $items_per_page, true);
                 
                 $all_themes = [];
                 $theme_dir = WP_CONTENT_DIR . '/themes';
@@ -516,18 +607,22 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                         }
                     }
                 }
+                // Pagination for Themes
+                $total_themes = count($all_themes);
+                $themes_offset = ($current_page - 1) * $items_per_page;
+                $display_themes = array_slice($all_themes, $themes_offset, $items_per_page, true);
         ?>
 
         <div class="nav">
-            <button onclick="switchTab('dashboard')" class="active" id="btn-dashboard">Dashboard</button>
-            <button onclick="switchTab('plugins')" id="btn-plugins">Plugins</button>
-            <button onclick="switchTab('themes')" id="btn-themes">Themes</button>
-            <button onclick="switchTab('users')" id="btn-users">Users</button>
-            <button onclick="switchTab('core')" id="btn-core">Core Settings</button>
+            <button onclick="location.href='?tab=dashboard'" class="<?php echo $current_tab === 'dashboard' ? 'active' : ''; ?>" id="btn-dashboard">Dashboard</button>
+            <button onclick="location.href='?tab=plugins'" class="<?php echo $current_tab === 'plugins' ? 'active' : ''; ?>" id="btn-plugins">Plugins</button>
+            <button onclick="location.href='?tab=themes'" class="<?php echo $current_tab === 'themes' ? 'active' : ''; ?>" id="btn-themes">Themes</button>
+            <button onclick="location.href='?tab=users'" class="<?php echo $current_tab === 'users' ? 'active' : ''; ?>" id="btn-users">Users</button>
+            <button onclick="location.href='?tab=core'" class="<?php echo $current_tab === 'core' ? 'active' : ''; ?>" id="btn-core">Core Settings</button>
         </div>
 
         <!-- DASHBOARD -->
-        <div id="dashboard" class="content active">
+        <div id="dashboard" class="content <?php echo $current_tab === 'dashboard' ? 'active' : ''; ?>">
             <h2>System Status</h2>
             <div class="site-info-grid">
                 <div class="form-group"><strong>PHP Version:</strong> <?php echo phpversion(); ?></div>
@@ -539,7 +634,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         </div>
 
         <!-- PLUGINS -->
-        <div id="plugins" class="content">
+        <div id="plugins" class="content <?php echo $current_tab === 'plugins' ? 'active' : ''; ?>">
             <div class="flex-between">
                 <h2>Plugin Management</h2>
                 <form method="post" style="display:inline;" onsubmit="return confirm('Deactivate ALL except WP Arzo?');">
@@ -568,7 +663,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             <div style="max-height: 500px; overflow-y: auto;">
                 <table id="plugins-table">
                     <tr><th>Plugin Name</th><th>Path</th><th>Status</th><th>Action</th></tr>
-                    <?php foreach ($all_plugins as $path => $name): 
+                    <?php foreach ($display_plugins as $path => $name): 
                         $is_active = in_array($path, $active_plugins);
                     ?>
                         <tr>
@@ -594,10 +689,13 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     <?php endforeach; ?>
                 </table>
             </div>
+            
+            <!-- Pagination -->
+            <?php echo get_pagination_html($total_plugins, $items_per_page, $current_page, $base_url, 'plugins'); ?>
         </div>
 
         <!-- THEMES -->
-        <div id="themes" class="content">
+        <div id="themes" class="content <?php echo $current_tab === 'themes' ? 'active' : ''; ?>">
             <h2>Theme Management</h2>
             
             <!-- Upload -->
@@ -618,7 +716,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 
             <table id="themes-table">
                 <tr><th>Theme Name</th><th>Folder</th><th>Status</th><th>Action</th></tr>
-                <?php foreach ($all_themes as $slug => $name): 
+                <?php foreach ($display_themes as $slug => $name): 
                     $is_active = ($slug === $active_theme);
                 ?>
                     <tr>
@@ -644,10 +742,13 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     </tr>
                 <?php endforeach; ?>
             </table>
+            
+            <!-- Pagination -->
+            <?php echo get_pagination_html($total_themes, $items_per_page, $current_page, $base_url, 'themes'); ?>
         </div>
 
         <!-- USERS -->
-        <div id="users" class="content">
+        <div id="users" class="content <?php echo $current_tab === 'users' ? 'active' : ''; ?>">
             <h2>User Management</h2>
             
             <div style="background:var(--background-light); padding:15px; margin-bottom:20px; border-radius:3px;">
@@ -666,7 +767,11 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 
             <h4>Existing Users</h4>
             <?php 
-                $users_res = $conn->query("SELECT ID, user_login, user_email FROM {$prefix}users LIMIT 50");
+                $users_offset = ($current_page - 1) * $items_per_page;
+                $users_count_res = $conn->query("SELECT COUNT(*) as count FROM {$prefix}users");
+                $total_users = ($users_count_res && $row = $users_count_res->fetch_assoc()) ? $row['count'] : 0;
+                
+                $users_res = $conn->query("SELECT ID, user_login, user_email FROM {$prefix}users LIMIT $items_per_page OFFSET $users_offset");
             ?>
             <table>
                 <tr><th>ID</th><th>Username</th><th>Email</th><th>Reset Password</th></tr>
@@ -687,10 +792,13 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     </tr>
                 <?php endwhile; ?>
             </table>
+            
+            <!-- Pagination -->
+            <?php echo get_pagination_html($total_users, $items_per_page, $current_page, $base_url, 'users'); ?>
         </div>
 
         <!-- CORE -->
-        <div id="core" class="content">
+        <div id="core" class="content <?php echo $current_tab === 'core' ? 'active' : ''; ?>">
             <h2>Core Settings</h2>
             <?php
                 $siteurl_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'siteurl'");
