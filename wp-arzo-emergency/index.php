@@ -187,6 +187,24 @@ function scan_file_for_malware($file) {
     return false;
 }
 
+// Helper: Get Asset URL
+function get_asset_url($path) {
+    // Check if we can find 'wp-content' in the path
+    $base_path = '';
+    $script_name = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+    
+    if (strpos($script_name, 'wp-content') !== false) {
+        $parts = explode('wp-content', $script_name);
+        // Cleanly construct the path
+        $base_path = rtrim($parts[0], '/') . '/wp-content/plugins/wp-arzo/assets/' . $path;
+    } else {
+        // Fallback: assume standard structure relative to webroot
+        $base_path = '/wp-content/plugins/wp-arzo/assets/' . $path;
+    }
+    
+    return $base_path;
+}
+
 // Helper: Pagination
 function get_pagination_html($total_items, $items_per_page, $current_page, $base_url, $tab) {
     $total_pages = ceil($total_items / $items_per_page);
@@ -592,25 +610,6 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         </div>
     <?php else: ?>
     <div class="container">
-<?php
-// Helper: Get Asset URL
-function get_asset_url($path) {
-    // Check if we can find 'wp-content' in the path
-    $base_path = '';
-    $script_name = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
-    
-    if (strpos($script_name, 'wp-content') !== false) {
-        $parts = explode('wp-content', $script_name);
-        // Cleanly construct the path
-        $base_path = rtrim($parts[0], '/') . '/wp-content/plugins/wp-arzo/assets/' . $path;
-    } else {
-        // Fallback: assume standard structure relative to webroot
-        $base_path = '/wp-content/plugins/wp-arzo/assets/' . $path;
-    }
-    
-    return $base_path;
-}
-?>
         <!-- Branding Header -->
         <div class="developer-info">
             <div class="developer-logo">
