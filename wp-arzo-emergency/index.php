@@ -602,10 +602,6 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     <input type="password" name="<?php echo $setup_mode ? 'new_password' : 'password'; ?>" class="form-control" placeholder="Enter your password" required autofocus>
                     <button type="submit" class="btn"><?php echo $setup_mode ? 'Create & Login' : 'Login'; ?></button>
                 </form>
-                
-                <div class="footer-links">
-                    <a href="https://yasirshabbir.com" target="_blank">Yasir Shabbir</a> &bull; v<?php echo WP_ARZO_EMERGENCY_VERSION; ?>
-                </div>
             </div>
         </div>
     <?php else: ?>
