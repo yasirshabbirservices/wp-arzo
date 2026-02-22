@@ -199,39 +199,3 @@ function wp_arzo_handle_standalone()
 }
 add_action('wp_ajax_wp_arzo_standalone', 'wp_arzo_handle_standalone');
 
-/**
- * Handle direct access to tool (when opened in new tab)
- * This allows the tool to work without wp_ajax prefix
- */
-function wp_arzo_handle_direct_access()
-{
-    // Check if this is a request for our tool
-    if (
-        isset($_GET['action']) &&
-        (strpos($_SERVER['REQUEST_URI'], 'admin-ajax.php') !== false ||
-            strpos($_SERVER['REQUEST_URI'], 'wp-arzo') !== false)
-    ) {
-
-        // Let AJAX handler take care of it
-        return;
-    }
-}
-add_action('init', 'wp_arzo_handle_direct_access');
-
-/**
- * Activation hook
- */
-function wp_arzo_activate()
-{
-    // Nothing special needed on activation
-}
-register_activation_hook(__FILE__, 'wp_arzo_activate');
-
-/**
- * Deactivation hook
- */
-function wp_arzo_deactivate()
-{
-    // Nothing special needed on deactivation
-}
-register_deactivation_hook(__FILE__, 'wp_arzo_deactivate');
