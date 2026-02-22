@@ -342,6 +342,11 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
             color: var(--arzo-text-primary) !important;
             border: 1px solid #444 !important;
         }
+
+        /* Filter Inputs in File List */
+        .elfinder-cwd input, .elfinder-cwd select {
+             color: #000000 !important;
+        }
         
         /* Scrollbars */
         ::-webkit-scrollbar {
