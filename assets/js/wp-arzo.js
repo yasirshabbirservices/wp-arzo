@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function viewFile(filePath) {
     const url = new URL(wpArzoConfig.ajaxUrl);
     url.searchParams.set('action', 'wp_arzo_standalone');
-    url.searchParams.set('tab', 'ajax');
+    url.searchParams.set('tab', 'files');
     url.searchParams.set('operation', 'view_file');
     url.searchParams.set('file', filePath);
 
@@ -127,7 +127,7 @@ function viewFile(filePath) {
 function editFile(filePath) {
     const url = new URL(wpArzoConfig.ajaxUrl);
     url.searchParams.set('action', 'wp_arzo_standalone');
-    url.searchParams.set('tab', 'ajax');
+    url.searchParams.set('tab', 'files');
     url.searchParams.set('operation', 'edit_file');
     url.searchParams.set('file', filePath);
 
@@ -159,7 +159,7 @@ function saveFile(filePath) {
 
     const url = new URL(wpArzoConfig.ajaxUrl);
     url.searchParams.set('action', 'wp_arzo_standalone');
-    url.searchParams.set('tab', 'ajax');
+    url.searchParams.set('tab', 'files');
     url.searchParams.set('operation', 'save_file');
 
     fetch(url.toString(), {
@@ -197,7 +197,7 @@ function logDebugChange(settingName, newValue) {
 
     const url = new URL(wpArzoConfig.ajaxUrl);
     url.searchParams.set('action', 'wp_arzo_standalone');
-    url.searchParams.set('tab', 'ajax');
+    url.searchParams.set('tab', 'debug');
     url.searchParams.set('operation', 'log_debug_change');
 
     fetch(url.toString(), {
@@ -244,7 +244,7 @@ function clearDebugLog() {
     if (confirm('Are you sure you want to clear the debug log?')) {
         const url = new URL(wpArzoConfig.ajaxUrl);
         url.searchParams.set('action', 'wp_arzo_standalone');
-        url.searchParams.set('tab', 'ajax');
+        url.searchParams.set('tab', 'debug');
         url.searchParams.set('operation', 'clear_debug_log');
 
         fetch(url.toString(), {
@@ -385,7 +385,7 @@ if (typeof tablesPageFunctions !== 'undefined') {
     function loadTablesPage(page) {
         const url = new URL(wpArzoConfig.ajaxUrl);
         url.searchParams.set('action', 'wp_arzo_standalone');
-        url.searchParams.set('tab', 'ajax');
+        url.searchParams.set('tab', 'database');
         url.searchParams.set('operation', 'get_db_tables_page');
         url.searchParams.set('page', page);
         url.searchParams.set('per_page', perPage);
@@ -469,7 +469,7 @@ if (typeof pluginsPageFunctions !== 'undefined') {
     function loadPluginsPage(page) {
         const url = new URL(wpArzoConfig.ajaxUrl);
         url.searchParams.set('action', 'wp_arzo_standalone');
-        url.searchParams.set('tab', 'ajax');
+        url.searchParams.set('tab', 'plugins');
         url.searchParams.set('operation', 'get_plugins_page');
         url.searchParams.set('page', page);
         url.searchParams.set('per_page', perPage);

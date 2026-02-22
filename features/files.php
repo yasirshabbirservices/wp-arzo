@@ -51,111 +51,133 @@ if (isset($_GET['download'])) {
 if (isset($_GET['operation'])) {
     $operation = $_GET['operation'];
 
+    // Enhanced logging for debugging
+    error_log("WP Arzo File Manager: Operation '{$operation}' requested by user ID " . get_current_user_id());
+
     if (in_array($operation, ['view_file', 'edit_file', 'save_file'])) {
         header('Content-Type: application/json');
         $response = ['success' => false, 'message' => 'Unknown operation'];
 
-        switch ($operation) {
-            case 'view_file':
-                if (isset($_GET['file'])) {
-                    $file_path = normalizePath($_GET['file']);
+        try {
+            switch ($operation) {
+                case 'view_file':
+                    if (isset($_GET['file'])) {
+                        $file_path = normalizePath($_GET['file']);
 
-                    if (file_exists($file_path) && is_file($file_path)) {
-                        $filename = basename($file_path);
-                        $file_size = filesize($file_path);
-                        $file_ext = strtoupper(pathinfo($file_path, PATHINFO_EXTENSION));
-                        $modified = date('Y-m-d H:i:s', filemtime($file_path));
+                        if (file_exists($file_path) && is_file($file_path)) {
+                            $filename = basename($file_path);
+                            $file_size = filesize($file_path);
+                            $file_ext = strtoupper(pathinfo($file_path, PATHINFO_EXTENSION));
+                            $modified = date('Y-m-d H:i:s', filemtime($file_path));
 
-                        $file_info = "Size: " . number_format($file_size) . " bytes | Type: {$file_ext} | Modified: {$modified}";
+                            $file_info = "Size: " . number_format($file_size) . " bytes | Type: {$file_ext} | Modified: {$modified}";
 
-                        if (isBinaryFile($file_path)) {
-                            if (isImageFile($file_path)) {
-                                $data_url = 'data:' . mime_content_type($file_path) . ';base64,' . base64_encode(file_get_contents($file_path));
-                                $content = '<div class="binary-file-preview">';
-                                $content .= '<img src="' . $data_url . '" alt="' . htmlspecialchars($filename) . '">';
-                                $content .= '<p>' . $file_info . '</p>';
-                                $content .= '</div>';
+                            if (isBinaryFile($file_path)) {
+                                if (isImageFile($file_path)) {
+                                    $data_url = 'data:' . mime_content_type($file_path) . ';base64,' . base64_encode(file_get_contents($file_path));
+                                    $content = '<div class="binary-file-preview">';
+                                    $content .= '<img src="' . $data_url . '" alt="' . htmlspecialchars($filename) . '">';
+                                    $content .= '<p>' . $file_info . '</p>';
+                                    $content .= '</div>';
+                                } else {
+                                    $icon = getFileIcon($file_path);
+                                    $content = '<div class="binary-file-preview">';
+                                    $content .= '<div class="file-icon">' . $icon . '</div>';
+                                    $content .= '<h4>' . htmlspecialchars($filename) . '</h4>';
+                                    $content .= '<p>This is a binary file that cannot be displayed as text.</p>';
+                                    $content .= '<p>' . $file_info . '</p>';
+                                    $content .= '</div>';
+                                }
                             } else {
-                                $icon = getFileIcon($file_path);
-                                $content = '<div class="binary-file-preview">';
-                                $content .= '<div class="file-icon">' . $icon . '</div>';
-                                $content .= '<h4>' . htmlspecialchars($filename) . '</h4>';
-                                $content .= '<p>This is a binary file that cannot be displayed as text.</p>';
-                                $content .= '<p>' . $file_info . '</p>';
-                                $content .= '</div>';
+                                $file_content = file_get_contents($file_path);
+                                $content = '<div style="margin-bottom: 10px; font-size: 12px; color: #999;">' . $file_info . '</div>';
+                                $content .= '<pre style="background: #2A2A2A; color: #E0E0E0; padding: 15px; border-radius: 4px; overflow-x: auto; font-family: \'Courier New\', monospace; font-size: 13px; line-height: 1.5; margin: 0; white-space: pre-wrap; word-wrap: break-word; max-height: 60vh; overflow-y: auto;"><code>' . htmlspecialchars($file_content) . '</code></pre>';
+                            }
+
+                            $actions = '';
+                            if (isEditableFile($file_path)) {
+                                $actions .= '<button onclick="editFile(\'' . addslashes($file_path) . '\')" class="btn btn-warning" title="Edit File"><i class="fas fa-edit"></i> Edit</button> ';
+                            }
+                            $actions .= '<a href="' . admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=files&download=' . urlencode($file_path)) . '" class="btn btn-success" title="Download File"><i class="fas fa-download"></i> Download</a> ';
+                            $actions .= '<button onclick="closeLightbox()" class="btn btn-secondary" title="Close"><i class="fas fa-times"></i> Close</button>';
+
+                            $response = [
+                                'success' => true,
+                                'filename' => $filename,
+                                'content' => $content,
+                                'actions' => $actions
+                            ];
+                        } else {
+                            $response = ['success' => false, 'message' => 'File not found or not accessible'];
+                            error_log("WP Arzo File Manager: File not found or not accessible: {$file_path}");
+                        }
+                    } else {
+                        $response = ['success' => false, 'message' => 'Missing file parameter'];
+                        error_log("WP Arzo File Manager: Missing file parameter for view_file operation");
+                    }
+                    break;
+
+                case 'edit_file':
+                    if (isset($_GET['file'])) {
+                        $file_path = normalizePath($_GET['file']);
+
+                        if (file_exists($file_path) && is_file($file_path) && isEditableFile($file_path)) {
+                            $filename = basename($file_path);
+                            $file_content = file_get_contents($file_path);
+
+                            $file_size = filesize($file_path);
+                            $file_ext = strtoupper(pathinfo($file_path, PATHINFO_EXTENSION));
+                            $modified = date('Y-m-d H:i:s', filemtime($file_path));
+                            $file_info = "Size: " . number_format($file_size) . " bytes | Type: {$file_ext} | Modified: {$modified}";
+
+                            $content = '<div style="margin-bottom: 10px; font-size: 12px; color: #999;">' . $file_info . '</div>';
+                            $content .= '<textarea id="fileContentEditor" style="width: 100%; min-height: 500px; background: #2A2A2A; color: #E0E0E0; border: 1px solid #444444; border-radius: 4px; padding: 15px; font-family: \'Courier New\', monospace; font-size: 13px; line-height: 1.5; resize: vertical; box-sizing: border-box;">' . htmlspecialchars($file_content) . '</textarea>';
+
+                            $actions = '<button onclick="saveFile(\'' . addslashes($file_path) . '\')" class="btn btn-primary" title="Save Changes"><i class="fas fa-save"></i> Save</button> ';
+                            $actions .= '<button onclick="viewFile(\'' . addslashes($file_path) . '\')" class="btn btn-secondary" title="Cancel"><i class="fas fa-undo"></i> Cancel</button>';
+
+                            $response = [
+                                'success' => true,
+                                'filename' => $filename,
+                                'content' => $content,
+                                'actions' => $actions
+                            ];
+                        } else {
+                            $response['message'] = 'File not found, not accessible, or not editable';
+                            error_log("WP Arzo File Manager: File not editable or not found: {$file_path}");
+                        }
+                    } else {
+                        $response = ['success' => false, 'message' => 'Missing file parameter'];
+                        error_log("WP Arzo File Manager: Missing file parameter for edit_file operation");
+                    }
+                    break;
+
+                case 'save_file':
+                    if (isset($_POST['file_path']) && isset($_POST['file_content'])) {
+                        $file_path = normalizePath($_POST['file_path']);
+                        $file_content = $_POST['file_content'];
+
+                        if (file_exists($file_path) && is_file($file_path) && isEditableFile($file_path)) {
+                            if (file_put_contents($file_path, $file_content) !== false) {
+                                $response = ['success' => true, 'message' => 'File saved successfully'];
+                                error_log("WP Arzo File Manager: File saved successfully: {$file_path}");
+                            } else {
+                                $response['message'] = 'Error writing to file';
+                                error_log("WP Arzo File Manager: Error writing to file: {$file_path}");
                             }
                         } else {
-                            $file_content = file_get_contents($file_path);
-                            $content = '<div style="margin-bottom: 10px; font-size: 12px; color: #999;">' . $file_info . '</div>';
-                            $content .= '<pre style="background: #2A2A2A; color: #E0E0E0; padding: 15px; border-radius: 4px; overflow-x: auto; font-family: \'Courier New\', monospace; font-size: 13px; line-height: 1.5; margin: 0; white-space: pre-wrap; word-wrap: break-word; max-height: 60vh; overflow-y: auto;"><code>' . htmlspecialchars($file_content) . '</code></pre>';
-                        }
-
-                        $actions = '';
-                        if (isEditableFile($file_path)) {
-                            $actions .= '<button onclick="editFile(\'' . addslashes($file_path) . '\')" class="btn btn-warning" title="Edit File"><i class="fas fa-edit"></i> Edit</button> ';
-                        }
-                        $actions .= '<a href="' . admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=files&download=' . urlencode($file_path)) . '" class="btn btn-success" title="Download File"><i class="fas fa-download"></i> Download</a> ';
-                        $actions .= '<button onclick="closeLightbox()" class="btn btn-secondary" title="Close"><i class="fas fa-times"></i> Close</button>';
-
-                        $response = [
-                            'success' => true,
-                            'filename' => $filename,
-                            'content' => $content,
-                            'actions' => $actions
-                        ];
-                    } else {
-                        $response = ['success' => false, 'message' => 'File not found or not accessible'];
-                    }
-                }
-                break;
-
-            case 'edit_file':
-                if (isset($_GET['file'])) {
-                    $file_path = normalizePath($_GET['file']);
-
-                    if (file_exists($file_path) && is_file($file_path) && isEditableFile($file_path)) {
-                        $filename = basename($file_path);
-                        $file_content = file_get_contents($file_path);
-
-                        $file_size = filesize($file_path);
-                        $file_ext = strtoupper(pathinfo($file_path, PATHINFO_EXTENSION));
-                        $modified = date('Y-m-d H:i:s', filemtime($file_path));
-                        $file_info = "Size: " . number_format($file_size) . " bytes | Type: {$file_ext} | Modified: {$modified}";
-
-                        $content = '<div style="margin-bottom: 10px; font-size: 12px; color: #999;">' . $file_info . '</div>';
-                        $content .= '<textarea id="fileContentEditor" style="width: 100%; min-height: 500px; background: #2A2A2A; color: #E0E0E0; border: 1px solid #444444; border-radius: 4px; padding: 15px; font-family: \'Courier New\', monospace; font-size: 13px; line-height: 1.5; resize: vertical; box-sizing: border-box;">' . htmlspecialchars($file_content) . '</textarea>';
-
-                        $actions = '<button onclick="saveFile(\'' . addslashes($file_path) . '\')" class="btn btn-primary" title="Save Changes"><i class="fas fa-save"></i> Save</button> ';
-                        $actions .= '<button onclick="viewFile(\'' . addslashes($file_path) . '\')" class="btn btn-secondary" title="Cancel"><i class="fas fa-undo"></i> Cancel</button>';
-
-                        $response = [
-                            'success' => true,
-                            'filename' => $filename,
-                            'content' => $content,
-                            'actions' => $actions
-                        ];
-                    } else {
-                        $response['message'] = 'File not found, not accessible, or not editable';
-                    }
-                }
-                break;
-
-            case 'save_file':
-                if (isset($_POST['file_path']) && isset($_POST['file_content'])) {
-                    $file_path = normalizePath($_POST['file_path']);
-                    $file_content = $_POST['file_content'];
-
-                    if (file_exists($file_path) && is_file($file_path) && isEditableFile($file_path)) {
-                        if (file_put_contents($file_path, $file_content) !== false) {
-                            $response = ['success' => true, 'message' => 'File saved successfully'];
-                        } else {
-                            $response['message'] = 'Error writing to file';
+                            $response['message'] = 'File not found, not accessible, or not editable';
+                            error_log("WP Arzo File Manager: File not editable or not found for save: {$file_path}");
                         }
                     } else {
-                        $response['message'] = 'File not found, not accessible, or not editable';
+                        $response = ['success' => false, 'message' => 'Missing file_path or file_content parameters'];
+                        error_log("WP Arzo File Manager: Missing parameters for save_file operation");
                     }
-                }
-                break;
+                    break;
+            }
+        } catch (Exception $e) {
+            $response = ['success' => false, 'message' => 'Internal Server Error: ' . $e->getMessage()];
+            error_log("WP Arzo File Manager Exception: " . $e->getMessage() . "\n" . $e->getTraceAsString());
         }
 
         echo json_encode($response);
