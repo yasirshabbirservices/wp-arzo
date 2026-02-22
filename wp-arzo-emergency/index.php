@@ -43,8 +43,13 @@ start_secure_session();
 
 // Helper: Redirect
 function redirect($url) {
-    header("Location: $url");
-    exit;
+    if (!headers_sent()) {
+        header("Location: $url");
+        exit;
+    } else {
+        echo "<script>window.location.href='$url';</script>";
+        exit;
+    }
 }
 
 // Authentication Check
@@ -60,13 +65,19 @@ if (!file_exists(WP_ARZO_CONFIG_FILE)) {
 $error_msg = '';
 $success_msg = '';
 
+// Get current URL parts for redirection
+$current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+$parsed_url = parse_url($current_url);
+$redirect_base = $parsed_url['path']; // Keep just the path to avoid query string loop if any
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'login') {
             if (isset($_POST['password']) && defined('WP_ARZO_EMERGENCY_HASH')) {
                 if (password_verify($_POST['password'], WP_ARZO_EMERGENCY_HASH)) {
                     $_SESSION['arzo_emergency_auth'] = true;
-                    redirect($_SERVER['PHP_SELF']);
+                    // Fix: Redirect to self (script path) instead of potential home redirect
+                    redirect($redirect_base);
                 } else {
                     $error_msg = 'Invalid password.';
                 }
@@ -77,14 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
                 if (file_put_contents(WP_ARZO_CONFIG_FILE, $config_content)) {
                     $_SESSION['arzo_emergency_auth'] = true;
-                    redirect($_SERVER['PHP_SELF']);
+                    redirect($redirect_base);
                 } else {
                     $error_msg = 'Failed to write config file. Check permissions.';
                 }
             }
         } elseif ($_POST['action'] === 'logout') {
             session_destroy();
-            redirect($_SERVER['PHP_SELF']);
+            redirect($redirect_base);
         }
     }
 }

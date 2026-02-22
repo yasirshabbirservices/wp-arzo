@@ -118,6 +118,8 @@ function handleMaintenanceModes()
     $developer_skype = get_option('maintenance_tool_developer_skype', '');
 
     // Emergency Script Status
+    // Force check file existence to ensure toggle state is accurate on reload
+    clearstatcache();
     $emergency_configured = file_exists(WP_ARZO_PLUGIN_DIR . 'arzo-safe.php');
 
 ?>
@@ -814,6 +816,7 @@ function handleMaintenanceModes()
                 <div class="controls-container">
                     <?php if ($emergency_configured): ?>
                         <div class="active-controls" id="emergency-active-controls">
+                            <span class="active-label" style="color: #16e791; font-size: 12px; font-weight: bold; margin-right: 10px;"><i class="fas fa-check-circle"></i> Active</span>
                             <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo home_url('/wp-arzo/emergency/'); ?>', this)">
                                 <i class="fas fa-link"></i> Copy Link
                             </button>
