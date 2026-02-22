@@ -60,8 +60,8 @@ if (isset($_GET['tab'])) {
     }
     // Handle Extra Options operations
     if (($_GET['tab'] === 'extra_options' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && $_GET['operation'] === 'generate_emergency_script') {
-        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/extra-options.php')) {
-            include(WP_ARZO_PLUGIN_DIR . 'features/extra-options.php');
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/site-modes.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/site-modes.php');
             exit;
         }
     }
