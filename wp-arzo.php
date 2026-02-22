@@ -21,6 +21,47 @@ define('WP_ARZO_VERSION', '6.1');
 define('WP_ARZO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WP_ARZO_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+/**
+ * Add rewrite rule for emergency script
+ */
+function wp_arzo_add_rewrite_rules()
+{
+    add_rewrite_rule('^wp-arzo/emergency/?$', 'index.php?wp_arzo_emergency=1', 'top');
+}
+add_action('init', 'wp_arzo_add_rewrite_rules');
+
+/**
+ * Register query var
+ */
+function wp_arzo_register_query_vars($vars)
+{
+    $vars[] = 'wp_arzo_emergency';
+    return $vars;
+}
+add_filter('query_vars', 'wp_arzo_register_query_vars');
+
+/**
+ * Handle template redirect for emergency script
+ */
+function wp_arzo_template_redirect()
+{
+    if (get_query_var('wp_arzo_emergency')) {
+        include(WP_ARZO_PLUGIN_DIR . 'wp-arzo-emergency/index.php');
+        exit;
+    }
+}
+add_action('template_redirect', 'wp_arzo_template_redirect');
+
+/**
+ * Flush rewrite rules on activation
+ */
+function wp_arzo_activate()
+{
+    wp_arzo_add_rewrite_rules();
+    flush_rewrite_rules();
+}
+register_activation_hook(__FILE__, 'wp_arzo_activate');
+
 // Load Maintenance Mode Frontend
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/maintenance-frontend.php');
 

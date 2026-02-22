@@ -77,7 +77,7 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'generate_emergency_scri
         $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
         
         if (file_put_contents($config_file, $config_content)) {
-            $script_url = WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/';
+            $script_url = home_url('/wp-arzo/emergency/');
             echo json_encode(['success' => true, 'url' => $script_url]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to write config file.']);
@@ -473,7 +473,7 @@ function handleMaintenanceModes()
             <?php if ($emergency_configured): ?>
                 <div style="background: rgba(22, 231, 145, 0.1); padding: 10px; border-left: 3px solid #16e791; margin-bottom: 10px;">
                     <strong>Status: Active</strong><br>
-                    Your emergency script is ready at: <a href="<?php echo WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/'; ?>" target="_blank" style="color: #16e791;"><?php echo WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/'; ?></a>
+                    Your emergency script is ready at: <a href="<?php echo home_url('/wp-arzo/emergency/'); ?>" target="_blank" style="color: #16e791;"><?php echo home_url('/wp-arzo/emergency/'); ?></a>
                 </div>
                 <p><small>Save this URL! If you lose access to WP Admin, you can use this script to deactivate plugins or create a new admin.</small></p>
             <?php else: ?>
