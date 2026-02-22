@@ -98,38 +98,55 @@ function showThemes()
         if (!wp_verify_nonce($_POST['theme_upload_nonce'], 'theme_upload_action')) {
             $message = '<div class="alert alert-error">Security check failed.</div>';
         } else {
-            $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
-            
-            if ($movefile && !isset($movefile['error'])) {
-                $zip_path = $movefile['file'];
-                $to = get_theme_root();
+             // Check file type
+            $file_type = wp_check_filetype($uploadedfile['name']);
+            if ($file_type['ext'] !== 'zip') {
+                $message = '<div class="alert alert-error">Only ZIP files are allowed.</div>';
+            } else {
+                $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
                 
-                // Unzip
-                $result = unzip_file($zip_path, $to);
-                if (is_wp_error($result)) {
-                    $message = '<div class="alert alert-error">Unzip failed: ' . $result->get_error_message() . '</div>';
-                } else {
-                    $message = '<div class="alert alert-success">Theme installed successfully.</div>';
+                if ($movefile && !isset($movefile['error'])) {
+                    $zip_path = $movefile['file'];
+                    $to = get_theme_root();
                     
-                    // Activate immediately
-                    if (isset($_POST['activate_immediately']) && $_POST['activate_immediately'] == '1') {
-                        $zip = new ZipArchive;
-                        if ($zip->open($zip_path) === TRUE) {
-                             $stat = $zip->statIndex(0);
-                             $root_folder = explode('/', $stat['name'])[0];
-                             $zip->close();
-                             
-                             if ($root_folder) {
-                                 switch_theme($root_folder);
-                                 $message .= ' And activated.';
-                             }
+                    // Initialize Filesystem
+                    if (false === ($creds = request_filesystem_credentials(site_url()))) {
+                         $message = '<div class="alert alert-error">Filesystem credentials required.</div>';
+                         unlink($zip_path);
+                    } else {
+                        if (!WP_Filesystem($creds)) {
+                            $message = '<div class="alert alert-error">Filesystem initialization failed.</div>';
+                            unlink($zip_path);
+                        } else {
+                            // Unzip
+                            $result = unzip_file($zip_path, $to);
+                            if (is_wp_error($result)) {
+                                $message = '<div class="alert alert-error">Unzip failed: ' . $result->get_error_message() . '</div>';
+                            } else {
+                                $message = '<div class="alert alert-success">Theme installed successfully.</div>';
+                                
+                                // Activate immediately
+                                if (isset($_POST['activate_immediately']) && $_POST['activate_immediately'] == '1') {
+                                    $zip = new ZipArchive;
+                                    if ($zip->open($zip_path) === TRUE) {
+                                         $stat = $zip->statIndex(0);
+                                         $root_folder = explode('/', $stat['name'])[0];
+                                         $zip->close();
+                                         
+                                         if ($root_folder) {
+                                             switch_theme($root_folder);
+                                             $message .= ' And activated.';
+                                         }
+                                    }
+                                }
+                                // Cleanup zip
+                                unlink($zip_path);
+                            }
                         }
                     }
-                    // Cleanup zip
-                    unlink($zip_path);
+                } else {
+                    $message = '<div class="alert alert-error">Upload failed: ' . $movefile['error'] . '</div>';
                 }
-            } else {
-                $message = '<div class="alert alert-error">Upload failed: ' . $movefile['error'] . '</div>';
             }
         }
     }

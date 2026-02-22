@@ -112,52 +112,82 @@ function showPlugins()
         if (!wp_verify_nonce($_POST['plugin_upload_nonce'], 'plugin_upload_action')) {
             $message = '<div class="alert alert-error">Security check failed.</div>';
         } else {
-            $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
-            
-            if ($movefile && !isset($movefile['error'])) {
-                $zip_path = $movefile['file'];
-                $to = WP_PLUGIN_DIR;
+            // Check file type
+            $file_type = wp_check_filetype($uploadedfile['name']);
+            if ($file_type['ext'] !== 'zip') {
+                $message = '<div class="alert alert-error">Only ZIP files are allowed.</div>';
+            } else {
+                $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
                 
-                // Unzip
-                $result = unzip_file($zip_path, $to);
-                if (is_wp_error($result)) {
-                    $message = '<div class="alert alert-error">Unzip failed: ' . $result->get_error_message() . '</div>';
-                } else {
-                    $message = '<div class="alert alert-success">Plugin installed successfully.</div>';
+                if ($movefile && !isset($movefile['error'])) {
+                    $zip_path = $movefile['file'];
+                    $to = WP_PLUGIN_DIR;
                     
-                    // Activate immediately
-                    if (isset($_POST['activate_immediately']) && $_POST['activate_immediately'] == '1') {
-                        // Need to find the main plugin file.
-                        // We can guess it from the zip structure or scan the extracted folder.
-                        // Using a simple scan approach similar to emergency script logic
-                        // But WP has get_plugins() so we can check new plugins.
-                        // A simple reload will show it in the list.
-                        // To activate, we need the path relative to plugins dir.
-                        // Let's rely on user manually activating via the new toggle unless we do complex file scanning here.
-                        // Or implemented a basic scan:
-                        $zip = new ZipArchive;
-                        if ($zip->open($zip_path) === TRUE) {
-                             $stat = $zip->statIndex(0);
-                             $root_folder = explode('/', $stat['name'])[0];
-                             $zip->close();
-                             
-                             if ($root_folder) {
-                                 // Scan for .php files with Plugin Name header
-                                 $extracted_path = $to . '/' . $root_folder;
-                                 $plugins = get_plugins('/' . $root_folder);
-                                 if (!empty($plugins)) {
-                                     $main_file = key($plugins); // e.g. my-plugin/my-plugin.php
-                                     activate_plugin($root_folder . '/' . $main_file);
-                                     $message .= ' And activated.';
-                                 }
-                             }
+                    // Initialize Filesystem
+                    if (false === ($creds = request_filesystem_credentials(site_url()))) {
+                        // If we don't have credentials, we can't proceed.
+                        $message = '<div class="alert alert-error">Filesystem credentials required.</div>';
+                        unlink($zip_path);
+                    } else {
+                        if (!WP_Filesystem($creds)) {
+                            $message = '<div class="alert alert-error">Filesystem initialization failed.</div>';
+                            unlink($zip_path);
+                        } else {
+                            // Unzip
+                            $result = unzip_file($zip_path, $to);
+                            if (is_wp_error($result)) {
+                                $message = '<div class="alert alert-error">Unzip failed: ' . $result->get_error_message() . '</div>';
+                            } else {
+                                $message = '<div class="alert alert-success">Plugin installed successfully.</div>';
+                                
+                                // Activate immediately
+                                if (isset($_POST['activate_immediately']) && $_POST['activate_immediately'] == '1') {
+                                    // Clear plugin cache to recognize new plugin
+                                    wp_clean_plugins_cache();
+                                    
+                                    // Identify the uploaded plugin
+                                    // unzip_file extracts to WP_PLUGIN_DIR
+                                    // We need to find the folder that was just created.
+                                    // Best guess: peek into the zip again
+                                    $zip = new ZipArchive;
+                                    if ($zip->open($zip_path) === TRUE) {
+                                        $stat = $zip->statIndex(0);
+                                        $root_folder = explode('/', $stat['name'])[0];
+                                        $zip->close();
+                                        
+                                        if ($root_folder) {
+                                            // Scan for .php files with Plugin Name header
+                                            $extracted_path = $to . '/' . $root_folder;
+                                            // get_plugins requires relative path
+                                            if (!function_exists('get_plugins')) {
+                                                require_once ABSPATH . 'wp-admin/includes/plugin.php';
+                                            }
+                                            $plugins = get_plugins('/' . $root_folder);
+                                            
+                                            if (!empty($plugins)) {
+                                                $main_file = key($plugins); // e.g. my-plugin.php
+                                                $plugin_slug = $root_folder . '/' . $main_file;
+                                                
+                                                $result = activate_plugin($plugin_slug);
+                                                if (is_wp_error($result)) {
+                                                     $message .= ' <span style="color:#ffcccb">Activation failed: ' . $result->get_error_message() . '</span>';
+                                                } else {
+                                                     $message .= ' And activated.';
+                                                }
+                                            } else {
+                                                $message .= ' <span style="color:#ffcccb">Could not find plugin file to activate.</span>';
+                                            }
+                                        }
+                                    }
+                                }
+                                // Cleanup zip
+                                unlink($zip_path);
+                            }
                         }
                     }
-                    // Cleanup zip
-                    unlink($zip_path);
+                } else {
+                    $message = '<div class="alert alert-error">Upload failed: ' . $movefile['error'] . '</div>';
                 }
-            } else {
-                $message = '<div class="alert alert-error">Upload failed: ' . $movefile['error'] . '</div>';
             }
         }
     }
