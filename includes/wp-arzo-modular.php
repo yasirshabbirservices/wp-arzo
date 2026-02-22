@@ -58,6 +58,13 @@ if (isset($_GET['tab'])) {
             exit;
         }
     }
+    // Handle Extra Options operations
+    if (($_GET['tab'] === 'extra_options' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && $_GET['operation'] === 'generate_emergency_script') {
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/extra-options.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/extra-options.php');
+            exit;
+        }
+    }
 }
 
 // Include the header (everything before switch statement - lines 1-1464)
@@ -73,6 +80,7 @@ $feature_files = [
     'themes' => 'themes.php',
     'debug' => 'debug.php',
     'site_modes' => 'site-modes.php',
+    'maintenance' => 'site-modes.php', // Backward compatibility
     'extra_options' => 'extra-options.php',
     'login' => 'login.php',
 ];
