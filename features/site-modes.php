@@ -429,6 +429,35 @@ function handleMaintenanceModes()
         /* Emergency Mode Specifics */
         .mode-emergency {
             border-color: #ff4d4d !important;
+            grid-column: 1 / -1; /* Make it full width */
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .mode-emergency .card-header {
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+        
+        .mode-emergency .mode-desc {
+            margin-bottom: 0;
+            margin-right: auto;
+            max-width: 500px;
+        }
+
+        .mode-emergency .form-group {
+            margin-bottom: 0;
+            flex-grow: 1;
+            max-width: 300px;
+        }
+        
+        .mode-emergency .btn-mode {
+            width: auto;
+            margin-bottom: 0;
+            padding: 10px 20px;
         }
 
         .mode-emergency .mode-icon {
@@ -446,7 +475,7 @@ function handleMaintenanceModes()
 
         .emergency-active-link {
             display: inline-block;
-            margin-top: 15px;
+            margin-top: 0;
             padding: 10px;
             background: rgba(255, 77, 77, 0.1);
             border: 1px solid #ff4d4d;
@@ -456,9 +485,27 @@ function handleMaintenanceModes()
             word-break: break-all;
             font-size: 12px;
         }
-
+        
         .emergency-active-link:hover {
             background: rgba(255, 77, 77, 0.2);
+        }
+        
+        /* Responsive adjustments for emergency card */
+        @media (max-width: 900px) {
+            .mode-emergency {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .mode-emergency .form-group, 
+            .mode-emergency .btn-mode,
+            .mode-emergency .mode-desc {
+                width: 100%;
+                max-width: none;
+                margin-bottom: 15px;
+            }
+            .mode-emergency .card-header {
+                margin-bottom: 15px;
+            }
         }
 
         /* Settings Box */
