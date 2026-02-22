@@ -65,6 +65,26 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'deactivate_mode') {
     echo json_encode(['success' => true]);
     exit;
 }
+
+// Handle Emergency Script Generation
+if (isset($_GET['operation']) && $_GET['operation'] === 'generate_emergency_script') {
+    header('Content-Type: application/json');
+    if (isset($_POST['password'])) {
+        $password = $_POST['password'];
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        
+        $config_file = WP_ARZO_PLUGIN_DIR . 'arzo-safe.php';
+        $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
+        
+        if (file_put_contents($config_file, $config_content)) {
+            $script_url = WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/';
+            echo json_encode(['success' => true, 'url' => $script_url]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to write config file.']);
+        }
+    }
+    exit;
+}
 // ---------------------
 
 function handleMaintenanceModes()
@@ -76,10 +96,13 @@ function handleMaintenanceModes()
     $show_social_contacts = get_option('maintenance_tool_show_social_contacts', 1);
 
     // Social contacts
-    $developer_email = get_option('maintenance_tool_developer_email', 'contact@yasirshabbir.com');
+    $developer_email = get_option('maintenance_tool_developer_email', '');
     $developer_phone = get_option('maintenance_tool_developer_phone', '');
     $developer_whatsapp = get_option('maintenance_tool_developer_whatsapp', '');
     $developer_skype = get_option('maintenance_tool_developer_skype', '');
+    
+    // Emergency Script Status
+    $emergency_configured = file_exists(WP_ARZO_PLUGIN_DIR . 'arzo-safe.php');
 
     ?>
     <style>
@@ -395,6 +418,19 @@ function handleMaintenanceModes()
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
         }
+        
+        /* Emergency Script Section */
+        .emergency-section {
+            background: #2a2a2a;
+            border: 1px solid #ff4d4d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        .emergency-section h3 { color: #ff4d4d; display: flex; align-items: center; gap: 10px; margin-top: 0; }
+        .emergency-section button { background: #ff4d4d; color: #fff; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .emergency-section button:hover { background: #cc0000; }
 
         /* Settings Box */
         .settings-box {
@@ -429,6 +465,26 @@ function handleMaintenanceModes()
         <h2>Maintenance Modes</h2>
         <p style="color: #999; margin-bottom: 30px;">Manage access to your site during maintenance or development.</p>
 
+        <!-- Emergency Script -->
+        <div class="emergency-section">
+            <h3><i class="fas fa-life-ring"></i> Emergency Recovery Script</h3>
+            <p>Create a standalone recovery script to access your site if WordPress breaks (WSOD, plugin conflicts, etc.).</p>
+            
+            <?php if ($emergency_configured): ?>
+                <div style="background: rgba(22, 231, 145, 0.1); padding: 10px; border-left: 3px solid #16e791; margin-bottom: 10px;">
+                    <strong>Status: Active</strong><br>
+                    Your emergency script is ready at: <a href="<?php echo WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/'; ?>" target="_blank" style="color: #16e791;"><?php echo WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/'; ?></a>
+                </div>
+                <p><small>Save this URL! If you lose access to WP Admin, you can use this script to deactivate plugins or create a new admin.</small></p>
+            <?php else: ?>
+                <p>The script is not yet configured. Set a secure password to generate it.</p>
+                <div style="display: flex; gap: 10px;">
+                    <input type="password" id="emergency-pass" placeholder="Set Recovery Password" class="form-control" style="max-width: 250px;">
+                    <button type="button" onclick="generateEmergencyScript()">Generate Script</button>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <!-- Social Contact Settings -->
         <div class="settings-box">
             <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 16px;"><i class="fas fa-address-book"></i> Social
@@ -437,7 +493,7 @@ function handleMaintenanceModes()
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" class="form-control auto-save" data-option="maintenance_tool_developer_email"
-                        value="<?php echo esc_attr($developer_email); ?>">
+                        value="<?php echo esc_attr($developer_email); ?>" placeholder="support@example.com">
                 </div>
                 <div class="form-group">
                     <label>Phone Number</label>
@@ -452,7 +508,7 @@ function handleMaintenanceModes()
                 <div class="form-group">
                     <label>Skype Username</label>
                     <input type="text" class="form-control auto-save" data-option="maintenance_tool_developer_skype"
-                        value="<?php echo esc_attr($developer_skype); ?>">
+                        value="<?php echo esc_attr($developer_skype); ?>" placeholder="skype_username">
                 </div>
             </div>
         </div>
@@ -624,6 +680,35 @@ function handleMaintenanceModes()
     <script>
         const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>&tab=maintenance';
         let currentMode = '<?php echo $current_mode; ?>';
+
+        function generateEmergencyScript() {
+            const pass = document.getElementById('emergency-pass').value;
+            if (!pass) {
+                alert('Please enter a password');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('password', pass);
+            
+            fetch(`${baseUrl}&operation=generate_emergency_script`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Emergency script generated! Reloading page...');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Request failed');
+            });
+        }
 
         // --- Toast ---
         function showToast(message) {
