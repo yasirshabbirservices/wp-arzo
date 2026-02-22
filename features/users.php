@@ -11,6 +11,54 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Handle AJAX operations for users
+if (isset($_GET['operation'])) {
+    if ($_GET['operation'] === 'get_users_page') {
+        header('Content-Type: application/json');
+
+        if (isset($_GET['page']) && isset($_GET['per_page'])) {
+            $page = intval($_GET['page']);
+            $per_page = intval($_GET['per_page']);
+            $offset = ($page - 1) * $per_page;
+
+            $args = [
+                'number' => $per_page,
+                'offset' => $offset,
+            ];
+
+            $user_query = new WP_User_Query($args);
+            $users = $user_query->get_results();
+            $total_users = $user_query->get_total();
+            
+            $users_data = [];
+            $current_user_id = get_current_user_id();
+
+            foreach ($users as $user) {
+                $users_data[] = [
+                    'id' => $user->ID,
+                    'username' => $user->user_login,
+                    'email' => $user->user_email,
+                    'roles' => implode(', ', $user->roles),
+                    'is_current' => ($user->ID === $current_user_id)
+                ];
+            }
+
+            $response = [
+                'success' => true,
+                'users' => $users_data,
+                'total' => $total_users,
+                'total_pages' => ceil($total_users / $per_page),
+                'current_page' => $page
+            ];
+        } else {
+            $response = ['success' => false, 'message' => 'Missing page parameters'];
+        }
+
+        echo json_encode($response);
+        exit;
+    }
+}
+
 function handleUsers()
 {
 if (isset($_POST['create_user'])) {
@@ -134,9 +182,14 @@ echo '<div class="error">User not found!</div>';
         function loadUsersPage(page) {
             const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>';
             fetch(
-                    `${baseUrl}&tab=ajax&operation=get_users_page&page=${page}&per_page=${perPage}&nocache=${new Date().getTime()}`
+                    `${baseUrl}&tab=users&operation=get_users_page&page=${page}&per_page=${perPage}&nocache=${new Date().getTime()}`
                 )
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         renderUsersTable(data.users);
@@ -165,12 +218,10 @@ echo '<div class="error">User not found!</div>';
                     'style="background-color: rgba(22, 231, 145, 0.1);"' : '';
                 html += `<tr ${rowClass}>`;
                 html += `<td>${user.id}</td>`;
-                html +=
-                    `<td>${user.username}${user.is_current ? ' <i class="fas fa-user" style="color: var(--accent-color);" title="Current User"></i>' : ''}</td>`;
+                html += `<td>${user.username}${user.is_current ? ' <i class="fas fa-user" style="color: var(--accent-color);" title="Current User"></i>' : ''}</td>`;
                 html += `<td>${user.email}</td>`;
                 html += `<td>${user.roles}</td>`;
-                html +=
-                    `<td>${user.is_current ? '<span style="color: var(--accent-color); font-weight: bold;">Logged In</span>' : '<span style="color: #999;">Offline</span>'}</td>`;
+                html += `<td>${user.is_current ? '<span style="color: var(--accent-color); font-weight: bold;">Logged In</span>' : '<span style="color: #999;">Offline</span>'}</td>`;
                 html += '<td style="white-space: nowrap;">';
 
                 // Quick Login Button
