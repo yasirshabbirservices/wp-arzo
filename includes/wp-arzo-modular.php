@@ -66,81 +66,23 @@ $feature_files = [
     'database' => 'database.php',
     'files' => 'files.php',
     'plugins' => 'plugins.php',
+    'themes' => 'themes.php',
     'debug' => 'debug.php',
     'maintenance' => 'maintenance.php',
-    // Others will be added one by one
+    'extra_options' => 'extra-options.php',
+    'login' => 'login.php',
 ];
 
-
 if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features/' . $feature_files[$action])) {
-    // Load modular feature
     include(WP_ARZO_PLUGIN_DIR . 'features/' . $feature_files[$action]);
 } else {
-    // Fallback: Load all functions from standalone and call the appropriate one
-    // Read standalone file starting from line 1771 (where functions begin)
-    $standalone_file = WP_ARZO_PLUGIN_DIR . 'includes/wp-arzo-standalone.php';
-    $all_lines = file($standalone_file);
-
-    // Extract just the functions part (from line 1761 onwards, but skip the closing HTML/JS at end)
-    // The functions start at line 1761 (index 1760) and we need to find where they end
-    $functions_code = '';
-    for ($i = 1760; $i < count($all_lines); $i++) {
-        $functions_code .= $all_lines[$i];
-    }
-
-    // Execute the functions code in current scope
-    eval ('?>' . $functions_code);
-
-    // Call the appropriate function based on action
-    switch ($action) {
-        case 'users':
-            if (function_exists('handleUsers'))
-                handleUsers();
-            break;
-        case 'database':
-            if (function_exists('handleDatabase'))
-                handleDatabase();
-            break;
-        case 'files':
-            if (function_exists('handleFiles'))
-                handleFiles();
-            break;
-        case 'plugins':
-            if (function_exists('showPlugins'))
-                showPlugins();
-            break;
-        case 'themes':
-            if (function_exists('showThemes'))
-                showThemes();
-            break;
-        case 'debug':
-            if (function_exists('handleDebug'))
-                handleDebug();
-            break;
-        case 'maintenance':
-            if (function_exists('handleMaintenanceModes'))
-                handleMaintenanceModes();
-            break;
-        case 'extra_options':
-            if (function_exists('handleExtraOptions'))
-                handleExtraOptions();
-            break;
-        case 'login':
-            if (function_exists('handleQuickLogin'))
-                handleQuickLogin();
-            break;
-        case 'info':
-        default:
-            if (function_exists('showSiteInfo'))
-                showSiteInfo();
-    }
+    echo '<div class="content"><h2>Feature Not Found</h2><p>The requested feature "' . esc_html($action) . '" is not available.</p></div>';
 }
 ?>
 </div>
 
 <!-- External JavaScript -->
 <script>
-    // Configuration for external JavaScript file
     var wpArzoConfig = {
         ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
         adminUrl: '<?php echo admin_url(); ?>',
