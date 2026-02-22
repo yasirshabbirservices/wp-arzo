@@ -26,7 +26,7 @@ header("X-Content-Type-Options: nosniff");
 header("Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;");
 
 // Define constants
-define('WP_ARZO_EMERGENCY_VERSION', '2.1');
+define('WP_ARZO_EMERGENCY_VERSION', '2.2');
 define('WP_ARZO_EMERGENCY_DIR', __DIR__);
 define('WP_ARZO_CONFIG_FILE', dirname(__DIR__) . '/arzo-safe.php'); 
 define('WP_CONTENT_DIR', dirname(dirname(dirname(__DIR__))) . '/wp-content');
@@ -483,7 +483,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
     .nav button { padding: 12px 20px; background: var(--background-light); color: var(--secondary-text); border: 2px solid var(--border-color); border-bottom: none; border-radius: 8px 8px 0 0; font-weight: 500; cursor: pointer; transition: all 0.3s; font-family: inherit; font-size: 14px; }
     .nav button:hover { background: #3A3A3A; color: var(--accent-color); }
     .nav button.active { background: var(--accent-color); color: var(--background-dark); border-color: var(--accent-color); }
-        .content { display: none; background: var(--background-medium); padding: 20px; border-left: 4px solid var(--accent-color); border-radius: 3px; animation: fadeIn 0.3s; }
+        .content { display: none; background: var(--background-medium); padding: 20px; border-radius: 3px; animation: fadeIn 0.3s; }
         .content.active { display: block; }
     .alert { padding: 15px; border-radius: 3px; margin-bottom: 20px; }
     .alert-success { background: rgba(40, 167, 69, 0.2); border: 1px solid var(--success-color); color: #81c784; }
@@ -828,17 +828,23 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                             </span>
                         </td>
                         <td>
-                                <?php if (!$is_active): ?>
-                                    <form method="post" id="form-theme-<?php echo md5($slug); ?>">
-                                        <input type="hidden" name="action" value="activate_theme">
-                                        <input type="hidden" name="theme_slug" value="<?php echo htmlspecialchars($slug); ?>">
-                                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                        <button type="submit" class="btn btn-sm">Activate</button>
-                                    </form>
-                                <?php else: ?>
-                                    <span class="badge badge-active">Active</span>
-                                <?php endif; ?>
-                            </td>
+                            <form method="post" id="form-theme-<?php echo md5($slug); ?>">
+                                <input type="hidden" name="action" value="activate_theme">
+                                <input type="hidden" name="theme_slug" value="<?php echo htmlspecialchars($slug); ?>">
+                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                
+                                <div style="display:flex; align-items:center;">
+                                    <label class="switch">
+                                        <!-- If active, checked and disabled. If inactive, clicking submits form to activate. -->
+                                        <input type="checkbox" 
+                                            onchange="if(confirm('Activate this theme?')) document.getElementById('form-theme-<?php echo md5($slug); ?>').submit(); else this.checked = false;" 
+                                            <?php echo $is_active ? 'checked disabled' : ''; ?>>
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <span class="toggle-label" style="margin-left:10px;"><?php echo $is_active ? 'Active' : 'Activate'; ?></span>
+                                </div>
+                            </form>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </table>

@@ -250,11 +250,14 @@ function showThemes()
                         html += `<td><span class="badge ${theme.is_active ? 'badge-active' : 'badge-inactive'}">${theme.is_active ? 'ACTIVE' : 'INACTIVE'}</span></td>`;
                         html += '<td>';
                         
-                        if (theme.is_active) {
-                            html += `<span class="badge badge-active">Current</span>`;
-                        } else {
-                            html += `<button class="btn btn-sm" onclick="activateTheme('${theme.slug}')">Activate</button>`;
-                        }
+                        html += `<div style="display:flex; align-items:center;">`;
+                        html += `<label class="switch">`;
+                        // If active, checked and disabled (cannot deactivate a theme, only switch)
+                        html += `<input type="checkbox" onchange="activateTheme('${theme.slug}', this)" ${theme.is_active ? 'checked disabled' : ''}>`;
+                        html += `<span class="slider round"></span>`;
+                        html += `</label>`;
+                        html += `<span class="toggle-label" style="margin-left:10px;">${theme.is_active ? 'Active' : 'Activate'}</span>`;
+                        html += `</div>`;
                         
                         html += '</td>';
                         html += '</tr>';
@@ -262,8 +265,11 @@ function showThemes()
                     themesTable.innerHTML = html;
                 }
 
-                window.activateTheme = function(themeSlug) {
-                    if(!confirm('Activate this theme?')) return;
+                window.activateTheme = function(themeSlug, checkbox) {
+                    if(!confirm('Activate this theme?')) {
+                        if(checkbox) checkbox.checked = !checkbox.checked;
+                        return;
+                    }
 
                     const formData = new FormData();
                     formData.append('theme_slug', themeSlug);
