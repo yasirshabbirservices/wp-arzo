@@ -465,8 +465,8 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
     .nav button { padding: 12px 20px; background: var(--background-light); color: var(--secondary-text); border: 2px solid var(--border-color); border-bottom: none; border-radius: 8px 8px 0 0; font-weight: 500; cursor: pointer; transition: all 0.3s; font-family: inherit; font-size: 14px; }
     .nav button:hover { background: #3A3A3A; color: var(--accent-color); }
     .nav button.active { background: var(--accent-color); color: var(--background-dark); border-color: var(--accent-color); }
-    .content { display: none; background: var(--background-medium); padding: 20px; border-left: 4px solid var(--accent-color); border-radius: 3px; animation: fadeIn 0.3s; }
-    .content.active { display: block; }
+        .content { display: none; background: var(--background-medium); padding: 20px; border-left: 4px solid var(--accent-color); border-radius: 3px; animation: fadeIn 0.3s; }
+        .content.active { display: block; }
     .alert { padding: 15px; border-radius: 3px; margin-bottom: 20px; }
     .alert-success { background: rgba(40, 167, 69, 0.2); border: 1px solid var(--success-color); color: #81c784; }
     .alert-error { background: rgba(220, 53, 69, 0.2); border: 1px solid var(--danger-color); color: #e57373; }
@@ -512,24 +512,27 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
     
     .toggle-label { margin-left: 10px; cursor: pointer; font-size: 13px; }
 
-    /* Login Screen Specifics */
-    .login-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background: var(--background-dark);
-    }
-    .login-card {
-        background: var(--background-medium);
-        padding: 40px;
-        border-radius: 8px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        width: 100%;
-        max-width: 400px;
-        text-align: center;
-        border: 1px solid var(--border-color);
-    }
+        /* Login Screen Specifics */
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--background-dark);
+            width: 100%;
+        }
+        .login-card {
+            background: var(--background-medium);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+            z-index: 10;
+        }
     .login-card h1 { font-size: 24px; margin-bottom: 10px; color: var(--primary-text); }
     .login-card h2 { font-size: 18px; margin-bottom: 25px; color: var(--accent-color); border: none; padding: 0; }
     .login-card .form-control {
