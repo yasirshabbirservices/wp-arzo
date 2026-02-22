@@ -91,6 +91,8 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
     
     <!-- Theme (Material Gray to match WP Arzo) -->
     <link rel="stylesheet" href="<?php echo WP_ARZO_PLUGIN_URL . 'assets/themes/material/material-gray/material-gray.min.css'; ?>">
+    <!-- WP Arzo Design Tokens -->
+    <link rel="stylesheet" href="<?php echo WP_ARZO_PLUGIN_URL . 'assets/css/design-tokens.css'; ?>">
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
@@ -198,98 +200,143 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
     
     <style>
         /* Custom overrides to match WP Arzo perfectly (Dark/Green Theme) */
-        
+        /* Using Design Tokens for Consistency */
+
         /* General Background & Text */
         .elfinder-workzone {
-            background-color: #121212 !important;
+            background-color: var(--arzo-bg-dark) !important;
         }
         .elfinder-cwd-view-list .elfinder-cwd-file .elfinder-cwd-filename {
-            color: #e0e0e0 !important;
+            color: var(--arzo-text-primary) !important;
         }
+        /* Hover on file row */
         .elfinder-cwd-view-list .elfinder-cwd-file:hover {
-            background: #2a2a2a !important;
+            background: var(--arzo-bg-hover) !important;
+            color: var(--arzo-text-primary) !important;
         }
         .elfinder-statusbar {
-            color: #999 !important;
-            background: #1e1e1e !important;
-            border-top: 1px solid #333 !important;
+            color: var(--arzo-text-secondary) !important;
+            background: var(--arzo-bg-panel) !important;
+            border-top: 1px solid var(--arzo-border) !important;
         }
         
         /* Navbar (Sidebar) */
         .elfinder-navbar {
-            background: #1e1e1e !important;
-            border-right: 1px solid #333 !important;
+            background: var(--arzo-bg-panel) !important;
+            border-right: 1px solid var(--arzo-border) !important;
         }
         .elfinder-navbar-dir {
-            color: #ccc !important;
+            color: var(--arzo-text-secondary) !important;
+            cursor: pointer;
         }
+        /* Navbar Hover */
         .elfinder-navbar-dir:hover {
-            background: #2a2a2a !important;
-            color: #fff !important;
+            background: var(--arzo-bg-hover) !important;
+            color: var(--arzo-text-primary) !important;
+        }
+        /* Navbar Selected/Active */
+        .elfinder-navbar-dir.ui-selected, 
+        .elfinder-navbar-dir.ui-state-active {
+            background: var(--arzo-accent) !important;
+            color: var(--arzo-text-on-accent) !important; /* High Contrast Text */
         }
         
-        /* Active States & Accents */
+        /* Active States & Accents (Main File View) */
         .ui-state-active, 
         .ui-widget-content .ui-state-active, 
         .ui-widget-header .ui-state-active,
         .elfinder-cwd-view-list .elfinder-cwd-file.ui-selected {
-            border: 1px solid #16e791 !important;
-            background: #16e791 !important;
-            color: #121212 !important;
+            border: 1px solid var(--arzo-accent) !important;
+            background: var(--arzo-accent) !important;
+            color: var(--arzo-text-on-accent) !important; /* High Contrast Text */
+        }
+
+        /* Ensure links/text inside selected items are also high contrast */
+        .ui-state-active a,
+        .ui-state-active span,
+        .elfinder-cwd-view-list .elfinder-cwd-file.ui-selected .elfinder-cwd-filename {
+            color: var(--arzo-text-on-accent) !important;
         }
         
         /* Toolbar */
         .elfinder-toolbar {
-            background: #1e1e1e !important;
-            border-bottom: 1px solid #333 !important;
+            background: var(--arzo-bg-panel) !important;
+            border-bottom: 1px solid var(--arzo-border) !important;
         }
         .elfinder-button {
             border: 1px solid transparent !important;
         }
-        .elfinder-button:hover {
-            background: #2a2a2a !important;
+        .elfinder-button:hover, .elfinder-button.ui-state-hover {
+            background: var(--arzo-bg-hover) !important;
             border-color: #444 !important;
+        }
+        /* If toolbar buttons become active/pressed */
+        .elfinder-button.ui-state-active {
+            background: var(--arzo-accent) !important;
+        }
+        .elfinder-button.ui-state-active .elfinder-button-icon {
+             /* Invert icon color if possible or rely on dark background contrast if icon is light. 
+                If icon is SVG/font, set color. If image, filter might be needed. 
+                Assuming icons are images based on previous context. */
+             filter: brightness(0); /* Turn white icons black */
         }
         
         /* Dialogs (Info, Edit, etc) */
         .elfinder-dialog {
-            background: #1e1e1e !important;
-            color: #ddd !important;
-            border: 1px solid #333 !important;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+            background: var(--arzo-bg-panel) !important;
+            color: var(--arzo-text-primary) !important;
+            border: 1px solid var(--arzo-border) !important;
+            box-shadow: var(--arzo-shadow) !important;
         }
         .elfinder-dialog-title {
-            color: #fff !important;
+            color: var(--arzo-text-primary) !important;
         }
         .elfinder-dialog-icon {
             opacity: 0.8;
         }
         .ui-dialog-buttonpane {
-            background: #1e1e1e !important;
-            border-top: 1px solid #333 !important;
+            background: var(--arzo-bg-panel) !important;
+            border-top: 1px solid var(--arzo-border) !important;
+        }
+        
+        /* Dialog Buttons */
+        .elfinder-dialog .ui-button {
+            background: var(--arzo-bg-hover) !important;
+            color: var(--arzo-text-primary) !important;
+            border: 1px solid var(--arzo-border) !important;
+        }
+        .elfinder-dialog .ui-button:hover {
+            background: var(--arzo-accent) !important;
+            color: var(--arzo-text-on-accent) !important;
         }
         
         /* Context Menu */
         .elfinder-contextmenu {
-            background: #1e1e1e !important;
-            border: 1px solid #333 !important;
-            color: #ddd !important;
+            background: var(--arzo-bg-panel) !important;
+            border: 1px solid var(--arzo-border) !important;
+            color: var(--arzo-text-primary) !important;
         }
         .elfinder-contextmenu-item:hover {
-            background: #2a2a2a !important;
-            color: #16e791 !important;
+            background: var(--arzo-accent) !important;
+            color: var(--arzo-text-on-accent) !important;
+        }
+        .elfinder-contextmenu .elfinder-contextmenu-item .elfinder-contextmenu-icon {
+             /* Default icons might be grey/white. On hover they need to be dark. */
+        }
+        .elfinder-contextmenu-item:hover .elfinder-contextmenu-icon {
+            filter: brightness(0);
         }
         
         /* Ace Editor Customization */
         #ace_settingsmenu {
-            background: #1e1e1e !important;
-            color: #ddd !important;
+            background: var(--arzo-bg-panel) !important;
+            color: var(--arzo-text-primary) !important;
         }
         
         /* Input fields */
         .elfinder-dialog input, .elfinder-dialog select, .elfinder-dialog textarea {
-            background: #2a2a2a !important;
-            color: #fff !important;
+            background: var(--arzo-bg-hover) !important;
+            color: var(--arzo-text-primary) !important;
             border: 1px solid #444 !important;
         }
         
@@ -299,11 +346,11 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #121212; 
+            background: var(--arzo-bg-dark); 
         }
         ::-webkit-scrollbar-thumb {
             background: #444; 
-            border-radius: 4px;
+            border-radius: var(--arzo-radius);
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #555; 
