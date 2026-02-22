@@ -8,3 +8,4 @@
 *.tar
 *.gz
 *.json
+/bit-file-manager
