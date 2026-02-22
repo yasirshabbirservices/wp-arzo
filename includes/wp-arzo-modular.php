@@ -53,8 +53,8 @@ if (isset($_GET['tab'])) {
         }
     }
     if (($_GET['tab'] === 'site_modes' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['update_maintenance_option', 'activate_mode', 'deactivate_mode', 'generate_emergency_script'])) {
-        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/maintenance.php')) {
-            include(WP_ARZO_PLUGIN_DIR . 'features/maintenance.php');
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/site-modes.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/site-modes.php');
             exit;
         }
     }
@@ -72,7 +72,7 @@ $feature_files = [
     'plugins' => 'plugins.php',
     'themes' => 'themes.php',
     'debug' => 'debug.php',
-    'site_modes' => 'maintenance.php',
+    'site_modes' => 'site-modes.php',
     'extra_options' => 'extra-options.php',
     'login' => 'login.php',
 ];
