@@ -11,26 +11,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Handle Emergency Script Generation
-if (isset($_GET['operation']) && $_GET['operation'] === 'generate_emergency_script') {
-    header('Content-Type: application/json');
-    if (isset($_POST['password'])) {
-        $password = $_POST['password'];
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        
-        $config_file = WP_ARZO_PLUGIN_DIR . 'arzo-safe.php';
-        $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
-        
-        if (file_put_contents($config_file, $config_content)) {
-            $script_url = home_url('/wp-arzo/emergency/');
-            echo json_encode(['success' => true, 'url' => $script_url]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to write config file.']);
-        }
-    }
-    exit;
-}
-
 // --- Helper Functions for PHP Limits ---
 
 // Function to update PHP limits in wp-config.php
@@ -207,9 +187,6 @@ function handleExtraOptions()
     $default_upload_max_filesize = '64M';
     $default_post_max_size = '64M';
     
-    // Emergency Script Status
-    $emergency_configured = file_exists(WP_ARZO_PLUGIN_DIR . 'arzo-safe.php');
-
     // Handle reset settings
     if (isset($_POST['reset_php_limits'])) {
         $target_file = $_POST['target_file'];
@@ -322,26 +299,6 @@ function handleExtraOptions()
     ?>
     <div class="content">
         <h2>Extra Options</h2>
-
-        <!-- Emergency Script -->
-        <div style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #ff4d4d; margin-bottom: 20px;">
-            <h3 style="color: #ff4d4d; margin-top: 0;"><i class="fas fa-life-ring"></i> Emergency Recovery Script</h3>
-            <p style="color: #999; margin-bottom: 15px;">Create a standalone recovery script to access your site if WordPress breaks (WSOD, plugin conflicts, etc.).</p>
-            
-            <?php if ($emergency_configured): ?>
-                <div style="background: rgba(22, 231, 145, 0.1); padding: 10px; border-left: 3px solid #16e791; margin-bottom: 10px;">
-                    <strong>Status: Active</strong><br>
-                    Your emergency script is ready at: <a href="<?php echo home_url('/wp-arzo/emergency/'); ?>" target="_blank" style="color: #16e791;"><?php echo home_url('/wp-arzo/emergency/'); ?></a>
-                </div>
-                <p style="color: #999;"><small>Save this URL! If you lose access to WP Admin, you can use this script to deactivate plugins or create a new admin.</small></p>
-            <?php else: ?>
-                <p style="color: #999;">The script is not yet configured. Set a secure password to generate it.</p>
-                <div style="display: flex; gap: 10px;">
-                    <input type="password" id="emergency-pass" placeholder="Set Recovery Password" class="php-limits-input" style="max-width: 250px;">
-                    <button type="button" onclick="generateEmergencyScript()" style="background: #ff4d4d; color: #fff; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Generate Script</button>
-                </div>
-            <?php endif; ?>
-        </div>
 
         <div
             style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-bottom: 20px;">
@@ -507,39 +464,6 @@ function handleExtraOptions()
             </div>
         <?php endif; ?>
     </div>
-    
-    <script>
-        const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>&tab=extra_options';
-
-        function generateEmergencyScript() {
-            const pass = document.getElementById('emergency-pass').value;
-            if (!pass) {
-                alert('Please enter a password');
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('password', pass);
-            
-            fetch(`${baseUrl}&operation=generate_emergency_script`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Emergency script generated! Reloading page...');
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Request failed');
-            });
-        }
-    </script>
     <?php
 }
 

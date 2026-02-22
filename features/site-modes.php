@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Maintenance Mode Feature
  *
@@ -66,6 +67,26 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'deactivate_mode') {
     exit;
 }
 
+// Handle Emergency Script Generation
+if (isset($_GET['operation']) && $_GET['operation'] === 'generate_emergency_script') {
+    header('Content-Type: application/json');
+    if (isset($_POST['password'])) {
+        $password = $_POST['password'];
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+
+        $config_file = WP_ARZO_PLUGIN_DIR . 'arzo-safe.php';
+        $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
+
+        if (file_put_contents($config_file, $config_content)) {
+            $script_url = home_url('/wp-arzo/emergency/');
+            echo json_encode(['success' => true, 'url' => $script_url]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to write config file.']);
+        }
+    }
+    exit;
+}
+
 // ---------------------
 
 function handleMaintenanceModes()
@@ -82,7 +103,10 @@ function handleMaintenanceModes()
     $developer_whatsapp = get_option('maintenance_tool_developer_whatsapp', '');
     $developer_skype = get_option('maintenance_tool_developer_skype', '');
 
-    ?>
+    // Emergency Script Status
+    $emergency_configured = file_exists(WP_ARZO_PLUGIN_DIR . 'arzo-safe.php');
+
+?>
     <style>
         /* Main Container & Grid */
         .maintenance-container {
@@ -396,10 +420,45 @@ function handleMaintenanceModes()
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
         }
-        
+
         /* Emergency Script Section */
         .emergency-section {
             display: none;
+        }
+
+        /* Emergency Mode Specifics */
+        .mode-emergency {
+            border-color: #ff4d4d !important;
+        }
+
+        .mode-emergency .mode-icon {
+            color: #ff4d4d;
+        }
+
+        .mode-emergency .btn-activate {
+            background: #ff4d4d;
+        }
+
+        .mode-emergency .btn-activate:hover {
+            background: #cc0000;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .emergency-active-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid #ff4d4d;
+            border-radius: 4px;
+            color: #ff4d4d;
+            text-decoration: none;
+            word-break: break-all;
+            font-size: 12px;
+        }
+
+        .emergency-active-link:hover {
+            background: rgba(255, 77, 77, 0.2);
         }
 
         /* Settings Box */
@@ -621,6 +680,43 @@ function handleMaintenanceModes()
                     <i class="fas fa-eye"></i> View Active Mode
                 </a>
             </div>
+            
+            <!-- Emergency Mode -->
+            <div class="mode-card mode-emergency <?php echo $emergency_configured ? 'active' : ''; ?>" id="card-emergency">
+                <?php if ($emergency_configured): ?>
+                    <div class="status-badge" style="background: #ff4d4d; color: #fff;">ACTIVE</div>
+                <?php endif; ?>
+
+                <div class="card-header">
+                    <i class="fas fa-ambulance mode-icon"></i>
+                    <h3>Emergency Mode</h3>
+                </div>
+
+                <p class="mode-desc">Standalone recovery script to access your site if WordPress breaks (WSOD, plugin conflicts, etc.).</p>
+
+                <?php if ($emergency_configured): ?>
+                    <div class="info-alert" style="background: rgba(255, 77, 77, 0.1); border-color: rgba(255, 77, 77, 0.3);">
+                        <svg viewBox="0 0 20 20" style="fill: #ff4d4d;">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="info-alert-text" style="color: #ff4d4d;">Emergency script is active.</span>
+                    </div>
+                    
+                    <a href="<?php echo home_url('/wp-arzo/emergency/'); ?>" target="_blank" class="emergency-active-link">
+                        <i class="fas fa-external-link-alt"></i> <?php echo home_url('/wp-arzo/emergency/'); ?>
+                    </a>
+                    <p style="color: #999; font-size: 11px; margin-top: 5px;">Save this URL! It works even if WP Admin is inaccessible.</p>
+                <?php else: ?>
+                    <div class="form-group">
+                        <label>Set Recovery Password</label>
+                        <input type="password" id="emergency-pass" class="form-control" placeholder="Enter a secure password">
+                    </div>
+
+                    <button type="button" class="btn-mode btn-activate" onclick="generateEmergencyScript()">
+                        <i class="fas fa-bolt"></i> Generate Script
+                    </button>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 
@@ -648,9 +744,9 @@ function handleMaintenanceModes()
             formData.append('option_value', isChecked ? '1' : '0');
 
             fetch(`${baseUrl}&operation=update_maintenance_option`, {
-                method: 'POST',
-                body: formData
-            })
+                    method: 'POST',
+                    body: formData
+                })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -666,7 +762,7 @@ function handleMaintenanceModes()
         // --- Auto Save (Debounced) ---
         let timeoutId;
         document.querySelectorAll('.auto-save').forEach(input => {
-            input.addEventListener('input', function () {
+            input.addEventListener('input', function() {
                 clearTimeout(timeoutId);
                 timeoutId = setTimeout(() => {
                     const option = this.dataset.option;
@@ -677,9 +773,9 @@ function handleMaintenanceModes()
                     formData.append('option_value', value);
 
                     fetch(`${baseUrl}&operation=update_maintenance_option`, {
-                        method: 'POST',
-                        body: formData
-                    })
+                            method: 'POST',
+                            body: formData
+                        })
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) showToast('Saved');
@@ -698,9 +794,9 @@ function handleMaintenanceModes()
             formData.append('mode', mode);
 
             fetch(`${baseUrl}&operation=activate_mode`, {
-                method: 'POST',
-                body: formData
-            })
+                    method: 'POST',
+                    body: formData
+                })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -719,8 +815,8 @@ function handleMaintenanceModes()
 
         function deactivateMode() {
             fetch(`${baseUrl}&operation=deactivate_mode`, {
-                method: 'POST'
-            })
+                    method: 'POST'
+                })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -752,7 +848,7 @@ function handleMaintenanceModes()
             }
         }
     </script>
-    <?php
+<?php
 }
 
 // Call the function
