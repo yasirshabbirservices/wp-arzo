@@ -326,8 +326,8 @@ if ($action === 'wp_arzo_standalone') {
                 <?php echo ($action === 'themes') ? 'class="active"' : ''; ?>>Themes</a>
             <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=debug'); ?>"
                 <?php echo ($action === 'debug') ? 'class="active"' : ''; ?>>Debug</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=maintenance'); ?>"
-                <?php echo ($action === 'maintenance') ? 'class="active"' : ''; ?>>Maintenance Modes</a>
+            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=site_modes'); ?>"
+                <?php echo ($action === 'site_modes' || $action === 'maintenance') ? 'class="active"' : ''; ?>>Site Modes</a>
             <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=extra_options'); ?>"
                 <?php echo ($action === 'extra_options') ? 'class="active"' : ''; ?>>Extra Options</a>
             <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=login'); ?>"
