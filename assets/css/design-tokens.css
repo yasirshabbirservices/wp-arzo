@@ -1,0 +1,43 @@
+/**
+ * WP Arzo Design Tokens
+ * Centralized color palette and design variables
+ * 
+ * Branding:
+ * - Dark Mode Core
+ * - Neon Green Accent (#16e791)
+ * - High Contrast Text
+ */
+
+:root {
+    /* Base Colors */
+    --arzo-bg-dark: #121212;
+    --arzo-bg-panel: #1e1e1e;
+    --arzo-bg-hover: #2a2a2a;
+    --arzo-border: #333333;
+    
+    /* Text Colors */
+    --arzo-text-primary: #e0e0e0;
+    --arzo-text-secondary: #999999;
+    --arzo-text-muted: #666666;
+    
+    /* Brand Accent */
+    --arzo-accent: #16e791;
+    --arzo-accent-hover: #0ea66b;
+    
+    /* Text on Accent (High Contrast for Accessibility) */
+    /* WCAG 2.2 AA requires 4.5:1. 
+       #16e791 vs #121212 ratio is ~13:1 (Pass AAA) 
+       #16e791 vs #ffffff ratio is ~1.5:1 (Fail) 
+    */
+    --arzo-text-on-accent: #121212; 
+    
+    /* Semantic Colors */
+    --arzo-error: #ff4d4f;
+    --arzo-warning: #faad14;
+    --arzo-success: #16e791;
+    --arzo-info: #1890ff;
+
+    /* Components */
+    --arzo-radius: 4px;
+    --arzo-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
