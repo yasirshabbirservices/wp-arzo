@@ -207,7 +207,10 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
             background-color: var(--arzo-bg-dark) !important;
         }
         .elfinder-cwd-view-list .elfinder-cwd-file .elfinder-cwd-filename {
-            color: var(--arzo-text-primary) !important;
+            color: #ffffff !important;
+        }
+        .elfinder-cwd table td {
+            color: #ffffff !important;
         }
         /* Hover on file row */
         .elfinder-cwd-view-list .elfinder-cwd-file:hover {
