@@ -66,14 +66,14 @@ if (isset($_GET['tab'])) {
             exit;
         }
     }
-    if (($_GET['tab'] === 'site_modes' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['update_maintenance_option', 'activate_mode', 'deactivate_mode', 'generate_emergency_script'])) {
+    if (($_GET['tab'] === 'site_modes' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['update_maintenance_option', 'activate_mode', 'deactivate_mode', 'generate_emergency_script', 'delete_emergency_script'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/site-modes.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/site-modes.php');
             exit;
         }
     }
     // Handle Extra Options operations
-    if (($_GET['tab'] === 'extra_options' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && $_GET['operation'] === 'generate_emergency_script') {
+    if (($_GET['tab'] === 'extra_options' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['generate_emergency_script', 'delete_emergency_script'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/site-modes.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/site-modes.php');
             exit;

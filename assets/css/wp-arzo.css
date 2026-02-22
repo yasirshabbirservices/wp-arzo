@@ -212,7 +212,6 @@
     .content {
         background: var(--background-medium);
         padding: 20px;
-        border-left: 4px solid var(--accent-color);
         margin: 15px 0;
         border-radius: 3px;
     }
