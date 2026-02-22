@@ -75,13 +75,29 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
     <link rel="stylesheet" href="<?php echo WP_ARZO_PLUGIN_URL . 'assets/libs/elFinder/css/elfinder.min.css'; ?>">
     
     <!-- Theme (Material Gray to match WP Arzo) -->
-    <!-- Note: Path needs to be correct based on where we copied it -->
     <link rel="stylesheet" href="<?php echo WP_ARZO_PLUGIN_URL . 'assets/themes/material/material-gray/material-gray.min.css'; ?>">
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
-    <script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/libs/elFinder/js/elfinder.min.js'; ?>"></script>
+    
+    <!-- Define fm object for compatibility with Bit File Manager's modified elFinder -->
+    <script>
+        var fm = {
+            ajaxURL: '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=files&operation=elfinder_connector'); ?>',
+            nonce: '<?php echo wp_create_nonce('wp_arzo_fm'); ?>',
+            action: 'elfinder_connector',
+            options: {
+                themes: {
+                    'material-gray' : '<?php echo WP_ARZO_PLUGIN_URL . 'assets/themes/material/material-gray/material-gray.min.css'; ?>'
+                },
+                theme: 'material-gray',
+                lang: 'en'
+            }
+        };
+    </script>
+    
+    <script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/libs/elFinder/js/elfinder.full.js'; ?>"></script>
 
     <!-- elFinder Container -->
     <div id="elfinder" style="height: 100%;"></div>
@@ -93,8 +109,11 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
             // Calculate height to fit window
             var height = $(window).height() - 180; // Adjust for header/nav
             
+            // Use window.fm properties if available, otherwise fallbacks
+            var connectorUrl = (window.fm && window.fm.ajaxURL) ? window.fm.ajaxURL : '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=files&operation=elfinder_connector'); ?>';
+            
             $('#elfinder').elfinder({
-                url : '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=files&operation=elfinder_connector'); ?>',
+                url : connectorUrl,
                 lang : 'en',
                 height: height,
                 defaultView: 'list',
