@@ -3,7 +3,7 @@
  * Users Management Feature
  *
  * @package WP_Arzo
- * @version 5.1
+ * @version 6.2
  */
 
 // Security check
@@ -89,6 +89,11 @@ echo '<div class="error">User not found!</div>';
             ?>
     </div>
 
+    <!-- Search -->
+    <div class="form-group">
+        <input type="text" id="search-users" class="form-control" placeholder="Search users..." onkeyup="filterUsersTable()">
+    </div>
+
     <div class="scrollable-table-container">
         <table id="users-table">
             <thead>
@@ -118,7 +123,7 @@ echo '<div class="error">User not found!</div>';
     </div>
 
     <script>
-    // Users pagination functionality
+    // Users functionality
     document.addEventListener('DOMContentLoaded', function() {
         let currentPage = 1;
         const perPage = 10;
@@ -224,15 +229,30 @@ echo '<div class="error">User not found!</div>';
             paginationControls.innerHTML = controlsHtml;
         }
 
-        // Make loadUsersPage function globally available
         window.loadUsersPage = loadUsersPage;
+        
+        // Client-side search for current page
+        window.filterUsersTable = function() {
+            const input = document.getElementById('search-users');
+            const filter = input.value.toUpperCase();
+            const tr = usersTable.getElementsByTagName('tr');
+            for (let i = 0; i < tr.length; i++) {
+                const tds = tr[i].getElementsByTagName('td');
+                let visible = false;
+                for (let j = 0; j < tds.length; j++) {
+                    if (tds[j].textContent.toUpperCase().indexOf(filter) > -1) {
+                        visible = true;
+                        break;
+                    }
+                }
+                tr[i].style.display = visible ? '' : 'none';
+            }
+        }
 
         // Initial load
         loadUsersPage(currentPage);
     });
     </script>
-
-    </table>
 
     <!-- Hidden form that will be shown in lightbox -->
     <div id="createUserLightbox" class="lightbox">
