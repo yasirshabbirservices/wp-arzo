@@ -512,10 +512,82 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
     
     .toggle-label { margin-left: 10px; cursor: pointer; font-size: 13px; }
 
+    /* Login Screen Specifics */
+    .login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: var(--background-dark);
+    }
+    .login-card {
+        background: var(--background-medium);
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        border: 1px solid var(--border-color);
+    }
+    .login-card h1 { font-size: 24px; margin-bottom: 10px; color: var(--primary-text); }
+    .login-card h2 { font-size: 18px; margin-bottom: 25px; color: var(--accent-color); border: none; padding: 0; }
+    .login-card .form-control {
+        background: var(--background-light);
+        border: 1px solid var(--border-color);
+        padding: 12px 15px;
+        font-size: 15px;
+        margin-bottom: 20px;
+        transition: border-color 0.3s;
+    }
+    .login-card .form-control:focus {
+        border-color: var(--accent-color);
+        outline: none;
+    }
+    .login-card .btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+    .login-card .logo-area { margin-bottom: 20px; }
+    .login-card .logo-area img { width: 60px; height: 60px; border-radius: 50%; margin-bottom: 10px; }
+    .login-card .footer-links { margin-top: 20px; font-size: 12px; color: #666; }
+    .login-card .footer-links a { color: #888; text-decoration: none; }
+    .login-card .footer-links a:hover { color: var(--accent-color); }
+
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
+    <?php if (!$is_authenticated): ?>
+        <div class="login-wrapper">
+            <div class="login-card">
+                <div class="logo-area">
+                    <img src="<?php echo get_asset_url('yasir-shabbir-white-logo.png'); ?>" alt="Yasir Shabbir">
+                </div>
+                <h1>WP Arzo Recovery</h1>
+                <h2><?php echo $setup_mode ? 'Setup Access' : 'Login Required'; ?></h2>
+                
+                <?php if ($success_msg) echo "<div class='alert alert-success' style='text-align:left; margin-bottom:20px;'>$success_msg</div>"; ?>
+                <?php if ($error_msg) echo "<div class='alert alert-error' style='text-align:left; margin-bottom:20px;'>$error_msg</div>"; ?>
+
+                <form method="post">
+                    <input type="hidden" name="action" value="<?php echo $setup_mode ? 'setup' : 'login'; ?>">
+                    <div style="text-align: left; margin-bottom: 5px;">
+                        <label style="font-size: 12px; color: #999; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;"><?php echo $setup_mode ? 'Create Password' : 'Password'; ?></label>
+                    </div>
+                    <input type="password" name="<?php echo $setup_mode ? 'new_password' : 'password'; ?>" class="form-control" placeholder="Enter your password" required autofocus>
+                    <button type="submit" class="btn"><?php echo $setup_mode ? 'Create & Login' : 'Login'; ?></button>
+                </form>
+                
+                <div class="footer-links">
+                    <a href="https://yasirshabbir.com" target="_blank">Yasir Shabbir</a> &bull; v<?php echo WP_ARZO_EMERGENCY_VERSION; ?>
+                </div>
+            </div>
+        </div>
+    <?php else: ?>
     <div class="container">
 <?php
 // Helper: Get Asset URL
@@ -564,19 +636,7 @@ function get_asset_url($path) {
         <?php if ($success_msg) echo "<div class='alert alert-success'>$success_msg</div>"; ?>
         <?php if ($error_msg) echo "<div class='alert alert-error'>$error_msg</div>"; ?>
 
-        <?php if (!$is_authenticated): ?>
-            <div class="content active" style="max-width: 400px; margin: 0 auto; border: none;">
-                <h2><?php echo $setup_mode ? 'Setup Access' : 'Login Required'; ?></h2>
-                <form method="post">
-                    <input type="hidden" name="action" value="<?php echo $setup_mode ? 'setup' : 'login'; ?>">
-                    <div class="form-group">
-                        <label><?php echo $setup_mode ? 'Create Password' : 'Password'; ?></label>
-                        <input type="password" name="<?php echo $setup_mode ? 'new_password' : 'password'; ?>" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn"><?php echo $setup_mode ? 'Create & Login' : 'Login'; ?></button>
-                </form>
-            </div>
-        <?php else: 
+        <?php 
             $db_data = get_db_connection($wp_config_path);
             if (is_array($db_data)) {
                 $conn = $db_data['conn'];
