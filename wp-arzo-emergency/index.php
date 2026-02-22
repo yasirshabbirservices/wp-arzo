@@ -3,13 +3,13 @@
  * WP Arzo - Emergency Recovery Script
  * 
  * Standalone recovery tool that works independently of WordPress core.
- * Features: DB repair, User management, Plugin/Theme control, Core URL fix.
+ * Features: Plugin/Theme Management, User Control, DB Repair, File Uploads.
  * 
  * @package WP_Arzo
- * @version 1.0
+ * @version 2.0
  */
 
-// Disable error reporting to prevent leakage, unless explicitly enabled via query param
+// Disable error reporting to prevent leakage, unless explicitly enabled
 if (isset($_GET['debug'])) {
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
@@ -25,21 +25,29 @@ header("X-Content-Type-Options: nosniff");
 header("Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:;");
 
 // Define constants
-define('WP_ARZO_EMERGENCY_VERSION', '1.0');
+define('WP_ARZO_EMERGENCY_VERSION', '2.0');
 define('WP_ARZO_EMERGENCY_DIR', __DIR__);
-define('WP_ARZO_CONFIG_FILE', dirname(__DIR__) . '/arzo-safe.php'); // Stores hashed password
+define('WP_ARZO_CONFIG_FILE', dirname(__DIR__) . '/arzo-safe.php'); 
+define('WP_CONTENT_DIR', dirname(dirname(dirname(__DIR__))) . '/wp-content');
 
-// Helper: Secure Session Start
-function start_secure_session() {
-    if (session_status() === PHP_SESSION_NONE) {
-        // Secure session settings
-        ini_set('session.cookie_httponly', 1);
-        ini_set('session.use_only_cookies', 1);
-        ini_set('session.cookie_secure', isset($_SERVER['HTTPS']));
-        session_start();
+// Start Session
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    ini_set('session.cookie_secure', isset($_SERVER['HTTPS']));
+    session_start();
+}
+
+// CSRF Protection
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+function verify_nonce() {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die('Security Check Failed: Invalid Nonce');
     }
 }
-start_secure_session();
 
 // Helper: Redirect
 function redirect($url) {
@@ -52,55 +60,51 @@ function redirect($url) {
     }
 }
 
-// Authentication Check
+// Auth Check
 if (!file_exists(WP_ARZO_CONFIG_FILE)) {
-    // If config file doesn't exist, allow setup if WP config is readable
     $setup_mode = true;
 } else {
     $setup_mode = false;
     require_once(WP_ARZO_CONFIG_FILE);
 }
 
-// Handle Login/Setup
+// Determine Redirect Base
+$current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+$parsed_url = parse_url($current_url);
+$redirect_base = $parsed_url['path'];
+
+// Messages
 $error_msg = '';
 $success_msg = '';
 
-// Get current URL parts for redirection
-$current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-$parsed_url = parse_url($current_url);
-$redirect_base = $parsed_url['path']; // Keep just the path to avoid query string loop if any
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
-        if ($_POST['action'] === 'login') {
-            if (isset($_POST['password']) && defined('WP_ARZO_EMERGENCY_HASH')) {
-                if (password_verify($_POST['password'], WP_ARZO_EMERGENCY_HASH)) {
-                    $_SESSION['arzo_emergency_auth'] = true;
-                    // Fix: Redirect to self (script path) instead of potential home redirect
-                    redirect($redirect_base);
-                } else {
-                    $error_msg = 'Invalid password.';
-                }
+// Handle Login/Setup
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'login') {
+        if (isset($_POST['password']) && defined('WP_ARZO_EMERGENCY_HASH')) {
+            if (password_verify($_POST['password'], WP_ARZO_EMERGENCY_HASH)) {
+                $_SESSION['arzo_emergency_auth'] = true;
+                redirect($redirect_base);
+            } else {
+                $error_msg = 'Invalid password.';
             }
-        } elseif ($_POST['action'] === 'setup' && $setup_mode) {
-            if (isset($_POST['new_password']) && !empty($_POST['new_password'])) {
-                $hash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-                $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
-                if (file_put_contents(WP_ARZO_CONFIG_FILE, $config_content)) {
-                    $_SESSION['arzo_emergency_auth'] = true;
-                    redirect($redirect_base);
-                } else {
-                    $error_msg = 'Failed to write config file. Check permissions.';
-                }
-            }
-        } elseif ($_POST['action'] === 'logout') {
-            session_destroy();
-            redirect($redirect_base);
         }
+    } elseif ($_POST['action'] === 'setup' && $setup_mode) {
+        if (isset($_POST['new_password']) && !empty($_POST['new_password'])) {
+            $hash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
+            $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
+            if (file_put_contents(WP_ARZO_CONFIG_FILE, $config_content)) {
+                $_SESSION['arzo_emergency_auth'] = true;
+                redirect($redirect_base);
+            } else {
+                $error_msg = 'Failed to write config file. Check permissions.';
+            }
+        }
+    } elseif ($_POST['action'] === 'logout') {
+        session_destroy();
+        redirect($redirect_base);
     }
 }
 
-// Check Auth
 $is_authenticated = isset($_SESSION['arzo_emergency_auth']) && $_SESSION['arzo_emergency_auth'] === true;
 
 // Locate wp-config.php
@@ -119,22 +123,17 @@ foreach ($possible_paths as $path) {
     }
 }
 
-// Database Connection Helper
+// DB Helper
 function get_db_connection($wp_config_path) {
     if (!file_exists($wp_config_path)) return false;
-
     $config_content = file_get_contents($wp_config_path);
-    
-    // Simple regex parsing for DB constants (robust enough for standard wp-config)
     preg_match("/define\(\s*['\"]DB_NAME['\"]\s*,\s*['\"](.*?)['\"]\s*\);/", $config_content, $db_name);
     preg_match("/define\(\s*['\"]DB_USER['\"]\s*,\s*['\"](.*?)['\"]\s*\);/", $config_content, $db_user);
     preg_match("/define\(\s*['\"]DB_PASSWORD['\"]\s*,\s*['\"](.*?)['\"]\s*\);/", $config_content, $db_password);
     preg_match("/define\(\s*['\"]DB_HOST['\"]\s*,\s*['\"](.*?)['\"]\s*\);/", $config_content, $db_host);
     preg_match("/\\\$table_prefix\s*=\s*['\"](.*?)['\"];/", $config_content, $table_prefix);
 
-    if (empty($db_name[1]) || empty($db_user[1]) || empty($db_host[1])) {
-        return "Could not parse wp-config.php. Ensure standard formatting.";
-    }
+    if (empty($db_name[1]) || empty($db_user[1]) || empty($db_host[1])) return "Could not parse wp-config.php.";
 
     $host = $db_host[1];
     $user = $db_user[1];
@@ -143,90 +142,260 @@ function get_db_connection($wp_config_path) {
     $prefix = isset($table_prefix[1]) ? $table_prefix[1] : 'wp_';
 
     $mysqli = new mysqli($host, $user, $pass, $name);
-    
-    if ($mysqli->connect_error) {
-        return "Connection failed: " . $mysqli->connect_error;
-    }
+    if ($mysqli->connect_error) return "Connection failed: " . $mysqli->connect_error;
 
     return ['conn' => $mysqli, 'prefix' => $prefix];
 }
 
-// Actions Logic (Only if Authenticated)
+// File System Helpers
+function recursive_copy($src, $dst) {
+    $dir = opendir($src);
+    @mkdir($dst);
+    while (false !== ($file = readdir($dir))) {
+        if (($file != '.') && ($file != '..')) {
+            if (is_dir($src . '/' . $file)) {
+                recursive_copy($src . '/' . $file, $dst . '/' . $file);
+            } else {
+                copy($src . '/' . $file, $dst . '/' . $file);
+            }
+        }
+    }
+    closedir($dir);
+}
+
+function recursive_rmdir($dir) {
+    if (is_dir($dir)) {
+        $objects = scandir($dir);
+        foreach ($objects as $object) {
+            if ($object != "." && $object != "..") {
+                if (is_dir($dir . "/" . $object))
+                    recursive_rmdir($dir . "/" . $object);
+                else
+                    unlink($dir . "/" . $object);
+            }
+        }
+        rmdir($dir);
+    }
+}
+
+// Basic Malware Scanner
+function scan_file_for_malware($file) {
+    $content = file_get_contents($file);
+    $suspicious = ['eval(base64_decode', 'shell_exec', 'passthru', 'system(', 'phpinfo', 'base64_decode('];
+    foreach ($suspicious as $term) {
+        if (strpos($content, $term) !== false) return true;
+    }
+    return false;
+}
+
+// MAIN LOGIC
 if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    verify_nonce();
     $db_data = get_db_connection($wp_config_path);
+    
     if (is_array($db_data)) {
         $conn = $db_data['conn'];
         $prefix = $db_data['prefix'];
 
         switch ($_POST['action']) {
-            case 'deactivate_plugins':
-                $sql = "UPDATE {$prefix}options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins'";
-                if ($conn->query($sql)) {
-                    $success_msg = "All plugins deactivated successfully.";
-                } else {
-                    $error_msg = "Failed to deactivate plugins: " . $conn->error;
+            // --- PLUGINS ---
+            case 'deactivate_all_plugins':
+                $sql_get = "SELECT option_value FROM {$prefix}options WHERE option_name = 'active_plugins'";
+                $result = $conn->query($sql_get);
+                if ($result && $row = $result->fetch_assoc()) {
+                    $current_plugins = unserialize($row['option_value']);
+                    if (!is_array($current_plugins)) $current_plugins = [];
+                    
+                    $preserved = [];
+                    $count = 0;
+                    $target = 'wp-arzo/wp-arzo.php';
+                    
+                    foreach ($current_plugins as $p) {
+                        if ($p === $target || strpos($p, 'wp-arzo.php') !== false) {
+                            $preserved[] = $p;
+                        } else {
+                            $count++;
+                        }
+                    }
+                    
+                    $new_val = $conn->real_escape_string(serialize($preserved));
+                    $conn->query("UPDATE {$prefix}options SET option_value = '$new_val' WHERE option_name = 'active_plugins'");
+                    $success_msg = "Deactivated $count plugins. WP Arzo preserved.";
                 }
                 break;
 
-            case 'reset_password':
-                $user_id = intval($_POST['user_id']);
-                $new_pass = $_POST['new_pass'];
-                // Use MD5 as fallback which WP supports and will upgrade on next login
-                $hash = md5($new_pass);
-                $sql = "UPDATE {$prefix}users SET user_pass = '$hash' WHERE ID = $user_id";
-                if ($conn->query($sql)) {
-                    $success_msg = "Password reset for User ID $user_id.";
+            case 'toggle_plugin':
+                $plugin_file = $_POST['plugin_file'];
+                $activate = $_POST['state'] === 'activate';
+                
+                $sql_get = "SELECT option_value FROM {$prefix}options WHERE option_name = 'active_plugins'";
+                $res = $conn->query($sql_get);
+                $active = [];
+                if ($res && $row = $res->fetch_assoc()) $active = unserialize($row['option_value']);
+                if (!is_array($active)) $active = [];
+
+                if ($activate) {
+                    if (!in_array($plugin_file, $active)) {
+                        $active[] = $plugin_file;
+                        sort($active); // Good practice
+                    }
                 } else {
-                    $error_msg = "Failed to reset password: " . $conn->error;
+                    $key = array_search($plugin_file, $active);
+                    if ($key !== false) unset($active[$key]);
+                    $active = array_values($active);
+                }
+
+                $new_val = $conn->real_escape_string(serialize($active));
+                $conn->query("UPDATE {$prefix}options SET option_value = '$new_val' WHERE option_name = 'active_plugins'");
+                $success_msg = "Plugin " . ($activate ? "Activated" : "Deactivated");
+                break;
+
+            case 'upload_plugin':
+            case 'upload_theme':
+                $type = $_POST['action'] === 'upload_plugin' ? 'plugins' : 'themes';
+                $target_dir = WP_CONTENT_DIR . '/' . $type . '/';
+                
+                if (isset($_FILES['zip_file']) && $_FILES['zip_file']['error'] === UPLOAD_ERR_OK) {
+                    $tmp_name = $_FILES['zip_file']['tmp_name'];
+                    $name = $_FILES['zip_file']['name'];
+                    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+                    
+                    if ($ext !== 'zip') {
+                        $error_msg = "Only ZIP files are allowed.";
+                    } else {
+                        $zip = new ZipArchive;
+                        if ($zip->open($tmp_name) === TRUE) {
+                            // Basic malware scan on php files in zip (simplified: extract to temp first)
+                            $temp_extract = sys_get_temp_dir() . '/arzo_temp_' . uniqid();
+                            mkdir($temp_extract);
+                            $zip->extractTo($temp_extract);
+                            $zip->close();
+                            
+                            // Scan
+                            $malware_found = false;
+                            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($temp_extract));
+                            foreach ($iterator as $file) {
+                                if ($file->isFile() && $file->getExtension() === 'php') {
+                                    if (scan_file_for_malware($file->getPathname())) {
+                                        $malware_found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if ($malware_found) {
+                                $error_msg = "Security Alert: Suspicious code detected in upload.";
+                                recursive_rmdir($temp_extract);
+                            } else {
+                                // Move to target
+                                recursive_copy($temp_extract, $target_dir);
+                                recursive_rmdir($temp_extract);
+                                $success_msg = ucfirst(rtrim($type, 's')) . " uploaded and installed successfully.";
+                                
+                                // Auto Activate if requested
+                                if (isset($_POST['activate_now'])) {
+                                    // Re-open zip to check structure
+                                    $zip = new ZipArchive;
+                                    $zip->open($tmp_name);
+                                    $stat = $zip->statIndex(0);
+                                    $root_folder = explode('/', $stat['name'])[0];
+                                    $zip->close();
+
+                                    if ($type === 'themes') {
+                                        if ($root_folder) {
+                                            $slug = $conn->real_escape_string($root_folder);
+                                            $conn->query("UPDATE {$prefix}options SET option_value = '$slug' WHERE option_name = 'template'");
+                                            $conn->query("UPDATE {$prefix}options SET option_value = '$slug' WHERE option_name = 'stylesheet'");
+                                            $success_msg .= " And activated.";
+                                        }
+                                    } elseif ($type === 'plugins') {
+                                        // Find main file in extracted dir
+                                        $extracted_root = $target_dir . $root_folder;
+                                        $main_file = '';
+                                        if (is_dir($extracted_root)) {
+                                            $files = scandir($extracted_root);
+                                            foreach ($files as $f) {
+                                                if (substr($f, -4) === '.php') {
+                                                    $content = file_get_contents($extracted_root . '/' . $f, false, null, 0, 8192);
+                                                    if (preg_match('/Plugin Name:/i', $content)) {
+                                                        $main_file = $root_folder . '/' . $f;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        if ($main_file) {
+                                            $sql_get = "SELECT option_value FROM {$prefix}options WHERE option_name = 'active_plugins'";
+                                            $res = $conn->query($sql_get);
+                                            $active = ($res && $row = $res->fetch_assoc()) ? unserialize($row['option_value']) : [];
+                                            if (!is_array($active)) $active = [];
+                                            
+                                            if (!in_array($main_file, $active)) {
+                                                $active[] = $main_file;
+                                                sort($active);
+                                                $new_val = $conn->real_escape_string(serialize($active));
+                                                $conn->query("UPDATE {$prefix}options SET option_value = '$new_val' WHERE option_name = 'active_plugins'");
+                                                $success_msg .= " And activated.";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            $error_msg = "Failed to open ZIP.";
+                        }
+                    }
+                } else {
+                    $error_msg = "Upload failed.";
                 }
                 break;
-            
+
+            // --- THEMES ---
+            case 'activate_theme':
+                $slug = $conn->real_escape_string($_POST['theme_slug']);
+                $conn->query("UPDATE {$prefix}options SET option_value = '$slug' WHERE option_name = 'template'");
+                $conn->query("UPDATE {$prefix}options SET option_value = '$slug' WHERE option_name = 'stylesheet'");
+                $success_msg = "Theme activated.";
+                break;
+
+            // --- USERS ---
             case 'create_admin':
                 $user = $conn->real_escape_string($_POST['username']);
                 $pass = md5($_POST['password']);
                 $email = $conn->real_escape_string($_POST['email']);
                 $now = date('Y-m-d H:i:s');
-                
-                // Insert User
-                $sql = "INSERT INTO {$prefix}users (user_login, user_pass, user_nicename, user_email, user_registered, user_status, display_name) 
-                        VALUES ('$user', '$pass', '$user', '$email', '$now', 0, '$user')";
-                
+                $sql = "INSERT INTO {$prefix}users (user_login, user_pass, user_nicename, user_email, user_registered, user_status, display_name) VALUES ('$user', '$pass', '$user', '$email', '$now', 0, '$user')";
                 if ($conn->query($sql)) {
-                    $user_id = $conn->insert_id;
-                    // Add Capabilities
+                    $uid = $conn->insert_id;
                     $caps = serialize(['administrator' => true]);
-                    $sql_meta1 = "INSERT INTO {$prefix}usermeta (user_id, meta_key, meta_value) VALUES ($user_id, '{$prefix}capabilities', '$caps')";
-                    $sql_meta2 = "INSERT INTO {$prefix}usermeta (user_id, meta_key, meta_value) VALUES ($user_id, '{$prefix}user_level', '10')";
-                    
-                    if ($conn->query($sql_meta1) && $conn->query($sql_meta2)) {
-                        $success_msg = "Admin user '$user' created successfully.";
-                    } else {
-                        $error_msg = "User created but meta failed.";
-                    }
+                    $conn->query("INSERT INTO {$prefix}usermeta (user_id, meta_key, meta_value) VALUES ($uid, '{$prefix}capabilities', '$caps')");
+                    $conn->query("INSERT INTO {$prefix}usermeta (user_id, meta_key, meta_value) VALUES ($uid, '{$prefix}user_level', '10')");
+                    $success_msg = "Admin created.";
                 } else {
-                    $error_msg = "Failed to create user: " . $conn->error;
+                    $error_msg = "DB Error: " . $conn->error;
                 }
                 break;
+                
+            case 'reset_password':
+                $uid = intval($_POST['user_id']);
+                $pass = md5($_POST['new_pass']);
+                $conn->query("UPDATE {$prefix}users SET user_pass = '$pass' WHERE ID = $uid");
+                $success_msg = "Password reset.";
+                break;
 
+            // --- CORE ---
             case 'update_url':
-                $site_url = $conn->real_escape_string($_POST['site_url']);
-                $home_url = $conn->real_escape_string($_POST['home_url']);
-                
-                $sql1 = "UPDATE {$prefix}options SET option_value = '$site_url' WHERE option_name = 'siteurl'";
-                $sql2 = "UPDATE {$prefix}options SET option_value = '$home_url' WHERE option_name = 'home'";
-                
-                if ($conn->query($sql1) && $conn->query($sql2)) {
-                    $success_msg = "Site URLs updated successfully.";
-                } else {
-                    $error_msg = "Failed to update URLs: " . $conn->error;
-                }
+                $url = $conn->real_escape_string($_POST['site_url']);
+                $conn->query("UPDATE {$prefix}options SET option_value = '$url' WHERE option_name = 'siteurl'");
+                $conn->query("UPDATE {$prefix}options SET option_value = '$url' WHERE option_name = 'home'");
+                $success_msg = "URLs updated.";
                 break;
         }
     } else {
-        $error_msg = is_string($db_data) ? $db_data : "Database connection error.";
+        $error_msg = "DB Connection failed.";
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -234,193 +403,341 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WP Arzo - Emergency Recovery</title>
+    <!-- Embedded CSS matching Main Plugin -->
     <style>
-        :root { --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --accent: #16e791; --danger: #ff4d4d; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 800px; }
-        .card { background: var(--card); padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 20px; border: 1px solid #333; }
-        h1, h2, h3 { color: #fff; margin-top: 0; }
-        h1 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .alert { padding: 15px; border-radius: 4px; margin-bottom: 20px; }
-        .alert-error { background: rgba(255, 77, 77, 0.2); border: 1px solid var(--danger); color: #ffcccc; }
-        .alert-success { background: rgba(22, 231, 145, 0.2); border: 1px solid var(--accent); color: #ccffdd; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; }
-        input[type="text"], input[type="password"], input[type="email"], select { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
-        button { background: var(--accent); color: #121212; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
-        button:hover { opacity: 0.9; }
-        button.danger { background: var(--danger); color: #fff; }
-        .tab-nav { display: flex; margin-bottom: 20px; border-bottom: 1px solid #333; }
-        .tab-nav button { background: transparent; color: #aaa; border-radius: 0; margin-right: 10px; }
-        .tab-nav button.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
-        th { color: #aaa; }
-        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
-        .status-green { background: var(--accent); }
-        .status-red { background: var(--danger); }
-        .logout-btn { background: transparent; color: #aaa; border: 1px solid #444; font-size: 12px; padding: 5px 10px; }
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+    :root {
+        --accent-color: #16e791; --primary-text: #ffffff; --secondary-text: #e0e0e0;
+        --background-dark: #121212; --background-medium: #1e1e1e; --background-light: #2a2a2a;
+        --border-color: #333333; --border-light: #444444; --danger-color: #dc3545; --success-color: #28a745;
+    }
+    body { font-family: 'Lato', sans-serif; margin: 0; padding: 20px; background: var(--background-dark); color: var(--secondary-text); min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; background: var(--background-medium); padding: 20px; border-radius: 3px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+    h1 { color: var(--primary-text); margin-bottom: 10px; font-weight: 700; }
+    h2 { color: var(--accent-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; font-weight: 400; }
+    .nav { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 5px; border-bottom: 2px solid var(--border-color); }
+    .nav button { padding: 12px 20px; background: var(--background-light); color: var(--secondary-text); border: 2px solid var(--border-color); border-bottom: none; border-radius: 8px 8px 0 0; font-weight: 500; cursor: pointer; transition: all 0.3s; font-family: inherit; font-size: 14px; }
+    .nav button:hover { background: #3A3A3A; color: var(--accent-color); }
+    .nav button.active { background: var(--accent-color); color: var(--background-dark); border-color: var(--accent-color); }
+    .content { display: none; background: var(--background-medium); padding: 20px; border-left: 4px solid var(--accent-color); border-radius: 3px; animation: fadeIn 0.3s; }
+    .content.active { display: block; }
+    .alert { padding: 15px; border-radius: 3px; margin-bottom: 20px; }
+    .alert-success { background: rgba(40, 167, 69, 0.2); border: 1px solid var(--success-color); color: #81c784; }
+    .alert-error { background: rgba(220, 53, 69, 0.2); border: 1px solid var(--danger-color); color: #e57373; }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0; background: var(--background-medium); }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+    th { background: var(--border-color); color: var(--accent-color); font-weight: 600; }
+    tr:hover { background: var(--background-light); }
+    .btn { padding: 8px 15px; background: var(--accent-color); color: var(--background-dark); border: none; border-radius: 3px; cursor: pointer; font-weight: 500; transition: 0.3s; font-size: 13px; }
+    .btn:hover { background: #0ea66b; color: #fff; }
+    .btn-danger { background: var(--danger-color); color: white; }
+    .btn-danger:hover { background: #c82333; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; color: #E0E0E0; }
+    .form-control { width: 100%; padding: 10px; background: var(--background-light); border: 1px solid var(--border-color); color: #fff; border-radius: 3px; box-sizing: border-box; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .badge { padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+    .badge-active { background: rgba(22, 231, 145, 0.2); color: var(--accent-color); }
+    .badge-inactive { background: rgba(108, 117, 125, 0.2); color: #999; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="container">
-        <?php if ($setup_mode): ?>
-            <div class="card">
-                <h1>Emergency Setup</h1>
-                <p>Please create a secure password to access the recovery console.</p>
-                <?php if ($error_msg) echo "<div class='alert alert-error'>$error_msg</div>"; ?>
-                <form method="post">
-                    <input type="hidden" name="action" value="setup">
-                    <div class="form-group">
-                        <label>New Password</label>
-                        <input type="password" name="new_password" required>
-                    </div>
-                    <button type="submit">Create Access</button>
-                </form>
-            </div>
-        <?php elseif (!$is_authenticated): ?>
-            <div class="card">
-                <h1>Emergency Login</h1>
-                <?php if ($error_msg) echo "<div class='alert alert-error'>$error_msg</div>"; ?>
-                <form method="post">
-                    <input type="hidden" name="action" value="login">
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" name="password" required>
-                    </div>
-                    <button type="submit">Login</button>
-                </form>
-            </div>
-        <?php else: ?>
-            <div class="card">
-                <h1>
-                    WP Arzo Recovery
-                    <form method="post" style="display:inline;"><input type="hidden" name="action" value="logout"><button type="submit" class="logout-btn">Logout</button></form>
-                </h1>
-                
-                <?php if ($success_msg) echo "<div class='alert alert-success'>$success_msg</div>"; ?>
-                <?php if ($error_msg) echo "<div class='alert alert-error'>$error_msg</div>"; ?>
+        <div class="flex-between" style="margin-bottom: 20px;">
+            <h1>WP Arzo Recovery</h1>
+            <?php if ($is_authenticated): ?>
+                <form method="post" style="margin:0;"><input type="hidden" name="action" value="logout"><button type="submit" class="btn btn-danger">Logout</button></form>
+            <?php endif; ?>
+        </div>
 
-                <?php
-                $db_data = get_db_connection($wp_config_path);
-                if (is_string($db_data) || !$db_data) {
-                    echo "<div class='alert alert-error'>DB Connection Failed: " . (is_string($db_data) ? $db_data : "Config not found") . "</div>";
-                } else {
-                    $conn = $db_data['conn'];
-                    $prefix = $db_data['prefix'];
-                    
-                    // Fetch Data
-                    $plugins_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'active_plugins'");
-                    $active_plugins = [];
-                    if ($plugins_res && $row = $plugins_res->fetch_assoc()) {
-                        $active_plugins = unserialize($row['option_value']);
+        <?php if ($success_msg) echo "<div class='alert alert-success'>$success_msg</div>"; ?>
+        <?php if ($error_msg) echo "<div class='alert alert-error'>$error_msg</div>"; ?>
+
+        <?php if (!$is_authenticated): ?>
+            <div class="content active" style="max-width: 400px; margin: 0 auto; border: none;">
+                <h2><?php echo $setup_mode ? 'Setup Access' : 'Login Required'; ?></h2>
+                <form method="post">
+                    <input type="hidden" name="action" value="<?php echo $setup_mode ? 'setup' : 'login'; ?>">
+                    <div class="form-group">
+                        <label><?php echo $setup_mode ? 'Create Password' : 'Password'; ?></label>
+                        <input type="password" name="<?php echo $setup_mode ? 'new_password' : 'password'; ?>" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn"><?php echo $setup_mode ? 'Create & Login' : 'Login'; ?></button>
+                </form>
+            </div>
+        <?php else: 
+            $db_data = get_db_connection($wp_config_path);
+            if (is_array($db_data)) {
+                $conn = $db_data['conn'];
+                $prefix = $db_data['prefix'];
+
+                // Fetch Data
+                $plugins_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'active_plugins'");
+                $active_plugins = ($plugins_res && $row = $plugins_res->fetch_assoc()) ? unserialize($row['option_value']) : [];
+                if (!is_array($active_plugins)) $active_plugins = [];
+
+                $stylesheet_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'stylesheet'");
+                $active_theme = ($stylesheet_res && $row = $stylesheet_res->fetch_assoc()) ? $row['option_value'] : '';
+
+                // Get Lists via file scan
+                $all_plugins = [];
+                $plugin_dir = WP_CONTENT_DIR . '/plugins';
+                if (is_dir($plugin_dir)) {
+                    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($plugin_dir));
+                    foreach ($files as $file) {
+                        if ($file->isFile() && $file->getExtension() === 'php') {
+                            $content = file_get_contents($file->getPathname(), false, null, 0, 8192); // Read header
+                            if (preg_match('/Plugin Name:\s*(.*)$/mi', $content, $matches)) {
+                                $path = str_replace($plugin_dir . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                                $path = str_replace('\\', '/', $path); // Normalize
+                                $all_plugins[$path] = trim($matches[1]);
+                            }
+                        }
                     }
-
-                    $users_res = $conn->query("SELECT ID, user_login, user_email FROM {$prefix}users LIMIT 50");
-                    
-                    $siteurl_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'siteurl'");
-                    $siteurl = ($siteurl_res && $row = $siteurl_res->fetch_assoc()) ? $row['option_value'] : '';
-                    
-                    $home_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'home'");
-                    $home = ($home_res && $row = $home_res->fetch_assoc()) ? $row['option_value'] : '';
-                ?>
+                }
                 
-                <div class="tab-nav">
-                    <button onclick="switchTab('dashboard')" class="active" id="btn-dashboard">Dashboard</button>
-                    <button onclick="switchTab('plugins')" id="btn-plugins">Plugins</button>
-                    <button onclick="switchTab('users')" id="btn-users">Users</button>
-                    <button onclick="switchTab('core')" id="btn-core">Core Settings</button>
-                </div>
+                $all_themes = [];
+                $theme_dir = WP_CONTENT_DIR . '/themes';
+                if (is_dir($theme_dir)) {
+                    $dirs = scandir($theme_dir);
+                    foreach ($dirs as $dir) {
+                        if ($dir !== '.' && $dir !== '..' && is_dir($theme_dir . '/' . $dir)) {
+                            $style = $theme_dir . '/' . $dir . '/style.css';
+                            if (file_exists($style)) {
+                                $content = file_get_contents($style, false, null, 0, 8192);
+                                if (preg_match('/Theme Name:\s*(.*)$/mi', $content, $matches)) {
+                                    $all_themes[$dir] = trim($matches[1]);
+                                } else {
+                                    $all_themes[$dir] = $dir;
+                                }
+                            }
+                        }
+                    }
+                }
+        ?>
 
-                <div id="dashboard" class="tab-content active">
-                    <h3>System Status</h3>
-                    <p><span class="status-dot status-green"></span> <strong>PHP Version:</strong> <?php echo phpversion(); ?></p>
-                    <p><span class="status-dot status-green"></span> <strong>Database:</strong> Connected (<?php echo $conn->server_info; ?>)</p>
-                    <p><span class="status-dot <?php echo !empty($active_plugins) ? 'status-green' : 'status-red'; ?>"></span> <strong>Active Plugins:</strong> <?php echo count($active_plugins); ?></p>
-                    <p><strong>WP Config Path:</strong> <?php echo htmlspecialchars($wp_config_path); ?></p>
-                </div>
+        <div class="nav">
+            <button onclick="switchTab('dashboard')" class="active" id="btn-dashboard">Dashboard</button>
+            <button onclick="switchTab('plugins')" id="btn-plugins">Plugins</button>
+            <button onclick="switchTab('themes')" id="btn-themes">Themes</button>
+            <button onclick="switchTab('users')" id="btn-users">Users</button>
+            <button onclick="switchTab('core')" id="btn-core">Core Settings</button>
+        </div>
 
-                <div id="plugins" class="tab-content">
-                    <h3>Manage Plugins</h3>
-                    <?php if (empty($active_plugins)): ?>
-                        <p>No active plugins found.</p>
-                    <?php else: ?>
-                        <div class="alert alert-error">Warning: Deactivating all plugins may affect site functionality but usually resolves WSOD issues.</div>
-                        <form method="post">
-                            <input type="hidden" name="action" value="deactivate_plugins">
-                            <button type="submit" class="danger" onclick="return confirm('Are you sure?');">Deactivate ALL Plugins</button>
-                        </form>
-                        <table>
-                            <tr><th>Plugin Path</th></tr>
-                            <?php foreach ($active_plugins as $plugin): ?>
-                                <tr><td><?php echo htmlspecialchars($plugin); ?></td></tr>
-                            <?php endforeach; ?>
-                        </table>
-                    <?php endif; ?>
-                </div>
-
-                <div id="users" class="tab-content">
-                    <h3>User Management</h3>
-                    
-                    <h4>Create New Admin</h4>
-                    <form method="post" style="background: #2a2a2a; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                        <input type="hidden" name="action" value="create_admin">
-                        <div class="form-group"><label>Username</label><input type="text" name="username" required></div>
-                        <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
-                        <div class="form-group"><label>Password</label><input type="text" name="password" required></div>
-                        <button type="submit">Create Admin</button>
-                    </form>
-
-                    <h4>Reset Password</h4>
-                    <table>
-                        <tr><th>ID</th><th>Username</th><th>Email</th><th>Action</th></tr>
-                        <?php while($user = $users_res->fetch_assoc()): ?>
-                            <tr>
-                                <td><?php echo $user['ID']; ?></td>
-                                <td><?php echo htmlspecialchars($user['user_login']); ?></td>
-                                <td><?php echo htmlspecialchars($user['user_email']); ?></td>
-                                <td>
-                                    <form method="post" style="display:flex; gap:5px;">
-                                        <input type="hidden" name="action" value="reset_password">
-                                        <input type="hidden" name="user_id" value="<?php echo $user['ID']; ?>">
-                                        <input type="text" name="new_pass" placeholder="New Password" required style="width:120px; padding:5px;">
-                                        <button type="submit" style="padding:5px 10px;">Reset</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </table>
-                </div>
-
-                <div id="core" class="tab-content">
-                    <h3>Core Settings</h3>
-                    <form method="post">
-                        <input type="hidden" name="action" value="update_url">
-                        <div class="form-group">
-                            <label>Site URL (siteurl)</label>
-                            <input type="text" name="site_url" value="<?php echo htmlspecialchars($siteurl); ?>">
-                        </div>
-                        <div class="form-group">
-                            <label>Home URL (home)</label>
-                            <input type="text" name="home_url" value="<?php echo htmlspecialchars($home); ?>">
-                        </div>
-                        <button type="submit">Update URLs</button>
-                    </form>
-                </div>
-
-                <?php } ?>
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="content active">
+            <h2>System Status</h2>
+            <div class="site-info-grid">
+                <div class="form-group"><strong>PHP Version:</strong> <?php echo phpversion(); ?></div>
+                <div class="form-group"><strong>MySQL Version:</strong> <?php echo $conn->server_info; ?></div>
+                <div class="form-group"><strong>Active Plugins:</strong> <?php echo count($active_plugins); ?></div>
+                <div class="form-group"><strong>Active Theme:</strong> <?php echo $active_theme; ?></div>
+                <div class="form-group"><strong>WP Config:</strong> <?php echo htmlspecialchars($wp_config_path); ?></div>
             </div>
-        <?php endif; ?>
+        </div>
+
+        <!-- PLUGINS -->
+        <div id="plugins" class="content">
+            <div class="flex-between">
+                <h2>Plugin Management</h2>
+                <form method="post" style="display:inline;" onsubmit="return confirm('Deactivate ALL except WP Arzo?');">
+                    <input type="hidden" name="action" value="deactivate_all_plugins">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                    <button type="submit" class="btn btn-danger">Bulk Deactivate All</button>
+                </form>
+            </div>
+
+            <!-- Upload -->
+            <div style="background:var(--background-light); padding:15px; margin:15px 0; border-radius:3px;">
+                <h4 style="margin-top:0;">Upload Plugin (ZIP)</h4>
+                <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="upload_plugin">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                    <input type="file" name="zip_file" required accept=".zip" style="color:#fff;">
+                    <label style="margin-left:10px;"><input type="checkbox" name="activate_now" value="1"> Activate immediately</label>
+                    <button type="submit" class="btn btn-sm">Install</button>
+                </form>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="search-plugins" class="form-control" placeholder="Search plugins..." onkeyup="filterTable('plugins-table', this.value)">
+            </div>
+
+            <div style="max-height: 500px; overflow-y: auto;">
+                <table id="plugins-table">
+                    <tr><th>Plugin Name</th><th>Path</th><th>Status</th><th>Action</th></tr>
+                    <?php foreach ($all_plugins as $path => $name): 
+                        $is_active = in_array($path, $active_plugins);
+                    ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($name); ?></td>
+                            <td><small><?php echo htmlspecialchars($path); ?></small></td>
+                            <td>
+                                <span class="badge <?php echo $is_active ? 'badge-active' : 'badge-inactive'; ?>">
+                                    <?php echo $is_active ? 'ACTIVE' : 'INACTIVE'; ?>
+                                </span>
+                            </td>
+                            <td>
+                                <form method="post">
+                                    <input type="hidden" name="action" value="toggle_plugin">
+                                    <input type="hidden" name="plugin_file" value="<?php echo htmlspecialchars($path); ?>">
+                                    <input type="hidden" name="state" value="<?php echo $is_active ? 'deactivate' : 'activate'; ?>">
+                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                    <button type="submit" class="btn btn-sm <?php echo $is_active ? 'btn-danger' : ''; ?>">
+                                        <?php echo $is_active ? 'Deactivate' : 'Activate'; ?>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        </div>
+
+        <!-- THEMES -->
+        <div id="themes" class="content">
+            <h2>Theme Management</h2>
+            
+            <!-- Upload -->
+            <div style="background:var(--background-light); padding:15px; margin:15px 0; border-radius:3px;">
+                <h4 style="margin-top:0;">Upload Theme (ZIP)</h4>
+                <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="upload_theme">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                    <input type="file" name="zip_file" required accept=".zip" style="color:#fff;">
+                    <label style="margin-left:10px;"><input type="checkbox" name="activate_now" value="1"> Activate immediately</label>
+                    <button type="submit" class="btn btn-sm">Install</button>
+                </form>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="search-themes" class="form-control" placeholder="Search themes..." onkeyup="filterTable('themes-table', this.value)">
+            </div>
+
+            <table id="themes-table">
+                <tr><th>Theme Name</th><th>Folder</th><th>Status</th><th>Action</th></tr>
+                <?php foreach ($all_themes as $slug => $name): 
+                    $is_active = ($slug === $active_theme);
+                ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($name); ?></td>
+                        <td><?php echo htmlspecialchars($slug); ?></td>
+                        <td>
+                            <span class="badge <?php echo $is_active ? 'badge-active' : 'badge-inactive'; ?>">
+                                <?php echo $is_active ? 'ACTIVE' : 'INACTIVE'; ?>
+                            </span>
+                        </td>
+                        <td>
+                            <?php if (!$is_active): ?>
+                                <form method="post">
+                                    <input type="hidden" name="action" value="activate_theme">
+                                    <input type="hidden" name="theme_slug" value="<?php echo htmlspecialchars($slug); ?>">
+                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                    <button type="submit" class="btn btn-sm">Activate</button>
+                                </form>
+                            <?php else: ?>
+                                <span style="color:#999; font-size:12px;">Current</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+
+        <!-- USERS -->
+        <div id="users" class="content">
+            <h2>User Management</h2>
+            
+            <div style="background:var(--background-light); padding:15px; margin-bottom:20px; border-radius:3px;">
+                <h4>Create Administrator</h4>
+                <form method="post">
+                    <input type="hidden" name="action" value="create_admin">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div class="form-group"><label>Username</label><input type="text" name="username" class="form-control" required></div>
+                        <div class="form-group"><label>Email</label><input type="email" name="email" class="form-control" required></div>
+                        <div class="form-group"><label>Password</label><input type="text" name="password" class="form-control" required></div>
+                    </div>
+                    <button type="submit" class="btn">Create Admin</button>
+                </form>
+            </div>
+
+            <h4>Existing Users</h4>
+            <?php 
+                $users_res = $conn->query("SELECT ID, user_login, user_email FROM {$prefix}users LIMIT 50");
+            ?>
+            <table>
+                <tr><th>ID</th><th>Username</th><th>Email</th><th>Reset Password</th></tr>
+                <?php while($user = $users_res->fetch_assoc()): ?>
+                    <tr>
+                        <td><?php echo $user['ID']; ?></td>
+                        <td><?php echo htmlspecialchars($user['user_login']); ?></td>
+                        <td><?php echo htmlspecialchars($user['user_email']); ?></td>
+                        <td>
+                            <form method="post" style="display:flex; gap:5px;">
+                                <input type="hidden" name="action" value="reset_password">
+                                <input type="hidden" name="user_id" value="<?php echo $user['ID']; ?>">
+                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                <input type="text" name="new_pass" placeholder="New Pass" class="form-control" style="width:120px; padding:5px;" required>
+                                <button type="submit" class="btn btn-sm">Reset</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endwhile; ?>
+            </table>
+        </div>
+
+        <!-- CORE -->
+        <div id="core" class="content">
+            <h2>Core Settings</h2>
+            <?php
+                $siteurl_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'siteurl'");
+                $siteurl = ($siteurl_res && $row = $siteurl_res->fetch_assoc()) ? $row['option_value'] : '';
+                $home_res = $conn->query("SELECT option_value FROM {$prefix}options WHERE option_name = 'home'");
+                $home = ($home_res && $row = $home_res->fetch_assoc()) ? $row['option_value'] : '';
+            ?>
+            <form method="post">
+                <input type="hidden" name="action" value="update_url">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                <div class="form-group">
+                    <label>Site URL (siteurl)</label>
+                    <input type="text" name="site_url" value="<?php echo htmlspecialchars($siteurl); ?>" class="form-control">
+                </div>
+                <button type="submit" class="btn">Update URLs</button>
+            </form>
+        </div>
+
+        <?php } ?>
+    <?php endif; ?>
     </div>
 
     <script>
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-nav button').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav button').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             document.getElementById('btn-' + tabId).classList.add('active');
+        }
+
+        function filterTable(tableId, query) {
+            const filter = query.toUpperCase();
+            const table = document.getElementById(tableId);
+            const tr = table.getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) {
+                const tds = tr[i].getElementsByTagName("td");
+                let visible = false;
+                for (let j = 0; j < tds.length; j++) {
+                    if (tds[j]) {
+                        if (tds[j].textContent.toUpperCase().indexOf(filter) > -1) {
+                            visible = true;
+                            break;
+                        }
+                    }
+                }
+                tr[i].style.display = visible ? "" : "none";
+            }
         }
     </script>
 </body>
