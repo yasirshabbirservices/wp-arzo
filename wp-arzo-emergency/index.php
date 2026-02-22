@@ -22,7 +22,8 @@ if (isset($_GET['debug'])) {
 header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block");
 header("X-Content-Type-Options: nosniff");
-header("Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:;");
+// Allow Google Fonts, images, and inline styles/scripts
+header("Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;");
 
 // Define constants
 define('WP_ARZO_EMERGENCY_VERSION', '2.0');
@@ -516,11 +517,29 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 </head>
 <body>
     <div class="container">
+<?php
+// Helper: Get Asset URL
+function get_asset_url($path) {
+    // Check if we can find 'wp-content' in the path
+    $base_path = '';
+    $script_name = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+    
+    if (strpos($script_name, 'wp-content') !== false) {
+        $parts = explode('wp-content', $script_name);
+        // Cleanly construct the path
+        $base_path = rtrim($parts[0], '/') . '/wp-content/plugins/wp-arzo/assets/' . $path;
+    } else {
+        // Fallback: assume standard structure relative to webroot
+        $base_path = '/wp-content/plugins/wp-arzo/assets/' . $path;
+    }
+    
+    return $base_path;
+}
+?>
         <!-- Branding Header -->
         <div class="developer-info">
             <div class="developer-logo">
-                <!-- Use relative path to assets folder from wp-arzo-emergency/index.php -->
-                <img src="../assets/yasir-shabbir-white-logo.png" alt="Yasir Shabbir">
+                <img src="<?php echo get_asset_url('yasir-shabbir-white-logo.png'); ?>" alt="Yasir Shabbir">
                 <div>
                     <div>Yasir Shabbir</div>
                     <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
