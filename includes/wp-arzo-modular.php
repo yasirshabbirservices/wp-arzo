@@ -24,25 +24,29 @@ $login_redirect = '';
 
 // Check for file download or AJAX file operations which need to run before headers if they happen to be in a feature file
 if (isset($_GET['tab'])) {
-    if ($_GET['tab'] === 'files' && (isset($_GET['download']) || (isset($_GET['operation']) && in_array($_GET['operation'], ['view_file', 'edit_file', 'save_file'])))) {
+    // Handle File operations (support both 'files' tab and legacy 'ajax' tab calls)
+    if (($_GET['tab'] === 'files' || $_GET['tab'] === 'ajax') && (isset($_GET['download']) || (isset($_GET['operation']) && in_array($_GET['operation'], ['view_file', 'edit_file', 'save_file'])))) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/files.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/files.php');
             exit;
         }
     }
-    if ($_GET['tab'] === 'database' && isset($_GET['operation']) && $_GET['operation'] === 'get_db_tables_page') {
+    // Handle Database operations
+    if (($_GET['tab'] === 'database' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && $_GET['operation'] === 'get_db_tables_page') {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/database.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/database.php');
             exit;
         }
     }
-    if ($_GET['tab'] === 'plugins' && isset($_GET['operation']) && $_GET['operation'] === 'get_plugins_page') {
+    // Handle Plugin operations
+    if (($_GET['tab'] === 'plugins' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && $_GET['operation'] === 'get_plugins_page') {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/plugins.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/plugins.php');
             exit;
         }
     }
-    if ($_GET['tab'] === 'debug' && isset($_GET['operation']) && in_array($_GET['operation'], ['clear_debug_log', 'log_debug_change'])) {
+    // Handle Debug operations
+    if (($_GET['tab'] === 'debug' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['clear_debug_log', 'log_debug_change'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/debug.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/debug.php');
             exit;
