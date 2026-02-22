@@ -503,6 +503,16 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
     .pagination-controls button.active { background: var(--accent-color); color: var(--background-dark); border-color: var(--accent-color); }
     .pagination-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
     
+    /* Toggle Switch */
+    .switch { position: relative; display: inline-block; width: 40px; height: 20px; vertical-align: middle; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .4s; border-radius: 20px; }
+    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--accent-color); }
+    input:checked + .slider:before { transform: translateX(20px); }
+    
+    .toggle-label { margin-left: 10px; cursor: pointer; font-size: 13px; }
+
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
@@ -651,8 +661,14 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     <input type="hidden" name="action" value="upload_plugin">
                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                     <input type="file" name="zip_file" required accept=".zip" style="color:#fff;">
-                    <label style="margin-left:10px;"><input type="checkbox" name="activate_now" value="1"> Activate immediately</label>
-                    <button type="submit" class="btn btn-sm">Install</button>
+                    <div style="margin-top:10px; display:flex; align-items:center;">
+                        <label class="switch">
+                            <input type="checkbox" name="activate_now" value="1">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label">Activate immediately</span>
+                    </div>
+                    <button type="submit" class="btn btn-sm" style="margin-top:10px;">Install</button>
                 </form>
             </div>
 
@@ -675,14 +691,17 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                                 </span>
                             </td>
                             <td>
-                                <form method="post">
+                                <form method="post" id="form-plugin-<?php echo md5($path); ?>">
                                     <input type="hidden" name="action" value="toggle_plugin">
                                     <input type="hidden" name="plugin_file" value="<?php echo htmlspecialchars($path); ?>">
                                     <input type="hidden" name="state" value="<?php echo $is_active ? 'deactivate' : 'activate'; ?>">
                                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                    <button type="submit" class="btn btn-sm <?php echo $is_active ? 'btn-danger' : ''; ?>">
-                                        <?php echo $is_active ? 'Deactivate' : 'Activate'; ?>
-                                    </button>
+                                    
+                                    <label class="switch">
+                                        <input type="checkbox" onchange="document.getElementById('form-plugin-<?php echo md5($path); ?>').submit();" <?php echo $is_active ? 'checked' : ''; ?>>
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <span class="toggle-label"><?php echo $is_active ? 'Active' : 'Inactive'; ?></span>
                                 </form>
                             </td>
                         </tr>
@@ -705,8 +724,14 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     <input type="hidden" name="action" value="upload_theme">
                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                     <input type="file" name="zip_file" required accept=".zip" style="color:#fff;">
-                    <label style="margin-left:10px;"><input type="checkbox" name="activate_now" value="1"> Activate immediately</label>
-                    <button type="submit" class="btn btn-sm">Install</button>
+                    <div style="margin-top:10px; display:flex; align-items:center;">
+                        <label class="switch">
+                            <input type="checkbox" name="activate_now" value="1">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label">Activate immediately</span>
+                    </div>
+                    <button type="submit" class="btn btn-sm" style="margin-top:10px;">Install</button>
                 </form>
             </div>
 
@@ -728,17 +753,17 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                             </span>
                         </td>
                         <td>
-                            <?php if (!$is_active): ?>
-                                <form method="post">
-                                    <input type="hidden" name="action" value="activate_theme">
-                                    <input type="hidden" name="theme_slug" value="<?php echo htmlspecialchars($slug); ?>">
-                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                    <button type="submit" class="btn btn-sm">Activate</button>
-                                </form>
-                            <?php else: ?>
-                                <span style="color:#999; font-size:12px;">Current</span>
-                            <?php endif; ?>
-                        </td>
+                                <?php if (!$is_active): ?>
+                                    <form method="post" id="form-theme-<?php echo md5($slug); ?>">
+                                        <input type="hidden" name="action" value="activate_theme">
+                                        <input type="hidden" name="theme_slug" value="<?php echo htmlspecialchars($slug); ?>">
+                                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                        <button type="submit" class="btn btn-sm">Activate</button>
+                                    </form>
+                                <?php else: ?>
+                                    <span class="badge badge-active">Active</span>
+                                <?php endif; ?>
+                            </td>
                     </tr>
                 <?php endforeach; ?>
             </table>
