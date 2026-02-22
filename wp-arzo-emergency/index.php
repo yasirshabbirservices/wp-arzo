@@ -572,8 +572,8 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         border-radius: 4px;
         margin-top: 10px;
     }
-    .login-card .logo-area { margin-bottom: 20px; }
-    .login-card .logo-area img { width: 60px; height: 60px; border-radius: 50%; margin-bottom: 10px; }
+    .login-card .logo-area { margin-bottom: 5px; }
+    .login-card .logo-area img { width: 60px; height: 60px; border-radius: 50%; margin-bottom: 5px; }
     .login-card .footer-links { margin-top: 20px; font-size: 12px; color: #666; }
     .login-card .footer-links a { color: #888; text-decoration: none; }
     .login-card .footer-links a:hover { color: var(--accent-color); }
@@ -589,7 +589,6 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     <img src="<?php echo get_asset_url('yasir-shabbir-white-logo.png'); ?>" alt="Yasir Shabbir">
                 </div>
                 <h1>WP Arzo Recovery</h1>
-                <h2><?php echo $setup_mode ? 'Setup Access' : 'Login Required'; ?></h2>
                 
                 <?php if ($success_msg) echo "<div class='alert alert-success' style='text-align:left; margin-bottom:20px;'>$success_msg</div>"; ?>
                 <?php if ($error_msg) echo "<div class='alert alert-error' style='text-align:left; margin-bottom:20px;'>$error_msg</div>"; ?>
