@@ -288,10 +288,9 @@ if ($action === 'wp_arzo_standalone') {
     <div class="container">
         <div class="developer-info">
             <div class="developer-logo">
-                <img src="https://yasirshabbir.com/wp-content/uploads/2024/01/yasir-shabbir-white-logo-300x300.png"
-                    alt="Yasir Shabbir Logo">
+                <img src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/yasir-shabbir-white-logo.png'; ?>" alt="Yasir Shabbir">
                 <div>
-                    <a href="https://yasirshabbir.com" target="_blank">Yasir Shabbir</a><br>
+                    <div>Yasir Shabbir</div>
                     <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
                 </div>
             </div>

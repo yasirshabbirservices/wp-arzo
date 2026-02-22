@@ -25,7 +25,7 @@ $login_redirect = '';
 // Check for file download or AJAX file operations which need to run before headers if they happen to be in a feature file
 if (isset($_GET['tab'])) {
     // Handle File operations (support both 'files' tab and legacy 'ajax' tab calls)
-    if (($_GET['tab'] === 'files' || $_GET['tab'] === 'ajax') && (isset($_GET['download']) || (isset($_GET['operation']) && in_array($_GET['operation'], ['view_file', 'edit_file', 'save_file'])))) {
+    if (($_GET['tab'] === 'files' || $_GET['tab'] === 'ajax') && (isset($_GET['download']) || (isset($_GET['operation']) && in_array($_GET['operation'], ['view_file', 'edit_file', 'save_file', 'elfinder_connector'])))) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/files.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/files.php');
             exit;
