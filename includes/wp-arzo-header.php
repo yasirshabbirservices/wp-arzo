@@ -206,15 +206,37 @@ function getFileIcon($file_path)
 {
     $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
     $icon_map = [
-        'pdf' => '📄', 'doc' => '📝', 'docx' => '📝',
-        'xls' => '📊', 'xlsx' => '📊',
-        'ppt' => '📽️', 'pptx' => '📽️',
-        'zip' => '🗜️', 'rar' => '🗜️', 'tar' => '🗜️', 'gz' => '🗜️',
-        'mp3' => '🎵', 'wav' => '🎵', 'flac' => '🎵',
-        'mp4' => '🎬', 'avi' => '🎬', 'mov' => '🎬', 'mkv' => '🎬',
-        'jpg' => '🖼️', 'jpeg' => '🖼️', 'png' => '🖼️', 'gif' => '🖼️', 'bmp' => '🖼️', 'webp' => '🖼️',
-        'exe' => '⚙️', 'msi' => '⚙️',
-        'sql' => '🗃️', 'php' => '🐘', 'js' => '📜', 'css' => '🎨', 'html' => '🌐'
+        'pdf' => '📄',
+        'doc' => '📝',
+        'docx' => '📝',
+        'xls' => '📊',
+        'xlsx' => '📊',
+        'ppt' => '📽️',
+        'pptx' => '📽️',
+        'zip' => '🗜️',
+        'rar' => '🗜️',
+        'tar' => '🗜️',
+        'gz' => '🗜️',
+        'mp3' => '🎵',
+        'wav' => '🎵',
+        'flac' => '🎵',
+        'mp4' => '🎬',
+        'avi' => '🎬',
+        'mov' => '🎬',
+        'mkv' => '🎬',
+        'jpg' => '🖼️',
+        'jpeg' => '🖼️',
+        'png' => '🖼️',
+        'gif' => '🖼️',
+        'bmp' => '🖼️',
+        'webp' => '🖼️',
+        'exe' => '⚙️',
+        'msi' => '⚙️',
+        'sql' => '🗃️',
+        'php' => '🐘',
+        'js' => '📜',
+        'css' => '🎨',
+        'html' => '🌐'
     ];
     return isset($icon_map[$extension]) ? $icon_map[$extension] : '📄';
 }
@@ -288,7 +310,8 @@ if ($action === 'wp_arzo_standalone') {
     <div class="container">
         <div class="developer-info">
             <div class="developer-logo">
-                <img src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/yasir-shabbir-white-logo.png'; ?>" alt="Yasir Shabbir">
+                <img src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/yasir-shabbir-white-logo.png'; ?>"
+                    alt="Yasir Shabbir">
                 <div>
                     <div>Yasir Shabbir</div>
                     <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
@@ -297,7 +320,7 @@ if ($action === 'wp_arzo_standalone') {
             <div>
                 v6.0
                 <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
-                    style="color: var(--accent-color); text-decoration: none; font-size: 14px; margin-left: 10px;">
+                    style="color: #fff; text-decoration: none; font-size: 14px; margin-left: 10px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
                         style="vertical-align: middle; margin-right: 5px;">
                         <path
@@ -326,7 +349,8 @@ if ($action === 'wp_arzo_standalone') {
             <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=debug'); ?>"
                 <?php echo ($action === 'debug') ? 'class="active"' : ''; ?>>Debug</a>
             <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=site_modes'); ?>"
-                <?php echo ($action === 'site_modes' || $action === 'maintenance') ? 'class="active"' : ''; ?>>Site Modes</a>
+                <?php echo ($action === 'site_modes' || $action === 'maintenance') ? 'class="active"' : ''; ?>>Site
+                Modes</a>
             <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=extra_options'); ?>"
                 <?php echo ($action === 'extra_options') ? 'class="active"' : ''; ?>>Extra Options</a>
             <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=login'); ?>"
