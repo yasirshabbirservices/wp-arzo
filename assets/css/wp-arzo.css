@@ -15,6 +15,8 @@
   --danger-color: #dc3545;
   --info-color: #17a2b8;
   --secondary-color: #6c757d;
+
+  --radius-global: 4px;
 }
 
 body {
@@ -981,7 +983,7 @@ html {
   align-items: center;
   gap: 18px;
   padding: 18px 20px;
-  border-radius: 12px;
+  border-radius: var(--radius-global);
   background:
     radial-gradient(
       circle at top left,
@@ -1079,7 +1081,7 @@ html {
 
 .quick-login-card {
   background: var(--background-light);
-  border-radius: 12px;
+  border-radius: var(--radius-global);
   padding: 18px 18px 16px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
   display: flex;
