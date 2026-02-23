@@ -510,7 +510,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             margin: 0 auto;
             background: var(--background-medium);
             padding: 20px;
-            border-radius: 3px;
+            border-radius: var(--radius-global);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
@@ -564,7 +564,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             display: none;
             background: var(--background-medium);
             padding: 20px;
-            border-radius: 3px;
+            border-radius: var(--radius-global);
             animation: fadeIn 0.3s;
         }
 
@@ -574,7 +574,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 
         .alert {
             padding: 15px;
-            border-radius: 3px;
+            border-radius: var(--radius-global);
             margin-bottom: 20px;
         }
 
@@ -619,7 +619,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             background: var(--accent-color);
             color: var(--background-dark);
             border: none;
-            border-radius: 3px;
+            border-radius: var(--radius-global);
             cursor: pointer;
             font-weight: 500;
             transition: 0.3s;
@@ -661,7 +661,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             background: var(--background-light);
             border: 1px solid var(--border-color);
             color: #fff;
-            border-radius: 3px;
+            border-radius: var(--radius-global);
             box-sizing: border-box;
         }
 

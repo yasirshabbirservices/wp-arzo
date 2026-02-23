@@ -266,7 +266,7 @@ function handleMaintenanceModes()
         .info-alert {
             background: rgba(22, 231, 145, 0.1);
             border: 1px solid rgba(22, 231, 145, 0.3);
-            border-radius: 3px;
+            border-radius: var(--radius-global);
             padding: 12px;
             margin-bottom: 20px;
             display: none;
