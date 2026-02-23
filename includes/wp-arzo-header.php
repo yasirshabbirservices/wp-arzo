@@ -303,7 +303,15 @@ if ($action === 'wp_arzo_standalone') {
 <head>
     <title>WP Arzo - Administration Suite</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo WP_ARZO_PLUGIN_URL . 'assets/css/wp-arzo.css?v=' . WP_ARZO_VERSION; ?>">
+    <?php
+    // Use the centralized asset helper for cache‑safe CSS loading.
+    if (function_exists('wp_arzo_get_asset_url')) {
+        $wp_arzo_css_url = wp_arzo_get_asset_url('assets/css/wp-arzo.css');
+    } else {
+        $wp_arzo_css_url = WP_ARZO_PLUGIN_URL . 'assets/css/wp-arzo.css';
+    }
+    ?>
+    <link rel="stylesheet" href="<?php echo esc_url($wp_arzo_css_url); ?>">
 </head>
 
 <body>

@@ -115,7 +115,15 @@ if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features
         pluginUrl: '<?php echo WP_ARZO_PLUGIN_URL; ?>'
     };
 </script>
-<script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/js/wp-arzo.js?v=' . WP_ARZO_VERSION; ?>"></script>
+<?php
+// Use centralized asset helper for cache‑safe JS loading.
+if (function_exists('wp_arzo_get_asset_url')) {
+    $wp_arzo_js_url = wp_arzo_get_asset_url('assets/js/wp-arzo.js');
+} else {
+    $wp_arzo_js_url = WP_ARZO_PLUGIN_URL . 'assets/js/wp-arzo.js';
+}
+?>
+<script src="<?php echo esc_url($wp_arzo_js_url); ?>"></script>
 </body>
 
 </html>

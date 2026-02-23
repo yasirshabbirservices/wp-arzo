@@ -213,6 +213,59 @@ function handleDebug()
                 <th>Item</th>
                 <th>Value</th>
             </tr>
+            <?php if (function_exists('wp_arzo_get_plugin_debug_info')):
+                $plugin_debug = wp_arzo_get_plugin_debug_info();
+                ?>
+            <tr>
+                <td>WP Arzo Plugin File</td>
+                <td><?php echo esc_html($plugin_debug['plugin_file']); ?></td>
+            </tr>
+            <tr>
+                <td>WP Arzo Plugin Directory</td>
+                <td><?php echo esc_html($plugin_debug['plugin_dir']); ?></td>
+            </tr>
+            <tr>
+                <td>WP Arzo Plugin URL</td>
+                <td><?php echo esc_html($plugin_debug['plugin_url']); ?></td>
+            </tr>
+            <tr>
+                <td>WP Arzo Version (Header)</td>
+                <td><?php echo esc_html($plugin_debug['version_header']); ?></td>
+            </tr>
+            <tr>
+                <td>WP Arzo Version (Stored)</td>
+                <td><?php echo esc_html($plugin_debug['version_stored']); ?></td>
+            </tr>
+            <tr>
+                <td>WP Arzo Debug Mode</td>
+                <td><?php echo esc_html($plugin_debug['debug_mode']); ?></td>
+            </tr>
+            <tr>
+                <td>OPcache Enabled</td>
+                <td><?php echo !empty($plugin_debug['opcache_enabled']) ? 'Yes' : 'No'; ?></td>
+            </tr>
+            <?php if (!empty($plugin_debug['opcache_script'])): ?>
+            <tr>
+                <td>OPcache: Plugin File Cached</td>
+                <td><?php echo !empty($plugin_debug['opcache_script']['file_cached']) ? 'Yes' : 'No'; ?></td>
+            </tr>
+            <tr>
+                <td>OPcache: File mtime</td>
+                <td><?php echo !empty($plugin_debug['opcache_script']['file_mtime']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['file_mtime']) : 'N/A'; ?>
+                </td>
+            </tr>
+            <tr>
+                <td>OPcache: Compiled Timestamp</td>
+                <td><?php echo !empty($plugin_debug['opcache_script']['opcache_timestamp']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_timestamp']) : 'N/A'; ?>
+                </td>
+            </tr>
+            <tr>
+                <td>OPcache: Last Used</td>
+                <td><?php echo !empty($plugin_debug['opcache_script']['opcache_last_used']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_last_used']) : 'N/A'; ?>
+                </td>
+            </tr>
+            <?php endif; ?>
+            <?php endif; ?>
             <tr>
                 <td>Debug Log File</td>
                 <td><?php echo WP_CONTENT_DIR . '/debug.log'; ?></td>
