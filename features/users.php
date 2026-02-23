@@ -127,7 +127,7 @@ window.open("' . admin_url() . '", "_blank");
 
         <h3>Existing Users</h3>
         <div
-            style="background: #2A2A2A; padding: 15px; border-radius: 3px; border-left: 4px solid var(--accent-color); margin-bottom: 20px;">
+            style="background: #2A2A2A; padding: 15px; border-radius: var(--radius-global); border-left: 4px solid var(--accent-color); margin-bottom: 20px;">
             <?php
             $current_user = wp_get_current_user();
             if ($current_user->ID) {

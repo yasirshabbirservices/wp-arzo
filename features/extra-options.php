@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Extra Options Feature (PHP Limits Configuration)
  *
@@ -186,7 +187,7 @@ function handleExtraOptions()
     $default_max_execution_time = '30';
     $default_upload_max_filesize = '64M';
     $default_post_max_size = '64M';
-    
+
     // Handle reset settings
     if (isset($_POST['reset_php_limits'])) {
         $target_file = $_POST['target_file'];
@@ -296,12 +297,12 @@ function handleExtraOptions()
             "<div class='error'>{$update_message}. Check file permissions.</div>";
     }
 
-    ?>
+?>
     <div class="content">
         <h2>Extra Options</h2>
 
         <div
-            style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-bottom: 20px;">
+            style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333; margin-bottom: 20px;">
             <h3>PHP Limits Configuration</h3>
             <p style="color: #999; margin-bottom: 20px;">Modify PHP limits by updating configuration files. Choose which
                 file to update based on your server setup.</p>
@@ -402,7 +403,7 @@ function handleExtraOptions()
 
         <?php if (file_exists(WP_CONTENT_DIR . '/debug.log')): ?>
             <div
-                style="background: #2A2A2A; padding: 20px; border-radius: 3px; border: 1px solid #333333; margin-top: 20px; position: relative;">
+                style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333; margin-top: 20px; position: relative;">
                 <h3>PHP Limits Update Log</h3>
                 <div style="position: absolute; top: 20px; right: 20px;">
                     <i class="fas fa-copy" onclick="copyDebugLog()"
@@ -411,7 +412,7 @@ function handleExtraOptions()
                         title="Clear debug log"></i>
                 </div>
                 <div id="debug-log-content"
-                    style="background: #1a1a1a; padding: 15px; border-radius: 3px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
+                    style="background: #1a1a1a; padding: 15px; border-radius: var(--radius-global); max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
                     <?php
                     $log_content = file_get_contents(WP_CONTENT_DIR . '/debug.log');
                     $log_lines = explode("\n", $log_content);
@@ -464,7 +465,7 @@ function handleExtraOptions()
             </div>
         <?php endif; ?>
     </div>
-    <?php
+<?php
 }
 
 // Call the function

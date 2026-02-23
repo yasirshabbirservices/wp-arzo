@@ -33,7 +33,7 @@ body {
   margin: 0 auto;
   background: var(--background-medium);
   padding: 20px;
-  border-radius: 3px;
+  border-radius: var(--radius-global);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -215,7 +215,7 @@ input:checked + .slider:before {
   background: var(--background-medium);
   padding: 20px;
   margin: 15px 0;
-  border-radius: 3px;
+  border-radius: var(--radius-global);
 }
 
 table {
@@ -246,7 +246,7 @@ tr:hover {
   color: #4caf50;
   background: #1b5e20;
   padding: 10px;
-  border-radius: 3px;
+  border-radius: var(--radius-global);
   margin: 10px 0;
 }
 
@@ -254,7 +254,7 @@ tr:hover {
   color: #f44336;
   background: #b71c1c;
   padding: 10px;
-  border-radius: 3px;
+  border-radius: var(--radius-global);
   margin: 10px 0;
 }
 
@@ -280,7 +280,7 @@ tr:hover {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--radius-global);
   background: var(--background-light);
   color: var(--secondary-text);
   font-family: "Lato", sans-serif;
@@ -300,7 +300,7 @@ tr:hover {
   background: var(--accent-color);
   color: var(--background-dark);
   border: none;
-  border-radius: 3px;
+  border-radius: var(--radius-global);
   cursor: pointer;
   font-family: "Lato", sans-serif;
   font-weight: 500;
@@ -322,7 +322,7 @@ tr:hover {
   max-height: 400px;
   overflow-y: auto;
   border: 1px solid var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--radius-global);
 }
 
 .file-list::-webkit-scrollbar,
@@ -341,7 +341,7 @@ tr:hover {
 .scrollable-table-container::-webkit-scrollbar-thumb,
 .scrollable-select::-webkit-scrollbar-thumb {
   background: var(--accent-color);
-  border-radius: 3px;
+  border-radius: var(--radius-global);
 }
 
 .file-list::-webkit-scrollbar-thumb:hover,
@@ -363,7 +363,7 @@ tr:hover {
   border: 1px solid var(--border-color);
   background-color: var(--background-dark);
   color: var(--primary-text);
-  border-radius: 3px;
+  border-radius: var(--radius-global);
 }
 
 .scrollable-select select option {
@@ -384,7 +384,7 @@ tr:hover {
   margin-top: 15px;
   padding: 10px;
   background: var(--background-medium);
-  border-radius: 3px;
+  border-radius: var(--radius-global);
   border: 1px solid var(--border-color);
 }
 
@@ -403,7 +403,7 @@ tr:hover {
   border: 1px solid var(--border-color);
   color: var(--primary-text);
   padding: 5px 10px;
-  border-radius: 3px;
+  border-radius: var(--radius-global);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -436,7 +436,7 @@ a {
 .file-editor {
   background: var(--background-medium);
   border: 1px solid var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--radius-global);
   margin: 15px 0;
 }
 
@@ -841,7 +841,7 @@ html {
 
   .nav a {
     text-align: center;
-    border-radius: 3px;
+    border-radius: var(--radius-global);
     margin-bottom: 5px;
   }
 
