@@ -317,7 +317,7 @@ if ($action === 'wp_arzo_standalone') {
                     <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
                 </div>
             </div>
-            <div>
+            <div class="project-info" color="var(--accent-color)">
                 v6.0
                 <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
                     style="color: #fff; text-decoration: none; font-size: 14px; margin-left: 10px;">
