@@ -318,7 +318,7 @@ if ($action === 'wp_arzo_standalone') {
                 </div>
             </div>
             <div style="color: var(--accent-color); display:flex; align-items:center; gap:10px;">
-                v6.0
+                v6.3
                 <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
                     style="color: #fff; text-decoration: none; display:flex; align-items:center; gap:5px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;">
