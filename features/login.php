@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Quick Login Feature
  *
@@ -29,7 +30,7 @@ function handleQuickLogin()
         echo '<div class="success">Direct admin access link generated! Opening in new tab...</div>';
     }
 
-    ?>
+?>
     <div class="content quick-login-layout">
         <h2 class="quick-login-title">Quick Login Options</h2>
 
@@ -68,7 +69,7 @@ function handleQuickLogin()
                                         d="M14 3h7v7h-2V6.414l-9.293 9.293-1.414-1.414L17.586 5H14V3ZM5 5h6v2H6.5A1.5 1.5 0 0 0 5 8.5v9A1.5 1.5 0 0 0 6.5 19h9A1.5 1.5 0 0 0 17 17.5V13h2v4.5A3.5 3.5 0 0 1 15.5 21h-9A3.5 3.5 0 0 1 3 17.5v-9A3.5 3.5 0 0 1 6.5 5H11Z" />
                                 </svg>
                             </span>
-                            Open WordPress Admin
+                            Dashboard
                         </a>
                     </div>
                 <?php else: ?>
@@ -141,7 +142,7 @@ function handleQuickLogin()
         </div>
 
     </div>
-    <?php
+<?php
 }
 
 // Call the function
