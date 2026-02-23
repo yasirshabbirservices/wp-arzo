@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.3
+ * Version: 6.4
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -17,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WP_ARZO_VERSION', '6.3');
+define('WP_ARZO_VERSION', '6.4');
 define('WP_ARZO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WP_ARZO_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -63,7 +64,8 @@ function wp_arzo_activate()
 register_activation_hook(__FILE__, 'wp_arzo_activate');
 
 // Ensure rewrite rules are flushed if they don't exist
-function wp_arzo_check_rewrite_rules() {
+function wp_arzo_check_rewrite_rules()
+{
     $rules = get_option('rewrite_rules');
     if (!isset($rules['^wp-arzo/emergency/?$'])) {
         wp_arzo_add_rewrite_rules();
@@ -98,7 +100,7 @@ add_action('admin_menu', 'wp_arzo_add_admin_menu');
 function wp_arzo_redirect_page()
 {
     $tool_url = admin_url('admin-ajax.php?action=wp_arzo_standalone');
-    ?>
+?>
     <!DOCTYPE html>
     <html>
 
@@ -205,12 +207,12 @@ function wp_arzo_redirect_page()
             <p id="status"></p>
         </div>
         <script>
-            (function () {
+            (function() {
                 var toolUrl = '<?php echo esc_js($tool_url); ?>';
                 var newWindow = window.open(toolUrl, '_blank');
 
                 // Check if popup was blocked
-                setTimeout(function () {
+                setTimeout(function() {
                     if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
                         // Popup was blocked
                         document.getElementById('spinner').style.display = 'none';
@@ -230,7 +232,7 @@ function wp_arzo_redirect_page()
     </body>
 
     </html>
-    <?php
+<?php
     exit;
 }
 
@@ -249,4 +251,3 @@ function wp_arzo_handle_standalone()
     exit;
 }
 add_action('wp_ajax_wp_arzo_standalone', 'wp_arzo_handle_standalone');
-
