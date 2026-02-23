@@ -53,21 +53,23 @@ h3 {
   font-weight: 400;
 }
 
+/* Branding Header */
 .developer-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
-  color: #999;
+  background: var(--background-medium);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 15px;
   margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #333333;
+  font-size: 13px;
 }
 
 .developer-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .developer-logo img {
@@ -79,7 +81,6 @@ h3 {
 .developer-logo a {
   color: var(--accent-color);
   text-decoration: none;
-  font-weight: 500;
 }
 
 .nav {
