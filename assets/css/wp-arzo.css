@@ -3,6 +3,7 @@
 :root {
   --accent-color: #16e791;
   --primary-text: #ffffff;
+  --dark-text: #121212;
   --secondary-text: #e0e0e0;
   --background-dark: #121212;
   --background-medium: #1e1e1e;
@@ -887,7 +888,7 @@ html {
 
 .info-card-header {
   background: linear-gradient(135deg, var(--accent-color) 0%, #0ea66b 100%);
-  color: var(--primary-text);
+  color: var(--dark-text);
   padding: 15px 20px;
   font-weight: 600;
   font-size: 16px;
@@ -981,7 +982,8 @@ html {
   gap: 18px;
   padding: 18px 20px;
   border-radius: 12px;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at top left,
       rgba(22, 231, 145, 0.16),
       rgba(22, 231, 145, 0)
