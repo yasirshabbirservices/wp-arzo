@@ -22,7 +22,9 @@ if (!function_exists('wp_delete_user')) {
 $login_message = '';
 $login_redirect = '';
 
-if (isset($_POST['create_temp_admin'])) {
+if (isset($_POST['create_temp_admin']) &&
+    isset($_POST['wp_arzo_login_nonce']) &&
+    wp_verify_nonce(wp_unslash($_POST['wp_arzo_login_nonce']), 'wp_arzo_login_action')) {
     $temp_username = 'temp_admin_' . time();
     $temp_password = wp_generate_password(16, true, true);
     $temp_email = 'temp@' . parse_url(home_url(), PHP_URL_HOST);
@@ -51,44 +53,32 @@ if (isset($_POST['create_temp_admin'])) {
     }
 }
 
-// Handle direct admin access
-if (isset($_GET['maintenance_access']) && isset($_GET['maintenance_access'])) {
-    $nonce = $_GET['maintenance_access'];
-    if (get_transient('maintenance_access_' . $nonce)) {
-        // Delete the transient so it can't be reused
-        delete_transient('maintenance_access_' . $nonce);
-
-        // Get the first admin user
-        $admin_users = get_users(['role' => 'administrator', 'number' => 1]);
-        if (!empty($admin_users)) {
-            $admin_user = $admin_users[0];
-
-            // Clean output buffer before setting headers
-            ob_clean();
-
-            // Clear any existing authentication
-            wp_clear_auth_cookie();
-
-            // Set new authentication
-            wp_set_current_user($admin_user->ID, $admin_user->user_login);
-            wp_set_auth_cookie($admin_user->ID, true);
-            do_action('wp_login', $admin_user->user_login, $admin_user);
-
-            // Redirect to admin
-            wp_redirect(admin_url());
-            exit;
-        }
-    }
-}
+// NOTE: The one-time "maintenance_access" emergency login is handled earlier, in
+// wp_arzo_handle_standalone() (wp-arzo.php), so it can run before the capability
+// gate. Do not re-handle it here.
 
 // Handle file download BEFORE any HTML output
 if (isset($_GET['download'])) {
+    // Re-assert capability on this state-/data-exposing entry point.
+    if (!current_user_can('manage_options')) {
+        wp_die('You do not have sufficient permissions to download files.');
+    }
+
     // Normalize file path for Windows
-    $file_path = $_GET['download'];
+    $file_path = wp_unslash($_GET['download']);
     if (DIRECTORY_SEPARATOR === '\\') {
         $file_path = str_replace('/', '\\', $file_path);
     }
-    if (file_exists($file_path) && is_file($file_path)) {
+
+    // Confine downloads to the WordPress install root to prevent path traversal
+    // (e.g. /etc/passwd, private keys, parent-directory secrets).
+    $real_target = realpath($file_path);
+    $real_root   = realpath(ABSPATH);
+    $is_contained = ($real_target !== false && $real_root !== false &&
+        strpos($real_target, $real_root) === 0);
+
+    if ($is_contained && file_exists($real_target) && is_file($real_target)) {
+        $file_path = $real_target;
         // Clean any output buffers
         while (ob_get_level()) {
             ob_end_clean();
@@ -303,7 +293,7 @@ if ($action === 'wp_arzo_standalone') {
                 </div>
             </div>
             <div style="color: var(--accent-color); display:flex; align-items:center; gap:10px;">
-                v6.4
+                v6.5
                 <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
                     style="color: #fff; text-decoration: none; display:flex; align-items:center; gap:5px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;">

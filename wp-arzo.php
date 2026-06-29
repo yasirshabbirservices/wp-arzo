@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.4
+ * Version: 6.5
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.4');
+    define('WP_ARZO_VERSION', '6.5');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -542,6 +542,33 @@ function wp_arzo_redirect_page()
  */
 function wp_arzo_handle_standalone()
 {
+    // --- Emergency one-time admin access link ---------------------------------
+    // A logged-out admin can re-enter via a single-use, time-limited token
+    // generated from the Quick Login tab. This MUST run before the capability
+    // gate below, otherwise the link could never work for a logged-out user.
+    if (isset($_GET['maintenance_access'])) {
+        $token = sanitize_text_field(wp_unslash($_GET['maintenance_access']));
+        $stored_user_id = get_transient('maintenance_access_' . $token);
+
+        if ($stored_user_id) {
+            // Single use: invalidate immediately.
+            delete_transient('maintenance_access_' . $token);
+
+            $target = get_user_by('id', (int) $stored_user_id);
+            if ($target && user_can($target, 'manage_options')) {
+                wp_clear_auth_cookie();
+                wp_set_current_user($target->ID, $target->user_login);
+                wp_set_auth_cookie($target->ID, true);
+                do_action('wp_login', $target->user_login, $target);
+
+                wp_safe_redirect(admin_url());
+                exit;
+            }
+        }
+
+        wp_die('This access link is invalid or has expired.');
+    }
+
     // Check if user is logged in and has admin capabilities
     if (!current_user_can('manage_options')) {
         wp_die('You do not have sufficient permissions to access this page.');

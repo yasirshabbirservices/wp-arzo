@@ -24,6 +24,11 @@ if (isset($_GET['operation'])) {
     if ($operation === 'clear_debug_log') {
         header('Content-Type: application/json');
 
+        if (!current_user_can('manage_options') || !check_ajax_referer('wp_arzo_ajax', 'nonce', false)) {
+            echo json_encode(['success' => false, 'message' => 'Security check failed']);
+            exit;
+        }
+
         $log_file = WP_CONTENT_DIR . '/debug.log';
         if (file_exists($log_file)) {
             // Clear the debug log file by writing an empty string to it
@@ -42,6 +47,11 @@ if (isset($_GET['operation'])) {
 
     if ($operation === 'log_debug_change') {
         header('Content-Type: application/json');
+
+        if (!current_user_can('manage_options') || !check_ajax_referer('wp_arzo_ajax', 'nonce', false)) {
+            echo json_encode(['success' => false, 'message' => 'Security check failed']);
+            exit;
+        }
 
         if (isset($_POST['setting_name']) && isset($_POST['new_value'])) {
             $setting = sanitize_text_field($_POST['setting_name']);
@@ -116,11 +126,17 @@ function handleDebug()
     }
 
     // Handle form submission
-    if (isset($_POST['update_debug_settings']) && $config_writable) {
+    if (isset($_POST['update_debug_settings']) && $config_writable &&
+        isset($_POST['wp_arzo_debug_nonce']) &&
+        wp_verify_nonce(wp_unslash($_POST['wp_arzo_debug_nonce']), 'wp_arzo_debug_settings') &&
+        current_user_can('manage_options')) {
         $new_config = $config_content;
 
         foreach ($debug_settings as $setting => $info) {
-            $new_value = isset($_POST[$setting]) ? $_POST[$setting] : 'false';
+            // STRICT allow-list. The value is written verbatim into wp-config.php as
+            // PHP, so it must only ever be the literal boolean true/false — never raw
+            // POST data (which would allow PHP code injection).
+            $new_value = (isset($_POST[$setting]) && $_POST[$setting] === 'true') ? 'true' : 'false';
             $define_pattern = "/define\s*\(\s*['\"]" . $setting . "['\"]\s*,\s*[^)]+\s*\)\s*;/";
             $new_define = "define('" . $setting . "', " . $new_value . ");";
 
@@ -174,6 +190,7 @@ function handleDebug()
 
         <?php if ($config_writable): ?>
             <form method="post" style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333;">
+                <?php wp_nonce_field('wp_arzo_debug_settings', 'wp_arzo_debug_nonce'); ?>
                 <h3>Update Debug Settings</h3>
                 <p style="color: #999; margin-bottom: 20px;">Configure WordPress debug settings. Changes will be written to
                     wp-config.php.</p>

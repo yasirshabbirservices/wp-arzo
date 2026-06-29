@@ -62,8 +62,9 @@ if (isset($_GET['operation'])) {
 
     if ($_GET['operation'] === 'activate_theme') {
         header('Content-Type: application/json');
-        
-        if (!current_user_can('switch_themes')) {
+
+        // Verify CSRF nonce AND capability for this state-changing operation.
+        if (!check_ajax_referer('wp_arzo_ajax', 'nonce', false) || !current_user_can('switch_themes')) {
             echo json_encode(['success' => false, 'message' => 'Permission denied']);
             exit;
         }
@@ -72,6 +73,14 @@ if (isset($_GET['operation'])) {
 
         if (!$theme_slug) {
             echo json_encode(['success' => false, 'message' => 'Invalid parameters']);
+            exit;
+        }
+
+        // Validate the theme exists and is error-free before switching, otherwise
+        // switch_theme() can point the site at a non-existent stylesheet.
+        $theme = wp_get_theme($theme_slug);
+        if (!$theme->exists() || $theme->errors()) {
+            echo json_encode(['success' => false, 'message' => 'Theme not found or invalid']);
             exit;
         }
 
@@ -132,10 +141,19 @@ function showThemes()
                                          $stat = $zip->statIndex(0);
                                          $root_folder = explode('/', $stat['name'])[0];
                                          $zip->close();
-                                         
+
                                          if ($root_folder) {
-                                             switch_theme($root_folder);
-                                             $message .= ' And activated.';
+                                             // Refresh the theme cache and verify the stylesheet
+                                             // really exists before switching, so we never point
+                                             // the site at a missing/invalid theme.
+                                             wp_clean_themes_cache();
+                                             $new_theme = wp_get_theme($root_folder);
+                                             if ($new_theme->exists() && !$new_theme->errors()) {
+                                                 switch_theme($root_folder);
+                                                 $message .= ' And activated.';
+                                             } else {
+                                                 $message .= ' <span style="color:#ffcccb">Installed, but could not auto-activate (theme folder/stylesheet not found).</span>';
+                                             }
                                          }
                                     }
                                 }
@@ -273,6 +291,7 @@ function showThemes()
 
                     const formData = new FormData();
                     formData.append('theme_slug', themeSlug);
+                    formData.append('nonce', '<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>');
 
                     fetch('<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=themes&operation=activate_theme'); ?>', {
                         method: 'POST',

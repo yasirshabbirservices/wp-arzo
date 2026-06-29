@@ -17,8 +17,9 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'get_db_tables_page') {
 
     if (isset($_GET['page']) && isset($_GET['per_page'])) {
         global $wpdb;
-        $page = intval($_GET['page']);
-        $per_page = intval($_GET['per_page']);
+        $page = max(1, intval($_GET['page']));
+        // Guard against division-by-zero (fatal on PHP 8) when per_page is 0/blank.
+        $per_page = max(1, intval($_GET['per_page']));
 
         $tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
         $total_tables = count($tables);
@@ -30,7 +31,8 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'get_db_tables_page') {
         for ($i = $start; $i < $end; $i++) {
             if (isset($tables[$i])) {
                 $table_name = $tables[$i][0];
-                $count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
+                // Backtick the identifier so reserved-word table names don't error.
+                $count = $wpdb->get_var('SELECT COUNT(*) FROM `' . str_replace('`', '``', $table_name) . '`');
                 $tables_data[] = [
                     'name' => $table_name,
                     'rows' => $count
@@ -58,15 +60,24 @@ function handleDatabase()
     global $wpdb;
 
     if (isset($_POST['execute_query'])) {
-        $query = $_POST['query'];
-        // Basic security check - in a real world scenario this should be more robust
-        // but this is an admin maintenance tool so we assume capability checks are done by WP core/plugin loader
-        $result = $wpdb->query($query);
-
-        if ($result !== false) {
-            echo '<div class="success">Query executed successfully. Affected rows: ' . $result . '</div>';
+        // CSRF protection: this endpoint can run arbitrary SQL, so it must be
+        // protected against forged cross-site requests even though the page is
+        // already gated by manage_options.
+        if (!current_user_can('manage_options') ||
+            !isset($_POST['wp_arzo_db_nonce']) ||
+            !wp_verify_nonce(wp_unslash($_POST['wp_arzo_db_nonce']), 'wp_arzo_db_query')) {
+            echo '<div class="error">Security check failed. Please reload the page and try again.</div>';
         } else {
-            echo '<div class="error">Query failed: ' . $wpdb->last_error . '</div>';
+            // wp_unslash() so queries containing quotes are not corrupted by the
+            // slashes WordPress adds to superglobals.
+            $query = wp_unslash($_POST['query']);
+            $result = $wpdb->query($query);
+
+            if ($result !== false) {
+                echo '<div class="success">Query executed successfully. Affected rows: ' . esc_html($result) . '</div>';
+            } else {
+                echo '<div class="error">Query failed: ' . esc_html($wpdb->last_error) . '</div>';
+            }
         }
     }
 
@@ -76,6 +87,7 @@ function handleDatabase()
 
         <h3>Execute Query</h3>
         <form method="post">
+            <?php wp_nonce_field('wp_arzo_db_query', 'wp_arzo_db_nonce'); ?>
             <div class="form-group">
                 <label>SQL Query:</label>
                 <textarea name="query" rows="5" placeholder="SELECT * FROM wp_users LIMIT 10"></textarea>

@@ -10,7 +10,8 @@
 var wpArzoConfig = wpArzoConfig || {
     ajaxUrl: '',
     adminUrl: '',
-    pluginUrl: ''
+    pluginUrl: '',
+    nonce: ''
 };
 
 // ============================================================================
@@ -194,6 +195,7 @@ function logDebugChange(settingName, newValue) {
     formData.append('log_entry', logEntry);
     formData.append('setting_name', settingName);
     formData.append('new_value', newValue ? '1' : '0');
+    formData.append('nonce', wpArzoConfig.nonce);
 
     const url = new URL(wpArzoConfig.ajaxUrl);
     url.searchParams.set('action', 'wp_arzo_standalone');
@@ -247,8 +249,12 @@ function clearDebugLog() {
         url.searchParams.set('tab', 'debug');
         url.searchParams.set('operation', 'clear_debug_log');
 
+        const clearFormData = new FormData();
+        clearFormData.append('nonce', wpArzoConfig.nonce);
+
         fetch(url.toString(), {
-                method: 'POST'
+                method: 'POST',
+                body: clearFormData
             })
             .then(response => response.json())
             .then(data => {

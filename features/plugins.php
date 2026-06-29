@@ -64,10 +64,9 @@ if (isset($_GET['operation'])) {
 
     if ($_GET['operation'] === 'toggle_plugin') {
         header('Content-Type: application/json');
-        
-        // Basic nonce check should be here in real implementation, skipping for simplicity/standalone context
-        // But since this runs in admin, verify capabilities
-        if (!current_user_can('activate_plugins')) {
+
+        // Verify CSRF nonce AND capability for this state-changing operation.
+        if (!check_ajax_referer('wp_arzo_ajax', 'nonce', false) || !current_user_can('activate_plugins')) {
             echo json_encode(['success' => false, 'message' => 'Permission denied']);
             exit;
         }
@@ -321,6 +320,7 @@ function showPlugins()
                     const formData = new FormData();
                     formData.append('plugin', pluginFile);
                     formData.append('state', newState);
+                    formData.append('nonce', '<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>');
 
                     fetch('<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=plugins&operation=toggle_plugin'); ?>', {
                         method: 'POST',

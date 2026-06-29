@@ -1,5 +1,4 @@
 .vscode
-.claude
 .versal
 *.zip
 *.rar
@@ -9,3 +8,7 @@
 *.gz
 *.json
 /bit-file-manager
+
+# Keep the committed .claude/ docs & skills, but ignore local-only Claude state.
+.claude/settings.local.json
+.claude/.cache/

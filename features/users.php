@@ -40,7 +40,9 @@ if (isset($_GET['operation'])) {
                     'username' => $user->user_login,
                     'email' => $user->user_email,
                     'roles' => implode(', ', $user->roles),
-                    'is_current' => ($user->ID === $current_user_id)
+                    // Cast both sides: WP_User->ID can be a numeric string, so a
+                    // strict === would wrongly mark the current user as "not current".
+                    'is_current' => ((int) $user->ID === (int) $current_user_id)
                 ];
             }
 
@@ -62,11 +64,24 @@ if (isset($_GET['operation'])) {
 
 function handleUsers()
 {
+    // CSRF guard for all state-changing user actions (create / delete / impersonate).
+    $is_user_action = isset($_POST['create_user']) || isset($_POST['delete_user']) || isset($_POST['quick_login']);
+    if ($is_user_action) {
+        if (!current_user_can('manage_options') ||
+            !isset($_POST['wp_arzo_user_nonce']) ||
+            !wp_verify_nonce(wp_unslash($_POST['wp_arzo_user_nonce']), 'wp_arzo_user_action')) {
+            echo '<div class="error">Security check failed. Please reload the page and try again.</div>';
+            return;
+        }
+    }
+
     if (isset($_POST['create_user'])) {
         $username = sanitize_user($_POST['username']);
         $email = sanitize_email($_POST['email']);
         $password = $_POST['password'];
-        $role = $_POST['role'];
+        // Whitelist the role so arbitrary/empty role strings can't be injected.
+        $allowed_roles = ['administrator', 'editor', 'author', 'contributor', 'subscriber'];
+        $role = in_array($_POST['role'] ?? '', $allowed_roles, true) ? $_POST['role'] : 'subscriber';
 
         if (!username_exists($username) && !email_exists($email)) {
             $user_id = wp_create_user($username, $password, $email);
@@ -101,11 +116,14 @@ function handleUsers()
             wp_set_auth_cookie($user_id);
             do_action('wp_login', $user->user_login, $user);
 
-            // Create log entry
+            // Create log entry (only if the log directory is writable, so we don't
+            // emit a PHP warning into the response on read-only hosts).
             $timestamp = date('Y-m-d H:i:s');
             $log_entry = "[{$timestamp}] Quick login performed for user: {$user->user_login} (ID: {$user_id})\n";
             $log_file = WP_CONTENT_DIR . '/debug.log';
-            file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+            if (is_writable($log_file) || (!file_exists($log_file) && is_writable(WP_CONTENT_DIR))) {
+                @file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+            }
 
             echo '<div class="success">Successfully logged in as ' . $user->user_login . '! Opening WordPress Admin in new tab...
 </div>';
@@ -206,6 +224,8 @@ window.open("' . admin_url() . '", "_blank");
                         });
                 }
 
+                const userActionNonce = '<?php echo esc_js(wp_create_nonce('wp_arzo_user_action')); ?>';
+
                 function renderUsersTable(users) {
                     if (users.length === 0) {
                         usersTable.innerHTML =
@@ -228,6 +248,7 @@ window.open("' . admin_url() . '", "_blank");
                         // Quick Login Button
                         if (!user.is_current) {
                             html += `<form method="post" style="display:inline; margin-right: 5px;">`;
+                            html += `<input type="hidden" name="wp_arzo_user_nonce" value="${userActionNonce}">`;
                             html += `<input type="hidden" name="user_id" value="${user.id}">`;
                             html +=
                                 `<button type="submit" name="quick_login" class="btn btn-success" title="Login as ${user.username}" style="background: var(--success-color); border: none; padding: 5px 10px; font-size: 12px;"><i class="fas fa-sign-in-alt"></i> Login</button>`;
@@ -240,6 +261,7 @@ window.open("' . admin_url() . '", "_blank");
                         // Delete Button
                         if (!user.is_current) {
                             html += `<form method="post" style="display:inline;">`;
+                            html += `<input type="hidden" name="wp_arzo_user_nonce" value="${userActionNonce}">`;
                             html += `<input type="hidden" name="user_id" value="${user.id}">`;
                             html +=
                                 `<button type="submit" name="delete_user" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete user: ${user.username}?');" title="Delete ${user.username}" style="background: var(--danger-color); border: none; padding: 5px 10px; font-size: 12px;"><i class="fas fa-trash"></i> Delete</button>`;
@@ -315,6 +337,7 @@ window.open("' . admin_url() . '", "_blank");
                 </div>
                 <div class="lightbox-body">
                     <form method="post" id="createUserForm">
+                        <?php wp_nonce_field('wp_arzo_user_action', 'wp_arzo_user_nonce'); ?>
                         <div class="form-group">
                             <label>Username:</label>
                             <input type="text" name="username" required>
