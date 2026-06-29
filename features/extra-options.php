@@ -397,7 +397,7 @@ function handleExtraOptions()
                 <?php wp_nonce_field('wp_arzo_php_limits', 'wp_arzo_php_nonce'); ?>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label>Target Configuration File</label>
-                    <select name="target_file" class="modern-select" required>
+                    <select name="target_file" class="modern-select" data-wpa-select required>
                         <option value="wp-config" <?php echo $wp_config_writable ? '' : 'disabled'; ?>>wp-config.php
                             <?php echo $wp_config_writable ? '' : '(Not writable)'; ?>
                         </option>

@@ -191,21 +191,33 @@ input:checked + .slider:before {
   vertical-align: middle;
 }
 
-/* Badge Styles matching Emergency Script */
+/* Status badges (aligned with the wpa-badge component). */
 .badge {
-  padding: 3px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: bold;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--arzo-radius-pill);
+  font-size: var(--arzo-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+.badge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
 }
 .badge-active {
-  background: rgba(22, 231, 145, 0.2);
-  color: var(--accent-color);
+  background: var(--arzo-success-soft);
+  color: var(--arzo-accent);
 }
 .badge-inactive {
-  background: rgba(108, 117, 125, 0.2);
-  color: #999;
+  background: var(--arzo-neutral-soft);
+  color: var(--arzo-text-secondary);
 }
 
 .content {

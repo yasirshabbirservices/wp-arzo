@@ -5,9 +5,9 @@
  * 
  * Standalone recovery tool that works independently of WordPress core.
  * Features: Plugin/Theme Management, User Control, DB Repair, File Uploads.
- * 
+ *
  * @package WP_Arzo
- * @version 2.0
+ * @version 2.3
  */
 
 // Disable error reporting to prevent leakage, unless explicitly enabled
@@ -23,11 +23,12 @@ if (isset($_GET['debug'])) {
 header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block");
 header("X-Content-Type-Options: nosniff");
-// Allow Google Fonts, images, and inline styles/scripts
-header("Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;");
+// Allow Google Fonts, images, and inline styles/scripts. No 'unsafe-eval' (not needed).
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none';");
+header("Referrer-Policy: no-referrer");
 
 // Define constants
-define('WP_ARZO_EMERGENCY_VERSION', '2.2');
+define('WP_ARZO_EMERGENCY_VERSION', '2.3');
 define('WP_ARZO_EMERGENCY_DIR', __DIR__);
 define('WP_ARZO_CONFIG_FILE', dirname(__DIR__) . '/arzo-safe.php');
 define('WP_CONTENT_DIR', dirname(dirname(dirname(__DIR__))) . '/wp-content');
@@ -64,6 +65,53 @@ function redirect($url)
     }
 }
 
+// --- Brute-force throttle (file-based, keyed by client IP) -----------------
+// The login form is the entry point, so it can't use the session CSRF token.
+// Instead, lock out an IP after repeated failures to blunt password guessing.
+function arzo_emergency_throttle_file()
+{
+    return dirname(__DIR__) . '/.arzo-throttle.json';
+}
+function arzo_emergency_client_ip()
+{
+    return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+}
+function arzo_emergency_read_throttle()
+{
+    $f = arzo_emergency_throttle_file();
+    if (!file_exists($f)) return [];
+    $data = json_decode((string) file_get_contents($f), true);
+    return is_array($data) ? $data : [];
+}
+function arzo_emergency_lockout_seconds()
+{
+    $data = arzo_emergency_read_throttle();
+    $rec = isset($data[arzo_emergency_client_ip()]) ? $data[arzo_emergency_client_ip()] : null;
+    if ($rec && !empty($rec['until']) && time() < $rec['until']) {
+        return (int) ($rec['until'] - time());
+    }
+    return 0;
+}
+function arzo_emergency_record_failure()
+{
+    $data = arzo_emergency_read_throttle();
+    $ip = arzo_emergency_client_ip();
+    $rec = isset($data[$ip]) ? $data[$ip] : ['count' => 0, 'until' => 0];
+    $rec['count'] = (int) $rec['count'] + 1;
+    if ($rec['count'] >= 5) {            // lock for 15 min after 5 failures
+        $rec['until'] = time() + 900;
+        $rec['count'] = 0;
+    }
+    $data[$ip] = $rec;
+    @file_put_contents(arzo_emergency_throttle_file(), json_encode($data), LOCK_EX);
+}
+function arzo_emergency_clear_failures()
+{
+    $data = arzo_emergency_read_throttle();
+    unset($data[arzo_emergency_client_ip()]);
+    @file_put_contents(arzo_emergency_throttle_file(), json_encode($data), LOCK_EX);
+}
+
 // Auth Check
 if (!file_exists(WP_ARZO_CONFIG_FILE)) {
     $setup_mode = true;
@@ -84,11 +132,17 @@ $success_msg = '';
 // Handle Login/Setup
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'login') {
-        if (isset($_POST['password']) && defined('WP_ARZO_EMERGENCY_HASH')) {
+        $lock = arzo_emergency_lockout_seconds();
+        if ($lock > 0) {
+            $error_msg = 'Too many failed attempts. Try again in ' . ceil($lock / 60) . ' minute(s).';
+        } elseif (isset($_POST['password']) && defined('WP_ARZO_EMERGENCY_HASH')) {
             if (password_verify($_POST['password'], WP_ARZO_EMERGENCY_HASH)) {
+                arzo_emergency_clear_failures();
+                session_regenerate_id(true);
                 $_SESSION['arzo_emergency_auth'] = true;
                 redirect($redirect_base);
             } else {
+                arzo_emergency_record_failure();
                 $error_msg = 'Invalid password.';
             }
         }
@@ -437,6 +491,10 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             // --- USERS ---
             case 'create_admin':
                 $user = $conn->real_escape_string($_POST['username']);
+                // NOTE: md5() is intentional here. WordPress core is not loaded in the
+                // emergency tool, so we can't call wp_hash_password(). WP accepts a plain
+                // 32-char md5 user_pass for back-compat and transparently re-hashes it to a
+                // modern phpash on the user's first successful login.
                 $pass = md5($_POST['password']);
                 $email = $conn->real_escape_string($_POST['email']);
                 $now = date('Y-m-d H:i:s');
@@ -483,10 +541,14 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
 
+        /* Tokens aligned with the plugin design system (assets/css/design-tokens.css).
+           Kept inline so the recovery tool stays fully self-contained. */
         :root {
             --accent-color: #16e791;
+            --accent-hover: #0ea66b;
             --primary-text: #ffffff;
             --secondary-text: #e0e0e0;
+            --muted-text: #999999;
             --background-dark: #121212;
             --background-medium: #1e1e1e;
             --background-light: #2a2a2a;
@@ -494,6 +556,9 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             --border-light: #444444;
             --danger-color: #dc3545;
             --success-color: #28a745;
+            --radius-global: 8px;
+            --radius-sm: 4px;
+            --radius-pill: 999px;
         }
 
         body {

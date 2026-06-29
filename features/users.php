@@ -352,7 +352,7 @@ window.open("' . admin_url() . '", "_blank");
                         </div>
                         <div class="form-group">
                             <label>Role:</label>
-                            <select name="role">
+                            <select name="role" data-wpa-select>
                                 <option value="administrator">Administrator</option>
                                 <option value="editor">Editor</option>
                                 <option value="author">Author</option>
