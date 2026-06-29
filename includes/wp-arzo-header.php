@@ -269,16 +269,22 @@ if ($action === 'wp_arzo_standalone') {
 
 <head>
     <title>WP Arzo - Administration Suite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?php
-    // Use the centralized asset helper for cache‑safe CSS loading.
-    if (function_exists('wp_arzo_get_asset_url')) {
-        $wp_arzo_css_url = wp_arzo_get_asset_url('assets/css/wp-arzo.css');
-    } else {
-        $wp_arzo_css_url = WP_ARZO_PLUGIN_URL . 'assets/css/wp-arzo.css';
+    // Centralized, cache-safe CSS loading. Order matters: design tokens first (the
+    // single source of truth), then the component library, then the base console CSS.
+    $wp_arzo_styles = ['assets/css/design-tokens.css', 'assets/css/wp-arzo-components.css', 'assets/css/wp-arzo.css'];
+    foreach ($wp_arzo_styles as $wp_arzo_style) {
+        if (!file_exists(WP_ARZO_PLUGIN_DIR . $wp_arzo_style)) {
+            continue;
+        }
+        $wp_arzo_css_url = function_exists('wp_arzo_get_asset_url')
+            ? wp_arzo_get_asset_url($wp_arzo_style)
+            : WP_ARZO_PLUGIN_URL . $wp_arzo_style;
+        echo '<link rel="stylesheet" href="' . esc_url($wp_arzo_css_url) . '">' . "\n    ";
     }
     ?>
-    <link rel="stylesheet" href="<?php echo esc_url($wp_arzo_css_url); ?>">
 </head>
 
 <body>

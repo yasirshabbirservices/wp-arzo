@@ -119,14 +119,18 @@ if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features
     };
 </script>
 <?php
-// Use centralized asset helper for cache‑safe JS loading.
-if (function_exists('wp_arzo_get_asset_url')) {
-    $wp_arzo_js_url = wp_arzo_get_asset_url('assets/js/wp-arzo.js');
-} else {
-    $wp_arzo_js_url = WP_ARZO_PLUGIN_URL . 'assets/js/wp-arzo.js';
+// Cache-safe JS loading. Component library first, then the console script.
+$wp_arzo_scripts = ['assets/js/wp-arzo-components.js', 'assets/js/wp-arzo.js'];
+foreach ($wp_arzo_scripts as $wp_arzo_script) {
+    if (!file_exists(WP_ARZO_PLUGIN_DIR . $wp_arzo_script)) {
+        continue;
+    }
+    $wp_arzo_js_url = function_exists('wp_arzo_get_asset_url')
+        ? wp_arzo_get_asset_url($wp_arzo_script)
+        : WP_ARZO_PLUGIN_URL . $wp_arzo_script;
+    echo '<script src="' . esc_url($wp_arzo_js_url) . '"></script>' . "\n";
 }
 ?>
-<script src="<?php echo esc_url($wp_arzo_js_url); ?>"></script>
 </body>
 
 </html>

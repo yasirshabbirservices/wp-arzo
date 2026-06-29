@@ -4,6 +4,33 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — design-system foundation (Phase 0)
+
+Groundwork for the larger feature-suite roadmap ([.claude/ROADMAP.md](.claude/ROADMAP.md)).
+No feature behavior changes; this is the design/UI foundation everything else builds on.
+
+### Added
+- **Single design-token source of truth** (`assets/css/design-tokens.css`): canonical
+  `--arzo-*` tokens with full color/spacing/radius/typography/elevation/motion/z-index
+  scales, legacy aliases for back-compat, and reduced-motion handling. Now loaded in the
+  console (it was previously never loaded — the `--arzo-*` tokens `design.md` documented
+  resolved to nothing).
+- **Component library** (`assets/css/wp-arzo-components.css` + `assets/js/wp-arzo-components.js`):
+  reusable `wpa-` primitives — Button, modern Toggle, accessible custom Select
+  (progressive-enhanced from a native `<select>`), Badge/Status, Card, Field, Toast.
+- **Icon system** (`includes/wp-arzo-icons.php`): `wp_arzo_icon()` inline-SVG registry
+  (currentColor, 24×24 stroke) — real icons for states/actions, no emoji/default glyphs.
+- `.claude/ROADMAP.md` — product & engineering roadmap (feature-registry architecture,
+  freemium split, component plan, AI/MCP/snippets modules, phasing).
+
+### Changed
+- Modernized the global toggle (`.switch`/`.slider`) — pill track, soft knob shadow,
+  accent glow, keyboard `:focus-visible` ring; all existing toggles upgraded in place.
+- Added a global accessibility layer: consistent `:focus-visible` ring on all interactive
+  elements, `prefers-reduced-motion` support, and a `.wpa-sr-only` utility.
+- Console now loads tokens → components → base CSS in the correct order; removed the
+  duplicate `:root` palette from `wp-arzo.css`.
+
 ## [6.5] — 2026-06-30
 
 A maintenance release focused on fixing broken features and closing security holes
