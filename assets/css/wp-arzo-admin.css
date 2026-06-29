@@ -1,0 +1,136 @@
+/**
+ * WP Arzo admin dashboard (feature manager).
+ * Scoped under .wpa-admin so it doesn't leak into the rest of wp-admin.
+ * Depends on design-tokens.css + wp-arzo-components.css.
+ */
+
+.wpa-admin {
+  --wpa-admin-max: 1180px;
+  font-family: var(--arzo-font);
+  color: var(--arzo-text-primary);
+  margin: 20px 20px 40px 2px;
+  max-width: var(--wpa-admin-max);
+}
+.wpa-admin * { box-sizing: border-box; }
+
+/* Header */
+.wpa-admin__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--arzo-space-4);
+  flex-wrap: wrap;
+  padding: var(--arzo-space-5);
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius-lg);
+  margin-bottom: var(--arzo-space-5);
+}
+.wpa-admin__title {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  margin: 0;
+  font-size: var(--arzo-fs-2xl);
+  font-weight: 700;
+  color: var(--arzo-text-strong);
+}
+.wpa-admin__title .wpa-icon { color: var(--arzo-accent); width: 26px; height: 26px; }
+.wpa-admin__subtitle { margin: 6px 0 0; color: var(--arzo-text-secondary); font-size: var(--arzo-fs-md); }
+.wpa-admin__subtitle strong { color: var(--arzo-accent); }
+
+/* Search */
+.wpa-admin__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.wpa-admin__search .wpa-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--arzo-text-secondary);
+  pointer-events: none;
+}
+.wpa-admin__search input {
+  width: 280px;
+  max-width: 100%;
+  padding: 10px 12px 10px 36px;
+  background: var(--arzo-bg-input);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-sm);
+  color: var(--arzo-text-primary);
+  font-size: var(--arzo-fs-md);
+}
+.wpa-admin__search input:focus-visible { outline: none; border-color: var(--arzo-accent); box-shadow: var(--arzo-focus-ring); }
+
+/* Groups */
+.wpa-group { margin-bottom: var(--arzo-space-8); }
+.wpa-group[hidden] { display: none; }
+.wpa-group__title {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  margin: 0 0 var(--arzo-space-4);
+  padding-bottom: var(--arzo-space-2);
+  font-size: var(--arzo-fs-lg);
+  font-weight: 700;
+  color: var(--arzo-text-strong);
+  border-bottom: 1px solid var(--arzo-border);
+}
+.wpa-group__title .wpa-icon { color: var(--arzo-accent); }
+
+/* Grid + cards */
+.wpa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--arzo-space-4);
+}
+.wpa-feature-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--arzo-space-3);
+  padding: var(--arzo-space-4);
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+  transition: border-color var(--arzo-transition), box-shadow var(--arzo-transition);
+}
+.wpa-feature-card[hidden] { display: none; }
+.wpa-feature-card:hover { border-color: var(--arzo-border-strong); }
+.wpa-feature-card.is-on { border-color: var(--arzo-accent-soft); box-shadow: inset 3px 0 0 var(--arzo-accent); }
+
+.wpa-feature-card__icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--arzo-radius-sm);
+  background: var(--arzo-bg-hover);
+  color: var(--arzo-text-secondary);
+}
+.wpa-feature-card.is-on .wpa-feature-card__icon { background: var(--arzo-accent-soft); color: var(--arzo-accent); }
+
+.wpa-feature-card__body { flex: 1; min-width: 0; }
+.wpa-feature-card__head { display: flex; align-items: center; gap: var(--arzo-space-2); }
+.wpa-feature-card__title { margin: 0; font-size: var(--arzo-fs-md); font-weight: 700; color: var(--arzo-text-strong); }
+.wpa-feature-card__desc { margin: 4px 0 0; font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); line-height: 1.5; }
+
+.wpa-feature-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  flex-shrink: 0;
+}
+.wpa-feature-card__settings.is-hidden { display: none; }
+
+.wpa-admin__empty { color: var(--arzo-text-secondary); font-size: var(--arzo-fs-md); padding: var(--arzo-space-6); text-align: center; }
+
+/* Reset a couple of wp-admin defaults that fight the dark UI */
+.wpa-admin a { box-shadow: none; }
+.wpa-admin .wpa-btn:focus { box-shadow: var(--arzo-focus-ring); outline: none; }
+
+@media (max-width: 600px) {
+  .wpa-grid { grid-template-columns: 1fr; }
+  .wpa-admin__search input { width: 100%; }
+}

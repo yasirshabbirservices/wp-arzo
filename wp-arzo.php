@@ -304,6 +304,8 @@ function wp_arzo_uninstall()
         'maintenance_tool_developer_whatsapp',
         'maintenance_tool_developer_skype',
         'wp_arzo_version',
+        'wp_arzo_features',
+        'wp_arzo_settings',
     );
 
     foreach ($options as $option) {
@@ -387,25 +389,54 @@ require_once(WP_ARZO_PLUGIN_DIR . 'includes/wp-arzo-icons.php');
 // Load Maintenance Mode Frontend
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/maintenance-frontend.php');
 
-/**
- * Add admin menu
- */
-function wp_arzo_add_admin_menu()
-{
-    add_menu_page(
-        'WP Arzo',                    // Page title
-        'WP Arzo',                    // Menu title
-        'manage_options',             // Capability required
-        'wp-arzo-tool',               // Menu slug
-        'wp_arzo_redirect_page',      // Callback function
-        'dashicons-admin-tools',      // Icon
-        100                           // Position
-    );
+// Feature-manager: base class + registry + built-in feature modules + admin dashboard.
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature.php');
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature-registry.php');
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-admin.php');
+
+foreach ((array) glob(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/*.php') as $wp_arzo_feature_file) {
+    if ($wp_arzo_feature_file) {
+        require_once($wp_arzo_feature_file);
+    }
 }
-add_action('admin_menu', 'wp_arzo_add_admin_menu');
 
 /**
- * Redirect callback - opens tool in new tab
+ * Register built-in features, let add-ons (e.g. WP Arzo Pro) register theirs, then
+ * boot every enabled feature. Runs on plugins_loaded so features can hook init etc.
+ */
+function wp_arzo_bootstrap_features()
+{
+    $registry = WP_Arzo_Feature_Registry::instance();
+
+    $registry->register(new WP_Arzo_Feature_Disable_Comments());
+    $registry->register(new WP_Arzo_Feature_Hide_Admin_Bar());
+    $registry->register(new WP_Arzo_Feature_Disable_XMLRPC());
+    $registry->register(new WP_Arzo_Feature_Disable_Dashboard_Widgets());
+
+    /**
+     * Add-ons register their own feature modules here.
+     *
+     * @param WP_Arzo_Feature_Registry $registry
+     */
+    do_action('wp_arzo_register_features', $registry);
+
+    $registry->boot_enabled();
+
+    if (is_admin()) {
+        WP_Arzo_Admin::instance()->init();
+    }
+}
+add_action('plugins_loaded', 'wp_arzo_bootstrap_features', 20);
+
+/**
+ * The admin menu (top-level "WP Arzo" dashboard + "Advanced Tools" submenu) is
+ * registered by WP_Arzo_Admin (see includes/admin/class-wp-arzo-admin.php), which
+ * boots from wp_arzo_bootstrap_features(). The console launcher below is used by the
+ * "Advanced Tools" submenu.
+ */
+
+/**
+ * Redirect callback - opens the standalone console in a new tab
  */
 function wp_arzo_redirect_page()
 {
