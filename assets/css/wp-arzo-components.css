@@ -1,0 +1,276 @@
+/**
+ * WP Arzo Component Library
+ *
+ * Reusable, branded, accessible UI primitives (namespaced `wpa-`). Composed by the
+ * dashboard and every feature. Depends on design-tokens.css (loaded first).
+ *
+ * Components: icon, button, toggle, custom select, badge/status, card, field,
+ * toast. Build once, reuse everywhere — no bespoke inline styles in features.
+ */
+
+/* ============================ Icon ===================================== */
+.wpa-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.wpa-icon--xs { width: 14px; height: 14px; }
+.wpa-icon--sm { width: 16px; height: 16px; }
+.wpa-icon--lg { width: 28px; height: 28px; }
+.wpa-icon--xl { width: 40px; height: 40px; }
+
+/* ============================ Button =================================== */
+.wpa-btn {
+  --_bg: var(--arzo-bg-hover);
+  --_fg: var(--arzo-text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--arzo-space-2);
+  padding: 10px 16px;
+  font-family: var(--arzo-font);
+  font-size: var(--arzo-fs-md);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--_fg);
+  background: var(--_bg);
+  border: 1px solid transparent;
+  border-radius: var(--arzo-radius-sm);
+  cursor: pointer;
+  transition: background var(--arzo-transition), color var(--arzo-transition),
+    border-color var(--arzo-transition), transform var(--arzo-transition-fast);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.wpa-btn:hover { filter: brightness(1.08); }
+.wpa-btn:active { transform: translateY(1px); }
+.wpa-btn:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
+.wpa-btn[disabled],
+.wpa-btn.is-disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+.wpa-btn .wpa-icon { width: 16px; height: 16px; }
+
+.wpa-btn--primary { --_bg: var(--arzo-accent); --_fg: var(--arzo-text-on-accent); }
+.wpa-btn--primary:hover { background: var(--arzo-accent-hover); filter: none; }
+.wpa-btn--secondary { --_bg: var(--arzo-bg-hover); --_fg: var(--arzo-text-primary); border-color: var(--arzo-border-strong); }
+.wpa-btn--ghost { --_bg: transparent; --_fg: var(--arzo-text-secondary); border-color: var(--arzo-border); }
+.wpa-btn--ghost:hover { --_fg: var(--arzo-text-primary); background: var(--arzo-bg-hover); filter: none; }
+.wpa-btn--danger { --_bg: var(--arzo-error); --_fg: #fff; }
+.wpa-btn--sm { padding: 6px 10px; font-size: var(--arzo-fs-sm); }
+.wpa-btn--lg { padding: 13px 22px; font-size: var(--arzo-fs-lg); }
+.wpa-btn--icon { padding: 8px; }
+.wpa-btn--block { width: 100%; }
+
+/* ============================ Toggle ================================== */
+/* Modern switch. Markup:
+   <label class="wpa-toggle">
+     <input type="checkbox" role="switch">
+     <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+     <span class="wpa-toggle__label">Label</span>
+   </label>                                                                */
+.wpa-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--arzo-space-3);
+  cursor: pointer;
+  user-select: none;
+}
+.wpa-toggle__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.wpa-toggle__track {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  background: var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-pill);
+  transition: background var(--arzo-transition), box-shadow var(--arzo-transition);
+}
+.wpa-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: transform var(--arzo-transition);
+}
+.wpa-toggle__input:checked + .wpa-toggle__track { background: var(--arzo-accent); }
+.wpa-toggle__input:checked + .wpa-toggle__track .wpa-toggle__thumb { transform: translateX(20px); }
+.wpa-toggle__input:focus-visible + .wpa-toggle__track { box-shadow: var(--arzo-focus-ring); }
+.wpa-toggle__input:disabled + .wpa-toggle__track { opacity: 0.5; cursor: not-allowed; }
+.wpa-toggle__label { font-size: var(--arzo-fs-md); color: var(--arzo-text-primary); }
+
+/* ============================ Custom Select =========================== */
+/* Branded listbox (JS-enhanced from a native <select> via wp-arzo-components.js).
+   Falls back to a styled native select if JS is off. */
+.wpa-select { position: relative; display: inline-block; width: 100%; }
+.wpa-select__native {
+  width: 100%;
+  padding: 10px 38px 10px 12px;
+  background: var(--arzo-bg-input);
+  color: var(--arzo-text-primary);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-sm);
+  font-family: var(--arzo-font);
+  font-size: var(--arzo-fs-md);
+  appearance: none;
+  cursor: pointer;
+}
+.wpa-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--arzo-space-2);
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--arzo-bg-input);
+  color: var(--arzo-text-primary);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-sm);
+  font-size: var(--arzo-fs-md);
+  cursor: pointer;
+  text-align: left;
+}
+.wpa-select__trigger:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
+.wpa-select.is-open .wpa-select__trigger { border-color: var(--arzo-accent); }
+.wpa-select__trigger .wpa-icon { transition: transform var(--arzo-transition); color: var(--arzo-text-secondary); }
+.wpa-select.is-open .wpa-select__trigger .wpa-icon { transform: rotate(180deg); }
+.wpa-select__menu {
+  position: absolute;
+  z-index: var(--arzo-z-dropdown);
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--arzo-bg-elev);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-sm);
+  box-shadow: var(--arzo-shadow);
+}
+.wpa-select__menu[hidden] { display: none; }
+.wpa-select__option {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  padding: 9px 10px;
+  border-radius: var(--arzo-radius-sm);
+  color: var(--arzo-text-primary);
+  font-size: var(--arzo-fs-md);
+  cursor: pointer;
+}
+.wpa-select__option:hover,
+.wpa-select__option.is-active { background: var(--arzo-bg-hover); }
+.wpa-select__option[aria-selected="true"] { color: var(--arzo-accent); }
+.wpa-select__option[aria-selected="true"]::after {
+  content: "";
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--arzo-accent);
+}
+
+/* ============================ Badge / Status ========================== */
+.wpa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--arzo-radius-pill);
+  font-size: var(--arzo-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+.wpa-badge .wpa-icon { width: 12px; height: 12px; }
+.wpa-badge--success { background: var(--arzo-success-soft); color: var(--arzo-accent); }
+.wpa-badge--error   { background: var(--arzo-error-soft);   color: var(--arzo-error); }
+.wpa-badge--warning { background: var(--arzo-warning-soft); color: var(--arzo-warning); }
+.wpa-badge--info    { background: var(--arzo-info-soft);    color: var(--arzo-info); }
+.wpa-badge--neutral { background: var(--arzo-neutral-soft); color: var(--arzo-text-secondary); }
+
+/* ============================ Card ==================================== */
+.wpa-card {
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+  padding: var(--arzo-space-5);
+}
+.wpa-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-3);
+  margin-bottom: var(--arzo-space-4);
+}
+.wpa-card__title { font-size: var(--arzo-fs-lg); font-weight: 700; color: var(--arzo-text-strong); margin: 0; }
+.wpa-card__icon { color: var(--arzo-accent); }
+.wpa-card__actions { margin-left: auto; display: flex; gap: var(--arzo-space-2); }
+
+/* ============================ Field =================================== */
+.wpa-field { margin-bottom: var(--arzo-space-4); }
+.wpa-field__label { display: block; margin-bottom: 6px; font-size: var(--arzo-fs-sm); font-weight: 600; color: var(--arzo-text-primary); }
+.wpa-field__help { margin-top: 5px; font-size: var(--arzo-fs-xs); color: var(--arzo-text-secondary); }
+.wpa-field__error { margin-top: 5px; font-size: var(--arzo-fs-xs); color: var(--arzo-error); }
+.wpa-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--arzo-bg-input);
+  color: var(--arzo-text-primary);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-sm);
+  font-family: var(--arzo-font);
+  font-size: var(--arzo-fs-md);
+  box-sizing: border-box;
+}
+.wpa-input:focus-visible { outline: none; border-color: var(--arzo-accent); box-shadow: var(--arzo-focus-ring); }
+
+/* ============================ Toast =================================== */
+.wpa-toast-region {
+  position: fixed;
+  top: var(--arzo-space-5);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--arzo-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--arzo-space-2);
+  pointer-events: none;
+}
+.wpa-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  padding: 11px 16px;
+  background: var(--arzo-bg-elev);
+  border: 1px solid var(--arzo-border-strong);
+  border-left-width: 3px;
+  border-radius: var(--arzo-radius-sm);
+  box-shadow: var(--arzo-shadow);
+  color: var(--arzo-text-primary);
+  font-size: var(--arzo-fs-md);
+  pointer-events: auto;
+  animation: wpa-toast-in var(--arzo-transition) ease;
+}
+.wpa-toast--success { border-left-color: var(--arzo-accent); }
+.wpa-toast--success .wpa-icon { color: var(--arzo-accent); }
+.wpa-toast--error { border-left-color: var(--arzo-error); }
+.wpa-toast--error .wpa-icon { color: var(--arzo-error); }
+.wpa-toast--info { border-left-color: var(--arzo-info); }
+.wpa-toast--info .wpa-icon { color: var(--arzo-info); }
+@keyframes wpa-toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

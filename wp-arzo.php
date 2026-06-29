@@ -375,6 +375,9 @@ function wp_arzo_check_rewrite_rules()
 }
 add_action('admin_init', 'wp_arzo_check_rewrite_rules');
 
+// Shared icon system (inline SVG helper used across the console & features).
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/wp-arzo-icons.php');
+
 // Load Maintenance Mode Frontend
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/maintenance-frontend.php');
 

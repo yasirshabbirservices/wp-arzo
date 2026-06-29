@@ -1,77 +1,92 @@
 # WP Arzo — Design System
 
-The WP Arzo console is a **dark-mode-first** admin UI with a neon-green accent. All
-visual primitives live in [`assets/css/design-tokens.css`](../assets/css/design-tokens.css)
-and are consumed through CSS custom properties. Never hard-code hex values in feature
-markup — reference a token so the palette stays centralized.
+A **dark-mode-first** admin UI with a neon-green accent. The single source of truth is
+[`assets/css/design-tokens.css`](../assets/css/design-tokens.css) — load it **before**
+any other stylesheet. Never hard-code a hex/size; reference a token. The reusable UI
+primitives live in [`assets/css/wp-arzo-components.css`](../assets/css/wp-arzo-components.css)
+(+ behavior in [`assets/js/wp-arzo-components.js`](../assets/js/wp-arzo-components.js)) and
+icons in [`includes/wp-arzo-icons.php`](../includes/wp-arzo-icons.php).
+
+> Token layers: use the canonical **`--arzo-*`** tokens in all new code. Legacy aliases
+> (`--accent-color`, `--radius-global`, `--success-color`, …) are mapped in
+> `design-tokens.css` for back-compat only — don't add new legacy names.
 
 ## Brand
 
-- **Mode:** Dark UI core (`#121212` canvas, `#1e1e1e` panels).
-- **Accent:** Neon green `#16e791` (hover `#0ea66b`).
-- **Voice:** Utilitarian, fast, "emergency console" — high contrast, no decoration that
-  costs legibility.
+- **Canvas** `#121212` (`--arzo-bg-dark`), **panels** `#1e1e1e` (`--arzo-bg-panel`).
+- **Accent** neon green `#16e791` (`--arzo-accent`), hover `#0ea66b`.
+- **Voice:** utilitarian, fast, "control room" — high contrast, no decoration that costs
+  legibility.
 
 ## Color tokens
 
-| Token | Value | Use |
-|-------|-------|-----|
-| `--arzo-bg-dark` | `#121212` | Page / app canvas |
-| `--arzo-bg-panel` | `#1e1e1e` | Cards, panels, modals |
-| `--arzo-bg-hover` | `#2a2a2a` | Hover / raised surfaces |
-| `--arzo-border` | `#333333` | Dividers, card borders |
-| `--arzo-text-primary` | `#e0e0e0` | Body text |
-| `--arzo-text-secondary` | `#999999` | Secondary / meta text |
-| `--arzo-text-muted` | `#666666` | Disabled / hints |
-| `--arzo-accent` | `#16e791` | Primary actions, active nav, highlights |
-| `--arzo-accent-hover` | `#0ea66b` | Accent hover state |
-| `--arzo-text-on-accent` | `#121212` | Text/icons on an accent fill |
-| `--arzo-error` | `#ff4d4f` | Errors, destructive actions |
-| `--arzo-warning` | `#faad14` | Warnings |
-| `--arzo-success` | `#16e791` | Success states |
-| `--arzo-info` | `#1890ff` | Informational states |
+| Token | Use |
+|-------|-----|
+| `--arzo-bg-dark` / `--arzo-bg-panel` / `--arzo-bg-elev` / `--arzo-bg-hover` / `--arzo-bg-input` | Surfaces (canvas → raised → input) |
+| `--arzo-border` / `--arzo-border-strong` | Dividers, control borders |
+| `--arzo-text-strong` / `--arzo-text-primary` / `--arzo-text-secondary` / `--arzo-text-muted` | Text hierarchy |
+| `--arzo-accent` / `--arzo-accent-hover` / `--arzo-accent-soft` / `--arzo-accent-ring` | Primary actions, active state, soft fills, focus ring |
+| `--arzo-text-on-accent` | Text/icons on an accent fill (`#121212`) |
+| `--arzo-success` / `--arzo-warning` / `--arzo-error` / `--arzo-info` / `--arzo-neutral` (+ `*-soft`) | Semantic states and their soft chip backgrounds |
 
 ### Contrast rules (WCAG 2.2 AA)
 
-- Accent text **on dark** (`#16e791` on `#121212`) ≈ 13:1 → passes AAA. Good for links,
-  labels, and active states.
-- Accent text **on white** ≈ 1.5:1 → **fails**. Never put green text on a light fill.
-- When filling a button/badge with `--arzo-accent`, the label must use
-  `--arzo-text-on-accent` (`#121212`), not white.
+- Accent **on dark** ≈ 13:1 (AAA) — good for links, labels, active states.
+- Accent **on white** ≈ 1.5:1 (**fails**) — never put accent text on a light fill.
+- On an accent fill, labels use `--arzo-text-on-accent`, not white.
 
-## Components
+## Scales
 
-| Token | Value | Use |
-|-------|-------|-----|
-| `--arzo-radius` | `4px` | Global corner radius (buttons, cards, inputs, badges) |
-| `--arzo-shadow` | `0 8px 32px rgba(0,0,0,.5)` | Modal / lightbox elevation |
+- **Radius:** `--arzo-radius-sm` 4px · `--arzo-radius` 8px · `--arzo-radius-lg` 14px ·
+  `--arzo-radius-pill`.
+- **Spacing (4px base):** `--arzo-space-1` … `--arzo-space-10`.
+- **Type:** family `--arzo-font` (Lato), mono `--arzo-font-mono`; sizes `--arzo-fs-xs`
+  (11) → `--arzo-fs-2xl` (26).
+- **Elevation:** `--arzo-shadow-sm` / `--arzo-shadow` / `--arzo-shadow-lg`.
+- **Motion:** `--arzo-transition-fast|''|slow` (auto-zeroed under
+  `prefers-reduced-motion`).
+- **Focus:** `--arzo-focus-ring` (3px accent ring) — applied to every interactive element
+  via `:focus-visible`.
+- **Z-index:** `--arzo-z-dropdown|sticky|modal|toast`.
 
-- **Buttons:** accent fill for primary, `--arzo-error` for destructive (Delete,
-  Deactivate), `--arzo-bg-hover` for secondary. Always pair destructive buttons with a
-  JS `confirm()`.
-- **Badges:** small pill, `--arzo-radius`. `success` = accent, `secondary` = muted.
-- **Nav:** horizontal tab bar; the active tab uses the `.active` class (accent text /
-  underline). Active state is computed server-side in
-  [`wp-arzo-header.php`](../includes/wp-arzo-header.php).
-- **Lightbox / modal:** centered panel on `--arzo-bg-panel` with `--arzo-shadow`; close
-  on backdrop click and on `Escape` (wired in `assets/js/wp-arzo.js`).
-- **Spinner:** accent top-border on a `--arzo-bg-hover` ring (see the loader in
-  `wp_arzo_redirect_page()`).
+## Components (`wpa-` namespace)
 
-## Typography
+Compose these; do **not** write bespoke inline styles in features.
 
-- System UI stack for the console (`'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`).
-- The public maintenance page (`includes/maintenance-frontend.php`) uses **Lato** from
-  Google Fonts and per-mode accent colors (orange = maintenance, green = coming-soon,
-  red = payment-required); it is intentionally independent of the console palette.
-- Icons: Font Awesome 6.4 (loaded from CDN).
+| Component | Class / API |
+|-----------|-------------|
+| Icon | `wp_arzo_icon('name', ['class'=>'wpa-icon', 'aria-label'=>'…'])` → inline SVG |
+| Button | `.wpa-btn` + `--primary` / `--secondary` / `--ghost` / `--danger` / `--sm` / `--lg` / `--icon` / `--block` |
+| Toggle | `.wpa-toggle` (modern switch; `role="switch"`); legacy `.switch`/`.slider` markup is also modernized |
+| Select | `.wpa-select`; add `data-wpa-select` to a native `<select>` → JS upgrades it to an accessible listbox |
+| Badge/Status | `.wpa-badge` + `--success` / `--error` / `--warning` / `--info` / `--neutral` (icon slot) |
+| Card | `.wpa-card` + `__header` / `__title` / `__icon` / `__actions` |
+| Field | `.wpa-field` + `__label` / `__help` / `__error`, `.wpa-input` |
+| Toast | `wpArzo.toast(message, 'success'|'error'|'info')` (ARIA live region) |
+
+All components: keyboard-operable, `:focus-visible` rings, AA contrast, RTL-friendly,
+reduced-motion aware, branded.
+
+## Icons
+
+Use [`wp_arzo_icon()`](../includes/wp-arzo-icons.php) — a registry of 24×24 stroke SVGs
+that inherit `currentColor`. **No emoji, no default browser glyphs.** Add new icons to
+the registry rather than inlining one-offs. Decorative by default; pass `aria-label` when
+the icon conveys meaning.
 
 ## Conventions for new UI
 
-1. Pull every color/radius/shadow from a `--arzo-*` token. If a needed token doesn't
-   exist, add it to `design-tokens.css` rather than inlining a hex value.
-2. Keep the dark canvas; don't introduce light backgrounds without re-checking contrast.
-3. Match the existing button / badge / card classes in
-   [`assets/css/wp-arzo.css`](../assets/css/wp-arzo.css) instead of inventing new ones.
-4. Load assets via `wp_arzo_get_asset_url()` so caching and minification stay correct.
-5. Escape all dynamic values rendered into markup (`esc_html`, `esc_attr`, `esc_url`).
+1. Reference a `--arzo-*` token for every color/space/radius/shadow; add a token if one is
+   missing rather than inlining a value.
+2. Use toggles (not checkboxes) for on/off; use `.wpa-select` (not native `<select>`) for
+   choices; use `wp_arzo_icon()` for every status/action glyph.
+3. Compose `wpa-` components; match existing patterns instead of new bespoke CSS.
+4. Keep the dark canvas; re-check contrast before any light surface.
+5. Load assets via `wp_arzo_get_asset_url()`; escape all dynamic output.
+
+## The public maintenance page
+
+[`includes/maintenance-frontend.php`](../includes/maintenance-frontend.php) is a
+standalone public page with its own per-mode accent (orange = maintenance, green =
+coming-soon, red = payment) and Lato type. It is intentionally independent of the console
+palette (migrating it onto the tokens is a Phase 0 follow-up).
