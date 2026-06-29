@@ -337,6 +337,12 @@ function wp_arzo_uninstall()
         @unlink($config_file);
     }
 
+    // Remove the emergency-tool brute-force throttle file if present.
+    $throttle_file = WP_ARZO_PLUGIN_DIR . '.arzo-throttle.json';
+    if (file_exists($throttle_file)) {
+        @unlink($throttle_file);
+    }
+
     // Final rewrite flush for emergency route cleanup.
     flush_rewrite_rules();
 }

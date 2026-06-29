@@ -30,6 +30,27 @@ No feature behavior changes; this is the design/UI foundation everything else bu
   elements, `prefers-reduced-motion` support, and a `.wpa-sr-only` utility.
 - Console now loads tokens → components → base CSS in the correct order; removed the
   duplicate `:root` palette from `wp-arzo.css`.
+- Status badges aligned to the component system (pill, semantic soft fills, status dot).
+- Native `<select>` fields (Extra Options target, Create-User role) upgraded to the
+  accessible custom select (`data-wpa-select`).
+
+### Emergency tool (`wp-arzo-emergency/`)
+- **Security:** added IP-based brute-force throttling on the recovery login (lockout
+  after repeated failures) and `session_regenerate_id()` on success; tightened the
+  Content-Security-Policy (removed `unsafe-eval`, scoped `script-src`/`style-src`, added
+  `frame-ancestors 'none'`, `base-uri`, `form-action`, `Referrer-Policy`).
+- **Consistency:** reconciled the version (now 2.3 across header + constant); aligned its
+  inline tokens with the design system and fixed an undefined `--radius-global` (its radii
+  were collapsing to 0). Documented the intentional `md5()` password trick (WP re-hashes on
+  first login).
+- Throttle state file is cleaned up on plugin uninstall.
+
+### Roadmap
+- Added the **Backup, restore & versioning** system (Git-style snapshots, auto-snapshot on
+  feature toggle / risky actions, cloud remotes: Google Drive / Dropbox / pCloud / FTP-SFTP
+  / S3 / Git, encryption + retention), a **repository / freemium / licensing strategy**
+  (free core public+GPL, Pro in a private repo), and more candidate modules (activity log,
+  cron manager, redirects/404, notifications, safe mode, multisite, white-label, …).
 
 ## [6.5] — 2026-06-30
 

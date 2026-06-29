@@ -162,6 +162,27 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
   [P]
 - Login/Logout menu item, redirect after login/logout [F]
 
+### Ops & monitoring (additional suggestions)
+- **Activity log / audit trail** — who did what (logins, content, settings, WP Arzo
+  actions), filterable, exportable. [F basic / P advanced + retention]
+- **Site Health integration** + WP Arzo health checks (writability, cron, OPcache, SSL,
+  PHP/DB versions). [F]
+- **Cron / scheduled-tasks manager** — view/run/pause WP-Cron events; switch to real
+  cron. [F view / P manage]
+- **Transient & cache manager**, **autoloaded-options cleanup**, **database optimizer**
+  (overhead, orphaned meta, revisions/spam cleanup). [F basic / P scheduled]
+- **Redirect manager + 404 monitor + broken-link checker**. [P]
+- **Maintenance scheduler** — schedule maintenance-mode windows. [P]
+- **Notifications** — email / Slack / Discord / webhook on events (backup, login lockout,
+  errors, update available). [P]
+- **Import/Export settings** (and per-feature config) + config presets/blueprints. [F]
+- **Safe mode** — boot WP Arzo with all features off (URL/constant) to recover from a bad
+  toggle, independent of the emergency tool. [F]
+- **Multisite support**, **role-based access** to WP Arzo itself, **WP-CLI commands**, and
+  a **REST surface** (shared with the MCP layer). [P]
+- **White-label / agency mode** — rebrand the plugin, hide from non-privileged users. [P]
+- **GDPR/privacy tools** — export/erase helpers, consent-mode wiring for the pixels. [P]
+
 ### Core controls
 - Disable Gutenberg, comments, feeds, all updates, REST API [F]
 
@@ -170,6 +191,43 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
   scope (admin/front/everywhere), run-location, conditional logic, error-guard
   (auto-disable a snippet that fatals), import/export, and a code editor (CodeMirror).
   Built on DataTable + Modal + custom Select components.
+
+### Backup, restore & versioning (flagship)
+A first-class, **Git/GitHub-style** snapshot system — the headline differentiator.
+
+- **Snapshots (commits):** point-in-time backups of any/all of: database (selected
+  tables or full), `wp-content` (uploads/plugins/themes/mu-plugins), and config
+  (`wp-config.php`, `.htaccess`). Each snapshot has a message, author, timestamp, parent,
+  and a content hash — a lightweight history you can browse like commits. [F basic / P full]
+- **Incremental & deduplicated:** store only changed files between snapshots (content-
+  addressed, like Git objects) so history is cheap; full + incremental modes. [P]
+- **One-click restore (checkout):** restore a whole snapshot or **cherry-pick** (just the
+  DB, just one plugin folder, a single file). Always creates a safety snapshot before
+  restoring (so restore is itself undoable). [F restore-latest / P any-point + partial]
+- **Diff view:** see what changed between two snapshots (DB row counts/option diffs,
+  added/removed/modified files) before restoring. [P]
+- **Automated snapshot triggers** (opt-in, per the maintainer's request):
+  - **Before enabling/disabling any feature** (auto-snapshot if the toggle is on). [F]
+  - Before risky actions: file edits, SQL execution, plugin/theme activate/switch,
+    config writes, updates. [F/P]
+  - **Scheduled** (hourly/daily/weekly/monthly) via WP-Cron or a real system cron. [P]
+- **Storage destinations (remotes):** Local (default), **Google Drive**, **Dropbox**,
+  **pCloud**, **FTP/SFTP**, **Amazon S3 / S3-compatible** (Wasabi, Backblaze B2,
+  DigitalOcean Spaces), and Git remote (push snapshots to a real Git repo). Multiple
+  remotes at once; "push" a snapshot to a remote like `git push`. [Local F / cloud P]
+- **Reliability & safety:** client-side encryption (AES-GCM) for off-site copies,
+  integrity verification (hash check) on backup and restore, retention/rotation policy,
+  chunked/resumable transfers for large sites, low-memory streaming, WP-CLI parity,
+  email/webhook notification on success/failure, and a restore **dry-run**. [P]
+- **Migration/clone:** export a snapshot as a portable archive to spin the site up
+  elsewhere (search-replace URLs on restore). [P]
+
+Engineering notes: snapshots are content-addressed objects + a manifest (JSON) per
+snapshot; the "auto-snapshot before toggle" hooks into the feature-registry
+enable/disable lifecycle; destinations are pluggable **remote drivers** (one interface,
+many providers) mirroring the pixel-framework pattern; OAuth tokens for Drive/Dropbox/
+pCloud stored encrypted. Never block the request — large backups run via background
+queue/cron with progress + cancel.
 
 ### AI (where genuinely valuable)
 - **AI MCP Server & Command Center** [P] — exposes WP Arzo capabilities as an MCP server
@@ -230,6 +288,13 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 - Media manager (HappyFiles-style), CPT/CCT builder (JetEngine-style), custom
   login/dashboard/admin branding, advanced security, Code Snippets Manager.
 
+**Phase 4.2 — Backup, restore & versioning.**
+- Local snapshot engine (content-addressed objects + manifest) → restore/diff →
+  auto-snapshot triggers (feature toggles + risky actions) → scheduled backups → remote
+  drivers (Drive/Dropbox/pCloud/FTP-SFTP/S3/Git) → encryption + retention + notifications.
+- Slot the local engine + "snapshot before feature toggle" early (it protects every other
+  feature); cloud remotes and scheduling follow as Pro.
+
 **Phase 4.5 — AI layer.**
 - AI MCP Server + Command Center (registry-backed, capability/nonce-gated tools), then
   the embedded per-feature AI assists. Provider-agnostic, BYO key, suggestion-first.
@@ -246,7 +311,40 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 5. `php -l` + `node --check`; manual verify on a live site.
 6. Update `CHANGELOG.md` + bump version per `wp-arzo-release`.
 
-## 8. Open decisions (maintainer to confirm; defaults assumed)
+## 8. Repository, licensing & distribution strategy
+
+This repo is **currently public** (it was planned as free). Going freemium changes what
+should live where. Recommended model:
+
+- **Free core stays public + GPLv2+.** WordPress is GPL; a plugin distributed on wp.org
+  (and most PHP that calls WP APIs) must be GPL-compatible. Keeping the free core public
+  and GPL is the norm (ASE, Yoast, etc. all do this) and is good for trust/SEO/adoption.
+  Anyone *can* fork it — that's fine; your moat is the Pro features, updates, support,
+  and brand, not code obscurity.
+- **Pro addon = a SEPARATE, PRIVATE repo.** Ship it as its own plugin that registers into
+  the free core's feature-registry. Distribute it as a licensed download (not on wp.org).
+  Note GPL still technically allows redistribution of Pro code, but the **license key /
+  update server / support** is what you actually sell — same as every major Pro plugin.
+- **Do NOT commit Pro code, license-server secrets, OAuth client secrets, or signing keys
+  to the public repo.** Cloud-storage OAuth apps (Drive/Dropbox/pCloud) and the licensing
+  server live outside this repo.
+- **Security posture for a public repo:** assume an attacker reads all the code. That's
+  already our model (capability + nonce + validation on every action). Keep secrets in
+  config/env, never in source. The emergency tool's password hash lives in the generated
+  `arzo-safe.php` (git-ignored), not in the repo — keep it that way.
+- **Branching:** keep `main` as the stable free core; `wp-plugin` (current) as the active
+  dev branch; tag releases. Pro lives in its own repo with its own tags.
+- **Licensing options:** Freemius (fastest: handles checkout, licensing, updates, EU VAT),
+  Lemon Squeezy / Paddle (merchant of record), or EDD + Software Licensing (self-hosted,
+  most control). Recommend **Freemius or Lemon Squeezy** to start.
+- **Trademark/name:** lock the plugin slug + name early; check wp.org guidelines (see the
+  `wp-plugin-directory-guidelines` skill) before submitting the free core.
+
+Action items when we get there: create the private Pro repo + a thin licensing/update
+client in the free core (feature-gate hooks only, no secrets), and move any
+cloud/AI/license credentials into a config the public repo never sees.
+
+## 9. Open decisions (maintainer to confirm; defaults assumed)
 
 - Tech stack (vanilla **[default]** vs React vs hybrid).
 - Console fate (keep as Advanced Tools **[default]** vs fold in).
