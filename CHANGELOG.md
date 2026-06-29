@@ -4,6 +4,32 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — feature dashboard & registry (Phase 1)
+
+The backbone of the suite: a native wp-admin feature manager that everything plugs into.
+
+### Added
+- **Feature registry** (`includes/class-wp-arzo-feature.php` + `class-wp-arzo-feature-registry.php`):
+  every feature is a self-contained module declaring `id / title / group / tier / icon /
+  settings_schema / boot()`. The registry persists enabled-state (`wp_arzo_features`) and
+  per-feature settings (`wp_arzo_settings`), boots only enabled features, and fires
+  `wp_arzo_before_feature_toggle` / `wp_arzo_feature_enabled` / `…_disabled` /
+  `…_toggled` — the integration point for the upcoming auto-snapshot/backup system.
+- **Native admin dashboard** (`includes/admin/class-wp-arzo-admin.php` + `wp-arzo-admin.css`
+  /`.js`): a grouped, searchable **feature toggle grid** built from the component library
+  (modern toggles, icons, cards, badges), with live AJAX enable/disable (capability +
+  nonce), Pro chips, and a schema-driven per-feature **settings** screen. Menu restructured
+  to a top-level **WP Arzo** dashboard with the standalone power-console moved under
+  **Advanced Tools**.
+- **First feature modules:** Disable Comments, Hide Admin Bar (with scope setting),
+  Disable XML-RPC, Disable Dashboard Widgets — all free, all driven by the registry.
+- Add-on hook `wp_arzo_register_features` so the future Pro plugin registers its modules
+  into the same registry, and `wp_arzo_feature_is_available` to gate Pro features by
+  license.
+
+### Changed
+- `wp_arzo_features` and `wp_arzo_settings` options are removed on uninstall.
+
 ## [Unreleased] — design-system foundation (Phase 0)
 
 Groundwork for the larger feature-suite roadmap ([.claude/ROADMAP.md](.claude/ROADMAP.md)).
