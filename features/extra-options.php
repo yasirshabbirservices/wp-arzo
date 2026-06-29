@@ -14,6 +14,28 @@ if (!defined('ABSPATH')) {
 
 // --- Helper Functions for PHP Limits ---
 
+// Validate a PHP "size" shorthand value (e.g. 128M, 512K, 2G, 64, -1).
+function wp_arzo_is_valid_php_size($value)
+{
+    return (bool) preg_match('/^-?\d+[KMG]?$/i', trim((string) $value));
+}
+
+// Validate a plain integer value (e.g. max_execution_time in seconds).
+function wp_arzo_is_valid_php_int($value)
+{
+    return (bool) preg_match('/^-?\d+$/', trim((string) $value));
+}
+
+// Validate the full set of submitted limit values before any file write.
+// Prevents config/.htaccess/php.ini injection via newlines or stray directives.
+function wp_arzo_validate_php_limits($memory_limit, $max_execution_time, $upload_max_filesize, $post_max_size)
+{
+    return wp_arzo_is_valid_php_size($memory_limit)
+        && wp_arzo_is_valid_php_int($max_execution_time)
+        && wp_arzo_is_valid_php_size($upload_max_filesize)
+        && wp_arzo_is_valid_php_size($post_max_size);
+}
+
 // Function to update PHP limits in wp-config.php
 function updateWpConfigPhpLimits($wp_config_path, $memory_limit, $max_execution_time, $upload_max_filesize, $post_max_size)
 {
@@ -188,9 +210,22 @@ function handleExtraOptions()
     $default_upload_max_filesize = '64M';
     $default_post_max_size = '64M';
 
+    // CSRF guard for both state-changing actions (these rewrite server config files).
+    $is_limits_action = isset($_POST['reset_php_limits']) || isset($_POST['update_php_limits']);
+    if ($is_limits_action) {
+        if (!current_user_can('manage_options') ||
+            !isset($_POST['wp_arzo_php_nonce']) ||
+            !wp_verify_nonce(wp_unslash($_POST['wp_arzo_php_nonce']), 'wp_arzo_php_limits')) {
+            echo "<div class='error'>Security check failed. Please reload the page and try again.</div>";
+            $is_limits_action = false; // skip the handlers below
+        }
+    }
+
+    $allowed_targets = ['wp-config', 'htaccess', 'php-ini'];
+
     // Handle reset settings
-    if (isset($_POST['reset_php_limits'])) {
-        $target_file = $_POST['target_file'];
+    if ($is_limits_action && isset($_POST['reset_php_limits'])) {
+        $target_file = in_array($_POST['target_file'] ?? '', $allowed_targets, true) ? $_POST['target_file'] : '';
 
         // Log the reset action
         error_log("PHP Limits reset requested. Target file: {$target_file}");
@@ -245,56 +280,68 @@ function handleExtraOptions()
     }
 
     // Handle form submission for updates
-    if (isset($_POST['update_php_limits'])) {
-        $target_file = $_POST['target_file'];
-        $new_memory_limit = $_POST['memory_limit'];
-        $new_max_execution_time = $_POST['max_execution_time'];
-        $new_upload_max_filesize = $_POST['upload_max_filesize'];
-        $new_post_max_size = $_POST['post_max_size'];
+    if ($is_limits_action && isset($_POST['update_php_limits'])) {
+        $target_file = in_array($_POST['target_file'] ?? '', $allowed_targets, true) ? $_POST['target_file'] : '';
+        $new_memory_limit = trim(wp_unslash($_POST['memory_limit'] ?? ''));
+        $new_max_execution_time = trim(wp_unslash($_POST['max_execution_time'] ?? ''));
+        $new_upload_max_filesize = trim(wp_unslash($_POST['upload_max_filesize'] ?? ''));
+        $new_post_max_size = trim(wp_unslash($_POST['post_max_size'] ?? ''));
 
-        // Log the action
-        error_log("PHP Limits update requested. Target file: {$target_file}");
-        error_log("New values - Memory: {$new_memory_limit}, Execution: {$new_max_execution_time}, Upload: {$new_upload_max_filesize}, Post: {$new_post_max_size}");
-
-        $update_success = false;
-        $update_message = '';
-
-        switch ($target_file) {
-            case 'wp-config':
-                if ($wp_config_writable) {
-                    $update_success = updateWpConfigPhpLimits($wp_config_path, $new_memory_limit, $new_max_execution_time, $new_upload_max_filesize, $new_post_max_size);
-                    $update_message = $update_success ? 'PHP limits updated in wp-config.php' : 'Failed to update wp-config.php';
-                } else {
-                    $update_message = 'wp-config.php is not writable';
-                }
-                break;
-
-            case 'htaccess':
-                if ($htaccess_writable) {
-                    $update_success = updateHtaccessPhpLimits($htaccess_path, $new_memory_limit, $new_max_execution_time, $new_upload_max_filesize, $new_post_max_size);
-                    $update_message = $update_success ? 'PHP limits updated in .htaccess' : 'Failed to update .htaccess';
-                } else {
-                    $update_message = '.htaccess is not writable';
-                }
-                break;
-
-            case 'php-ini':
-                if ($php_ini_writable) {
-                    $update_success = updatePhpIniLimits($php_ini_path, $new_memory_limit, $new_max_execution_time, $new_upload_max_filesize, $new_post_max_size);
-                    $update_message = $update_success ? 'PHP limits updated in php.ini' : 'Failed to update php.ini';
-                } else {
-                    $update_message = 'php.ini is not writable';
-                }
-                break;
+        // Reject anything that isn't a clean size/integer value before writing files.
+        if (!$target_file || !wp_arzo_validate_php_limits($new_memory_limit, $new_max_execution_time, $new_upload_max_filesize, $new_post_max_size)) {
+            echo "<div class='error'>Invalid values. Use formats like 512M / 64M and a whole number of seconds.</div>";
+            $skip_update = true;
         }
 
-        // Log the result
-        error_log("PHP Limits update result: {$update_message}");
+        if (empty($skip_update)) {
+            // Log the action
+            error_log("PHP Limits update requested. Target file: {$target_file}");
+            error_log("New values - Memory: {$new_memory_limit}, Execution: {$new_max_execution_time}, Upload: {$new_upload_max_filesize}, Post: {$new_post_max_size}");
 
-        // Display message
-        echo $update_success ?
-            "<div class='success'>{$update_message}. Changes may require server restart to take effect.</div>" :
-            "<div class='error'>{$update_message}. Check file permissions.</div>";
+            $update_success = false;
+            $update_message = '';
+
+            switch ($target_file) {
+                case 'wp-config':
+                    if ($wp_config_writable) {
+                        $update_success = updateWpConfigPhpLimits($wp_config_path, $new_memory_limit, $new_max_execution_time, $new_upload_max_filesize, $new_post_max_size);
+                        // wp-config.php can only persist the memory constants; the other
+                        // three limits cannot be set via PHP constants.
+                        $update_message = $update_success
+                            ? 'Memory limit updated in wp-config.php. Note: execution time, upload and post size cannot be set via wp-config.php — use .htaccess or php.ini for those.'
+                            : 'Failed to update wp-config.php';
+                    } else {
+                        $update_message = 'wp-config.php is not writable';
+                    }
+                    break;
+
+                case 'htaccess':
+                    if ($htaccess_writable) {
+                        $update_success = updateHtaccessPhpLimits($htaccess_path, $new_memory_limit, $new_max_execution_time, $new_upload_max_filesize, $new_post_max_size);
+                        $update_message = $update_success ? 'PHP limits updated in .htaccess' : 'Failed to update .htaccess';
+                    } else {
+                        $update_message = '.htaccess is not writable';
+                    }
+                    break;
+
+                case 'php-ini':
+                    if ($php_ini_writable) {
+                        $update_success = updatePhpIniLimits($php_ini_path, $new_memory_limit, $new_max_execution_time, $new_upload_max_filesize, $new_post_max_size);
+                        $update_message = $update_success ? 'PHP limits updated in php.ini' : 'Failed to update php.ini';
+                    } else {
+                        $update_message = 'php.ini is not writable';
+                    }
+                    break;
+            }
+
+            // Log the result
+            error_log("PHP Limits update result: {$update_message}");
+
+            // Display message
+            echo $update_success ?
+                "<div class='success'>" . esc_html($update_message) . " Changes may require server restart to take effect.</div>" :
+                "<div class='error'>" . esc_html($update_message) . ". Check file permissions.</div>";
+        }
     }
 
 ?>
@@ -347,6 +394,7 @@ function handleExtraOptions()
             </style>
 
             <form method="post">
+                <?php wp_nonce_field('wp_arzo_php_limits', 'wp_arzo_php_nonce'); ?>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label>Target Configuration File</label>
                     <select name="target_file" class="modern-select" required>

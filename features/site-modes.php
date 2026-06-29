@@ -14,6 +14,18 @@ if (!defined('ABSPATH')) {
 
 // --- AJAX Handlers ---
 
+// CSRF + capability guard for every state-changing site-mode operation. These can
+// toggle the public site offline and write/delete the emergency recovery file, so
+// they must not be forgeable cross-site.
+$wp_arzo_site_mode_ops = ['update_maintenance_option', 'activate_mode', 'deactivate_mode', 'generate_emergency_script', 'delete_emergency_script'];
+if (isset($_GET['operation']) && in_array($_GET['operation'], $wp_arzo_site_mode_ops, true)) {
+    if (!current_user_can('manage_options') || !check_ajax_referer('wp_arzo_ajax', 'nonce', false)) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Security check failed']);
+        exit;
+    }
+}
+
 // Handle Option Updates (Auto-save)
 if (isset($_GET['operation']) && $_GET['operation'] === 'update_maintenance_option') {
     header('Content-Type: application/json');
@@ -44,6 +56,8 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'update_maintenance_opti
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid option']);
         }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Missing parameters']);
     }
     exit;
 }
@@ -846,7 +860,7 @@ function handleMaintenanceModes()
     <div id="toast" class="toast-notification">Settings saved</div>
 
     <script>
-        const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>&tab=site_modes';
+        const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>&tab=site_modes&nonce=<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>';
         let currentMode = '<?php echo $current_mode; ?>';
 
         // --- Emergency Mode Logic ---

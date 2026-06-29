@@ -16,9 +16,32 @@ if (!defined('ELFINDER_PHP_ROOT_PATH')) {
     define('ELFINDER_PHP_ROOT_PATH', WP_ARZO_PLUGIN_DIR . 'assets/libs/elFinder/php');
 }
 
+/**
+ * elFinder access-control callback.
+ *
+ * Hides and denies read/write on dot-starting files (e.g. .env, .git, .htpasswd),
+ * which would otherwise be exposed because the connector roots at ABSPATH.
+ * Returning null lets elFinder apply its default for non-dotfiles.
+ *
+ * @return bool|null
+ */
+if (!function_exists('wp_arzo_elfinder_access')) {
+    function wp_arzo_elfinder_access($attr, $path, $data, $volume, $isDir, $relpath)
+    {
+        $basename = basename($path);
+        // Deny dotfiles/dotdirs (but not the volume root itself, whose relpath is '/').
+        if (strlen($relpath) > 1 && $basename !== '' && $basename[0] === '.') {
+            return in_array($attr, ['read', 'write', 'locked'], true)
+                ? ($attr === 'locked')   // locked = true, read/write = false (deny)
+                : null;
+        }
+        return null; // use default access control for everything else
+    }
+}
+
 // --- BACKEND CONNECTOR ---
 if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
-    
+
     // Disable error reporting to prevent JSON corruption
     error_reporting(0);
     
@@ -54,7 +77,7 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
                     'application/xml'
                 ), 
                 'uploadOrder'   => array('deny', 'allow'),      // allowed Mimetype `image` and `text/plain` only
-                'accessControl' => 'access',                    // disable and hide dot starting files (OPTIONAL)
+                'accessControl' => 'wp_arzo_elfinder_access',   // hide & deny dot-starting files (.env, .git, ...)
                 'alias'         => 'Home',
                 'attributes' => array(
                     array(

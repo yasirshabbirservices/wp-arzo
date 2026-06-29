@@ -24,8 +24,10 @@ $login_redirect = '';
 
 // Check for file download or AJAX file operations which need to run before headers if they happen to be in a feature file
 if (isset($_GET['tab'])) {
-    // Handle File operations (support both 'files' tab and legacy 'ajax' tab calls)
-    if (($_GET['tab'] === 'files' || $_GET['tab'] === 'ajax') && (isset($_GET['download']) || (isset($_GET['operation']) && in_array($_GET['operation'], ['view_file', 'edit_file', 'save_file', 'elfinder_connector'])))) {
+    // Handle File operations (support both 'files' tab and legacy 'ajax' tab calls).
+    // The file manager is powered by elFinder; only the connector + downloads are
+    // served as raw responses here.
+    if (($_GET['tab'] === 'files' || $_GET['tab'] === 'ajax') && (isset($_GET['download']) || (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector'))) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/files.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/files.php');
             exit;
@@ -112,7 +114,8 @@ if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features
     var wpArzoConfig = {
         ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
         adminUrl: '<?php echo admin_url(); ?>',
-        pluginUrl: '<?php echo WP_ARZO_PLUGIN_URL; ?>'
+        pluginUrl: '<?php echo WP_ARZO_PLUGIN_URL; ?>',
+        nonce: '<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>'
     };
 </script>
 <?php

@@ -23,9 +23,11 @@ function wp_arzo_maintenance_display_mode()
     if (isset($_GET['maintenance_preview']) && current_user_can('manage_options')) {
         // Proceed to show maintenance page (bypass the bypass)
     }
-    // Skip if user is admin or using bypass
+    // Skip if user is an admin or using the bypass key.
+    // Note: use the capability, not the role name — current_user_can('administrator')
+    // is unreliable and discouraged.
     elseif (
-        current_user_can('administrator') ||
+        current_user_can('manage_options') ||
         (isset($_GET['maintenance_bypass']) && $_GET['maintenance_bypass'] === $access_key) ||
         is_admin() ||
         (defined('WP_CLI') && WP_CLI)
@@ -35,7 +37,10 @@ function wp_arzo_maintenance_display_mode()
 
     $active_mode = get_option('maintenance_tool_active_mode', '');
 
-    if (!$active_mode) {
+    // Only render for known modes; an unknown/legacy value would otherwise cause
+    // "array offset on null" warnings (PHP 8) and a blank page below.
+    $valid_modes = ['maintenance', 'coming_soon', 'payment_request'];
+    if (!in_array($active_mode, $valid_modes, true)) {
         return;
     }
 
@@ -208,7 +213,7 @@ function wp_arzo_maintenance_display_mode()
                 color: #999;
             }
 
-            <?php echo $custom_css; ?>
+            <?php echo wp_strip_all_tags($custom_css); ?>
         </style>
     </head>
 

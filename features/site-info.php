@@ -42,9 +42,13 @@ function showSiteInfo()
         {
             if ($size === false)
                 return 'N/A';
+            // log(0) is -INF and floor(-INF) is an invalid array index (TypeError on
+            // PHP 8); short-circuit non-positive sizes.
+            if ($size <= 0)
+                return '0 B';
             $base = log($size, 1024);
             $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
-            return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
+            return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[(int) floor($base)];
         }
     }
 
@@ -304,7 +308,7 @@ function showSiteInfo()
                 </div>
                 <?php if ($disk_free_space !== false && $disk_total_space !== false):
                         $disk_used = $disk_total_space - $disk_free_space;
-                        $disk_usage_percent = ($disk_used / $disk_total_space) * 100;
+                        $disk_usage_percent = $disk_total_space > 0 ? ($disk_used / $disk_total_space) * 100 : 0;
                         ?>
                 <div class="info-item">
                     <span class="info-label">Disk Usage:</span>

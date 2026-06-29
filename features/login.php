@@ -17,17 +17,27 @@ function handleQuickLogin()
     global $login_message, $login_redirect;
 
     if (isset($_POST['direct_admin_access'])) {
-        // Create a session-based admin access
-        $nonce = wp_create_nonce('direct_admin_access_' . time());
-        $admin_url = add_query_arg([
-            'maintenance_access' => $nonce
-        ], home_url() . '/' . basename(__FILE__));
+        // CSRF protection for this state-changing action.
+        if (!isset($_POST['wp_arzo_login_nonce']) || !wp_verify_nonce(wp_unslash($_POST['wp_arzo_login_nonce']), 'wp_arzo_login_action')) {
+            echo '<div class="error">Security check failed. Please reload the page and try again.</div>';
+        } else {
+            // Strong, single-use, time-limited token bound to the CURRENT admin.
+            $token = wp_generate_password(32, false);
 
-        // Store the nonce temporarily
-        set_transient('maintenance_access_' . $nonce, true, 3600); // 1 hour
+            // Store the creating user's ID so the link logs in as *them*, not an
+            // arbitrary "first administrator".
+            set_transient('maintenance_access_' . $token, get_current_user_id(), HOUR_IN_SECONDS);
 
-        echo '<script>setTimeout(function() { window.open("' . $admin_url . '", "_blank"); }, 1000);</script>';
-        echo '<div class="success">Direct admin access link generated! Opening in new tab...</div>';
+            // Point at the standalone endpoint, which handles the token before the
+            // capability gate (see wp_arzo_handle_standalone()).
+            $admin_url = add_query_arg(
+                ['maintenance_access' => $token],
+                admin_url('admin-ajax.php?action=wp_arzo_standalone')
+            );
+
+            echo '<script>setTimeout(function() { window.open(' . wp_json_encode($admin_url) . ', "_blank"); }, 1000);</script>';
+            echo '<div class="success">Direct admin access link generated! Opening in new tab (valid for 1 hour, single use).</div>';
+        }
     }
 
 ?>
@@ -102,6 +112,7 @@ function handleQuickLogin()
                 </div>
                 <div class="quick-login-card-body">
                     <form method="post">
+                        <?php wp_nonce_field('wp_arzo_login_action', 'wp_arzo_login_nonce'); ?>
                         <button type="submit" name="create_temp_admin" class="btn">
                             Create &amp; Login as Temp Admin
                         </button>
@@ -130,6 +141,7 @@ function handleQuickLogin()
                 </div>
                 <div class="quick-login-card-body">
                     <form method="post">
+                        <?php wp_nonce_field('wp_arzo_login_action', 'wp_arzo_login_nonce'); ?>
                         <button type="submit" name="direct_admin_access" class="btn">
                             Generate Admin Access Link
                         </button>
