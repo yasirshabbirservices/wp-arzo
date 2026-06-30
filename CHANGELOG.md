@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.30.0] — 2026-07-01
+
+### Changed — Consistent header across both surfaces
+- The **Advanced Tools console** now uses the **same brand header** as the dashboard
+  (`.wpa-brandbar`, promoted to the shared component stylesheet) — logo, "WP Arzo / by Yasir
+  Shabbir", version, and a GitHub link — instead of the old bespoke `.developer-info` bar.
+- Added a proper **GitHub mark icon** to `wp_arzo_icon()` and used it in both headers.
+- The console header version now reads `WP_ARZO_VERSION` (no longer hard-coded).
+
 ## [6.29.0] — 2026-07-01
 
 ### Changed — Collapsible sidebar + branded scrollbars

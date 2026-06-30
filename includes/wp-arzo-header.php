@@ -289,24 +289,19 @@ if ($action === 'wp_arzo_standalone') {
 
 <body>
     <div class="container">
-        <div class="developer-info">
-            <div class="developer-logo">
-                <img src="<?php echo esc_url(WP_ARZO_PLUGIN_URL . 'assets/wp-arzo-icon.svg'); ?>"
-                    alt="WP Arzo">
+        <?php // Shared brand bar — identical to the dashboard header (see render_brand_bar()). ?>
+        <div class="wpa-brandbar">
+            <div class="wpa-brandbar__id">
+                <img class="wpa-brandbar__logo" src="<?php echo esc_url(WP_ARZO_PLUGIN_URL . 'assets/wp-arzo-icon.svg'); ?>" alt="WP Arzo">
                 <div>
-                    <div>Yasir Shabbir</div>
-                    <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
+                    <div class="wpa-brandbar__name">WP Arzo</div>
+                    <a class="wpa-brandbar__email" href="mailto:contact@yasirshabbir.com">by Yasir Shabbir</a>
                 </div>
             </div>
-            <div style="color: var(--accent-color); display:flex; align-items:center; gap:10px;">
-                v6.29.0
-                <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
-                    style="color: #fff; text-decoration: none; display:flex; align-items:center; gap:5px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;">
-                        <path
-                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                    </svg>
-                    GitHub
+            <div class="wpa-brandbar__meta">
+                <span class="wpa-brandbar__ver">v<?php echo esc_html(defined('WP_ARZO_VERSION') ? WP_ARZO_VERSION : ''); ?></span>
+                <a class="wpa-brandbar__gh" href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank" rel="noopener">
+                    <?php echo function_exists('wp_arzo_icon') ? wp_arzo_icon('github', array('class' => 'wpa-icon wpa-icon--sm')) : ''; ?> GitHub
                 </a>
             </div>
         </div>
