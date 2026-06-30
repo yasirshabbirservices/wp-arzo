@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.25.0
+ * Version: 6.26.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.25.0');
+    define('WP_ARZO_VERSION', '6.26.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -264,6 +264,13 @@ function wp_arzo_activate()
     if (function_exists('update_option')) {
         update_option('wp_arzo_version', WP_ARZO_VERSION, false);
     }
+
+    // First-run: send the user to the Setup Wizard (once) unless they've already
+    // completed it on a prior install.
+    if (function_exists('get_option') && !get_option('wp_arzo_wizard_done')) {
+        set_transient('wp_arzo_wizard_redirect', 1, 60);
+    }
+
     wp_arzo_invalidate_opcache_for_plugin();
 }
 register_activation_hook(__FILE__, 'wp_arzo_activate');
@@ -339,6 +346,7 @@ function wp_arzo_uninstall()
         'wp_arzo_snippets',
         'wp_arzo_sched_freq',
         'wp_arzo_activity_log',
+        'wp_arzo_wizard_done',
     );
 
     foreach ($options as $option) {
@@ -429,6 +437,7 @@ require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-backup-manager.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-snippets.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-media-cleanup.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-admin.php');
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-setup-wizard.php');
 
 foreach ((array) glob(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/*.php') as $wp_arzo_feature_file) {
     if ($wp_arzo_feature_file) {
@@ -536,6 +545,9 @@ function wp_arzo_bootstrap_features()
 
     if (is_admin()) {
         WP_Arzo_Admin::instance()->init();
+        if (class_exists('WP_Arzo_Setup_Wizard')) {
+            WP_Arzo_Setup_Wizard::instance()->init();
+        }
     }
 }
 

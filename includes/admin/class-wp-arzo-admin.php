@@ -322,9 +322,14 @@ class WP_Arzo_Admin
                 <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('tools', array('class' => 'wpa-icon')); ?> Feature Manager</h1>
                 <p class="wpa-admin__subtitle">Enable only what you need. <strong><?php echo (int) $enabled; ?></strong> of <?php echo (int) $total; ?> active.</p>
             </div>
-            <div class="wpa-admin__search">
-                <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?>
-                <input type="search" id="wpa-feature-search" placeholder="Search features…" aria-label="Search features">
+            <div style="display:flex;gap:10px;align-items:center;">
+                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . WP_Arzo_Setup_Wizard::PAGE)); ?>">
+                    <?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Setup Wizard
+                </a>
+                <div class="wpa-admin__search">
+                    <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                    <input type="search" id="wpa-feature-search" placeholder="Search features…" aria-label="Search features">
+                </div>
             </div>
         </div>
 

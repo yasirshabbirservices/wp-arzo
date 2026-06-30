@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.26.0] — 2026-06-30
+
+### Added — Setup Wizard & feature presets
+- A new **Setup Wizard** (shown once on first activation, always reachable from
+  **WP Arzo → Setup Wizard** and a button on the dashboard) lets you switch on a curated
+  bundle of features in one click. Seven named presets:
+  **Essentials** (smart starter), **Velocity** (performance), **Fortress** (security),
+  **Creator** (publishing), **Growth** (marketing/analytics), **Command Center** (admin/dev
+  power tools), and **The Works** (everything sensible).
+- Presets are **additive** — they only *enable* their features, never disable what you've
+  set. Any feature that isn't available (a Pro module without a license) is skipped and
+  reported ("N Pro features skipped"). "The Works" enables every available feature except
+  the opinionated "disable native WordPress behaviour" toggles, so the catch-all stays
+  safe. Each card shows how many features it turns on (and any Pro count). Capability +
+  nonce gated.
+
 ## [6.25.0] — 2026-06-30
 
 ### Added — Media Cleanup is now a toggle
