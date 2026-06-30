@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.44.0] — 2026-07-01
+
+### Changed — Advanced Tools console header + Pro promo
+- Removed the redundant **"WP Arzo - Administration Suite"** `<h1>` from the standalone
+  console — the brand bar already identifies the page.
+- **Even vertical rhythm**: the gap between the brand bar and the tab strip now matches the
+  gap between the tabs and the page content (one shared `--arzo-space-5` cadence).
+- The dashboard **"WP Arzo Pro" cross-promo card is hidden when the Pro add-on is active**
+  (nothing left to upsell; the License card already shows "Pro active"). The generic
+  "Need a custom build?" promo still shows.
+
 ## [6.43.0] — 2026-07-01
 
 ### Added — Automatic updates from GitHub Releases

@@ -553,24 +553,32 @@ class WP_Arzo_Admin
      */
     private function render_promos()
     {
-        $promos = apply_filters('wp_arzo_promoted_products', array(
-            array(
+        $promos = array();
+
+        // The "WP Arzo Pro" upsell is pure promotion — hide it once the Pro add-on is
+        // active (nothing left to promote; the License card already shows "Pro active").
+        $pro_active = function_exists('wp_arzo_is_pro_active') && wp_arzo_is_pro_active();
+        if (!$pro_active) {
+            $promos[] = array(
                 'title' => 'WP Arzo Pro',
                 'desc'  => 'Analytics & ad pixels, GSC/GTM, advanced SMTP + email logs, media manager, CPT/CCT builder, cloud backups, custom login & dashboard branding, and more.',
                 'cta'   => 'Coming soon',
                 'url'   => 'https://yasirshabbir.com',
                 'icon'  => 'sparkles',
                 'badge' => 'PRO',
-            ),
-            array(
-                'title' => 'Need a custom build?',
-                'desc'  => 'Yasir Shabbir builds bespoke WordPress plugins, integrations and performance work for agencies and businesses.',
-                'cta'   => 'Get in touch',
-                'url'   => 'https://yasirshabbir.com',
-                'icon'  => 'bolt',
-                'badge' => '',
-            ),
-        ));
+            );
+        }
+
+        $promos[] = array(
+            'title' => 'Need a custom build?',
+            'desc'  => 'Yasir Shabbir builds bespoke WordPress plugins, integrations and performance work for agencies and businesses.',
+            'cta'   => 'Get in touch',
+            'url'   => 'https://yasirshabbir.com',
+            'icon'  => 'bolt',
+            'badge' => '',
+        );
+
+        $promos = apply_filters('wp_arzo_promoted_products', $promos);
 
         if (empty($promos) || !is_array($promos)) {
             return;

@@ -278,8 +278,6 @@ if ($action === 'wp_arzo_standalone') {
             </div>
         </div>
 
-        <h1>WP Arzo - Administration Suite</h1>
-
         <div class="nav">
             <?php
             // Console nav: Site Info is always present (the home); every other tool

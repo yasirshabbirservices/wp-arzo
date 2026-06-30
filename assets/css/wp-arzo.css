@@ -90,8 +90,13 @@ h3 {
   text-decoration: none;
 }
 
+/* Even vertical rhythm in the console: the brand bar, the tab strip and the page
+   content are separated by one shared gap (the standalone <h1> heading was removed,
+   so these two margins set the whole cadence). */
+.container > .wpa-brandbar { margin-bottom: var(--arzo-space-5); }
+
 .nav {
-  margin-bottom: 20px;
+  margin-bottom: var(--arzo-space-5);
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
