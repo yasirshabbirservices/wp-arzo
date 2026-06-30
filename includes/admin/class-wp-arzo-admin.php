@@ -177,7 +177,7 @@ class WP_Arzo_Admin
             self::PAGE_MEDIA     => array('media_cleanup'),
             self::PAGE_REST_AUTH => array('rest_api_auth'),
             self::PAGE_ROLES     => array('role_manager'),
-            self::PAGE_CONFIG    => array('config_io'),
+            // PAGE_CONFIG is intentionally NOT mapped — Config Import/Export is always available.
         );
     }
 
@@ -288,7 +288,7 @@ class WP_Arzo_Admin
                 <img class="wpa-brandbar__logo" src="<?php echo esc_url($logo); ?>" alt="WP Arzo">
                 <div>
                     <div class="wpa-brandbar__name">WP Arzo</div>
-                    <a class="wpa-brandbar__email" href="mailto:contact@yasirshabbir.com">by Yasir Shabbir</a>
+                    <a class="wpa-brandbar__email" href="https://yasirshabbir.com" target="_blank" rel="noopener">by Yasir Shabbir</a>
                 </div>
             </div>
             <div class="wpa-brandbar__meta">
@@ -649,7 +649,7 @@ class WP_Arzo_Admin
             </div>
         <?php endif; ?>
 
-        <form method="post" class="wpa-card" style="max-width:640px;">
+        <form method="post" class="wpa-card">
             <?php wp_nonce_field(self::NONCE_SETTINGS, 'wp_arzo_settings_nonce'); ?>
             <?php
             foreach ($schema as $field) {
@@ -1306,7 +1306,7 @@ class WP_Arzo_Admin
             <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Snippet saved.</div>
         <?php endif; ?>
 
-        <form method="post" class="wpa-card" style="max-width:820px;">
+        <form method="post" class="wpa-card">
             <?php wp_nonce_field(self::NONCE_SNIPPETS, 'wp_arzo_snippet_nonce'); ?>
             <input type="hidden" name="snippet_id" value="<?php echo esc_attr($snippet['id']); ?>">
             <div class="wpa-field">
@@ -1840,8 +1840,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         if (!current_user_can('manage_options')) {
             wp_die('You do not have sufficient permissions to access this page.');
         }
-        $enabled = $this->registry()->is_enabled('config_io');
-        $nonce   = wp_create_nonce(self::NONCE_CONFIG);
+        $nonce = wp_create_nonce(self::NONCE_CONFIG);
         ?>
         <div class="wrap wpa-admin">
             <?php $this->render_brand_bar(); ?>
@@ -1849,7 +1848,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon')); ?> Config Import / Export</h1>
-                    <p class="wpa-admin__subtitle">Move your WP Arzo setup between sites<?php echo $enabled ? '' : ' · the “Config Import / Export” feature is OFF (enable it on the dashboard)'; ?>.</p>
+                    <p class="wpa-admin__subtitle">Move your WP Arzo setup between sites.</p>
                 </div>
             </div>
             <div class="wpa-layout">
@@ -1884,9 +1883,6 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_CONFIG, 'nonce', false)) {
             wp_send_json_error(array('message' => 'Security check failed'), 403);
         }
-        if (!$this->registry()->is_enabled('config_io')) {
-            wp_send_json_error(array('message' => 'Enable “Config Import / Export” on the dashboard first.'), 403);
-        }
         wp_send_json_success(array(
             'filename' => WP_Arzo_Feature_Config_IO::export_filename(),
             'json'     => wp_json_encode(WP_Arzo_Feature_Config_IO::export_payload(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
@@ -1897,9 +1893,6 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
     {
         if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_CONFIG, 'nonce', false)) {
             wp_send_json_error(array('message' => 'Security check failed'), 403);
-        }
-        if (!$this->registry()->is_enabled('config_io')) {
-            wp_send_json_error(array('message' => 'Enable “Config Import / Export” on the dashboard first.'), 403);
         }
         $raw  = isset($_POST['data']) ? wp_unslash($_POST['data']) : '';
         $data = json_decode((string) $raw, true);

@@ -86,7 +86,11 @@ without one — add a fitting SVG to the registry if none exists.
 ## Conventions for new UI
 
 1. Reference a `--arzo-*` token for every color/space/radius/shadow; add a token if one is
-   missing rather than inlining a value.
+   missing rather than inlining a value. **Never wp-admin blue** (`#2271b1`/`#2196f3`/
+   `#1890ff`): links are `--arzo-accent`, focus is `--arzo-focus-ring`, info is the
+   brand teal `--arzo-info`.
+2. **Consistent widths:** cards and forms fill the content column and line up with the header
+   bar — no arbitrary `max-width` that makes one panel narrower than the rest.
 2. Use toggles (not checkboxes) for on/off; use `.wpa-select` (not native `<select>`) for
    choices; use `wp_arzo_icon()` for every status/action glyph.
 3. Compose `wpa-` components; match existing patterns instead of new bespoke CSS.

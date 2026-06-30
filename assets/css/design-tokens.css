@@ -46,8 +46,9 @@
     --arzo-warning-soft: rgba(250, 173, 20, 0.15);
     --arzo-error: #ff4d4f;
     --arzo-error-soft: rgba(255, 77, 79, 0.15);
-    --arzo-info: #1890ff;
-    --arzo-info-soft: rgba(24, 144, 255, 0.15);
+    /* Info is a brand-aligned teal (NOT wp-admin blue) so the palette stays on-brand. */
+    --arzo-info: #1bc9b6;
+    --arzo-info-soft: rgba(27, 201, 182, 0.15);
     --arzo-neutral: #6c757d;
     --arzo-neutral-soft: rgba(108, 117, 125, 0.2);
 

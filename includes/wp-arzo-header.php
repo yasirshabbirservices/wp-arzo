@@ -267,7 +267,7 @@ if ($action === 'wp_arzo_standalone') {
                 <img class="wpa-brandbar__logo" src="<?php echo esc_url(WP_ARZO_PLUGIN_URL . 'assets/wp-arzo-icon.svg'); ?>" alt="WP Arzo">
                 <div>
                     <div class="wpa-brandbar__name">WP Arzo</div>
-                    <a class="wpa-brandbar__email" href="mailto:contact@yasirshabbir.com">by Yasir Shabbir</a>
+                    <a class="wpa-brandbar__email" href="https://yasirshabbir.com" target="_blank" rel="noopener">by Yasir Shabbir</a>
                 </div>
             </div>
             <div class="wpa-brandbar__meta">

@@ -4,6 +4,27 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.34.0] — 2026-07-01
+
+### Fixed
+- **WP 6.9+ notice** “Function WP_Scripts::add was called incorrectly … wp-auth-check …
+  heartbeat”. The Heartbeat Control feature deregistered `heartbeat` but left core's
+  `wp-auth-check` (which depends on it) dangling; it now also drops `wp-auth-check` and
+  stops core from enqueuing it, at enqueue time.
+
+### Changed — Strict brand colors + consistent widths
+- Removed wp-admin **blue** leaking into the UI: links now read as the brand accent, the
+  brand focus ring replaces wp-admin's blue `a:focus` glow (including the sidebar), the info
+  token is now a brand teal (no more blue “N features” badges), and the console's blue
+  `.btn-edit` uses brand tokens.
+- **Card/form widths are consistent** — settings & snippet forms fill the content column
+  instead of being arbitrarily narrower than the header. Documented the rule (and the
+  no-blue rule) in `CLAUDE.md` + `design.md`.
+- **Branding**: the “by Yasir Shabbir” line (dashboard, console, emergency tool) now links to
+  https://yasirshabbir.com instead of an email address.
+- **Config Import / Export** is now a permanent tool — always available in the sidebar, no
+  dashboard toggle.
+
 ## [6.33.0] — 2026-07-01
 
 ### Added — Full database manager (AdminNeo)

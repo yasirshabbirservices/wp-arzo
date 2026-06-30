@@ -48,6 +48,13 @@ On **every** change set, without being asked:
 - Reach for **`clamp()`** for fluid type/spacing/sizing and **`calc()`** for derived
   values, and introduce a CSS **variable** when a value repeats or needs theming — wherever
   it makes sense, rather than hard-coded magic numbers.
+- **Consistent widths:** cards/forms **fill the content column** — they line up with the
+  header/brand bar. Don't slap an arbitrary `max-width` (e.g. `640px`/`820px`) on a form so
+  it ends up narrower than everything around it. Keep widths consistent across every screen.
+- **Strict brand colors — never wp-admin blue.** No `#2271b1` / `#2196f3` / `#1890ff` (or
+  raw "blue") in links, buttons, badges, or focus rings. Links read as `--arzo-accent`,
+  buttons use the `.wpa-btn` tokens, focus uses `--arzo-focus-ring`. wp-admin's global blue
+  `a` / `a:focus` is overridden inside `.wpa-admin` / the console `.container`.
 
 ## What this is
 
