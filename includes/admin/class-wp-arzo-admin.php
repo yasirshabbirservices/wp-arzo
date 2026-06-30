@@ -98,8 +98,8 @@ class WP_Arzo_Admin
 
     private function menu_icon()
     {
-        $logo = WP_ARZO_PLUGIN_DIR . 'assets/yasir-shabbir-white-logo.png';
-        return file_exists($logo) ? WP_ARZO_PLUGIN_URL . 'assets/yasir-shabbir-white-logo.png' : 'dashicons-admin-tools';
+        $logo = WP_ARZO_PLUGIN_DIR . 'assets/wp-arzo-glyph.svg';
+        return file_exists($logo) ? WP_ARZO_PLUGIN_URL . 'assets/wp-arzo-glyph.svg' : 'dashicons-admin-tools';
     }
 
     public function add_menu()
@@ -152,6 +152,7 @@ class WP_Arzo_Admin
             self::PAGE_EMAIL_LOG => array('email_log'),
             self::PAGE_SNIPPETS  => array('code_snippets'),
             self::PAGE_ACTIVITY  => array('activity_log'),
+            self::PAGE_MEDIA     => array('media_cleanup'),
         );
     }
 
@@ -251,12 +252,12 @@ class WP_Arzo_Admin
 
     private function render_brand_bar()
     {
-        $logo = WP_ARZO_PLUGIN_URL . 'assets/yasir-shabbir-white-logo.png';
+        $logo = WP_ARZO_PLUGIN_URL . 'assets/wp-arzo-icon.svg';
         $ver  = defined('WP_ARZO_VERSION') ? WP_ARZO_VERSION : '';
         ?>
         <div class="wpa-brandbar">
             <div class="wpa-brandbar__id">
-                <img class="wpa-brandbar__logo" src="<?php echo esc_url($logo); ?>" alt="Yasir Shabbir">
+                <img class="wpa-brandbar__logo" src="<?php echo esc_url($logo); ?>" alt="WP Arzo">
                 <div>
                     <div class="wpa-brandbar__name">WP Arzo</div>
                     <a class="wpa-brandbar__email" href="mailto:contact@yasirshabbir.com">by Yasir Shabbir</a>
@@ -1349,6 +1350,9 @@ class WP_Arzo_Admin
     {
         if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_MEDIA, 'nonce', false)) {
             wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (!$this->registry()->is_enabled('media_cleanup')) {
+            wp_send_json_error(array('message' => 'Media Cleanup is disabled. Enable it on the WP Arzo dashboard.'), 403);
         }
         if (!class_exists('WP_Arzo_Media_Cleanup')) {
             wp_send_json_error(array('message' => 'Media cleanup unavailable'), 500);

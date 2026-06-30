@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.24.0
+Stable tag: 6.25.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.

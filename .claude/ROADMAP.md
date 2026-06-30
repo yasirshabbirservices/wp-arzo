@@ -96,6 +96,10 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
   Plugins/Themes/Debug/Site Modes/Extra Options/Login) is a dashboard toggle in a new
   "Advanced Tools (Console)" group; disabling gates nav + page + AJAX/file/DB ops. See
   `includes/features-registry/class-features-advanced-tools.php`.
+- ✅ **Media Cleanup toggle** (free v6.25.0) — Media Cleanup is now a toggled feature
+  (page + scan/delete AJAX gated). Every feature now has a toggle.
+- ✅ **New branding** (free v6.25.0) — `wp-arzo-glyph.svg` (menu/emergency) +
+  `wp-arzo-icon.svg` (brand bars); old YS PNG removed.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
