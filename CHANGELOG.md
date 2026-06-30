@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.25.0] — 2026-06-30
+
+### Added — Media Cleanup is now a toggle
+- **Media Cleanup** is now a regular dashboard feature (group **Media**) with its own
+  on/off toggle — completing "every feature has a toggle". Its admin page **and** its
+  scan/delete AJAX endpoints are gated on the toggle (disabled → page hidden + a 403 on the
+  scan/delete calls). It defaults to **off** (opt-in), in line with the dashboard's "enable
+  only what you need" model — enable it to reveal the **WP Arzo → Media Cleanup** page.
+
+### Changed — New plugin branding
+- Replaced the old `yasir-shabbir-white-logo.png` with the new **WP Arzo** SVG marks:
+  `assets/wp-arzo-glyph.svg` (transparent, for dark backgrounds) is used for the **admin
+  menu icon** and the **emergency recovery tool**; `assets/wp-arzo-icon.svg` (rounded app
+  badge) is used in the **dashboard brand bar** and the **standalone console header**. The
+  old PNG was removed.
+
 ## [6.24.0] — 2026-06-30
 
 ### Added — Per-tool toggles for the Advanced Tools console

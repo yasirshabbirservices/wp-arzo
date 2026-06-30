@@ -291,15 +291,15 @@ if ($action === 'wp_arzo_standalone') {
     <div class="container">
         <div class="developer-info">
             <div class="developer-logo">
-                <img src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/yasir-shabbir-white-logo.png'; ?>"
-                    alt="Yasir Shabbir">
+                <img src="<?php echo esc_url(WP_ARZO_PLUGIN_URL . 'assets/wp-arzo-icon.svg'); ?>"
+                    alt="WP Arzo">
                 <div>
                     <div>Yasir Shabbir</div>
                     <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
                 </div>
             </div>
             <div style="color: var(--accent-color); display:flex; align-items:center; gap:10px;">
-                v6.24.0
+                v6.25.0
                 <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
                     style="color: #fff; text-decoration: none; display:flex; align-items:center; gap:5px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;">

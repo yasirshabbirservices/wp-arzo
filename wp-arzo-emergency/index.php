@@ -984,7 +984,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         <div class="login-wrapper">
             <div class="login-card">
                 <div class="logo-area">
-                    <img src="<?php echo get_asset_url('yasir-shabbir-white-logo.png'); ?>" alt="Yasir Shabbir">
+                    <img src="<?php echo get_asset_url('wp-arzo-glyph.svg'); ?>" alt="WP Arzo">
                 </div>
                 <h1>WP Arzo Recovery</h1>
 
@@ -1008,7 +1008,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             <!-- Branding Header -->
             <div class="developer-info">
                 <div class="developer-logo">
-                    <img src="<?php echo get_asset_url('yasir-shabbir-white-logo.png'); ?>" alt="Yasir Shabbir">
+                    <img src="<?php echo get_asset_url('wp-arzo-glyph.svg'); ?>" alt="WP Arzo">
                     <div>
                         <div>Yasir Shabbir</div>
                         <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
