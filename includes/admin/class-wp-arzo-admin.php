@@ -56,6 +56,7 @@ class WP_Arzo_Admin
         add_action('admin_head', array($this, 'menu_icon_style'));
         add_filter('admin_body_class', array($this, 'admin_body_class'));
         add_action('wp_ajax_wp_arzo_toggle_feature', array($this, 'ajax_toggle_feature'));
+        add_action('wp_ajax_wp_arzo_toggle_group', array($this, 'ajax_toggle_group'));
         add_action('wp_ajax_wp_arzo_backup_create', array($this, 'ajax_backup_create'));
         add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
         add_action('wp_ajax_wp_arzo_backup_delete', array($this, 'ajax_backup_delete'));
@@ -440,12 +441,39 @@ class WP_Arzo_Admin
         <div class="wpa-layout">
             <div class="wpa-main">
                 <div id="wpa-feature-grid">
-                    <?php foreach ($grouped as $group_key => $features) : ?>
+                    <?php foreach ($grouped as $group_key => $features) :
+                        // Master toggle reflects the AVAILABLE (non-locked) features only.
+                        $grp_avail = 0;
+                        $grp_on = 0;
+                        foreach ($features as $gf) {
+                            if (apply_filters('wp_arzo_feature_is_available', true, $gf)) {
+                                $grp_avail++;
+                                if ($gf->is_enabled()) {
+                                    $grp_on++;
+                                }
+                            }
+                        }
+                        $grp_all_on = ($grp_avail > 0 && $grp_on === $grp_avail);
+                        ?>
                         <section class="wpa-group" id="group-<?php echo esc_attr($group_key); ?>" data-group="<?php echo esc_attr($group_key); ?>">
-                            <h2 class="wpa-group__title">
-                                <?php echo wp_arzo_icon($registry->group_icon($group_key), array('class' => 'wpa-icon wpa-icon--sm')); ?>
-                                <?php echo esc_html($registry->group_label($group_key)); ?>
-                            </h2>
+                            <div class="wpa-group__bar">
+                                <h2 class="wpa-group__title">
+                                    <?php echo wp_arzo_icon($registry->group_icon($group_key), array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                                    <?php echo esc_html($registry->group_label($group_key)); ?>
+                                </h2>
+                                <?php if ($grp_avail > 0) : ?>
+                                    <label class="wpa-group__master" title="Enable or disable all features in this category">
+                                        <span class="wpa-group__master-label">All</span>
+                                        <span class="wpa-toggle">
+                                            <input type="checkbox" class="wpa-toggle__input wpa-group-toggle" role="switch"
+                                                data-group="<?php echo esc_attr($group_key); ?>"
+                                                data-on="<?php echo (int) $grp_on; ?>" data-avail="<?php echo (int) $grp_avail; ?>"
+                                                <?php checked($grp_all_on); ?>>
+                                            <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+                                        </span>
+                                    </label>
+                                <?php endif; ?>
+                            </div>
                             <div class="wpa-grid">
                                 <?php foreach ($features as $feature) {
                                     // Defense in depth: never let one feature's render error
@@ -825,6 +853,44 @@ class WP_Arzo_Admin
             'enabled'     => $enabled,
             'hasSettings' => $feature->has_settings(),
             'ownsPage'    => $this->feature_owns_page($id),
+        ));
+    }
+
+    /** Enable or disable every available feature in a category at once. */
+    public function ajax_toggle_group()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_TOGGLE, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $group   = isset($_POST['group']) ? sanitize_key(wp_unslash($_POST['group'])) : '';
+        $enabled = isset($_POST['enabled']) && ($_POST['enabled'] === '1' || $_POST['enabled'] === 'true');
+
+        $grouped = $this->registry()->grouped();
+        if (!isset($grouped[$group])) {
+            wp_send_json_error(array('message' => 'Unknown category'), 404);
+        }
+
+        $changed = array();
+        $owns_page = false;
+        foreach ($grouped[$group] as $feature) {
+            if (!apply_filters('wp_arzo_feature_is_available', true, $feature)) {
+                continue; // never auto-toggle locked Pro features
+            }
+            $fid = $feature->id();
+            if ($this->registry()->is_enabled($fid) !== $enabled) {
+                $this->registry()->set_enabled($fid, $enabled);
+                $changed[] = $fid;
+                if ($this->feature_owns_page($fid)) {
+                    $owns_page = true;
+                }
+            }
+        }
+
+        wp_send_json_success(array(
+            'group'    => $group,
+            'enabled'  => $enabled,
+            'changed'  => $changed,
+            'ownsPage' => $owns_page,
         ));
     }
 

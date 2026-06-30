@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.36.0] — 2026-07-01
+
+### Added — Bulk enable/disable per category
+- Each category on the Feature Manager dashboard now has an **“All” master toggle** that
+  enables or disables every *available* feature in that group in one click (locked Pro
+  features are skipped). Especially handy for **Advanced Tools** — flip the whole console on
+  or off at once. Child toggles + cards update live; page-owning features trigger a refresh.
+
 ## [6.35.0] — 2026-07-01
 
 ### Changed — Full-screen, multi-step Setup Wizard

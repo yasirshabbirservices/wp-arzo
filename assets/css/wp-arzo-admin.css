@@ -410,6 +410,12 @@ body.wp-arzo-screen::-webkit-scrollbar-thumb:hover { background: var(--arzo-bord
 .wpa-cap { gap: 10px; }
 .wpa-cap .wpa-toggle__label { font-family: var(--arzo-font-mono); font-size: 12.5px; word-break: break-word; }
 
+/* ------------------------------------------------ Category header + master toggle */
+.wpa-group__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: var(--arzo-space-3); }
+.wpa-group__bar .wpa-group__title { margin: 0; }
+.wpa-group__master { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.wpa-group__master-label { font-size: var(--arzo-fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--arzo-text-muted); }
+
 /* ============================ Setup Wizard (full-screen takeover) ===== */
 body.wp-arzo-wizard #adminmenumain,
 body.wp-arzo-wizard #wpadminbar,
