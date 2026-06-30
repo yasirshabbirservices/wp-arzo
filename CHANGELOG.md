@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.6.3] — 2026-06-30
+
+### Changed
+- **UI consistency:** the admin dashboard, Backups, and feature-settings screens now share
+  a console-style **tab navigation** (Dashboard / Backups / Advanced Tools) and the same
+  branded header + chrome, so the native dashboard matches the standalone console's look
+  and feel.
+
 ## [6.6.2] — 2026-06-30
 
 ### Fixed
