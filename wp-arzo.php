@@ -413,6 +413,26 @@ function wp_arzo_bootstrap_features()
     $registry->register(new WP_Arzo_Feature_Disable_XMLRPC());
     $registry->register(new WP_Arzo_Feature_Disable_Dashboard_Widgets());
 
+    // Core controls
+    $registry->register(new WP_Arzo_Feature_Disable_Gutenberg());
+    $registry->register(new WP_Arzo_Feature_Disable_Feeds());
+    $registry->register(new WP_Arzo_Feature_Disable_Embeds());
+
+    // Performance / content
+    $registry->register(new WP_Arzo_Feature_Disable_Emojis());
+    $registry->register(new WP_Arzo_Feature_Heartbeat_Control());
+    $registry->register(new WP_Arzo_Feature_Disable_Self_Pingbacks());
+    $registry->register(new WP_Arzo_Feature_Limit_Revisions());
+
+    // Security
+    $registry->register(new WP_Arzo_Feature_Disable_REST_Guests());
+    $registry->register(new WP_Arzo_Feature_Disable_File_Editor());
+    $registry->register(new WP_Arzo_Feature_Block_User_Enumeration());
+
+    // Marketing / SEO
+    $registry->register(new WP_Arzo_Feature_Manage_Robots_Txt());
+    $registry->register(new WP_Arzo_Feature_Manage_Ads_Txt());
+
     /**
      * Add-ons register their own feature modules here.
      *
