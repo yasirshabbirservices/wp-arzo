@@ -98,6 +98,40 @@
     });
   }
 
+  // -------------------------------------------------- Category master toggles
+  function bindGroupToggles() {
+    document.querySelectorAll('.wpa-group-toggle').forEach(function (input) {
+      input.addEventListener('change', function () {
+        var group = input.dataset.group;
+        var enabled = input.checked;
+        input.disabled = true;
+        var body = new FormData();
+        body.append('action', 'wp_arzo_toggle_group');
+        body.append('nonce', cfg.nonce || '');
+        body.append('group', group);
+        body.append('enabled', enabled ? '1' : '0');
+        fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            input.disabled = false;
+            if (!res || !res.success) { input.checked = !enabled; toast((res && res.data && res.data.message) || 'Could not update category', 'error'); return; }
+            var section = document.getElementById('group-' + group);
+            if (section) {
+              section.querySelectorAll('.wpa-feature-toggle').forEach(function (cb) { cb.checked = enabled; });
+              section.querySelectorAll('[data-feature-card]').forEach(function (card) {
+                card.classList.toggle('is-on', enabled);
+                var gear = card.querySelector('.wpa-feature-card__settings');
+                if (gear) gear.classList.toggle('is-hidden', !enabled);
+              });
+            }
+            toast(enabled ? 'Category enabled' : 'Category disabled', 'success');
+            if (res.data && res.data.ownsPage) { reload(800); }
+          })
+          .catch(function () { input.disabled = false; input.checked = !enabled; toast('Request failed', 'error'); });
+      });
+    });
+  }
+
   // -------------------------------------------------- Sidebar collapse (persisted)
   function bindRailToggle() {
     var btn = document.getElementById('wpa-rail-toggle');
@@ -652,7 +686,7 @@
     }
   }
 
-  function init() { bindToggles(); bindSearch(); bindCategoryFilter(); bindRailToggle(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
+  function init() { bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindRailToggle(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

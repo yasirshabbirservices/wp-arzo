@@ -20,7 +20,7 @@
 
 | Repo | Path | Branch | Visibility | Current |
 |------|------|--------|------------|---------|
-| **Free core** | `D:\Github\wp-arzo` | `wp-plugin` | public | **v6.35.0** |
+| **Free core** | `D:\Github\wp-arzo` | `wp-plugin` | public | **v6.36.0** |
 | **Pro add-on** | `D:\Github\wp-arzo-pro` | `main` | private | **v1.10.1** |
 
 - Pro registers its modules into the free core's registry via the `wp_arzo_register_features`
