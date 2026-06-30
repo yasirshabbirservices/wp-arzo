@@ -39,6 +39,11 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
   - v1.1.0 — **marketing pixel suite**: Meta Pixel, TikTok Pixel, LinkedIn Insight,
     Pinterest Tag, Google Analytics 4 (gtag), Google Tag Manager (all Pro, group
     "Marketing & Tracking"; IDs sanitized; `<noscript>` fallbacks).
+- **v6.10.0** — dashboard right **sidebar** (license/activation card + promos); free
+  **Custom Login URL** + **Limit Login Attempts**.
+- **v6.11.0** — off-site backup hook (`wp_arzo_after_snapshot_created`). Pro **v1.2.0** adds
+  the first remote destination: **FTP** (zips + uploads each snapshot). Cloud (S3/Drive/
+  Dropbox/pCloud) + remote restore are next.
 - **v6.8.0** — **Email (free):** SMTP delivery (phpmailer_init config + force-from) and
   Email Log (capped option store, sent/failed, WP Arzo → Email Log page with clear).
   Added `password`/`email` settings-field types (passwords never re-rendered; blank keeps
