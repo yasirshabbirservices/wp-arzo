@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.13.0
+Stable tag: 6.13.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.13.1 =
+* Fixed (critical): dashboard truncated / sidebar + login features missing — an infinite
+  recursion in the Custom Login URL settings (present since 6.10.0). Update + clear OPcache.
 
 = 6.13.0 =
 * New (free): Crawl Optimizations, Custom Body Class, Disable Application Passwords,

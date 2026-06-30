@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.13.1] — 2026-06-30
+
+### Fixed (critical)
+- **Dashboard truncated / sidebar missing / login features not showing.** `Custom Login
+  URL`'s `settings_schema()` called `get_setting()`, which resolves defaults *through*
+  `settings_schema()` — an **infinite recursion** that exhausted memory and fatally aborted
+  the page the moment that card rendered (cutting off later features and the whole sidebar).
+  Present since 6.10.0. Fixed by reading the saved value directly, **and** by adding a
+  re-entrancy guard to `WP_Arzo_Feature::get_setting()` so no feature can ever trigger this
+  again. The dashboard now also renders each card / the sidebar inside a guard so a single
+  feature error can never truncate the page.
+
 ## [6.13.0] — 2026-06-30
 
 ### Added (free) — 5 new feature modules (35 free features total)

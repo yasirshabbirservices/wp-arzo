@@ -264,7 +264,15 @@ class WP_Arzo_Admin
                             </h2>
                             <div class="wpa-grid">
                                 <?php foreach ($features as $feature) {
-                                    $this->render_feature_card($feature);
+                                    // Defense in depth: never let one feature's render error
+                                    // truncate the grid (and the sidebar that follows it).
+                                    try {
+                                        $this->render_feature_card($feature);
+                                    } catch (\Throwable $e) {
+                                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                                            echo '<!-- WP Arzo: card render failed for ' . esc_html($feature->id()) . ': ' . esc_html($e->getMessage()) . ' -->';
+                                        }
+                                    }
                                 } ?>
                             </div>
                         </section>
@@ -275,8 +283,14 @@ class WP_Arzo_Admin
 
             <aside class="wpa-aside">
                 <?php
-                $this->render_license_box();
-                $this->render_promos();
+                try {
+                    $this->render_license_box();
+                    $this->render_promos();
+                } catch (\Throwable $e) {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        echo '<!-- WP Arzo: sidebar render failed: ' . esc_html($e->getMessage()) . ' -->';
+                    }
+                }
                 ?>
             </aside>
         </div>

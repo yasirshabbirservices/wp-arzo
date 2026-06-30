@@ -45,7 +45,10 @@ class WP_Arzo_Feature_Custom_Login_URL extends WP_Arzo_Feature
     }
     public function settings_schema()
     {
-        $current = sanitize_title((string) $this->get_setting('slug', 'login'));
+        // Read the saved value directly (NOT via get_setting(), which resolves
+        // defaults through settings_schema() and would recurse).
+        $saved   = WP_Arzo_Feature_Registry::instance()->get_settings($this->id());
+        $current = isset($saved['slug']) ? sanitize_title((string) $saved['slug']) : '';
         $current = $current !== '' ? $current : 'login';
         return array(
             array(
