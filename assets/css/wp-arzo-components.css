@@ -276,6 +276,36 @@
 .wpa-badge--info    { background: var(--arzo-info-soft);    color: var(--arzo-info); }
 .wpa-badge--neutral { background: var(--arzo-neutral-soft); color: var(--arzo-text-secondary); }
 
+/* ===================== Checkbox chips (multi-select) ================== */
+/* A row of selectable chips for "supports / post types / …" multi-checkboxes —
+   replaces ad-hoc inline-styled checkbox lists. The active state lights with the
+   brand accent (modern browsers via :has(); older ones still work, just no fill). */
+.wpa-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--arzo-space-2) var(--arzo-space-3);
+}
+.wpa-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  padding: 6px 12px;
+  font-size: var(--arzo-fs-sm);
+  color: var(--arzo-text-secondary);
+  background: var(--arzo-bg-input);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius-pill);
+  cursor: pointer;
+  transition: border-color var(--arzo-transition), background var(--arzo-transition), color var(--arzo-transition);
+}
+.wpa-check:hover { border-color: var(--arzo-border-strong); color: var(--arzo-text-primary); }
+.wpa-check input[type="checkbox"] { accent-color: var(--arzo-accent); margin: 0; }
+.wpa-check:has(input:checked) {
+  border-color: var(--arzo-accent);
+  background: var(--arzo-accent-soft);
+  color: var(--arzo-text-primary);
+}
+
 /* ============================ Card ==================================== */
 .wpa-card {
   background: var(--arzo-bg-panel);
