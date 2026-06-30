@@ -7,7 +7,7 @@
  * Features: Plugin/Theme Management, User Control, DB Repair, File Uploads.
  *
  * @package WP_Arzo
- * @version 2.3
+ * @version 2.4
  */
 
 // Disable error reporting to prevent leakage, unless explicitly enabled
@@ -28,7 +28,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 header("Referrer-Policy: no-referrer");
 
 // Define constants
-define('WP_ARZO_EMERGENCY_VERSION', '2.3');
+define('WP_ARZO_EMERGENCY_VERSION', '2.4');
 define('WP_ARZO_EMERGENCY_DIR', __DIR__);
 define('WP_ARZO_CONFIG_FILE', dirname(__DIR__) . '/arzo-safe.php');
 define('WP_CONTENT_DIR', dirname(dirname(dirname(__DIR__))) . '/wp-content');
@@ -165,43 +165,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 $is_authenticated = isset($_SESSION['arzo_emergency_auth']) && $_SESSION['arzo_emergency_auth'] === true;
 
-// Locate wp-config.php
+// Locate wp-config.php. The standard location is the WordPress root (4 dirs up from
+// this file: …/wp-content/plugins/wp-arzo/wp-arzo-emergency/), and WP also supports a
+// "split config" one directory ABOVE the webroot. Prefer a file that actually defines
+// DB_NAME so we don't pick up an unrelated stub.
 $wp_config_path = '';
+$wp_root = dirname(dirname(dirname(dirname(__DIR__)))); // webroot / WordPress root
 $possible_paths = [
-    dirname(__DIR__) . '/wp-config.php',
-    dirname(dirname(__DIR__)) . '/wp-config.php',
-    dirname(dirname(dirname(__DIR__))) . '/wp-config.php',
-    dirname(dirname(dirname(dirname(__DIR__)))) . '/wp-config.php'
+    $wp_root . '/wp-config.php',                          // standard
+    dirname($wp_root) . '/wp-config.php',                 // split-config (one above webroot)
+    dirname(dirname(dirname(__DIR__))) . '/wp-config.php',// wp-content/
+    dirname(dirname(__DIR__)) . '/wp-config.php',         // plugins/
+    dirname(__DIR__) . '/wp-config.php',                  // plugin root
 ];
-
 foreach ($possible_paths as $path) {
-    if (file_exists($path)) {
+    if (file_exists($path) && strpos((string) @file_get_contents($path), 'DB_NAME') !== false) {
         $wp_config_path = $path;
         break;
     }
 }
+// Fallback: first existing wp-config even if the DB_NAME probe failed (e.g. unreadable).
+if ($wp_config_path === '') {
+    foreach ($possible_paths as $path) {
+        if (file_exists($path)) {
+            $wp_config_path = $path;
+            break;
+        }
+    }
+}
 
-// DB Helper
+// Split a WordPress DB_HOST value into [host, port, socket]. Handles "host",
+// "host:3306" (TCP port) and "host:/path/to.sock" (Unix socket).
+function arzo_parse_db_host($host)
+{
+    $host = trim((string) $host);
+    $port = 0;
+    $socket = null;
+    if ($host !== '' && strpos($host, ':') !== false) {
+        list($h, $p) = explode(':', $host, 2);
+        $host = ($h !== '') ? $h : 'localhost';
+        if (ctype_digit($p)) {
+            $port = (int) $p;
+        } elseif ($p !== '') {
+            $socket = $p;
+        }
+    }
+    return array($host !== '' ? $host : 'localhost', $port, $socket);
+}
+
+// DB Helper — tolerant of host:port / host:socket and DB_CHARSET, quoting/spacing variants.
 function get_db_connection($wp_config_path)
 {
     if (!file_exists($wp_config_path)) return false;
     $config_content = file_get_contents($wp_config_path);
-    preg_match("/define\(\s*['\"]DB_NAME['\"]\s*,\s*['\"](.*?)['\"]\s*\);/", $config_content, $db_name);
-    preg_match("/define\(\s*['\"]DB_USER['\"]\s*,\s*['\"](.*?)['\"]\s*\);/", $config_content, $db_user);
-    preg_match("/define\(\s*['\"]DB_PASSWORD['\"]\s*,\s*['\"](.*?)['\"]\s*\);/", $config_content, $db_password);
-    preg_match("/define\(\s*['\"]DB_HOST['\"]\s*,\s*['\"](.*?)['\"]\s*\);/", $config_content, $db_host);
-    preg_match("/\\\$table_prefix\s*=\s*['\"](.*?)['\"];/", $config_content, $table_prefix);
+    // Note: no trailing ';' in the patterns so "define( … )" with odd spacing still matches.
+    preg_match("/define\(\s*['\"]DB_NAME['\"]\s*,\s*['\"](.*?)['\"]\s*\)/", $config_content, $db_name);
+    preg_match("/define\(\s*['\"]DB_USER['\"]\s*,\s*['\"](.*?)['\"]\s*\)/", $config_content, $db_user);
+    preg_match("/define\(\s*['\"]DB_PASSWORD['\"]\s*,\s*['\"](.*?)['\"]\s*\)/", $config_content, $db_password);
+    preg_match("/define\(\s*['\"]DB_HOST['\"]\s*,\s*['\"](.*?)['\"]\s*\)/", $config_content, $db_host);
+    preg_match("/define\(\s*['\"]DB_CHARSET['\"]\s*,\s*['\"](.*?)['\"]\s*\)/", $config_content, $db_charset);
+    preg_match("/\\\$table_prefix\s*=\s*['\"](.*?)['\"]\s*;/", $config_content, $table_prefix);
 
     if (empty($db_name[1]) || empty($db_user[1]) || empty($db_host[1])) return "Could not parse wp-config.php.";
 
-    $host = $db_host[1];
+    list($host, $port, $socket) = arzo_parse_db_host($db_host[1]);
     $user = $db_user[1];
     $pass = isset($db_password[1]) ? $db_password[1] : '';
     $name = $db_name[1];
+    $charset = !empty($db_charset[1]) ? $db_charset[1] : 'utf8mb4';
     $prefix = isset($table_prefix[1]) ? $table_prefix[1] : 'wp_';
 
-    $mysqli = new mysqli($host, $user, $pass, $name);
+    $mysqli = mysqli_init();
+    if (!$mysqli) return "Could not initialise MySQL.";
+    @$mysqli->real_connect($host, $user, $pass, $name, $port ?: 0, $socket);
     if ($mysqli->connect_error) return "Connection failed: " . $mysqli->connect_error;
+    @$mysqli->set_charset($charset);
 
     return ['conn' => $mysqli, 'prefix' => $prefix];
 }
@@ -490,39 +528,117 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 
             // --- USERS ---
             case 'create_admin':
-                $user = $conn->real_escape_string($_POST['username']);
                 // NOTE: md5() is intentional here. WordPress core is not loaded in the
                 // emergency tool, so we can't call wp_hash_password(). WP accepts a plain
                 // 32-char md5 user_pass for back-compat and transparently re-hashes it to a
-                // modern phpash on the user's first successful login.
-                $pass = md5($_POST['password']);
-                $email = $conn->real_escape_string($_POST['email']);
-                $now = date('Y-m-d H:i:s');
-                $sql = "INSERT INTO {$prefix}users (user_login, user_pass, user_nicename, user_email, user_registered, user_status, display_name) VALUES ('$user', '$pass', '$user', '$email', '$now', 0, '$user')";
-                if ($conn->query($sql)) {
-                    $uid = $conn->insert_id;
-                    $caps = serialize(['administrator' => true]);
-                    $conn->query("INSERT INTO {$prefix}usermeta (user_id, meta_key, meta_value) VALUES ($uid, '{$prefix}capabilities', '$caps')");
-                    $conn->query("INSERT INTO {$prefix}usermeta (user_id, meta_key, meta_value) VALUES ($uid, '{$prefix}user_level', '10')");
-                    $success_msg = "Admin created.";
+                // modern phpass on the user's first successful login.
+                $user  = (string) $_POST['username'];
+                $pass  = md5((string) $_POST['password']);
+                $email = (string) $_POST['email'];
+                $now   = date('Y-m-d H:i:s');
+                $zero  = 0;
+                if ($stmt = $conn->prepare("INSERT INTO {$prefix}users (user_login, user_pass, user_nicename, user_email, user_registered, user_status, display_name) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                    $stmt->bind_param('sssssis', $user, $pass, $user, $email, $now, $zero, $user);
+                    if ($stmt->execute()) {
+                        $uid = $stmt->insert_id;
+                        $stmt->close();
+                        $caps    = serialize(['administrator' => true]);
+                        $cap_key = $prefix . 'capabilities';
+                        $lvl_key = $prefix . 'user_level';
+                        $ten     = '10';
+                        if ($m = $conn->prepare("INSERT INTO {$prefix}usermeta (user_id, meta_key, meta_value) VALUES (?, ?, ?)")) {
+                            $m->bind_param('iss', $uid, $cap_key, $caps);
+                            $m->execute();
+                            $m->close();
+                        }
+                        if ($m = $conn->prepare("INSERT INTO {$prefix}usermeta (user_id, meta_key, meta_value) VALUES (?, ?, ?)")) {
+                            $m->bind_param('iss', $uid, $lvl_key, $ten);
+                            $m->execute();
+                            $m->close();
+                        }
+                        $success_msg = "Admin created.";
+                    } else {
+                        $error_msg = "DB Error: " . $stmt->error;
+                    }
                 } else {
                     $error_msg = "DB Error: " . $conn->error;
                 }
                 break;
 
             case 'reset_password':
-                $uid = intval($_POST['user_id']);
-                $pass = md5($_POST['new_pass']);
-                $conn->query("UPDATE {$prefix}users SET user_pass = '$pass' WHERE ID = $uid");
-                $success_msg = "Password reset.";
+                $uid  = intval($_POST['user_id']);
+                $pass = md5((string) $_POST['new_pass']);
+                if ($stmt = $conn->prepare("UPDATE {$prefix}users SET user_pass = ? WHERE ID = ?")) {
+                    $stmt->bind_param('si', $pass, $uid);
+                    $stmt->execute();
+                    $stmt->close();
+                    $success_msg = "Password reset.";
+                } else {
+                    $error_msg = "DB Error: " . $conn->error;
+                }
                 break;
 
             // --- CORE ---
             case 'update_url':
-                $url = $conn->real_escape_string($_POST['site_url']);
-                $conn->query("UPDATE {$prefix}options SET option_value = '$url' WHERE option_name = 'siteurl'");
-                $conn->query("UPDATE {$prefix}options SET option_value = '$url' WHERE option_name = 'home'");
-                $success_msg = "URLs updated.";
+                $url = (string) $_POST['site_url'];
+                if ($stmt = $conn->prepare("UPDATE {$prefix}options SET option_value = ? WHERE option_name IN ('siteurl','home')")) {
+                    $stmt->bind_param('s', $url);
+                    $stmt->execute();
+                    $stmt->close();
+                    $success_msg = "URLs updated.";
+                } else {
+                    $error_msg = "DB Error: " . $conn->error;
+                }
+                break;
+
+            // --- REPAIR / RECOVERY ---
+            case 'switch_default_theme':
+                $theme_dir = WP_CONTENT_DIR . '/themes';
+                $dirs = is_dir($theme_dir) ? array_values(array_filter(scandir($theme_dir), function ($d) use ($theme_dir) {
+                    return $d !== '.' && $d !== '..' && is_dir($theme_dir . '/' . $d) && file_exists($theme_dir . '/' . $d . '/style.css');
+                })) : array();
+                $twenties = array_values(array_filter($dirs, function ($s) {
+                    return stripos($s, 'twenty') === 0;
+                }));
+                if ($twenties) {
+                    rsort($twenties);
+                    $slug = $twenties[0];
+                } else {
+                    $slug = $dirs ? $dirs[0] : '';
+                }
+                if ($slug !== '') {
+                    foreach (array('template', 'stylesheet') as $opt) {
+                        if ($stmt = $conn->prepare("UPDATE {$prefix}options SET option_value = ? WHERE option_name = '" . $opt . "'")) {
+                            $stmt->bind_param('s', $slug);
+                            $stmt->execute();
+                            $stmt->close();
+                        }
+                    }
+                    $success_msg = "Switched active theme to '" . htmlspecialchars($slug) . "'.";
+                } else {
+                    $error_msg = "No installed theme with a style.css was found.";
+                }
+                break;
+
+            case 'restore_htaccess':
+                $ht = $wp_root . '/.htaccess';
+                if (file_exists($ht)) {
+                    @copy($ht, $wp_root . '/.htaccess.arzo-bak');
+                }
+                $default = "# BEGIN WordPress\n<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]\nRewriteBase /\nRewriteRule ^index\\.php$ - [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]\n</IfModule>\n# END WordPress\n";
+                if (@file_put_contents($ht, $default) !== false) {
+                    $success_msg = "Default .htaccess restored (previous saved as .htaccess.arzo-bak).";
+                } else {
+                    $error_msg = "Could not write .htaccess — check file permissions.";
+                }
+                break;
+
+            case 'clear_transients':
+                if ($conn->query("DELETE FROM {$prefix}options WHERE option_name LIKE '_transient_%' OR option_name LIKE '_transient_timeout_%' OR option_name LIKE '_site_transient_%' OR option_name LIKE '_site_transient_timeout_%'")) {
+                    $success_msg = "Cleared " . (int) $conn->affected_rows . " transient row(s).";
+                } else {
+                    $error_msg = "DB Error: " . $conn->error;
+                }
                 break;
         }
     } else {
@@ -1362,12 +1478,32 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                         <input type="hidden" name="action" value="update_url">
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                         <div class="form-group">
-                            <label>Site URL (siteurl)</label>
+                            <label>Site URL (siteurl + home)</label>
                             <input type="text" name="site_url" value="<?php echo htmlspecialchars($siteurl); ?>"
                                 class="form-control">
                         </div>
                         <button type="submit" class="btn">Update URLs</button>
                     </form>
+
+                    <h2 style="margin-top:30px;">Repair &amp; Recovery</h2>
+                    <p style="color:var(--muted-text); font-size:13px; margin-top:-5px;">One-click fixes for the most common "white screen" causes. Safe-mode (deactivate every plugin except WP Arzo) is on the <strong>Plugins</strong> tab.</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
+                        <form method="post" onsubmit="return confirm('Switch the site to a default (Twenty*) theme?');">
+                            <input type="hidden" name="action" value="switch_default_theme">
+                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                            <button type="submit" class="btn">Switch to default theme</button>
+                        </form>
+                        <form method="post" onsubmit="return confirm('Restore the default WordPress .htaccess? The current file is backed up first.');">
+                            <input type="hidden" name="action" value="restore_htaccess">
+                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                            <button type="submit" class="btn">Restore default .htaccess</button>
+                        </form>
+                        <form method="post" onsubmit="return confirm('Delete all transients (cached temporary options)?');">
+                            <input type="hidden" name="action" value="clear_transients">
+                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                            <button type="submit" class="btn">Clear all transients</button>
+                        </form>
+                    </div>
                 </div>
 
             <?php } ?>
