@@ -50,6 +50,31 @@
 .wpa-admin ::-webkit-scrollbar-corner,
 .container ::-webkit-scrollbar-corner { background: transparent; }
 
+/* ============================ Brand bar =============================== */
+/* Shared header used by the dashboard and the standalone console so both
+   surfaces look identical (logo + name + version + GitHub). */
+.wpa-brandbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--arzo-space-4);
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+  margin-bottom: var(--arzo-space-3);
+}
+.wpa-brandbar__id { display: flex; align-items: center; gap: 12px; }
+.wpa-brandbar__logo { width: 38px; height: 38px; border-radius: 8px; object-fit: contain; background: var(--arzo-bg-hover); padding: 4px; }
+.wpa-brandbar__name { font-size: var(--arzo-fs-lg); font-weight: 700; color: var(--arzo-text-strong); line-height: 1.1; }
+.wpa-brandbar__email { font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); text-decoration: none; }
+.wpa-brandbar__email:hover { color: var(--arzo-accent); }
+.wpa-brandbar__meta { display: flex; align-items: center; gap: 16px; }
+.wpa-brandbar__ver { color: var(--arzo-accent); font-weight: 700; font-size: var(--arzo-fs-sm); }
+.wpa-brandbar__gh { display: inline-flex; align-items: center; gap: 5px; color: var(--arzo-text-primary); text-decoration: none; font-size: var(--arzo-fs-sm); }
+.wpa-brandbar__gh:hover { color: var(--arzo-accent); }
+
 /* ============================ Icon ===================================== */
 .wpa-icon {
   width: 20px;

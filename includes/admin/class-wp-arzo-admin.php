@@ -294,7 +294,7 @@ class WP_Arzo_Admin
             <div class="wpa-brandbar__meta">
                 <span class="wpa-brandbar__ver">v<?php echo esc_html($ver); ?></span>
                 <a class="wpa-brandbar__gh" href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank" rel="noopener">
-                    <?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> GitHub
+                    <?php echo wp_arzo_icon('github', array('class' => 'wpa-icon wpa-icon--sm')); ?> GitHub
                 </a>
             </div>
         </div>
