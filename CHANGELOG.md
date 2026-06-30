@@ -4,6 +4,27 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — backup engine v1 (DB snapshots)
+
+### Added
+- **Backup Manager** (`includes/class-wp-arzo-backup-manager.php`): low-memory, streaming
+  **database snapshots** (JSONL, gzip when available) at two scopes — `options` (fast) or
+  `full_db`. Create / list / **restore** (takes a safety snapshot first; structure-
+  preserving TRUNCATE + re-insert) / delete, with automatic **retention** pruning.
+  Snapshots live in a web-protected folder under `uploads/wp-arzo-backups/`; snapshot ids
+  are validated against path traversal. Verified end-to-end (create → restore round-trip,
+  special-character integrity) via a fake-`$wpdb` harness.
+- **Automated Snapshots feature** (`auto_snapshots`): when enabled, takes a DB snapshot
+  **before any feature is toggled** (wired to `wp_arzo_before_feature_toggle`), with
+  scope + retention settings.
+- **Backups admin page** (WP Arzo → Backups): create a snapshot (scope select), and a
+  table of snapshots with **Restore** / **Delete** — AJAX, capability + nonce gated, built
+  from the component library.
+
+### Roadmap
+- Locked **Freemius** as the licensing/checkout provider; documented the SDK integration
+  plan (gate Pro via `wp_arzo_feature_is_available` → Freemius license state).
+
 ## [Unreleased] — feature dashboard & registry (Phase 1)
 
 The backbone of the suite: a native wp-admin feature manager that everything plugs into.

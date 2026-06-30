@@ -334,9 +334,18 @@ should live where. Recommended model:
   `arzo-safe.php` (git-ignored), not in the repo — keep it that way.
 - **Branching:** keep `main` as the stable free core; `wp-plugin` (current) as the active
   dev branch; tag releases. Pro lives in its own repo with its own tags.
-- **Licensing options:** Freemius (fastest: handles checkout, licensing, updates, EU VAT),
-  Lemon Squeezy / Paddle (merchant of record), or EDD + Software Licensing (self-hosted,
-  most control). Recommend **Freemius or Lemon Squeezy** to start.
+- **Licensing: Freemius (chosen).** Use [Freemius](https://freemius.com/) for checkout,
+  licensing, subscriptions, EU VAT/MoR, secure auto-updates, and the upgrade/upsell UI.
+  Integration plan:
+  - Add the Freemius WordPress SDK (`vendor/freemius/start.php`) to the **free core** and
+    init via `wp_arzo_fs()` with the plugin's Freemius **Plugin ID / public key / secret**
+    (secret kept out of the public repo / in CI only).
+  - Configure it as a plugin **with a paid add-on/plan** (free core on wp.org + Pro plan).
+  - Gate Pro modules through the existing `wp_arzo_feature_is_available` filter →
+    `wp_arzo_fs()->can_use_premium_code()` / `is_paying()`; show locked cards + an
+    `fs()->get_upgrade_url()` CTA for free users.
+  - Use Freemius for licensing **state**; features still self-register through our
+    registry, so the Pro add-on is just additional modules unlocked by license.
 - **Trademark/name:** lock the plugin slug + name early; check wp.org guidelines (see the
   `wp-plugin-directory-guidelines` skill) before submitting the free core.
 

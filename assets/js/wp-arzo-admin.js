@@ -72,7 +72,68 @@
     });
   }
 
-  function init() { bindToggles(); bindSearch(); }
+  // -------------------------------------------------- Backups
+  function backupRequest(action, fields) {
+    var body = new FormData();
+    body.append('action', action);
+    body.append('nonce', cfg.backupNonce || '');
+    Object.keys(fields || {}).forEach(function (k) { body.append(k, fields[k]); });
+    return fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+      .then(function (r) { return r.json(); });
+  }
+
+  function bindBackups() {
+    var createBtn = document.getElementById('wpa-backup-create');
+    if (!createBtn) return;
+
+    createBtn.addEventListener('click', function () {
+      var scopeEl = document.getElementById('wpa-backup-scope');
+      var scope = scopeEl ? scopeEl.value : 'options';
+      createBtn.disabled = true;
+      toast('Creating snapshot…', 'info');
+      backupRequest('wp_arzo_backup_create', { scope: scope })
+        .then(function (res) {
+          createBtn.disabled = false;
+          if (res && res.success) { toast('Snapshot created', 'success'); reload(700); }
+          else { toast((res && res.data && res.data.message) || 'Backup failed', 'error'); }
+        })
+        .catch(function () { createBtn.disabled = false; toast('Request failed', 'error'); });
+    });
+
+    document.querySelectorAll('.wpa-backup-restore').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (!confirm('Restore this snapshot? A safety snapshot of the current state is taken first.')) return;
+        btn.disabled = true;
+        toast('Restoring…', 'info');
+        backupRequest('wp_arzo_backup_restore', { id: btn.dataset.id })
+          .then(function (res) {
+            if (res && res.success) { toast('Snapshot restored', 'success'); reload(900); }
+            else { btn.disabled = false; toast((res && res.data && res.data.message) || 'Restore failed', 'error'); }
+          })
+          .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+      });
+    });
+
+    document.querySelectorAll('.wpa-backup-delete').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (!confirm('Delete this snapshot permanently?')) return;
+        btn.disabled = true;
+        backupRequest('wp_arzo_backup_delete', { id: btn.dataset.id })
+          .then(function (res) {
+            if (res && res.success) {
+              toast('Snapshot deleted', 'success');
+              var row = btn.closest('tr');
+              if (row) row.parentNode.removeChild(row);
+            } else { btn.disabled = false; toast((res && res.data && res.data.message) || 'Delete failed', 'error'); }
+          })
+          .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+      });
+    });
+  }
+
+  function reload(delay) { setTimeout(function () { window.location.reload(); }, delay || 600); }
+
+  function init() { bindToggles(); bindSearch(); bindBackups(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
