@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.17.0] — 2026-06-30
+
+### Added (free) — Auto WebP Conversion (40 free features total)
+- **Auto WebP Conversion** — converts uploaded JPEG/PNG to **WebP on `wp_handle_upload`**
+  (before the attachment is created, so the WebP becomes the library item and all
+  thumbnail sizes are WebP). GD `imagewebp()` with an Imagick fallback; degrades safely
+  when neither supports WebP.
+- Settings: quality, convert JPEG / PNG (alpha preserved), **max-width resize**, **keep
+  original**, and **“ask before converting on each upload”** — a per-upload confirmation
+  wired into the media uploader (`wp.Uploader` → multipart param the server honors).
+
 ## [6.16.0] — 2026-06-30
 
 ### Changed (free) — Advanced SMTP + Email Log (SureMail-style)

@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.16.0
+Stable tag: 6.17.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.17.0 =
+* New (free): Auto WebP Conversion — convert uploaded JPEG/PNG to WebP before they enter
+  the media library (quality, resize, keep-original, and an optional per-upload confirm)
 
 = 6.16.0 =
 * Improved (free): Advanced SMTP — backup connection with auto-failover/retry, failure
