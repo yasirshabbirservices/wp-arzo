@@ -560,22 +560,24 @@ class WP_Arzo_Admin
         $pro_active = function_exists('wp_arzo_is_pro_active') && wp_arzo_is_pro_active();
         if (!$pro_active) {
             $promos[] = array(
-                'title' => 'WP Arzo Pro',
-                'desc'  => 'Analytics & ad pixels, GSC/GTM, advanced SMTP + email logs, media manager, CPT/CCT builder, cloud backups, custom login & dashboard branding, and more.',
-                'cta'   => 'Coming soon',
-                'url'   => 'https://yasirshabbir.com',
-                'icon'  => 'sparkles',
-                'badge' => 'PRO',
+                'title'      => 'WP Arzo Pro',
+                'desc'       => 'Analytics & ad pixels, GSC/GTM, advanced SMTP + email logs, media manager, CPT/CCT builder, cloud backups, custom login & dashboard branding, and more.',
+                'cta'        => 'Explore Pro',
+                'url'        => 'https://yasirshabbir.com',
+                'icon'       => 'sparkles',
+                'badge'      => 'PRO',
+                'badge_kind' => 'warning',
             );
         }
 
         $promos[] = array(
-            'title' => 'Need a custom build?',
-            'desc'  => 'Yasir Shabbir builds bespoke WordPress plugins, integrations and performance work for agencies and businesses.',
-            'cta'   => 'Get in touch',
-            'url'   => 'https://yasirshabbir.com',
-            'icon'  => 'bolt',
-            'badge' => '',
+            'title'      => 'Need a custom build?',
+            'desc'       => 'Yasir Shabbir builds bespoke WordPress plugins, integrations and performance work for agencies and businesses.',
+            'cta'        => 'Get in touch',
+            'url'        => 'https://yasirshabbir.com',
+            'icon'       => 'bolt',
+            'badge'      => 'SERVICE',
+            'badge_kind' => 'neutral',
         );
 
         $promos = apply_filters('wp_arzo_promoted_products', $promos);
@@ -584,8 +586,12 @@ class WP_Arzo_Admin
             return;
         }
         ?>
-        <section class="wpa-promos" aria-label="More products">
-            <h2 class="wpa-group__title"><?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> More from Yasir Shabbir</h2>
+        <section class="wpa-promos" aria-labelledby="wpa-promos-title">
+            <div class="wpa-promos__head">
+                <span class="wpa-promos__eyebrow"><?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Spotlight</span>
+                <h2 id="wpa-promos-title" class="wpa-promos__title">More from Yasir Shabbir</h2>
+                <p class="wpa-promos__sub">Hand-picked tools &amp; services — separate from this plugin.</p>
+            </div>
             <div class="wpa-promo-grid">
                 <?php foreach ($promos as $p) :
                     $title = isset($p['title']) ? $p['title'] : '';
@@ -594,20 +600,24 @@ class WP_Arzo_Admin
                     $url   = isset($p['url']) ? $p['url'] : '#';
                     $icon  = isset($p['icon']) ? $p['icon'] : 'bolt';
                     $badge = isset($p['badge']) ? $p['badge'] : '';
+                    $bkind = isset($p['badge_kind']) ? $p['badge_kind'] : 'neutral';
+                    // Whole card is one external link (single click target, keyboard focusable).
                     ?>
-                    <div class="wpa-promo">
-                        <div class="wpa-promo__icon"><?php echo wp_arzo_icon($icon, array('class' => 'wpa-icon')); ?></div>
-                        <div class="wpa-promo__body">
-                            <div class="wpa-promo__head">
-                                <h3 class="wpa-promo__title"><?php echo esc_html($title); ?></h3>
-                                <?php if ($badge) : ?><span class="wpa-badge wpa-badge--warning"><?php echo esc_html($badge); ?></span><?php endif; ?>
-                            </div>
-                            <p class="wpa-promo__desc"><?php echo esc_html($desc); ?></p>
-                            <a class="wpa-btn wpa-btn--secondary wpa-btn--sm" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener">
-                                <?php echo esc_html($cta); ?> <?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?>
-                            </a>
-                        </div>
-                    </div>
+                    <a class="wpa-promo" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer">
+                        <span class="wpa-promo__icon"><?php echo wp_arzo_icon($icon, array('class' => 'wpa-icon')); ?></span>
+                        <span class="wpa-promo__body">
+                            <span class="wpa-promo__head">
+                                <span class="wpa-promo__title"><?php echo esc_html($title); ?></span>
+                                <?php if ($badge) : ?><span class="wpa-badge wpa-badge--<?php echo esc_attr($bkind); ?> wpa-promo__badge"><?php echo esc_html($badge); ?></span><?php endif; ?>
+                            </span>
+                            <span class="wpa-promo__desc"><?php echo esc_html($desc); ?></span>
+                            <span class="wpa-promo__cta">
+                                <?php echo esc_html($cta); ?>
+                                <?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                                <span class="wpa-sr-only">(opens in a new tab)</span>
+                            </span>
+                        </span>
+                    </a>
                 <?php endforeach; ?>
             </div>
         </section>

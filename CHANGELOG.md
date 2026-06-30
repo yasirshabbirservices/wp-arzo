@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.45.0] — 2026-07-01
+
+### Changed — "More from Yasir Shabbir" promo cards redesigned
+- The cross-promotion area is now **visually set apart from the plugin's own UI** so it reads
+  as a curated recommendation, not a feature: a **"Spotlight" eyebrow** + subtitle ("separate
+  from this plugin"), an **accent-tinted card surface with an accent rail**, soft elevation,
+  and a **hover lift / accent glow**.
+- Each card is now a **single full-area link** (whole-card click target, keyboard focusable
+  with a brand focus ring) instead of a small button, and carries an **explicit external-link
+  affordance** — an "open in new tab" icon plus a screen-reader-only "(opens in a new tab)".
+- Cards carry a **category badge** (PRO / SERVICE) for quick scanning. All strictly design
+  tokens (no hard-coded colors; dark text on the accent fill).
+
 ## [6.44.0] — 2026-07-01
 
 ### Changed — Advanced Tools console header + Pro promo
