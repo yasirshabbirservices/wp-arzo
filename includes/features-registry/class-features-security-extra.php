@@ -105,15 +105,17 @@ class WP_Arzo_Feature_Custom_Login_URL extends WP_Arzo_Feature
 
     public function handle_request()
     {
-        global $pagenow;
-        $path   = $this->request_path();
-        $action = isset($_REQUEST['action']) ? sanitize_key($_REQUEST['action']) : '';
+        $pagenow = isset($GLOBALS['pagenow']) ? $GLOBALS['pagenow'] : '';
+        $path    = $this->request_path();
+        $action  = isset($_REQUEST['action']) ? sanitize_key($_REQUEST['action']) : '';
 
-        // Visiting the secret slug → serve the real login page.
+        // Visiting the secret slug → serve the real login page. We must NOT require
+        // wp-login.php now (we're on plugins_loaded; WordPress hasn't defined
+        // AUTOSAVE_INTERVAL and other functionality constants yet, which wp-login.php
+        // needs). Defer until wp_loaded, by which point everything is defined.
         if ($path === $this->slug) {
-            $pagenow = 'wp-login.php';
-            require_once ABSPATH . 'wp-login.php';
-            exit;
+            add_action('wp_loaded', array($this, 'load_login_page'));
+            return;
         }
 
         // Direct hit on the default login endpoint → bounce home (except core flows
@@ -122,6 +124,14 @@ class WP_Arzo_Feature_Custom_Login_URL extends WP_Arzo_Feature
             wp_safe_redirect(home_url('/'));
             exit;
         }
+    }
+
+    public function load_login_page()
+    {
+        global $pagenow;
+        $pagenow = 'wp-login.php';
+        require_once ABSPATH . 'wp-login.php';
+        exit;
     }
 
     private function rewrite($url, $scheme = null)
