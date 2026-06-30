@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.14.0
+Stable tag: 6.15.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.15.0 =
+* New (free): Code Snippets Manager (PHP/CSS/JS/HTML) under WP Arzo -> Snippets, with a
+  fatal-guard that auto-disables a snippet that errors (39 free features total)
 
 = 6.14.0 =
 * New (free): Site Verification (Google/Bing/Pinterest/Yandex/Baidu), Remove jQuery
