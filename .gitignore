@@ -9,9 +9,13 @@
 *.json
 /bit-file-manager
 
-# Keep the committed .claude/ docs & skills, but ignore local-only Claude state.
-.claude/settings.local.json
-.claude/.cache/
+# AI / agent dev docs (architecture, roadmap, skills, working agreement) live ONLY in the
+# PRIVATE wp-arzo-pro repo (under its .claude/). They are intentionally NOT published on
+# this public repo — both to avoid leaking internal docs and so the plugin is not perceived
+# as "AI-built". A local (untracked) copy may remain for tooling; never commit it.
+.claude/
+CLAUDE.md
+AI_RULES.md
 
 # Runtime-generated AdminNeo connection config (holds DB credentials)
 assets/libs/adminneo/adminneo-config.php
