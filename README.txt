@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.9.1
+Stable tag: 6.10.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.10.0 =
+* New (free): Custom Login URL — move wp-login.php to a secret slug
+* New (free): Limit Login Attempts — lock out an IP after repeated failed logins
+* Changed: dashboard now has a right sidebar (license/activation + promotions)
 
 = 6.9.1 =
 * Fixed: dashboard input fields showed a white background (now dark)

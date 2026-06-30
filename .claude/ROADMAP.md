@@ -200,9 +200,9 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
   (open/click, resend, search/export) [P]
 
 ### Security
-- Limit login attempts [F], Disable XML-RPC [F], Obfuscate author slugs [F],
-  Disable REST for guests [F], Disable file editor [F]
-- **Custom login URL / hide wp-login** [F]
+- Limit login attempts [✅ Free], Disable XML-RPC [✅], Block user enumeration [✅],
+  Disable REST for guests [✅], Disable file editor [✅]
+- **Custom login URL / hide wp-login** [✅ Free]
 - 2FA, login firewall, activity/audit log, password policies [P]
 - Password-protect site/pages [F basic / P advanced]
 

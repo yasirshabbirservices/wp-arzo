@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.10.0] — 2026-06-30
+
+### Added (free)
+- **Custom Login URL** — move `wp-login.php` to a secret slug; login links (emails,
+  logout, password reset, register) are rewritten to it, and direct hits on the default
+  endpoint are bounced home.
+- **Limit Login Attempts** — lock out an IP after N failed logins for a configurable
+  window (transient-based, auto-expiring), with success clearing the counter.
+
+### Changed
+- **Dashboard layout** is now two-column: the feature grid on the left and a sticky
+  **sidebar** on the right holding a **License / activation** card and the cross-promotion
+  area (previously full-width at the bottom). Collapses to a single column on narrow
+  screens.
+- Settings renderer used by the sidebar license box delegates real activation to
+  `wp_arzo_activate_license_result` (Pro/Freemius); until connected it reports that
+  licensing isn't available yet.
+
 ## [6.9.1] — 2026-06-30
 
 ### Fixed

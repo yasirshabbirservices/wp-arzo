@@ -26,6 +26,7 @@ class WP_Arzo_Admin
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
     const NONCE_EMAIL = 'wp_arzo_email_log';
+    const NONCE_LICENSE = 'wp_arzo_license';
 
     public static function instance()
     {
@@ -46,6 +47,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
         add_action('wp_ajax_wp_arzo_backup_delete', array($this, 'ajax_backup_delete'));
         add_action('wp_ajax_wp_arzo_email_log_clear', array($this, 'ajax_email_log_clear'));
+        add_action('wp_ajax_wp_arzo_activate_license', array($this, 'ajax_activate_license'));
     }
 
     private function registry()
@@ -143,9 +145,10 @@ class WP_Arzo_Admin
         }
 
         wp_localize_script('wp-arzo-admin-js', 'wpArzoAdmin', array(
-            'ajaxUrl'     => admin_url('admin-ajax.php'),
-            'nonce'       => wp_create_nonce(self::NONCE_TOGGLE),
-            'backupNonce' => wp_create_nonce(self::NONCE_BACKUPS),
+            'ajaxUrl'      => admin_url('admin-ajax.php'),
+            'nonce'        => wp_create_nonce(self::NONCE_TOGGLE),
+            'backupNonce'  => wp_create_nonce(self::NONCE_BACKUPS),
+            'licenseNonce' => wp_create_nonce(self::NONCE_LICENSE),
         ));
     }
 
@@ -250,25 +253,67 @@ class WP_Arzo_Admin
             </div>
         </div>
 
-        <div id="wpa-feature-grid">
-            <?php foreach ($grouped as $group_key => $features) : ?>
-                <section class="wpa-group" data-group="<?php echo esc_attr($group_key); ?>">
-                    <h2 class="wpa-group__title">
-                        <?php echo wp_arzo_icon($registry->group_icon($group_key), array('class' => 'wpa-icon wpa-icon--sm')); ?>
-                        <?php echo esc_html($registry->group_label($group_key)); ?>
-                    </h2>
-                    <div class="wpa-grid">
-                        <?php foreach ($features as $feature) {
-                            $this->render_feature_card($feature);
-                        } ?>
-                    </div>
-                </section>
-            <?php endforeach; ?>
-        </div>
+        <div class="wpa-layout">
+            <div class="wpa-main">
+                <div id="wpa-feature-grid">
+                    <?php foreach ($grouped as $group_key => $features) : ?>
+                        <section class="wpa-group" data-group="<?php echo esc_attr($group_key); ?>">
+                            <h2 class="wpa-group__title">
+                                <?php echo wp_arzo_icon($registry->group_icon($group_key), array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                                <?php echo esc_html($registry->group_label($group_key)); ?>
+                            </h2>
+                            <div class="wpa-grid">
+                                <?php foreach ($features as $feature) {
+                                    $this->render_feature_card($feature);
+                                } ?>
+                            </div>
+                        </section>
+                    <?php endforeach; ?>
+                </div>
+                <p class="wpa-admin__empty" id="wpa-no-results" hidden>No features match your search.</p>
+            </div>
 
-        <p class="wpa-admin__empty" id="wpa-no-results" hidden>No features match your search.</p>
+            <aside class="wpa-aside">
+                <?php
+                $this->render_license_box();
+                $this->render_promos();
+                ?>
+            </aside>
+        </div>
         <?php
-        $this->render_promos();
+    }
+
+    /**
+     * License / activation card (sidebar). Real activation is delegated to the Pro
+     * add-on / Freemius via the `wp_arzo_activate_license_result` filter.
+     */
+    private function render_license_box()
+    {
+        $active = function_exists('wp_arzo_is_pro_active') && wp_arzo_is_pro_active();
+        $upgrade = function_exists('wp_arzo_pro_upgrade_url') ? wp_arzo_pro_upgrade_url() : '#';
+        ?>
+        <div class="wpa-aside-card wpa-license<?php echo $active ? ' is-active' : ''; ?>">
+            <div class="wpa-aside-card__head">
+                <?php echo wp_arzo_icon($active ? 'check-circle' : 'lock', array('class' => 'wpa-icon')); ?>
+                <h3 class="wpa-aside-card__title">License</h3>
+                <span class="wpa-badge <?php echo $active ? 'wpa-badge--success' : 'wpa-badge--neutral'; ?>"><?php echo $active ? 'Pro active' : 'Free'; ?></span>
+            </div>
+            <?php if ($active) : ?>
+                <p class="wpa-aside-card__text">WP Arzo Pro is active. All premium features are unlocked.</p>
+            <?php else : ?>
+                <p class="wpa-aside-card__text">Enter your WP Arzo Pro license key to unlock premium features.</p>
+                <input type="text" id="wpa-license-key" class="wpa-input" placeholder="License key" autocomplete="off">
+                <div class="wpa-license__actions">
+                    <button type="button" id="wpa-license-activate" class="wpa-btn wpa-btn--primary wpa-btn--sm"
+                        data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_LICENSE)); ?>">
+                        <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Activate
+                    </button>
+                    <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener">Get Pro</a>
+                </div>
+                <p class="wpa-aside-card__note" id="wpa-license-msg" hidden></p>
+            <?php endif; ?>
+        </div>
+        <?php
     }
 
     /**
@@ -769,5 +814,30 @@ class WP_Arzo_Admin
         }
         update_option('wp_arzo_email_log', array(), false);
         wp_send_json_success(array('message' => 'Email log cleared.'));
+    }
+
+    /* -------------------------------------------------------- License */
+
+    public function ajax_activate_license()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_LICENSE, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $key = isset($_POST['key']) ? sanitize_text_field(wp_unslash($_POST['key'])) : '';
+
+        /**
+         * The Pro add-on / Freemius hooks this to perform real activation and returns
+         * ['success'=>bool, 'message'=>string]. Until then, activation is unavailable.
+         */
+        $result = apply_filters('wp_arzo_activate_license_result', null, $key);
+
+        if (is_array($result) && isset($result['success'])) {
+            if (!empty($result['success'])) {
+                wp_send_json_success(array('message' => isset($result['message']) ? $result['message'] : 'License activated.'));
+            }
+            wp_send_json_error(array('message' => isset($result['message']) ? $result['message'] : 'Activation failed.'), 400);
+        }
+
+        wp_send_json_error(array('message' => 'Licensing is not connected on this site yet. Install WP Arzo Pro to activate.'), 501);
     }
 }

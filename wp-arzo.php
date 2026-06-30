@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.9.1
+ * Version: 6.10.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.9.1');
+    define('WP_ARZO_VERSION', '6.10.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -456,6 +456,8 @@ function wp_arzo_bootstrap_features()
     $registry->register(new WP_Arzo_Feature_Disable_REST_Guests());
     $registry->register(new WP_Arzo_Feature_Disable_File_Editor());
     $registry->register(new WP_Arzo_Feature_Block_User_Enumeration());
+    $registry->register(new WP_Arzo_Feature_Custom_Login_URL());
+    $registry->register(new WP_Arzo_Feature_Limit_Login());
 
     // Marketing / SEO
     $registry->register(new WP_Arzo_Feature_Manage_Robots_Txt());
