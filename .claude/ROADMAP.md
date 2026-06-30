@@ -51,6 +51,12 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
   Disable Application Passwords, Clean Up Admin Bar, Enhance List Tables.
 - **Pro v1.3.0** — ad-pixel suite completed: Snapchat, X (Twitter), Microsoft/Bing UET,
   Google Ads — joining Meta/TikTok/LinkedIn/Pinterest + GA4/GTM (**10 marketing modules**).
+- **Pro v1.4.0** — **API Email Providers** (SendGrid/Brevo/Mailgun via `pre_wp_mail`),
+  completing the SureMail-style email stack atop the free SMTP failover + Email Log.
+- **Pro v1.5.0** — **Content Types (CPT/CCT) builder** (JetEngine ref): UI under
+  **WP Arzo → Content Types** to define custom post types + taxonomies (labels, public/
+  archive/hierarchical/REST, menu icon, rewrite slug, supports), registered on `init` with
+  auto rewrite-flush (**13 Pro modules**). Custom fields / meta-box builder is next.
 
 ### Competitor references (local: C:\Users\yasir\Downloads\Dev)
 ASE, Solid Security, **erropix-advanced-scripts** (snippets: priority + shortcode +
@@ -62,8 +68,8 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
 
 ### Still to build (next up)
 - ✅ **Code Snippets Manager** (free) — v6.15.0. ✅ **Scheduled Backups** (free) — v6.19.0.
-- **Builders (Pro):** CPT/CCT builder (JetEngine ref), media folders (HappyFiles ref).
-- **Email (Pro):** API providers (SureMail ref) — SES/Brevo/Mailgun/SendGrid/Postmark/…
+- ✅ **CPT/CCT builder** (Pro v1.5.0). ✅ **API email providers** (Pro v1.4.0).
+- **Builders (Pro):** custom fields / meta-box builder (next), media folders (HappyFiles ref).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
 - **Backup (Pro):** S3-compatible remote, remote restore (WPvivid ref).
 - **Branding (Pro):** custom admin/dashboard, white-label. **AI/MCP** layer.
