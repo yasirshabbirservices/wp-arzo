@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.11.0
+ * Version: 6.12.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.11.0');
+    define('WP_ARZO_VERSION', '6.12.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -445,6 +445,18 @@ function wp_arzo_bootstrap_features()
     $registry->register(new WP_Arzo_Feature_Disable_Gutenberg());
     $registry->register(new WP_Arzo_Feature_Disable_Feeds());
     $registry->register(new WP_Arzo_Feature_Disable_Embeds());
+    $registry->register(new WP_Arzo_Feature_Disable_Updates());
+
+    // Content & media
+    $registry->register(new WP_Arzo_Feature_Duplicate_Posts());
+    $registry->register(new WP_Arzo_Feature_Missed_Schedule());
+    $registry->register(new WP_Arzo_Feature_SVG_Upload());
+
+    // Admin tweaks
+    $registry->register(new WP_Arzo_Feature_Last_Login());
+    $registry->register(new WP_Arzo_Feature_Custom_Code());
+    $registry->register(new WP_Arzo_Feature_Custom_CSS());
+    $registry->register(new WP_Arzo_Feature_Login_Redirect());
 
     // Performance / content
     $registry->register(new WP_Arzo_Feature_Disable_Emojis());

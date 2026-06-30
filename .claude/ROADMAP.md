@@ -44,6 +44,9 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
 - **v6.11.0** — off-site backup hook (`wp_arzo_after_snapshot_created`). Pro **v1.2.0** adds
   the first remote destination: **FTP** (zips + uploads each snapshot). Cloud (S3/Drive/
   Dropbox/pCloud) + remote restore are next.
+- **v6.12.0** — 8 more free features (**30 total**): Page/Post Duplication, Missed Schedule
+  Fix, SVG Upload, Last Login Column, Header/Body/Footer Code, Custom CSS, Disable All
+  Updates, Login/Logout Redirects. New raw `code` settings field type.
 - **v6.8.0** — **Email (free):** SMTP delivery (phpmailer_init config + force-from) and
   Email Log (capped option store, sent/failed, WP Arzo → Email Log page with clear).
   Added `password`/`email` settings-field types (passwords never re-rendered; blank keeps
