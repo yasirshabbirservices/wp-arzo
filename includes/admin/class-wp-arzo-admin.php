@@ -37,6 +37,7 @@ class WP_Arzo_Admin
     {
         add_action('admin_menu', array($this, 'add_menu'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue'));
+        add_action('admin_head', array($this, 'menu_icon_style'));
         add_filter('admin_body_class', array($this, 'admin_body_class'));
         add_action('wp_ajax_wp_arzo_toggle_feature', array($this, 'ajax_toggle_feature'));
         add_action('wp_ajax_wp_arzo_backup_create', array($this, 'ajax_backup_create'));
@@ -50,6 +51,23 @@ class WP_Arzo_Admin
     }
 
     /* --------------------------------------------------------------- Menu */
+
+    /**
+     * Constrain the custom image menu icon to 20×20. WordPress does not size a
+     * URL-based menu icon, so a large logo PNG would otherwise render at full size
+     * and overflow the sidebar into the page. Printed on every admin page (the menu
+     * is global), so it can't be scoped to our screens only.
+     */
+    public function menu_icon_style()
+    {
+        echo '<style id="wp-arzo-menu-icon">'
+            . '#adminmenu .toplevel_page_' . self::PAGE . ' .wp-menu-image img{'
+            . 'width:20px;height:20px;padding:7px 0 0;object-fit:contain;opacity:.85}'
+            . '#adminmenu .toplevel_page_' . self::PAGE . ':hover .wp-menu-image img,'
+            . '#adminmenu .toplevel_page_' . self::PAGE . '.current .wp-menu-image img,'
+            . '#adminmenu .toplevel_page_' . self::PAGE . '.wp-has-current-submenu .wp-menu-image img{opacity:1}'
+            . '</style>';
+    }
 
     public function admin_body_class($classes)
     {
