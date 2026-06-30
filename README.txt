@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.15.1
+Stable tag: 6.16.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.16.0 =
+* Improved (free): Advanced SMTP — backup connection with auto-failover/retry, failure
+  notifications, and a Send-test-email button
+* Improved (free): Email Log — resend any email + sent/failed analytics counts
 
 = 6.15.1 =
 * Fixed (critical): Custom Login URL fatal on the login page (Undefined constant

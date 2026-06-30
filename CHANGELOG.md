@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.16.0] — 2026-06-30
+
+### Changed (free) — Advanced SMTP + Email Log (SureMail-style)
+- **SMTP → Advanced SMTP:** added a **backup connection (failover)** — if the primary
+  connection fails, the email is automatically **retried via the backup** — plus
+  **failure notifications** (email an address when a message can't be delivered) and a
+  **"Send test email"** button right in the settings.
+- **Email Log:** now stores the message/headers so failed (or any) emails can be
+  **resent** with one click, and the page shows **sent / failed analytics** counts.
+- New settings field type `test_email`; new AJAX: send-test-email, resend.
+
 ## [6.15.1] — 2026-06-30
 
 ### Fixed (critical)

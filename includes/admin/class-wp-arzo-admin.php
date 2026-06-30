@@ -29,6 +29,7 @@ class WP_Arzo_Admin
     const NONCE_EMAIL = 'wp_arzo_email_log';
     const NONCE_LICENSE = 'wp_arzo_license';
     const NONCE_SNIPPETS = 'wp_arzo_snippets';
+    const NONCE_TEST_EMAIL = 'wp_arzo_test_email';
 
     public static function instance()
     {
@@ -52,6 +53,8 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_activate_license', array($this, 'ajax_activate_license'));
         add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
         add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
+        add_action('wp_ajax_wp_arzo_send_test_email', array($this, 'ajax_send_test_email'));
+        add_action('wp_ajax_wp_arzo_email_resend', array($this, 'ajax_email_resend'));
     }
 
     private function registry()
@@ -512,6 +515,13 @@ class WP_Arzo_Admin
             case 'code':
                 echo '<textarea class="wpa-input wpa-code" id="' . $fid . '" name="' . $name . '" rows="8" spellcheck="false" autocomplete="off" style="font-family:var(--arzo-font-mono);font-size:13px;line-height:1.5;">' . esc_textarea((string) $value) . '</textarea>';
                 break;
+            case 'test_email':
+                echo '<div style="display:flex;gap:8px;align-items:center;">';
+                echo '<input class="wpa-input" type="email" id="wpa-test-email" placeholder="recipient@example.com" style="flex:1;">';
+                echo '<button type="button" class="wpa-btn wpa-btn--secondary" id="wpa-test-email-btn" data-nonce="' . esc_attr(wp_create_nonce(self::NONCE_TEST_EMAIL)) . '">' . wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')) . ' Send test</button>';
+                echo '</div>';
+                echo '<p class="wpa-field__help" id="wpa-test-email-msg">Sends a test message using the current (saved) settings.</p>';
+                break;
             case 'number':
                 echo '<input class="wpa-input" type="number" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
                 break;
@@ -565,8 +575,8 @@ class WP_Arzo_Admin
 
         $clean = array();
         foreach ($feature->settings_schema() as $field) {
-            if (empty($field['key']) || empty($field['type'])) {
-                continue;
+            if (empty($field['key']) || empty($field['type']) || $field['type'] === 'test_email') {
+                continue; // test_email is a UI action, not a stored setting
             }
             $key = $field['key'];
             $raw = isset($_POST['wpa_field_' . $key]) ? wp_unslash($_POST['wpa_field_' . $key]) : null;
@@ -783,6 +793,14 @@ class WP_Arzo_Admin
         if (!is_array($log)) {
             $log = array();
         }
+        $failed_count = 0;
+        foreach ($log as $row) {
+            if (isset($row['status']) && $row['status'] === 'failed') {
+                $failed_count++;
+            }
+        }
+        $sent_count = count($log) - $failed_count;
+        $email_nonce = wp_create_nonce(self::NONCE_EMAIL);
         ?>
         <div class="wrap wpa-admin">
             <?php $this->render_brand_bar(); ?>
@@ -790,11 +808,14 @@ class WP_Arzo_Admin
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Email Log</h1>
-                    <p class="wpa-admin__subtitle"><strong><?php echo count($log); ?></strong> logged email(s)<?php echo $enabled ? '' : ' · logging is currently OFF (enable “Email Log” on the dashboard)'; ?></p>
+                    <p class="wpa-admin__subtitle">
+                        <span class="wpa-badge wpa-badge--success"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon')); ?> <?php echo (int) $sent_count; ?> sent</span>
+                        <span class="wpa-badge wpa-badge--error" style="margin-left:6px;"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?> <?php echo (int) $failed_count; ?> failed</span>
+                        <?php echo $enabled ? '' : ' · logging is OFF (enable “Email Log” on the dashboard)'; ?>
+                    </p>
                 </div>
                 <?php if (!empty($log)) : ?>
-                    <button type="button" id="wpa-email-clear" class="wpa-btn wpa-btn--ghost"
-                        data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_EMAIL)); ?>">
+                    <button type="button" id="wpa-email-clear" class="wpa-btn wpa-btn--ghost" data-nonce="<?php echo esc_attr($email_nonce); ?>">
                         <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
                     </button>
                 <?php endif; ?>
@@ -803,11 +824,11 @@ class WP_Arzo_Admin
             <div class="wpa-card" style="padding:0;overflow:hidden;">
                 <table class="wpa-backup-table">
                     <thead>
-                        <tr><th>Time (UTC)</th><th>To</th><th>Subject</th><th>Status</th></tr>
+                        <tr><th>Time (UTC)</th><th>To</th><th>Subject</th><th>Status</th><th></th></tr>
                     </thead>
                     <tbody>
                         <?php if (empty($log)) : ?>
-                            <tr class="wpa-backup-empty"><td colspan="4">No emails logged yet.</td></tr>
+                            <tr class="wpa-backup-empty"><td colspan="5">No emails logged yet.</td></tr>
                         <?php else : foreach ($log as $row) :
                             $status = isset($row['status']) ? $row['status'] : 'sent';
                             $failed = ($status === 'failed');
@@ -827,6 +848,13 @@ class WP_Arzo_Admin
                                         <?php echo $failed ? 'Failed' : 'Sent'; ?>
                                     </span>
                                 </td>
+                                <td class="wpa-backup-actions">
+                                    <?php if (!empty($row['id']) && isset($row['message'])) : ?>
+                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-email-resend" data-id="<?php echo esc_attr($row['id']); ?>" data-nonce="<?php echo esc_attr($email_nonce); ?>">
+                                            <?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Resend
+                                        </button>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; endif; ?>
                     </tbody>
@@ -843,6 +871,54 @@ class WP_Arzo_Admin
         }
         update_option('wp_arzo_email_log', array(), false);
         wp_send_json_success(array('message' => 'Email log cleared.'));
+    }
+
+    public function ajax_send_test_email()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_TEST_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $to = isset($_POST['to']) ? sanitize_email(wp_unslash($_POST['to'])) : '';
+        if (!is_email($to)) {
+            wp_send_json_error(array('message' => 'Enter a valid email address.'), 400);
+        }
+        $subject = 'WP Arzo test email — ' . get_bloginfo('name');
+        $body    = "This is a test email from WP Arzo.\n\nIf you received it, your email delivery settings are working.\n\nSite: " . home_url('/') . "\nTime: " . gmdate('Y-m-d H:i:s') . " UTC";
+
+        $sent = wp_mail($to, $subject, $body);
+        if ($sent) {
+            wp_send_json_success(array('message' => 'Test email sent to ' . $to . '.'));
+        }
+        wp_send_json_error(array('message' => 'wp_mail() reported a failure. Check your SMTP settings / Email Log.'), 500);
+    }
+
+    public function ajax_email_resend()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        $log = get_option('wp_arzo_email_log', array());
+        $entry = null;
+        foreach ((array) $log as $row) {
+            if (isset($row['id']) && $row['id'] === $id) {
+                $entry = $row;
+                break;
+            }
+        }
+        if (!$entry || empty($entry['to'])) {
+            wp_send_json_error(array('message' => 'Original email not found (or too old).'), 404);
+        }
+        $sent = wp_mail(
+            $entry['to'],
+            isset($entry['subject']) ? $entry['subject'] : '',
+            isset($entry['message']) ? $entry['message'] : '',
+            isset($entry['headers']) ? $entry['headers'] : ''
+        );
+        if ($sent) {
+            wp_send_json_success(array('message' => 'Email resent to ' . $entry['to'] . '.'));
+        }
+        wp_send_json_error(array('message' => 'Resend failed — check your SMTP settings.'), 500);
     }
 
     /* -------------------------------------------------------- Snippets */

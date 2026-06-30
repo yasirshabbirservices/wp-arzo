@@ -224,7 +224,52 @@
     });
   }
 
-  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); bindLicense(); bindSnippets(); }
+  // -------------------------------------------------- Test email + resend
+  function bindEmailExtras() {
+    var testBtn = document.getElementById('wpa-test-email-btn');
+    if (testBtn) {
+      testBtn.addEventListener('click', function () {
+        var input = document.getElementById('wpa-test-email');
+        var msg = document.getElementById('wpa-test-email-msg');
+        var to = input ? input.value.trim() : '';
+        if (!to) { if (msg) msg.textContent = 'Enter an email address first.'; return; }
+        testBtn.disabled = true;
+        var body = new FormData();
+        body.append('action', 'wp_arzo_send_test_email');
+        body.append('nonce', testBtn.dataset.nonce || '');
+        body.append('to', to);
+        fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            testBtn.disabled = false;
+            var ok = res && res.success;
+            var text = (res && res.data && res.data.message) || (ok ? 'Sent.' : 'Failed.');
+            if (msg) msg.textContent = text;
+            toast(text, ok ? 'success' : 'error');
+          })
+          .catch(function () { testBtn.disabled = false; toast('Request failed', 'error'); });
+      });
+    }
+
+    document.querySelectorAll('.wpa-email-resend').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        btn.disabled = true;
+        var body = new FormData();
+        body.append('action', 'wp_arzo_email_resend');
+        body.append('nonce', btn.dataset.nonce || '');
+        body.append('id', btn.dataset.id);
+        fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            btn.disabled = false;
+            toast((res && res.data && res.data.message) || (res && res.success ? 'Resent' : 'Failed'), res && res.success ? 'success' : 'error');
+          })
+          .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+      });
+    });
+  }
+
+  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); bindLicense(); bindSnippets(); bindEmailExtras(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

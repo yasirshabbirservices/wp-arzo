@@ -214,10 +214,11 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 - Manage `ads.txt` / `robots.txt` [F]
 - Crawl optimizations / SEO sitemap toggles [F]
 
-### Email
-- **SMTP delivery** (multi-provider) [✅ Free]
-- **Email log** (sent/failed, recipient/subject, errors) [✅ Free]; advanced analytics
-  (open/click, resend, search/export) [P]
+### Email (SureMail-style)
+- **Advanced SMTP** [✅ Free] — primary + **backup connection with auto-failover/retry**,
+  **failure notifications**, **test email**.
+- **Email log** [✅ Free] — sent/failed, recipient/subject/errors, **resend**, **analytics
+  counts**; API providers (SendGrid/Mailgun/SES/Brevo), open/click analytics, search/export [P].
 
 ### Security
 - Limit login attempts [✅ Free], Disable XML-RPC [✅], Block user enumeration [✅],
