@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.14.0
+ * Version: 6.15.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.14.0');
+    define('WP_ARZO_VERSION', '6.15.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -333,6 +333,7 @@ function wp_arzo_uninstall()
         'wp_arzo_features',
         'wp_arzo_settings',
         'wp_arzo_email_log',
+        'wp_arzo_snippets',
     );
 
     foreach ($options as $option) {
@@ -420,6 +421,7 @@ require_once(WP_ARZO_PLUGIN_DIR . 'includes/maintenance-frontend.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature-registry.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-backup-manager.php');
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-snippets.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-admin.php');
 
 foreach ((array) glob(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/*.php') as $wp_arzo_feature_file) {
@@ -451,6 +453,9 @@ function wp_arzo_bootstrap_features()
     $registry->register(new WP_Arzo_Feature_Duplicate_Posts());
     $registry->register(new WP_Arzo_Feature_Missed_Schedule());
     $registry->register(new WP_Arzo_Feature_SVG_Upload());
+
+    // Developer
+    $registry->register(new WP_Arzo_Feature_Snippets());
 
     // Admin tweaks
     $registry->register(new WP_Arzo_Feature_Last_Login());

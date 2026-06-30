@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.15.0] — 2026-06-30
+
+### Added (free) — Code Snippets Manager (39 free features total)
+- **Code Snippets** — manage PHP / CSS / JS / HTML snippets under **WP Arzo → Snippets**:
+  per-snippet type, scope (everywhere / admin / front), active toggle, edit/delete.
+- **Fatal-guard:** a PHP snippet that errors (caught Throwable, or an uncatchable fatal via
+  a shutdown backstop) is **auto-disabled with the error recorded** — a bad snippet can't
+  permanently break the site. The "Code Snippets" feature toggle is a global kill switch.
+- Snippet storage (`wp_arzo_snippets`) is removed on uninstall.
+
 ## [6.14.0] — 2026-06-30
 
 ### Added (free) — 3 new feature modules (38 free features total)

@@ -22,11 +22,13 @@ class WP_Arzo_Admin
     const PAGE = 'wp-arzo';
     const PAGE_BACKUPS = 'wp-arzo-backups';
     const PAGE_EMAIL_LOG = 'wp-arzo-email-log';
+    const PAGE_SNIPPETS = 'wp-arzo-snippets';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
     const NONCE_EMAIL = 'wp_arzo_email_log';
     const NONCE_LICENSE = 'wp_arzo_license';
+    const NONCE_SNIPPETS = 'wp_arzo_snippets';
 
     public static function instance()
     {
@@ -48,6 +50,8 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_backup_delete', array($this, 'ajax_backup_delete'));
         add_action('wp_ajax_wp_arzo_email_log_clear', array($this, 'ajax_email_log_clear'));
         add_action('wp_ajax_wp_arzo_activate_license', array($this, 'ajax_activate_license'));
+        add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
+        add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
     }
 
     private function registry()
@@ -103,6 +107,7 @@ class WP_Arzo_Admin
 
         add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'));
         add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'));
+        add_submenu_page(self::PAGE, 'Snippets', 'Snippets', 'manage_options', self::PAGE_SNIPPETS, array($this, 'render_snippets'));
 
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
@@ -149,6 +154,7 @@ class WP_Arzo_Admin
             'nonce'        => wp_create_nonce(self::NONCE_TOGGLE),
             'backupNonce'  => wp_create_nonce(self::NONCE_BACKUPS),
             'licenseNonce' => wp_create_nonce(self::NONCE_LICENSE),
+            'snippetNonce' => wp_create_nonce(self::NONCE_SNIPPETS),
         ));
     }
 
@@ -217,6 +223,7 @@ class WP_Arzo_Admin
             'dashboard' => array('label' => 'Dashboard', 'icon' => 'settings', 'url' => admin_url('admin.php?page=' . self::PAGE)),
             'backups'   => array('label' => 'Backups', 'icon' => 'database', 'url' => admin_url('admin.php?page=' . self::PAGE_BACKUPS)),
             'email'     => array('label' => 'Email Log', 'icon' => 'mail', 'url' => admin_url('admin.php?page=' . self::PAGE_EMAIL_LOG)),
+            'snippets'  => array('label' => 'Snippets', 'icon' => 'code', 'url' => admin_url('admin.php?page=' . self::PAGE_SNIPPETS)),
             'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
         );
         echo '<nav class="wpa-nav" aria-label="WP Arzo sections">';
@@ -836,6 +843,180 @@ class WP_Arzo_Admin
         }
         update_option('wp_arzo_email_log', array(), false);
         wp_send_json_success(array('message' => 'Email log cleared.'));
+    }
+
+    /* -------------------------------------------------------- Snippets */
+
+    public function render_snippets()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $view = isset($_GET['view']) ? sanitize_key($_GET['view']) : 'list';
+        echo '<div class="wrap wpa-admin">';
+        $this->render_brand_bar();
+        $this->render_nav('snippets');
+        if ($view === 'edit') {
+            $this->render_snippet_edit(isset($_GET['id']) ? sanitize_text_field(wp_unslash($_GET['id'])) : '');
+        } else {
+            $this->render_snippet_list();
+        }
+        echo '</div>';
+    }
+
+    private function render_snippet_list()
+    {
+        $manager  = WP_Arzo_Snippets::instance();
+        $snippets = $manager->get_all();
+        $enabled  = $this->registry()->is_enabled('code_snippets');
+        $new_url  = admin_url('admin.php?page=' . self::PAGE_SNIPPETS . '&view=edit');
+        ?>
+        <div class="wpa-admin__bar">
+            <div>
+                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon')); ?> Code Snippets</h1>
+                <p class="wpa-admin__subtitle"><strong><?php echo count($snippets); ?></strong> snippet(s)<?php echo $enabled ? '' : ' · the “Code Snippets” feature is OFF, so nothing runs (enable it on the dashboard)'; ?></p>
+            </div>
+            <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url($new_url); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> New snippet</a>
+        </div>
+
+        <div class="wpa-card" style="padding:0;overflow:hidden;">
+            <table class="wpa-backup-table">
+                <thead><tr><th>Title</th><th>Type</th><th>Scope</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    <?php if (empty($snippets)) : ?>
+                        <tr class="wpa-backup-empty"><td colspan="5">No snippets yet. Click “New snippet” to add one.</td></tr>
+                    <?php else : foreach ($snippets as $s) :
+                        $edit = admin_url('admin.php?page=' . self::PAGE_SNIPPETS . '&view=edit&id=' . $s['id']);
+                        $err  = !empty($s['last_error']);
+                        ?>
+                        <tr data-snippet="<?php echo esc_attr($s['id']); ?>">
+                            <td>
+                                <a href="<?php echo esc_url($edit); ?>" style="color:var(--arzo-text-strong);font-weight:600;text-decoration:none;"><?php echo esc_html($s['title']); ?></a>
+                                <?php if ($err) : ?><div class="wpa-backup-meta" style="color:var(--arzo-error)"><?php echo wp_arzo_icon('alert', array('class' => 'wpa-icon wpa-icon--xs')); ?> auto-disabled: <?php echo esc_html($s['last_error']); ?></div><?php endif; ?>
+                            </td>
+                            <td><span class="wpa-badge wpa-badge--neutral"><?php echo esc_html(strtoupper($s['type'])); ?></span></td>
+                            <td><?php echo esc_html($s['scope']); ?></td>
+                            <td>
+                                <label class="wpa-toggle">
+                                    <input type="checkbox" class="wpa-toggle__input wpa-snippet-toggle" role="switch" data-id="<?php echo esc_attr($s['id']); ?>" <?php checked(!empty($s['active'])); ?>>
+                                    <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+                                </label>
+                            </td>
+                            <td class="wpa-backup-actions">
+                                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($edit); ?>"><?php echo wp_arzo_icon('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?> Edit</a>
+                                <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                            </td>
+                        </tr>
+                    <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php
+    }
+
+    private function render_snippet_edit($id)
+    {
+        $manager = WP_Arzo_Snippets::instance();
+        $saved   = $this->maybe_save_snippet();
+        $snippet = $id !== '' ? $manager->get($id) : null;
+        if (!$snippet) {
+            $snippet = array('id' => '', 'title' => '', 'type' => 'php', 'scope' => 'everywhere', 'code' => '', 'active' => 0);
+        }
+        $types  = array('php' => 'PHP', 'css' => 'CSS', 'js' => 'JavaScript', 'html' => 'HTML');
+        $scopes = array('everywhere' => 'Everywhere', 'admin' => 'Admin only', 'front' => 'Front-end only');
+        ?>
+        <div class="wpa-admin__bar">
+            <div>
+                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_SNIPPETS)); ?>"><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> All snippets</a>
+                <h1 class="wpa-admin__title" style="margin-top:10px;"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon')); ?> <?php echo $snippet['id'] ? 'Edit snippet' : 'New snippet'; ?></h1>
+            </div>
+        </div>
+        <?php if ($saved) : ?>
+            <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Snippet saved.</div>
+        <?php endif; ?>
+
+        <form method="post" class="wpa-card" style="max-width:820px;">
+            <?php wp_nonce_field(self::NONCE_SNIPPETS, 'wp_arzo_snippet_nonce'); ?>
+            <input type="hidden" name="snippet_id" value="<?php echo esc_attr($snippet['id']); ?>">
+            <div class="wpa-field">
+                <label class="wpa-field__label" for="snp-title">Title</label>
+                <input class="wpa-input" type="text" id="snp-title" name="snippet_title" value="<?php echo esc_attr($snippet['title']); ?>" required>
+            </div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                <div class="wpa-field" style="flex:1;min-width:180px;">
+                    <label class="wpa-field__label" for="snp-type">Type</label>
+                    <select class="wpa-input" id="snp-type" name="snippet_type" data-wpa-select>
+                        <?php foreach ($types as $v => $l) {
+                            echo '<option value="' . esc_attr($v) . '"' . selected($snippet['type'], $v, false) . '>' . esc_html($l) . '</option>';
+                        } ?>
+                    </select>
+                </div>
+                <div class="wpa-field" style="flex:1;min-width:180px;">
+                    <label class="wpa-field__label" for="snp-scope">Run on</label>
+                    <select class="wpa-input" id="snp-scope" name="snippet_scope" data-wpa-select>
+                        <?php foreach ($scopes as $v => $l) {
+                            echo '<option value="' . esc_attr($v) . '"' . selected($snippet['scope'], $v, false) . '>' . esc_html($l) . '</option>';
+                        } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="wpa-field">
+                <label class="wpa-field__label" for="snp-code">Code</label>
+                <textarea class="wpa-input wpa-code" id="snp-code" name="snippet_code" rows="14" spellcheck="false" style="font-family:var(--arzo-font-mono);font-size:13px;line-height:1.5;"><?php echo esc_textarea($snippet['code']); ?></textarea>
+                <p class="wpa-field__help">PHP snippets run as code (omit or include the opening &lt;?php tag). A PHP snippet that errors is auto-disabled.</p>
+            </div>
+            <label class="wpa-toggle" style="margin-bottom:16px;">
+                <input type="checkbox" class="wpa-toggle__input" role="switch" name="snippet_active" value="1" <?php checked(!empty($snippet['active'])); ?>>
+                <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+                <span class="wpa-toggle__label">Active</span>
+            </label>
+            <div><button type="submit" name="wp_arzo_save_snippet" class="wpa-btn wpa-btn--primary"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save snippet</button></div>
+        </form>
+        <?php
+    }
+
+    private function maybe_save_snippet()
+    {
+        if (!isset($_POST['wp_arzo_save_snippet'])) {
+            return false;
+        }
+        if (!current_user_can('manage_options') || !isset($_POST['wp_arzo_snippet_nonce']) ||
+            !wp_verify_nonce(wp_unslash($_POST['wp_arzo_snippet_nonce']), self::NONCE_SNIPPETS)) {
+            wp_die('Security check failed.');
+        }
+        WP_Arzo_Snippets::instance()->save(array(
+            'id'     => isset($_POST['snippet_id']) ? sanitize_text_field(wp_unslash($_POST['snippet_id'])) : '',
+            'title'  => isset($_POST['snippet_title']) ? wp_unslash($_POST['snippet_title']) : '',
+            'type'   => isset($_POST['snippet_type']) ? sanitize_key($_POST['snippet_type']) : 'php',
+            'scope'  => isset($_POST['snippet_scope']) ? sanitize_key($_POST['snippet_scope']) : 'everywhere',
+            'code'   => isset($_POST['snippet_code']) ? wp_unslash($_POST['snippet_code']) : '',
+            'active' => !empty($_POST['snippet_active']),
+        ));
+        return true;
+    }
+
+    private function verify_snippet_request()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_SNIPPETS, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+    }
+
+    public function ajax_snippet_toggle()
+    {
+        $this->verify_snippet_request();
+        $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        $active = isset($_POST['active']) && ($_POST['active'] === '1' || $_POST['active'] === 'true');
+        WP_Arzo_Snippets::instance()->set_active($id, $active);
+        wp_send_json_success(array('id' => $id, 'active' => $active));
+    }
+
+    public function ajax_snippet_delete()
+    {
+        $this->verify_snippet_request();
+        $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        WP_Arzo_Snippets::instance()->delete($id);
+        wp_send_json_success(array('message' => 'Snippet deleted.'));
     }
 
     /* -------------------------------------------------------- License */

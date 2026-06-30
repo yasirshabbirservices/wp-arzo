@@ -184,7 +184,47 @@
     });
   }
 
-  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); bindLicense(); }
+  // -------------------------------------------------- Snippets
+  function bindSnippets() {
+    document.querySelectorAll('.wpa-snippet-toggle').forEach(function (input) {
+      input.addEventListener('change', function () {
+        var body = new FormData();
+        body.append('action', 'wp_arzo_snippet_toggle');
+        body.append('nonce', cfg.snippetNonce || '');
+        body.append('id', input.dataset.id);
+        body.append('active', input.checked ? '1' : '0');
+        input.disabled = true;
+        fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            input.disabled = false;
+            if (res && res.success) { toast(input.checked ? 'Snippet activated' : 'Snippet deactivated', 'success'); }
+            else { input.checked = !input.checked; toast((res && res.data && res.data.message) || 'Failed', 'error'); }
+          })
+          .catch(function () { input.disabled = false; input.checked = !input.checked; toast('Request failed', 'error'); });
+      });
+    });
+
+    document.querySelectorAll('.wpa-snippet-delete').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (!confirm('Delete this snippet permanently?')) return;
+        btn.disabled = true;
+        var body = new FormData();
+        body.append('action', 'wp_arzo_snippet_delete');
+        body.append('nonce', cfg.snippetNonce || '');
+        body.append('id', btn.dataset.id);
+        fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res && res.success) { toast('Snippet deleted', 'success'); var row = btn.closest('tr'); if (row) row.parentNode.removeChild(row); }
+            else { btn.disabled = false; toast('Delete failed', 'error'); }
+          })
+          .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+      });
+    });
+  }
+
+  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); bindLicense(); bindSnippets(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

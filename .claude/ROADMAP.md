@@ -53,7 +53,7 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
   Google Ads — joining Meta/TikTok/LinkedIn/Pinterest + GA4/GTM (**10 marketing modules**).
 
 ### Still to build (next up)
-- **Code Snippets Manager** (free core / Pro advanced) — own CRUD page + PHP fatal-guard.
+- ✅ **Code Snippets Manager** (free) — shipped v6.15.0 (own page + PHP fatal-guard).
 - **Builders (Pro):** CPT/CCT builder, media manager (HappyFiles-style).
 - **Security (Pro):** 2FA, advanced audit log. **Free:** activity log (basic).
 - **Backup (Pro):** S3-compatible remote, scheduled backups, remote restore.
