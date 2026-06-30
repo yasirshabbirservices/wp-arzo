@@ -32,8 +32,11 @@ On **every** change set, without being asked:
    `README.md` "Current version"). PHP changes need a bump so OPcache invalidates; assets
    self-bust (see `wp_arzo_get_asset_version`).
 3. **Commit, tag, and push** — `git commit`, `git tag -a vX.Y.Z`, then
-   `git push origin wp-plugin` and `git push origin vX.Y.Z`. Create a GitHub **release**
-   for the tag when `gh` is available (otherwise note it for the maintainer).
+   `git push origin wp-plugin` and `git push origin vX.Y.Z`. Pushing the tag triggers
+   `.github/workflows/release.yml`, which **auto-creates the GitHub Release** (notes pulled
+   from `CHANGELOG.md`) and attaches a clean **`wp-arzo.zip`**. The in-plugin updater
+   (`includes/class-wp-arzo-updater.php`) then offers that release as a normal WP update —
+   so **the `## [X.Y.Z]` CHANGELOG heading must match the tag** for the notes to be found.
 4. **Verify** — `php -l` every touched PHP file and `node --check` touched JS before
    committing. With no live WP here, harness new engine/gating logic in the scratchpad
    (stub the few WP functions, exercise the pure logic) — see `.claude/start-session.md` §6.

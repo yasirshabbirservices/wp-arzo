@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.43.0] — 2026-07-01
+
+### Added — Automatic updates from GitHub Releases
+- The free plugin now **updates itself from GitHub Releases** — no wordpress.org needed. When
+  a newer release exists, WP Arzo shows a normal plugin update (update badge, one-click
+  update, the per-plugin **auto-update** toggle, and a View-details modal). Engine:
+  `includes/class-wp-arzo-updater.php` (cached GitHub API check; renames the extracted folder
+  to the install slug so updates replace in place).
+- New CI workflow `.github/workflows/release.yml`: every pushed `vX.Y.Z` tag **builds a clean
+  `wp-arzo.zip`** and **publishes the GitHub Release** (notes auto-extracted from this
+  changelog), which the updater serves as the update package.
+
 ## [6.42.0] — 2026-07-01
 
 ### Changed — Setup Wizard polish + brand-token consistency
