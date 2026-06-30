@@ -104,6 +104,12 @@ h3 {
   padding-bottom: 0;
 }
 
+/* The first content block opens flush with the tab strip so the tabs→content gap is
+   the nav's own 20px margin (matching the brand-bar→tabs gap) — drop its card top
+   padding/margin and its leading heading's margin so nothing stacks on top. */
+.container > .content:first-of-type { margin-top: 0; padding-top: 0; }
+.container > .content:first-of-type > :first-child { margin-top: 0; }
+
 .nav a {
   padding: 12px 20px;
   background: var(--background-light);
