@@ -104,7 +104,7 @@ function wp_arzo_console_tool_catalog()
 {
     return array(
         'users'         => array('id' => 'tool_users', 'title' => 'Users (Console)', 'icon' => 'users', 'description' => 'Advanced Tools → Users: browse, search, and manage all site users.'),
-        'database'      => array('id' => 'tool_database', 'title' => 'Database (Console)', 'icon' => 'database', 'description' => 'Advanced Tools → Database: browse tables and run maintenance. Disable to lock down direct DB access.'),
+        'database'      => array('id' => 'tool_database', 'title' => 'Database (Console)', 'icon' => 'database', 'description' => 'Advanced Tools → Database: a full database manager (AdminNeo) — browse, edit, export/import, run SQL. Disable to lock down direct DB access.'),
         'files'         => array('id' => 'tool_files', 'title' => 'File Manager (Console)', 'icon' => 'folder', 'description' => 'Advanced Tools → Files: the elFinder file manager. Disable to block file browsing/editing/downloads.'),
         'plugins'       => array('id' => 'tool_plugins', 'title' => 'Plugins (Console)', 'icon' => 'plugin', 'description' => 'Advanced Tools → Plugins: activate/deactivate plugins from the console.'),
         'themes'        => array('id' => 'tool_themes', 'title' => 'Themes (Console)', 'icon' => 'theme', 'description' => 'Advanced Tools → Themes: switch the active theme from the console.'),

@@ -221,7 +221,18 @@ WP Arzo now has **two** distinct UIs — know which one you're touching:
 2. **The standalone console** (`Advanced Tools` submenu → `admin-ajax.php`) — the legacy
    power-tools (Site Info, Users, Database, Files, Debug, Site Modes, Extra Options, Quick
    Login), documented in the routing section above. Still the right place for the heavy
-   server-admin tools.
+   server-admin tools. Notable surfaces:
+   - **Database** = bundled **AdminNeo** (`assets/libs/adminneo/`, GPL-2.0) shown in an
+     iframe. `adminneo.php` carries a one-line guard (`WP_ARZO_ADMINNEO_OK`) so only the
+     WP-gated `loader.php` (boots WP + `manage_options` every request, auto-connects via
+     wp-config creds) can run it. **When updating AdminNeo, re-apply that guard** — see
+     `assets/libs/adminneo/ATTRIBUTION.md`. The generated `adminneo-config.php` (DB creds) is
+     git-ignored + removed on uninstall.
+   - **Quick Login** = **Temporary Login links** (`includes/class-wp-arzo-temp-login.php` +
+     `features/login.php`); the magic-link auth runs site-wide on `init`.
+   - **Site Modes** ships the standalone **emergency recovery** tool
+     (`wp-arzo-emergency/index.php`) — works with WP fully down; reachable via the pretty
+     rewrite or the bookmarkable direct file URL.
 
 ## Backups
 

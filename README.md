@@ -17,7 +17,7 @@ shared hosting, VPS, cloud, and enterprise WordPress setups. Everything is
 **WP Arzo Pro** add‑on lives in a separate private repo and registers extra modules into
 the same dashboard.
 
-- **Current version:** 6.32.0 (see [CHANGELOG.md](CHANGELOG.md))
+- **Current version:** 6.33.0 (see [CHANGELOG.md](CHANGELOG.md))
 - **Requires:** WordPress ≥ 5.0, PHP ≥ 7.2
 - **Architecture & conventions for contributors / AI agents:** [CLAUDE.md](CLAUDE.md)
 - **Design system:** [.claude/design.md](.claude/design.md)
@@ -51,7 +51,7 @@ off‑site backups.
 |-----|--------------|
 | **Site Info** | WordPress / PHP / MySQL / server / disk usage at a glance |
 | **Users** | Paginated user list; create, delete, and log in as any user |
-| **Database** | Browse tables (with row counts) and run SQL queries |
+| **Database** | Full database manager (AdminNeo, bundled) — browse/edit rows, SQL, export/import — WP-gated and auto-connected |
 | **Files** | Full file manager (elFinder) rooted at the WordPress install |
 | **Plugins** | Activate / deactivate via toggle; upload a plugin ZIP |
 | **Themes** | Switch the active theme; upload a theme ZIP |

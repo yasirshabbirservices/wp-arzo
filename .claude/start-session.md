@@ -20,7 +20,7 @@
 
 | Repo | Path | Branch | Visibility | Current |
 |------|------|--------|------------|---------|
-| **Free core** | `D:\Github\wp-arzo` | `wp-plugin` | public | **v6.32.0** |
+| **Free core** | `D:\Github\wp-arzo` | `wp-plugin` | public | **v6.33.0** |
 | **Pro add-on** | `D:\Github\wp-arzo-pro` | `main` | private | **v1.10.1** |
 
 - Pro registers its modules into the free core's registry via the `wp_arzo_register_features`
@@ -41,8 +41,12 @@ Media, Marketing/SEO, Email (SMTP + log), Security, Branding (custom login), Dev
 - **Config Import/Export** (`config_io`) — versioned JSON of features+settings+snippets,
   safety-snapshot before import.
 - **Left sidebar navigation** (`render_shell_open()`/`render_sidenav()` in
-  `class-wp-arzo-admin.php`) — page tabs went vertical; the dashboard sidebar also has a
-  **category filter** that scopes the feature grid (wired in `wp-arzo-admin.js`).
+  `class-wp-arzo-admin.php`) — page tabs went vertical, collapsible (icon-rail) + scrollable;
+  the dashboard sidebar also has a **category filter** that scopes the feature grid.
+- **Console parity (v6.29–6.33):** branded scrollbar plugin-wide; the console uses the same
+  `.wpa-brandbar` header (GitHub icon); hardened **emergency recovery**; **Temporary Login
+  links** replaced Quick Login; **Database = bundled AdminNeo** (WP-gated `loader.php`, guard
+  in `adminneo.php` — re-apply on update; see `assets/libs/adminneo/ATTRIBUTION.md`).
 - **Setup Wizard + 7 presets** (Essentials / Velocity / Fortress / Creator / Growth /
   Command Center / The Works) — `includes/admin/class-wp-arzo-setup-wizard.php`.
 - **Pro showcase placeholders** — `includes/features-registry/class-feature-pro-placeholders.php`.

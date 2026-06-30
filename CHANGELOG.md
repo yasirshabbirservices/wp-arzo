@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.33.0] — 2026-07-01
+
+### Added — Full database manager (AdminNeo)
+- The Advanced Tools **Database** tool is now a complete database manager powered by
+  **AdminNeo** (bundled, GPL-2.0) — browse and edit rows, run SQL, export/import, manage
+  indexes/foreign keys, and more — replacing the lightweight table viewer (kept as a
+  fallback if the library is removed).
+- **Security:** AdminNeo can never be reached unauthenticated. Its file is guarded (refuses
+  to run unless WP Arzo's WP-gated `loader.php` unlocks it), and `loader.php` boots WordPress
+  and requires `manage_options` on **every** request before auto-connecting with the site's
+  own wp-config DB credentials. The `Database` console toggle still gates the whole tool.
+  Apache `.htaccess` denies direct access as defense-in-depth; the connection config is
+  generated at runtime and git-ignored, and removed on uninstall.
+- Note: admins already had arbitrary-SQL access in this tool, so AdminNeo is a far better UI,
+  not a new privilege.
+
 ## [6.32.0] — 2026-07-01
 
 ### Changed — Temporary Login links (replaces the old Quick Login)
