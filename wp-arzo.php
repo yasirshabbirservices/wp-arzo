@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.45.0
+ * Version: 6.46.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.45.0');
+    define('WP_ARZO_VERSION', '6.46.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -501,7 +501,8 @@ function wp_arzo_bootstrap_features()
     $registry->register(new WP_Arzo_Feature_SVG_Upload());
     $registry->register(new WP_Arzo_Feature_WebP());
     $registry->register(new WP_Arzo_Feature_Media_Cleanup());
-    $registry->register(new WP_Arzo_Feature_Media_Folders());
+    // Media Folders is a Pro feature (the Pro add-on registers the full nested manager).
+    // The free tier advertises it as a locked PRO card via wp_arzo_pro_feature_catalog().
     $registry->register(new WP_Arzo_Feature_Media_Replace());
     $registry->register(new WP_Arzo_Feature_Image_SEO());
     $registry->register(new WP_Arzo_Feature_Disable_Archives());

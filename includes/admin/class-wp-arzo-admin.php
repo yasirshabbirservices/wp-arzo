@@ -321,10 +321,39 @@ class WP_Arzo_Admin
             'rest_auth' => array('label' => 'REST API Auth', 'icon' => 'key', 'url' => admin_url('admin.php?page=' . self::PAGE_REST_AUTH), 'page' => self::PAGE_REST_AUTH),
             'roles'     => array('label' => 'Roles', 'icon' => 'users', 'url' => admin_url('admin.php?page=' . self::PAGE_ROLES), 'page' => self::PAGE_ROLES),
             'config'    => array('label' => 'Import / Export', 'icon' => 'sliders', 'url' => admin_url('admin.php?page=' . self::PAGE_CONFIG), 'page' => self::PAGE_CONFIG),
-            'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
         );
+
+        /**
+         * Let add-ons (e.g. WP Arzo Pro) surface their own page-owning features in the
+         * dashboard sidebar. Each entry is keyed by a unique string and is an array of:
+         *   'label' (string), 'icon' (wp_arzo_icon key), 'url' (string),
+         *   'feature' (optional feature id — the tab shows only while that feature is
+         *              enabled), 'blank' (optional bool — open in a new tab).
+         * Core pages keep their place; "Advanced Tools" is appended last below.
+         *
+         * @param array  $tabs    Tab definitions so far.
+         * @param string $current Active page key.
+         */
+        $tabs = apply_filters('wp_arzo_admin_page_tabs', $tabs, $current);
+        if (!is_array($tabs)) {
+            $tabs = array();
+        }
+
+        // Advanced Tools always sits last, after any add-on entries.
+        $tabs['tools'] = array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true);
+
         foreach ($tabs as $key => $tab) {
-            if (!empty($tab['page']) && $key !== $current && !$this->page_visible($tab['page'])) {
+            if ($key === $current) {
+                continue;
+            }
+            // Add-on tabs may gate directly on a feature id; core tabs use the page map.
+            if (!empty($tab['feature'])) {
+                if (!$this->registry()->is_enabled($tab['feature'])) {
+                    unset($tabs[$key]);
+                }
+                continue;
+            }
+            if (!empty($tab['page']) && !$this->page_visible($tab['page'])) {
                 unset($tabs[$key]);
             }
         }

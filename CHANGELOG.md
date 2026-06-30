@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.46.0] — 2026-07-01
+
+### Fixed — Pro feature production-readiness (audit follow-up)
+- **`media_folders` ID collision resolved.** The free core no longer registers a Media
+  Folders module (it was an incomplete stub with no folder-creation UI, and it collided
+  with the Pro module under the same id). **Media Folders is now Pro-only** — the complete
+  nested folder manager ships in WP Arzo Pro; the free tier advertises it as a locked **PRO**
+  card via the Pro catalog. (Removed `class-feature-media-folders.php` + its registration.)
+- **Pro pages now appear in the dashboard sidebar.** Added a `wp_arzo_admin_page_tabs` filter
+  so add-ons (WP Arzo Pro) can surface their page-owning features (Content Types, Custom
+  Fields, Media Folders, Redirects, Cron) in the WP Arzo left nav — previously they were only
+  reachable via the native wp-admin submenu and easy to miss ("Pro looks like it does
+  nothing"). Each injected tab self-gates on its feature id (shown only while enabled).
+
 ## [6.45.0] — 2026-07-01
 
 ### Changed — "More from Yasir Shabbir" promo cards redesigned
