@@ -53,9 +53,12 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
   Google Ads — joining Meta/TikTok/LinkedIn/Pinterest + GA4/GTM (**10 marketing modules**).
 
 ### Competitor references (local: C:\Users\yasir\Downloads\Dev)
-ASE, Solid Security, erropix-advanced-scripts, HappyFiles Pro, JetEngine, **SureMail**
-(providers: SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic),
-WP Reset Pro, **WPvivid** (backup + cloud). Mine each for the matching build.
+ASE, Solid Security, **erropix-advanced-scripts** (snippets: priority + shortcode +
+conditional logic + SCSS — enhance our Snippets), **HappyFiles Pro** (media folders via a
+`*_folder` taxonomy on attachments), JetEngine (CPT/CCT), **SureMail** (providers:
+SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Reset Pro**
+(delete transients/widgets/themes/plugins, reset/nuclear → a free "Site Tools"),
+**WPvivid** (backup + cloud). Mine each for the matching build.
 
 ### Still to build (next up)
 - ✅ **Code Snippets Manager** (free) — v6.15.0. ✅ **Scheduled Backups** (free) — v6.19.0.

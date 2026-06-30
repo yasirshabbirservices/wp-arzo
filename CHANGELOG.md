@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.20.0] — 2026-06-30
+
+### Changed — Custom Login Page UI/UX overhaul
+- The Custom Login Page now fully styles the login form, not just colors: the **card,
+  logo, labels, inputs (with accent focus ring), password show/hide button, remember-me
+  checkbox, submit button, links, and message/error boxes** — across every login screen
+  (sign-in, lost password, reset, register).
+- New options: **input background**, **button text** color, and a **rounded corners**
+  toggle. Additional CSS is now a raw `code` field (no longer tag-stripped on save).
+
 ## [6.19.1] — 2026-06-30
 
 ### Fixed (critical)
