@@ -183,6 +183,19 @@ body.wp-arzo-screen .notice:not(.wpa-keep),
 body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 .wpa-admin { margin-top: 16px; }
 
+/* Strict brand colours — never inherit wp-admin's blue links / focus rings inside
+   WP Arzo surfaces. Generic links read as accent; buttons + nav keep their own colour;
+   focus uses the brand ring (not wp-admin's blue box-shadow). */
+.wpa-admin a:not(.wpa-btn):not(.wpa-sidenav__item):not(.wpa-brandbar__gh):not(.wpa-brandbar__email) {
+  color: var(--arzo-accent);
+}
+.wpa-admin a:focus,
+.wpa-sidenav__item:focus,
+.wpa-btn:focus { outline: none; box-shadow: none; }
+.wpa-admin a:focus-visible,
+.wpa-sidenav__item:focus-visible,
+.wpa-btn:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
+
 /* .wpa-brandbar lives in wp-arzo-components.css (shared by the dashboard + the
    standalone console) so both surfaces render an identical header. */
 

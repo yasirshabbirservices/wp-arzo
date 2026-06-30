@@ -98,19 +98,33 @@ class WP_Arzo_Feature_Heartbeat_Control extends WP_Arzo_Feature
     {
         $behavior = $this->get_setting('behavior', 'dashboard_only');
 
+        // Core's `wp-auth-check` (the "session expired" modal) declares a `heartbeat`
+        // dependency. Removing heartbeat alone leaves that dependency dangling, which
+        // WordPress 6.9+ reports as a "Function WP_Scripts::add was called incorrectly"
+        // notice. So whenever we kill heartbeat we also drop wp-auth-check and stop core
+        // from enqueuing it. Done at enqueue time (priority 100) so the scripts exist first.
+        $kill_heartbeat = function () {
+            wp_deregister_script('heartbeat');
+            wp_dequeue_script('heartbeat');
+            wp_deregister_script('wp-auth-check');
+            wp_dequeue_script('wp-auth-check');
+        };
+
         if ($behavior === 'disable_all') {
-            add_action('init', function () {
-                wp_deregister_script('heartbeat');
-            }, 1);
+            add_action('admin_enqueue_scripts', $kill_heartbeat, 100);
+            add_action('wp_enqueue_scripts', $kill_heartbeat, 100);
+            // Prevent core from enqueuing the auth-check modal (admin-only) in the first place.
+            remove_action('admin_enqueue_scripts', 'wp_auth_check_load');
             return;
         }
 
         if ($behavior === 'dashboard_only') {
-            add_action('admin_enqueue_scripts', function ($hook) {
+            add_action('admin_enqueue_scripts', function ($hook) use ($kill_heartbeat) {
                 if ($hook !== 'index.php') {
-                    wp_deregister_script('heartbeat');
+                    $kill_heartbeat();
+                    remove_action('admin_print_footer_scripts', 'wp_auth_check_html');
                 }
-            });
+            }, 100);
         }
 
         add_filter('heartbeat_settings', function ($settings) {

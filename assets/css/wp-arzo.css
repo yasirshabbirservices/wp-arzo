@@ -548,12 +548,14 @@ a {
 }
 
 .btn-edit {
-  background: #2196f3;
-  color: white;
+  background: var(--arzo-bg-hover);
+  color: var(--arzo-text-primary);
+  border: 1px solid var(--arzo-border-strong);
 }
 
 .btn-edit:hover {
-  background: #1976d2;
+  background: var(--arzo-bg-elev);
+  color: var(--arzo-accent);
 }
 
 .btn-download {

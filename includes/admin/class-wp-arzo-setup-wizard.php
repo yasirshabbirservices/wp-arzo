@@ -148,7 +148,7 @@ class WP_Arzo_Setup_Wizard
                 'features' => array(
                     'code_snippets', 'custom_code', 'custom_css', 'heartbeat_control',
                     'auto_snapshots', 'scheduled_backups', 'media_cleanup',
-                    'role_manager', 'config_io', 'rest_api_auth',
+                    'role_manager', 'rest_api_auth',
                     'tool_users', 'tool_database', 'tool_files', 'tool_plugins',
                     'tool_themes', 'tool_debug', 'tool_site_modes', 'tool_extra_options',
                     'tool_login',

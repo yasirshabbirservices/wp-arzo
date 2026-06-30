@@ -1133,8 +1133,8 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                 <div class="developer-logo">
                     <img src="<?php echo get_asset_url('wp-arzo-glyph.svg'); ?>" alt="WP Arzo">
                     <div>
-                        <div>Yasir Shabbir</div>
-                        <a href="mailto:contact@yasirshabbir.com">contact@yasirshabbir.com</a>
+                        <div>WP Arzo</div>
+                        <a href="https://yasirshabbir.com" target="_blank" rel="noopener">by Yasir Shabbir</a>
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">
