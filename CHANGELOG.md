@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.48.0] — 2026-07-01
+
+### Changed
+- **Deterministic WP Arzo admin-menu order.** Added `order_submenu()` (admin_menu:999) that
+  sorts the whole WP Arzo submenu — free **and** Pro pages — by a fixed slug→rank map, since
+  the native `add_submenu_page` `$position` argument is unreliable when submenus register at
+  different hook priorities (the Pro add-on registers later). Final order: Dashboard →
+  Content Types → Custom Fields → Snippets → Media Cleanup → Redirects → Email Log → Backups →
+  Cron → Activity Log → REST API Auth → Roles → Import/Export → Advanced Tools → Setup Wizard.
+
 ## [6.47.0] — 2026-07-01
 
 ### Changed — Dashboard nav simplified; pages are WP-admin menus

@@ -52,6 +52,10 @@ class WP_Arzo_Admin
     public function init()
     {
         add_action('admin_menu', array($this, 'add_menu'));
+        // Re-order the WP Arzo submenu deterministically, after add-ons (Pro registers at
+        // admin_menu:22) have added theirs. The native add_submenu_page $position arg is
+        // unreliable across differing hook priorities, so we sort the final array ourselves.
+        add_action('admin_menu', array($this, 'order_submenu'), 999);
         add_action('admin_enqueue_scripts', array($this, 'enqueue'));
         add_action('admin_head', array($this, 'menu_icon_style'));
         add_filter('admin_body_class', array($this, 'admin_body_class'));
@@ -161,6 +165,42 @@ class WP_Arzo_Admin
         if (function_exists('wp_arzo_redirect_page')) {
             add_submenu_page(self::PAGE, 'Advanced Tools', 'Advanced Tools', 'manage_options', 'wp-arzo-tool', 'wp_arzo_redirect_page', 95);
         }
+    }
+
+    /**
+     * Deterministically order the WP Arzo submenu (free + Pro pages) by a slug→rank map.
+     * Runs at admin_menu:999 so every add-on page is present before we sort. Unknown slugs
+     * (future add-on pages) fall in the middle, before Import/Export & Advanced Tools.
+     */
+    public function order_submenu()
+    {
+        global $submenu;
+        if (empty($submenu[self::PAGE]) || !is_array($submenu[self::PAGE])) {
+            return;
+        }
+        $rank = array(
+            self::PAGE              => 0,   // Dashboard
+            'wp-arzo-content-types' => 20,  // Pro
+            'wp-arzo-custom-fields' => 22,  // Pro
+            self::PAGE_SNIPPETS     => 30,
+            self::PAGE_MEDIA        => 35,
+            'wp-arzo-redirects'     => 40,  // Pro
+            self::PAGE_EMAIL_LOG    => 45,
+            self::PAGE_BACKUPS      => 50,
+            'wp-arzo-cron'          => 55,  // Pro
+            self::PAGE_ACTIVITY     => 60,
+            self::PAGE_REST_AUTH    => 65,
+            self::PAGE_ROLES        => 70,
+            self::PAGE_CONFIG       => 85,
+            'wp-arzo-tool'          => 95,
+            'wp-arzo-setup'         => 98,  // Setup Wizard
+        );
+        usort($submenu[self::PAGE], function ($a, $b) use ($rank) {
+            // $item[2] is the menu slug.
+            $ra = isset($rank[$a[2]]) ? $rank[$a[2]] : 80;
+            $rb = isset($rank[$b[2]]) ? $rank[$b[2]] : 80;
+            return $ra <=> $rb;
+        });
     }
 
     /**
