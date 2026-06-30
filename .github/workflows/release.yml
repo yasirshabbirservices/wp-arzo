@@ -30,6 +30,8 @@ jobs:
             --exclude='.git' \
             --exclude='.github' \
             --exclude='.claude' \
+            --exclude='CLAUDE.md' \
+            --exclude='AI_RULES.md' \
             --exclude='node_modules' \
             --exclude='build' \
             --exclude='.gitignore' \
