@@ -47,6 +47,18 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
 - **v6.12.0** — 8 more free features (**30 total**): Page/Post Duplication, Missed Schedule
   Fix, SVG Upload, Last Login Column, Header/Body/Footer Code, Custom CSS, Disable All
   Updates, Login/Logout Redirects. New raw `code` settings field type.
+- **v6.13.0** — 5 more free features (**35 total**): Crawl Optimizations, Custom Body Class,
+  Disable Application Passwords, Clean Up Admin Bar, Enhance List Tables.
+- **Pro v1.3.0** — ad-pixel suite completed: Snapchat, X (Twitter), Microsoft/Bing UET,
+  Google Ads — joining Meta/TikTok/LinkedIn/Pinterest + GA4/GTM (**10 marketing modules**).
+
+### Still to build (next up)
+- **Code Snippets Manager** (free core / Pro advanced) — own CRUD page + PHP fatal-guard.
+- **Builders (Pro):** CPT/CCT builder, media manager (HappyFiles-style).
+- **Security (Pro):** 2FA, advanced audit log. **Free:** activity log (basic).
+- **Backup (Pro):** S3-compatible remote, scheduled backups, remote restore.
+- **Branding (Pro):** custom admin/dashboard, white-label. **AI/MCP** layer.
+- Ops: cron manager, redirect/404, notifications, GSC verification.
 - **v6.8.0** — **Email (free):** SMTP delivery (phpmailer_init config + force-from) and
   Email Log (capped option store, sent/failed, WP Arzo → Email Log page with clear).
   Added `password`/`email` settings-field types (passwords never re-rendered; blank keeps
