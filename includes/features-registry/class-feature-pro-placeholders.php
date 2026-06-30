@@ -98,14 +98,15 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'content_types', 'title' => 'Content Types (CPT/CCT)', 'group' => 'content', 'icon' => 'file', 'description' => 'Build custom post types and taxonomies from a UI.'),
         array('id' => 'custom_fields', 'title' => 'Custom Fields (Meta Boxes)', 'group' => 'content', 'icon' => 'edit', 'description' => 'Define field groups and attach them to post types as editor meta boxes.'),
 
-        // (Media Folders moved to the free core in v6.38.0.)
+        // Media
+        array('id' => 'media_folders', 'title' => 'Media Folders', 'group' => 'media', 'icon' => 'folder', 'description' => 'Organise the media library into nestable folders, with library filters and per-file assignment.'),
 
         // Branding & UI
         array('id' => 'admin_branding', 'title' => 'Admin Branding & Dashboard', 'group' => 'branding', 'icon' => 'sparkles', 'description' => 'White-label wp-admin: accent color, custom footer, hide the WP logo, custom admin CSS, and a branded Custom Dashboard.'),
 
         // Ops & Monitoring
         array('id' => 'redirects', 'title' => 'Redirects & 404 Monitor', 'group' => 'ops', 'icon' => 'external', 'description' => 'Create URL redirects (exact or regex, 301/302/307) and monitor 404s.'),
-        array('id' => 'cron_manager', 'title' => 'Cron Manager', 'group' => 'ops', 'icon' => 'settings', 'description' => 'View, run, and delete WP-Cron events and inspect schedules.'),
+        array('id' => 'cron_manager', 'title' => 'Cron Manager', 'group' => 'ops', 'icon' => 'clock', 'description' => 'View, run, and delete WP-Cron events and inspect schedules.'),
 
         // Email
         array('id' => 'email_api', 'title' => 'API Email Providers', 'group' => 'email', 'icon' => 'mail', 'description' => 'Send email through a provider API (SendGrid, Brevo, Mailgun) for the best deliverability.'),
