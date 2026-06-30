@@ -160,3 +160,123 @@
 .wpa-backup-meta { color: var(--arzo-text-secondary); font-size: var(--arzo-fs-xs); margin-top: 3px; }
 .wpa-backup-actions { display: flex; gap: var(--arzo-space-2); justify-content: flex-end; }
 .wpa-backup-empty td { color: var(--arzo-text-secondary); text-align: center; padding: var(--arzo-space-8) 16px; }
+
+/* ============================================================================
+   v6.6 UI overhaul — full-dark page, branded header, compact cards, promos
+   (appended last so it supersedes the earlier rules)
+   ========================================================================== */
+
+/* Kill all the white wp-admin chrome on our screens. */
+body.wp-arzo-screen,
+body.wp-arzo-screen #wpcontent,
+body.wp-arzo-screen #wpbody,
+body.wp-arzo-screen #wpbody-content,
+body.wp-arzo-screen .wrap {
+  background: var(--arzo-bg-dark) !important;
+}
+body.wp-arzo-screen #wpbody-content { padding-bottom: 40px; }
+body.wp-arzo-screen #wpfooter { color: var(--arzo-text-muted); }
+body.wp-arzo-screen #wpfooter a { color: var(--arzo-text-secondary); }
+body.wp-arzo-screen .update-nag,
+body.wp-arzo-screen .notice:not(.wpa-keep),
+body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
+.wpa-admin { margin-top: 16px; }
+
+/* Branded header bar (mirrors the standalone console). */
+.wpa-brandbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--arzo-space-4);
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+  margin-bottom: var(--arzo-space-3);
+}
+.wpa-brandbar__id { display: flex; align-items: center; gap: 12px; }
+.wpa-brandbar__logo { width: 38px; height: 38px; border-radius: 8px; object-fit: contain; background: var(--arzo-bg-hover); padding: 4px; }
+.wpa-brandbar__name { font-size: var(--arzo-fs-lg); font-weight: 700; color: var(--arzo-text-strong); line-height: 1.1; }
+.wpa-brandbar__email { font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); text-decoration: none; }
+.wpa-brandbar__email:hover { color: var(--arzo-accent); }
+.wpa-brandbar__meta { display: flex; align-items: center; gap: 16px; }
+.wpa-brandbar__ver { color: var(--arzo-accent); font-weight: 700; font-size: var(--arzo-fs-sm); }
+.wpa-brandbar__gh { display: inline-flex; align-items: center; gap: 5px; color: var(--arzo-text-primary); text-decoration: none; font-size: var(--arzo-fs-sm); }
+.wpa-brandbar__gh:hover { color: var(--arzo-accent); }
+
+/* Title + search row. */
+.wpa-admin__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--arzo-space-4);
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+  margin-bottom: var(--arzo-space-5);
+}
+.wpa-admin__bar .wpa-admin__title { font-size: var(--arzo-fs-xl); }
+.wpa-admin__bar .wpa-admin__title .wpa-icon { width: 20px; height: 20px; }
+.wpa-admin__bar .wpa-admin__subtitle { margin-top: 3px; font-size: var(--arzo-fs-sm); }
+
+/* Compact toggle-box cards (Debug-settings style: label+desc left, toggle right). */
+.wpa-grid {
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.wpa-feature-card {
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--arzo-bg-panel);
+  border-radius: var(--arzo-radius-sm);
+}
+.wpa-feature-card.is-on { box-shadow: inset 3px 0 0 var(--arzo-accent); }
+.wpa-feature-card__icon { width: 34px; height: 34px; }
+.wpa-feature-card__icon .wpa-icon { width: 18px; height: 18px; }
+.wpa-feature-card__title { font-size: 13.5px; }
+.wpa-feature-card__desc {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wpa-feature-card__actions { gap: 8px; }
+/* Hide the redundant inline SR label visual gap by keeping toggle tight */
+.wpa-feature-card .wpa-toggle { gap: 0; }
+
+/* Cross-promotion area. */
+.wpa-promos { margin-top: var(--arzo-space-8); }
+.wpa-promo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+}
+.wpa-promo {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(180deg, var(--arzo-bg-panel), var(--arzo-bg-dark));
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+}
+.wpa-promo__icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--arzo-radius-sm);
+  background: var(--arzo-accent-soft);
+  color: var(--arzo-accent);
+}
+.wpa-promo__head { display: flex; align-items: center; gap: 8px; }
+.wpa-promo__title { margin: 0; font-size: var(--arzo-fs-md); font-weight: 700; color: var(--arzo-text-strong); }
+.wpa-promo__desc { margin: 6px 0 12px; font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); line-height: 1.5; }

@@ -37,6 +37,7 @@ class WP_Arzo_Admin
     {
         add_action('admin_menu', array($this, 'add_menu'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue'));
+        add_filter('admin_body_class', array($this, 'admin_body_class'));
         add_action('wp_ajax_wp_arzo_toggle_feature', array($this, 'ajax_toggle_feature'));
         add_action('wp_ajax_wp_arzo_backup_create', array($this, 'ajax_backup_create'));
         add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
@@ -50,6 +51,20 @@ class WP_Arzo_Admin
 
     /* --------------------------------------------------------------- Menu */
 
+    public function admin_body_class($classes)
+    {
+        if ($this->is_our_page()) {
+            $classes .= ' wp-arzo-screen';
+        }
+        return $classes;
+    }
+
+    private function menu_icon()
+    {
+        $logo = WP_ARZO_PLUGIN_DIR . 'assets/yasir-shabbir-white-logo.png';
+        return file_exists($logo) ? WP_ARZO_PLUGIN_URL . 'assets/yasir-shabbir-white-logo.png' : 'dashicons-admin-tools';
+    }
+
     public function add_menu()
     {
         add_menu_page(
@@ -58,7 +73,7 @@ class WP_Arzo_Admin
             'manage_options',
             self::PAGE,
             array($this, 'render'),
-            'dashicons-admin-tools',
+            $this->menu_icon(),
             100
         );
         add_submenu_page(self::PAGE, 'Dashboard', 'Dashboard', 'manage_options', self::PAGE, array($this, 'render'));
@@ -144,17 +159,42 @@ class WP_Arzo_Admin
         echo '</div>';
     }
 
+    private function render_brand_bar()
+    {
+        $logo = WP_ARZO_PLUGIN_URL . 'assets/yasir-shabbir-white-logo.png';
+        $ver  = defined('WP_ARZO_VERSION') ? WP_ARZO_VERSION : '';
+        ?>
+        <div class="wpa-brandbar">
+            <div class="wpa-brandbar__id">
+                <img class="wpa-brandbar__logo" src="<?php echo esc_url($logo); ?>" alt="Yasir Shabbir">
+                <div>
+                    <div class="wpa-brandbar__name">WP Arzo</div>
+                    <a class="wpa-brandbar__email" href="mailto:contact@yasirshabbir.com">by Yasir Shabbir</a>
+                </div>
+            </div>
+            <div class="wpa-brandbar__meta">
+                <span class="wpa-brandbar__ver">v<?php echo esc_html($ver); ?></span>
+                <a class="wpa-brandbar__gh" href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank" rel="noopener">
+                    <?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> GitHub
+                </a>
+            </div>
+        </div>
+        <?php
+    }
+
     private function render_dashboard()
     {
         $registry = $this->registry();
         $grouped  = $registry->grouped();
         $total    = count($registry->all());
         $enabled  = $registry->count_enabled();
+
+        $this->render_brand_bar();
         ?>
-        <div class="wpa-admin__header">
+        <div class="wpa-admin__bar">
             <div>
-                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('tools', array('class' => 'wpa-icon')); ?> WP Arzo</h1>
-                <p class="wpa-admin__subtitle">Enable only what you need. <strong><?php echo (int) $enabled; ?></strong> of <?php echo (int) $total; ?> features active.</p>
+                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('tools', array('class' => 'wpa-icon')); ?> Feature Manager</h1>
+                <p class="wpa-admin__subtitle">Enable only what you need. <strong><?php echo (int) $enabled; ?></strong> of <?php echo (int) $total; ?> active.</p>
             </div>
             <div class="wpa-admin__search">
                 <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?>
@@ -179,6 +219,65 @@ class WP_Arzo_Admin
         </div>
 
         <p class="wpa-admin__empty" id="wpa-no-results" hidden>No features match your search.</p>
+        <?php
+        $this->render_promos();
+    }
+
+    /**
+     * Cross-promotion area. Filterable so products are easy to add/remove.
+     */
+    private function render_promos()
+    {
+        $promos = apply_filters('wp_arzo_promoted_products', array(
+            array(
+                'title' => 'WP Arzo Pro',
+                'desc'  => 'Analytics & ad pixels, GSC/GTM, advanced SMTP + email logs, media manager, CPT/CCT builder, cloud backups, custom login & dashboard branding, and more.',
+                'cta'   => 'Coming soon',
+                'url'   => 'https://yasirshabbir.com',
+                'icon'  => 'sparkles',
+                'badge' => 'PRO',
+            ),
+            array(
+                'title' => 'Need a custom build?',
+                'desc'  => 'Yasir Shabbir builds bespoke WordPress plugins, integrations and performance work for agencies and businesses.',
+                'cta'   => 'Get in touch',
+                'url'   => 'https://yasirshabbir.com',
+                'icon'  => 'bolt',
+                'badge' => '',
+            ),
+        ));
+
+        if (empty($promos) || !is_array($promos)) {
+            return;
+        }
+        ?>
+        <section class="wpa-promos" aria-label="More products">
+            <h2 class="wpa-group__title"><?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> More from Yasir Shabbir</h2>
+            <div class="wpa-promo-grid">
+                <?php foreach ($promos as $p) :
+                    $title = isset($p['title']) ? $p['title'] : '';
+                    $desc  = isset($p['desc']) ? $p['desc'] : '';
+                    $cta   = isset($p['cta']) ? $p['cta'] : 'Learn more';
+                    $url   = isset($p['url']) ? $p['url'] : '#';
+                    $icon  = isset($p['icon']) ? $p['icon'] : 'bolt';
+                    $badge = isset($p['badge']) ? $p['badge'] : '';
+                    ?>
+                    <div class="wpa-promo">
+                        <div class="wpa-promo__icon"><?php echo wp_arzo_icon($icon, array('class' => 'wpa-icon')); ?></div>
+                        <div class="wpa-promo__body">
+                            <div class="wpa-promo__head">
+                                <h3 class="wpa-promo__title"><?php echo esc_html($title); ?></h3>
+                                <?php if ($badge) : ?><span class="wpa-badge wpa-badge--warning"><?php echo esc_html($badge); ?></span><?php endif; ?>
+                            </div>
+                            <p class="wpa-promo__desc"><?php echo esc_html($desc); ?></p>
+                            <a class="wpa-btn wpa-btn--secondary wpa-btn--sm" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener">
+                                <?php echo esc_html($cta); ?> <?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
         <?php
     }
 
@@ -217,9 +316,9 @@ class WP_Arzo_Admin
                 <?php if ($available) : ?>
                     <label class="wpa-toggle" title="<?php echo esc_attr($enabled ? 'Disable' : 'Enable'); ?>">
                         <input type="checkbox" class="wpa-toggle__input wpa-feature-toggle" role="switch"
+                            aria-label="<?php echo esc_attr($feature->title()); ?>"
                             data-feature="<?php echo esc_attr($id); ?>" <?php checked($enabled); ?>>
                         <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
-                        <span class="wpa-sr-only"><?php echo esc_html($feature->title()); ?></span>
                     </label>
                 <?php else : ?>
                     <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="#"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</a>
@@ -410,7 +509,8 @@ class WP_Arzo_Admin
         $total     = size_format($manager->total_size());
         ?>
         <div class="wrap wpa-admin">
-            <div class="wpa-admin__header">
+            <?php $this->render_brand_bar(); ?>
+            <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('database', array('class' => 'wpa-icon')); ?> Backups</h1>
                     <p class="wpa-admin__subtitle"><strong><?php echo count($snapshots); ?></strong> snapshot(s) · <?php echo esc_html($total); ?> on disk · database snapshots (v1)</p>

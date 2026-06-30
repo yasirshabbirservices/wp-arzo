@@ -121,4 +121,50 @@ and log users in, every state-changing entry point must:
 4. Keep `README.md`, `README.txt` (`Stable tag`), and `CHANGELOG.md` in sync with the
    version bump.
 
-See [`.claude/skills/`](.claude/skills/) for task-specific playbooks.
+## Two surfaces (important)
+
+WP Arzo now has **two** distinct UIs — know which one you're touching:
+
+1. **The native admin dashboard** (`WP Arzo` menu) — the **feature manager**. This is the
+   modern surface and where new site-enhancement features go. It is powered by a
+   **feature registry**:
+   - `includes/class-wp-arzo-feature.php` — abstract `WP_Arzo_Feature` (id / title / group
+     / tier / icon / settings_schema / boot).
+   - `includes/class-wp-arzo-feature-registry.php` — registers modules, persists
+     enable-state (`wp_arzo_features`) + settings (`wp_arzo_settings`), boots only enabled
+     features, and fires `wp_arzo_before_feature_toggle` / `wp_arzo_feature_enabled` /
+     `…_disabled` / `…_toggled`.
+   - `includes/features-registry/*.php` — the feature modules. Add one here and register it
+     in `wp_arzo_bootstrap_features()` (wp-arzo.php). See the
+     [`wp-arzo-feature-module`](.claude/skills/wp-arzo-feature-module/SKILL.md) skill.
+   - `includes/admin/class-wp-arzo-admin.php` — renders the dashboard (toggle grid),
+     schema-driven settings, the **Backups** page, and the AJAX toggle/backup handlers
+     (all capability + nonce gated). Dashboard assets: `design-tokens.css` →
+     `wp-arzo-components.css` → `wp-arzo-admin.css`, plus `wp-arzo-components.js` +
+     `wp-arzo-admin.js`.
+   - Add-on hooks: `wp_arzo_register_features` (Pro registers modules) and
+     `wp_arzo_feature_is_available` (license gate). Licensing provider: **Freemius**.
+
+2. **The standalone console** (`Advanced Tools` submenu → `admin-ajax.php`) — the legacy
+   power-tools (Site Info, Users, Database, Files, Debug, Site Modes, Extra Options, Quick
+   Login), documented in the routing section above. Still the right place for the heavy
+   server-admin tools.
+
+## Backups
+
+`includes/class-wp-arzo-backup-manager.php` — streaming JSONL database snapshots
+(`options` | `full_db`), restore (safety-snapshot-first, TRUNCATE + re-insert), delete,
+retention. Stored in a web-protected `uploads/wp-arzo-backups/`. The **Automated
+Snapshots** feature hooks `wp_arzo_before_feature_toggle` to snapshot before a toggle.
+
+## Design system & components
+
+One token source of truth: `assets/css/design-tokens.css` (canonical `--arzo-*` + legacy
+aliases). Reusable `wpa-` components in `assets/css/wp-arzo-components.css` +
+`assets/js/wp-arzo-components.js`. Icons via `wp_arzo_icon()`
+(`includes/wp-arzo-icons.php`) — real SVGs, never emoji/default glyphs. See
+[`.claude/design.md`](.claude/design.md). New UI uses toggles (not checkboxes),
+`.wpa-select` (not native selects), and composes components rather than bespoke CSS.
+
+See [`.claude/skills/`](.claude/skills/) and [`.claude/ROADMAP.md`](.claude/ROADMAP.md) for
+playbooks and the product roadmap.
