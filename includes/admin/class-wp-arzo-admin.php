@@ -115,16 +115,62 @@ class WP_Arzo_Admin
         );
         add_submenu_page(self::PAGE, 'Dashboard', 'Dashboard', 'manage_options', self::PAGE, array($this, 'render'));
 
-        add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'));
-        add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'));
-        add_submenu_page(self::PAGE, 'Snippets', 'Snippets', 'manage_options', self::PAGE_SNIPPETS, array($this, 'render_snippets'));
-        add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'));
-        add_submenu_page(self::PAGE, 'Activity Log', 'Activity Log', 'manage_options', self::PAGE_ACTIVITY, array($this, 'render_activity_log'));
+        // Feature pages appear only while their feature is enabled (see page_visible()).
+        if ($this->page_visible(self::PAGE_BACKUPS)) {
+            add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'));
+        }
+        if ($this->page_visible(self::PAGE_EMAIL_LOG)) {
+            add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'));
+        }
+        if ($this->page_visible(self::PAGE_SNIPPETS)) {
+            add_submenu_page(self::PAGE, 'Snippets', 'Snippets', 'manage_options', self::PAGE_SNIPPETS, array($this, 'render_snippets'));
+        }
+        if ($this->page_visible(self::PAGE_MEDIA)) {
+            add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'));
+        }
+        if ($this->page_visible(self::PAGE_ACTIVITY)) {
+            add_submenu_page(self::PAGE, 'Activity Log', 'Activity Log', 'manage_options', self::PAGE_ACTIVITY, array($this, 'render_activity_log'));
+        }
 
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
             add_submenu_page(self::PAGE, 'Advanced Tools', 'Advanced Tools', 'manage_options', 'wp-arzo-tool', 'wp_arzo_redirect_page');
         }
+    }
+
+    /**
+     * Map a feature-owned admin page to the feature id(s) that unlock it. A page
+     * is shown when ANY of its features is enabled. Pages not listed here (e.g.
+     * Media Cleanup — an on-demand tool with no toggle) are always available.
+     *
+     * @return array<string,array<int,string>>
+     */
+    private function page_features()
+    {
+        return array(
+            self::PAGE_BACKUPS   => array('auto_snapshots', 'scheduled_backups'),
+            self::PAGE_EMAIL_LOG => array('email_log'),
+            self::PAGE_SNIPPETS  => array('code_snippets'),
+            self::PAGE_ACTIVITY  => array('activity_log'),
+        );
+    }
+
+    /**
+     * Whether a feature-owned page should be registered/linked right now.
+     * Unmapped pages are always visible.
+     */
+    private function page_visible($page)
+    {
+        $map = $this->page_features();
+        if (!isset($map[$page])) {
+            return true;
+        }
+        foreach ($map[$page] as $feature_id) {
+            if ($this->registry()->is_enabled($feature_id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private function is_our_page()
@@ -234,13 +280,19 @@ class WP_Arzo_Admin
     {
         $tabs = array(
             'dashboard' => array('label' => 'Dashboard', 'icon' => 'settings', 'url' => admin_url('admin.php?page=' . self::PAGE)),
-            'backups'   => array('label' => 'Backups', 'icon' => 'database', 'url' => admin_url('admin.php?page=' . self::PAGE_BACKUPS)),
-            'email'     => array('label' => 'Email Log', 'icon' => 'mail', 'url' => admin_url('admin.php?page=' . self::PAGE_EMAIL_LOG)),
-            'snippets'  => array('label' => 'Snippets', 'icon' => 'code', 'url' => admin_url('admin.php?page=' . self::PAGE_SNIPPETS)),
-            'media'     => array('label' => 'Media Cleanup', 'icon' => 'image', 'url' => admin_url('admin.php?page=' . self::PAGE_MEDIA)),
-            'activity'  => array('label' => 'Activity Log', 'icon' => 'shield', 'url' => admin_url('admin.php?page=' . self::PAGE_ACTIVITY)),
+            'backups'   => array('label' => 'Backups', 'icon' => 'database', 'url' => admin_url('admin.php?page=' . self::PAGE_BACKUPS), 'page' => self::PAGE_BACKUPS),
+            'email'     => array('label' => 'Email Log', 'icon' => 'mail', 'url' => admin_url('admin.php?page=' . self::PAGE_EMAIL_LOG), 'page' => self::PAGE_EMAIL_LOG),
+            'snippets'  => array('label' => 'Snippets', 'icon' => 'code', 'url' => admin_url('admin.php?page=' . self::PAGE_SNIPPETS), 'page' => self::PAGE_SNIPPETS),
+            'media'     => array('label' => 'Media Cleanup', 'icon' => 'image', 'url' => admin_url('admin.php?page=' . self::PAGE_MEDIA), 'page' => self::PAGE_MEDIA),
+            'activity'  => array('label' => 'Activity Log', 'icon' => 'shield', 'url' => admin_url('admin.php?page=' . self::PAGE_ACTIVITY), 'page' => self::PAGE_ACTIVITY),
             'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
         );
+        // Hide tabs whose feature page is currently gated off (keep the one we're on).
+        foreach ($tabs as $key => $tab) {
+            if (!empty($tab['page']) && $key !== $current && !$this->page_visible($tab['page'])) {
+                unset($tabs[$key]);
+            }
+        }
         echo '<nav class="wpa-nav" aria-label="WP Arzo sections">';
         foreach ($tabs as $key => $tab) {
             $active = ($key === $current) ? ' is-active' : '';
@@ -660,7 +712,19 @@ class WP_Arzo_Admin
             'feature'     => $id,
             'enabled'     => $enabled,
             'hasSettings' => $feature->has_settings(),
+            'ownsPage'    => $this->feature_owns_page($id),
         ));
+    }
+
+    /** Whether a feature id has a dedicated, visibility-gated admin page. */
+    private function feature_owns_page($id)
+    {
+        foreach ($this->page_features() as $features) {
+            if (in_array($id, $features, true)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /* ----------------------------------------------------------- Backups */

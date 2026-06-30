@@ -38,6 +38,9 @@
               if (gear) gear.classList.toggle('is-hidden', !enabled);
             }
             toast(enabled ? 'Feature enabled' : 'Feature disabled', 'success');
+            // This feature owns a dedicated admin page — reload so the menu/tabs
+            // reflect the new visibility.
+            if (res.data && res.data.ownsPage) { reload(700); }
           })
           .catch(function () {
             input.disabled = false;
