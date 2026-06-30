@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.9.1] — 2026-06-30
+
+### Fixed
+- **Dashboard form fields rendered with a white background** — wp-admin's
+  `input[type="text"]` styles out-specified the single-class `.wpa-input`. Added a scoped,
+  higher-specificity override so text/number/textarea fields are dark on WP Arzo screens.
+- **Custom Login Page now brands the entire login flow** — sign-in, **lost password**,
+  **reset password**, and **register**. The CSS targeted only `#loginform`; it now uses
+  `.login form` so every wp-login.php view is styled consistently.
+
 ## [6.9.0] — 2026-06-30
 
 ### Added (free)

@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.9.0
+Stable tag: 6.9.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.9.1 =
+* Fixed: dashboard input fields showed a white background (now dark)
+* Fixed: Custom Login Page now styles all login screens (login, lost password, reset,
+  register), not just the sign-in form
 
 = 6.9.0 =
 * New (free): Custom Login Page — brand wp-login.php with your logo, colors and CSS
