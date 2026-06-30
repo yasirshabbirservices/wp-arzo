@@ -5,11 +5,11 @@
  */
 
 .wpa-admin {
-  --wpa-admin-max: 1180px;
   font-family: var(--arzo-font);
   color: var(--arzo-text-primary);
-  margin: 20px 20px 40px 2px;
-  max-width: var(--wpa-admin-max);
+  /* Fluid outer margin: tight on small screens, comfortable on large. */
+  margin: clamp(12px, 2vw, 20px) clamp(8px, 2vw, 20px) 40px 2px;
+  max-width: var(--arzo-container);
 }
 .wpa-admin * { box-sizing: border-box; }
 
@@ -52,9 +52,10 @@
   pointer-events: none;
 }
 .wpa-admin__search input {
-  width: 280px;
+  width: clamp(180px, 22vw, 300px);
   max-width: 100%;
-  padding: 10px 12px 10px 36px;
+  /* left padding leaves room for the absolutely-positioned search icon */
+  padding: 10px 12px 10px calc(12px + 16px + 8px);
   background: var(--arzo-bg-input);
   border: 1px solid var(--arzo-border-strong);
   border-radius: var(--arzo-radius-sm);
@@ -224,8 +225,8 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 
 /* Compact toggle-box cards (Debug-settings style: label+desc left, toggle right). */
 .wpa-grid {
-  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--arzo-card-min), 1fr));
+  gap: clamp(10px, 1.2vw, 14px);
   align-items: start;
 }
 .wpa-feature-card {
@@ -256,8 +257,8 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 .wpa-promos { margin-top: var(--arzo-space-8); }
 .wpa-promo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: clamp(10px, 1.2vw, 14px);
 }
 .wpa-promo {
   display: flex;

@@ -68,14 +68,20 @@
     --arzo-space-10: 40px;
 
     /* ---- Typography ---------------------------------------------------- */
+    /* Small sizes stay fixed for consistent readability; headings are fluid
+       (clamp) so they scale smoothly between small and large viewports. */
     --arzo-font: 'Lato', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     --arzo-font-mono: ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, monospace;
     --arzo-fs-xs: 11px;
     --arzo-fs-sm: 13px;
     --arzo-fs-md: 14px;
-    --arzo-fs-lg: 16px;
-    --arzo-fs-xl: 20px;
-    --arzo-fs-2xl: 26px;
+    --arzo-fs-lg: clamp(15px, 0.4vw + 14px, 17px);
+    --arzo-fs-xl: clamp(18px, 0.6vw + 15px, 21px);
+    --arzo-fs-2xl: clamp(21px, 1.2vw + 16px, 28px);
+
+    /* ---- Layout -------------------------------------------------------- */
+    --arzo-container: clamp(320px, 96vw, 1180px);
+    --arzo-card-min: clamp(280px, 30vw, 340px);
 
     /* ---- Elevation ----------------------------------------------------- */
     --arzo-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);

@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.6.3
+Stable tag: 6.6.4
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.6.4 =
+* Changed: fluid, variable-driven CSS (clamp/calc + container/card variables) so the
+  dashboard scales smoothly across screen sizes
 
 = 6.6.3 =
 * Changed: consistent console-style tab navigation + branding across the dashboard,
