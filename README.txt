@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.18.0
+Stable tag: 6.19.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.19.0 =
+* New (free): Scheduled Backups — automatic database snapshots on a daily/weekly/monthly
+  WP-Cron schedule with scope + retention
 
 = 6.18.0 =
 * New: Media Cleanup tool (WP Arzo -> Media Cleanup) — batched scan with progress, finds
