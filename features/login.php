@@ -1,161 +1,241 @@
 <?php
 
 /**
- * Quick Login Feature
+ * Quick Login → Temporary Login links.
+ *
+ * Manage passwordless, time-limited login links (powered by WP_Arzo_Temp_Login).
+ * Handles the tl_create / tl_delete / tl_toggle AJAX operations (JSON), then renders
+ * the management table + create form. The actual sign-in happens site-wide in the
+ * engine's `init` hook, not here.
  *
  * @package WP_Arzo
- * @version 6.0
+ * @version 7.0
  */
 
-// Security check
 if (!defined('ABSPATH')) {
+    exit;
+}
+
+/* ----------------------------------------------------------- AJAX ops */
+if (isset($_GET['operation']) && in_array($_GET['operation'], array('tl_create', 'tl_delete', 'tl_toggle'), true)) {
+    header('Content-Type: application/json');
+    if (!current_user_can('manage_options') || !check_ajax_referer('wp_arzo_ajax', 'nonce', false)) {
+        echo wp_json_encode(array('success' => false, 'message' => 'Security check failed'));
+        exit;
+    }
+    if (!class_exists('WP_Arzo_Temp_Login')) {
+        echo wp_json_encode(array('success' => false, 'message' => 'Temporary login engine unavailable.'));
+        exit;
+    }
+    $engine = WP_Arzo_Temp_Login::instance();
+    $op = $_GET['operation'];
+
+    if ($op === 'tl_create') {
+        $res = $engine->create(array(
+            'name'       => isset($_POST['name']) ? wp_unslash($_POST['name']) : '',
+            'email'      => isset($_POST['email']) ? wp_unslash($_POST['email']) : '',
+            'role'       => isset($_POST['role']) ? sanitize_key(wp_unslash($_POST['role'])) : 'administrator',
+            'redirect'   => isset($_POST['redirect']) ? wp_unslash($_POST['redirect']) : '',
+            'expiry'     => isset($_POST['expiry']) ? sanitize_key(wp_unslash($_POST['expiry'])) : '1day',
+            'expire_at'  => isset($_POST['expire_at']) ? wp_unslash($_POST['expire_at']) : '',
+            'max_logins' => isset($_POST['max_logins']) ? (int) $_POST['max_logins'] : 0,
+        ));
+        if (is_wp_error($res)) {
+            echo wp_json_encode(array('success' => false, 'message' => $res->get_error_message()));
+        } else {
+            echo wp_json_encode(array('success' => true, 'login_url' => $res['login_url']));
+        }
+        exit;
+    }
+    if ($op === 'tl_delete') {
+        $ok = $engine->delete(isset($_POST['id']) ? (int) $_POST['id'] : 0);
+        echo wp_json_encode(array('success' => (bool) $ok));
+        exit;
+    }
+    if ($op === 'tl_toggle') {
+        $ok = $engine->set_status(
+            isset($_POST['id']) ? (int) $_POST['id'] : 0,
+            isset($_POST['status']) ? sanitize_key(wp_unslash($_POST['status'])) : 'active'
+        );
+        echo wp_json_encode(array('success' => (bool) $ok));
+        exit;
+    }
     exit;
 }
 
 function handleQuickLogin()
 {
-    global $login_message, $login_redirect;
+    $engine  = class_exists('WP_Arzo_Temp_Login') ? WP_Arzo_Temp_Login::instance() : null;
+    $logins  = $engine ? $engine->all() : array();
+    $roles   = function_exists('get_editable_roles') ? get_editable_roles() : array();
+    $now     = time();
+    ?>
+    <div class="content">
+        <h2>Temporary Login Links</h2>
+        <p style="color:var(--muted-text); margin-top:-6px;">
+            Create passwordless, time-limited links that sign someone in as a chosen role — perfect for support, clients, or developers. No password sharing, auto-expiring, and revocable any time.
+        </p>
 
-    if (isset($_POST['direct_admin_access'])) {
-        // CSRF protection for this state-changing action.
-        if (!isset($_POST['wp_arzo_login_nonce']) || !wp_verify_nonce(wp_unslash($_POST['wp_arzo_login_nonce']), 'wp_arzo_login_action')) {
-            echo '<div class="error">Security check failed. Please reload the page and try again.</div>';
-        } else {
-            // Strong, single-use, time-limited token bound to the CURRENT admin.
-            $token = wp_generate_password(32, false);
-
-            // Store the creating user's ID so the link logs in as *them*, not an
-            // arbitrary "first administrator".
-            set_transient('maintenance_access_' . $token, get_current_user_id(), HOUR_IN_SECONDS);
-
-            // Point at the standalone endpoint, which handles the token before the
-            // capability gate (see wp_arzo_handle_standalone()).
-            $admin_url = add_query_arg(
-                ['maintenance_access' => $token],
-                admin_url('admin-ajax.php?action=wp_arzo_standalone')
-            );
-
-            echo '<script>setTimeout(function() { window.open(' . wp_json_encode($admin_url) . ', "_blank"); }, 1000);</script>';
-            echo '<div class="success">Direct admin access link generated! Opening in new tab (valid for 1 hour, single use).</div>';
-        }
-    }
-
-?>
-    <div class="content quick-login-layout">
-        <h2 class="quick-login-title">Quick Login Options</h2>
-
-        <?php
-        $current_user = wp_get_current_user();
-        $is_logged_in = (bool) $current_user->ID;
-        $roles = $is_logged_in ? implode(', ', $current_user->roles) : '';
-        ?>
-
-        <!-- Current Login Status (primary card) -->
-        <div class="quick-login-status-card">
-            <div class="quick-login-status-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path
-                        d="M12 12c2.486 0 4.5-2.014 4.5-4.5S14.486 3 12 3 7.5 5.014 7.5 7.5 9.514 12 12 12Zm0 2c-3.038 0-9 1.523-9 4.5V20a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-1.5C21 15.523 15.038 14 12 14Z" />
-                </svg>
-            </div>
-            <div class="quick-login-status-content">
-                <div class="quick-login-status-label">Current Login Status</div>
-                <?php if ($is_logged_in): ?>
-                    <div class="quick-login-status-main">
-                        <span class="quick-login-status-user">
-                            <?php echo esc_html($current_user->user_login); ?>
-                        </span>
-                        <?php if ($roles): ?>
-                            <span class="quick-login-status-roles">
-                                <?php echo esc_html($roles); ?>
-                            </span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="quick-login-status-actions">
-                        <a href="<?php echo esc_url(admin_url()); ?>" target="_blank" class="btn quick-login-status-btn">
-                            <span class="quick-login-status-btn-icon">
-                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path
-                                        d="M14 3h7v7h-2V6.414l-9.293 9.293-1.414-1.414L17.586 5H14V3ZM5 5h6v2H6.5A1.5 1.5 0 0 0 5 8.5v9A1.5 1.5 0 0 0 6.5 19h9A1.5 1.5 0 0 0 17 17.5V13h2v4.5A3.5 3.5 0 0 1 15.5 21h-9A3.5 3.5 0 0 1 3 17.5v-9A3.5 3.5 0 0 1 6.5 5H11Z" />
-                                </svg>
-                            </span>
-                            Dashboard
-                        </a>
-                    </div>
-                <?php else: ?>
-                    <div class="quick-login-status-main">
-                        <span class="quick-login-status-user quick-login-status-user--muted">
-                            Not currently logged in to WordPress.
-                        </span>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <!-- Action cards grid -->
-        <div class="quick-login-grid">
-            <!-- Create Temporary Admin -->
-            <div class="quick-login-card">
-                <div class="quick-login-card-header">
-                    <div class="quick-login-card-icon">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path
-                                d="M12 12a4 4 0 1 0-4-4 4.005 4.005 0 0 0 4 4Zm0 2c-3.033 0-9 1.518-9 4.5V20a1 1 0 0 0 1 1h8.268A6.48 6.48 0 0 1 11 17.5c0-1.388.448-2.672 1.207-3.722C12.135 13.515 12.07 13.5 12 13.5Z" />
-                            <path
-                                d="M19.5 13a3.5 3.5 0 1 0 3.5 3.5A3.504 3.504 0 0 0 19.5 13Zm0-2a5.5 5.5 0 1 1-5.5 5.5A5.507 5.507 0 0 1 19.5 11Zm-1 3h2v1.5H22v2h-1.5V19h-2v-1.5H17v-2h1.5Z" />
-                        </svg>
-                    </div>
-                    <div class="quick-login-card-title-group">
-                        <h3>Create Temporary Admin</h3>
-                        <p>Spin up a throwaway admin user and log in instantly.</p>
-                    </div>
+        <!-- Create -->
+        <div style="background:var(--background-light); padding:18px; border-radius:var(--radius-global); margin:18px 0;">
+            <h4 style="margin-top:0;">Create a login link</h4>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
+                <div class="form-group" style="margin:0;">
+                    <label>Name <span style="color:var(--muted-text);">(optional)</span></label>
+                    <input type="text" id="tl-name" class="form-control" placeholder="e.g. Acme support">
                 </div>
-                <div class="quick-login-card-body">
-                    <form method="post">
-                        <?php wp_nonce_field('wp_arzo_login_action', 'wp_arzo_login_nonce'); ?>
-                        <button type="submit" name="create_temp_admin" class="btn">
-                            Create &amp; Login as Temp Admin
-                        </button>
-                    </form>
-                    <p class="quick-login-card-note">
-                        This creates a new administrator with random credentials. Remember to remove temporary accounts when you are done.
-                    </p>
+                <div class="form-group" style="margin:0;">
+                    <label>Email <span style="color:var(--muted-text);">(optional)</span></label>
+                    <input type="email" id="tl-email" class="form-control" placeholder="auto-generated if blank">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label>Role</label>
+                    <select id="tl-role" class="form-control">
+                        <?php foreach ($roles as $slug => $r) {
+                            $sel = ($slug === 'administrator') ? ' selected' : '';
+                            echo '<option value="' . esc_attr($slug) . '"' . $sel . '>' . esc_html($r['name']) . '</option>';
+                        } ?>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label>Expires</label>
+                    <select id="tl-expiry" class="form-control">
+                        <option value="1hour">In 1 hour</option>
+                        <option value="6hours">In 6 hours</option>
+                        <option value="1day" selected>In 1 day</option>
+                        <option value="1week">In 1 week</option>
+                        <option value="1month">In 1 month</option>
+                        <option value="custom">Custom date…</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0; display:none;" id="tl-custom-wrap">
+                    <label>Custom expiry (UTC)</label>
+                    <input type="datetime-local" id="tl-expire-at" class="form-control">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label>Max logins <span style="color:var(--muted-text);">(0 = ∞)</span></label>
+                    <input type="number" id="tl-max" class="form-control" value="0" min="0">
+                </div>
+                <div class="form-group" style="margin:0; grid-column:1/-1;">
+                    <label>Redirect after login <span style="color:var(--muted-text);">(optional)</span></label>
+                    <input type="text" id="tl-redirect" class="form-control" placeholder="<?php echo esc_attr(admin_url()); ?>">
                 </div>
             </div>
-
-            <!-- Direct Admin Access -->
-            <div class="quick-login-card">
-                <div class="quick-login-card-header">
-                    <div class="quick-login-card-icon">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path
-                                d="M10.586 4H9A5 5 0 0 0 9 14h2v-2H9a3 3 0 0 1 0-6h1.586l-1.293 1.293 1.414 1.414L14.414 4 10.707.293 9.293 1.707 10.586 3H9A7 7 0 0 0 9 16h3v-2H9A5 5 0 0 1 9 4h1.586Z" />
-                            <path
-                                d="M15 8a1 1 0 0 1 1-1h1.5a4.5 4.5 0 1 1 0 9H16a1 1 0 0 1 0-2h1.5a2.5 2.5 0 1 0 0-5H16a1 1 0 0 1-1-1Z" />
-                        </svg>
-                    </div>
-                    <div class="quick-login-card-title-group">
-                        <h3>Direct Admin Access</h3>
-                        <p>Generate a one‑time secure link to WordPress admin.</p>
-                    </div>
-                </div>
-                <div class="quick-login-card-body">
-                    <form method="post">
-                        <?php wp_nonce_field('wp_arzo_login_action', 'wp_arzo_login_nonce'); ?>
-                        <button type="submit" name="direct_admin_access" class="btn">
-                            Generate Admin Access Link
-                        </button>
-                    </form>
-                    <p class="quick-login-card-note">
-                        The link is valid for 1 hour and is stored as a transient for security. Use it for emergency access only.
-                    </p>
+            <button type="button" class="btn" id="tl-create" style="margin-top:14px;">Generate login link</button>
+            <div id="tl-result" style="display:none; margin-top:14px; padding:12px; background:var(--background-medium); border:1px solid var(--accent-color); border-radius:var(--radius-global);">
+                <strong style="color:var(--accent-color);">Login link ready</strong>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <input type="text" id="tl-result-url" class="form-control" readonly onclick="this.select()">
+                    <button type="button" class="btn btn-sm" onclick="tlCopy(document.getElementById('tl-result-url').value, this)">Copy</button>
                 </div>
             </div>
         </div>
 
+        <!-- List -->
+        <h4>Active &amp; recent links</h4>
+        <table>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Expires (UTC)</th>
+                <th>Logins</th>
+                <th>Last login</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            <?php if (empty($logins)) : ?>
+                <tr><td colspan="7" style="color:var(--muted-text);">No temporary logins yet.</td></tr>
+            <?php else : foreach ($logins as $t) :
+                $expired = $t['expire'] && $now > $t['expire'];
+                $status  = $expired ? 'expired' : $t['status'];
+                ?>
+                <tr data-id="<?php echo (int) $t['id']; ?>">
+                    <td>
+                        <strong><?php echo esc_html($t['name']); ?></strong>
+                        <div style="font-size:12px; color:var(--muted-text);"><?php echo esc_html($t['email']); ?></div>
+                    </td>
+                    <td><?php echo esc_html($t['role']); ?></td>
+                    <td><?php echo $t['expire'] ? esc_html(gmdate('Y-m-d H:i', $t['expire'])) : '—'; ?></td>
+                    <td><?php echo (int) $t['count']; ?><?php echo $t['max'] > 0 ? ' / ' . (int) $t['max'] : ''; ?></td>
+                    <td><?php echo $t['last_login'] ? esc_html($t['last_login']) : '<span style="color:var(--muted-text);">never</span>'; ?></td>
+                    <td>
+                        <?php
+                        $badge = $status === 'active' ? 'badge-active' : 'badge-inactive';
+                        echo '<span class="badge ' . $badge . '">' . esc_html(strtoupper($status)) . '</span>';
+                        ?>
+                    </td>
+                    <td style="white-space:nowrap;">
+                        <button type="button" class="btn btn-sm" title="Copy link" onclick="tlCopy('<?php echo esc_js($t['login_url']); ?>', this)">Copy</button>
+                        <a class="btn btn-sm" title="Email link" href="mailto:<?php echo esc_attr($t['email']); ?>?subject=<?php echo rawurlencode('Your login link'); ?>&body=<?php echo rawurlencode($t['login_url']); ?>">Email</a>
+                        <button type="button" class="btn btn-sm tl-toggle" data-status="<?php echo $t['status'] === 'active' ? 'disabled' : 'active'; ?>"><?php echo $t['status'] === 'active' ? 'Disable' : 'Enable'; ?></button>
+                        <button type="button" class="btn btn-sm btn-danger tl-delete">Delete</button>
+                    </td>
+                </tr>
+            <?php endforeach; endif; ?>
+        </table>
     </div>
+
+    <script>
+    (function () {
+        var cfg = window.wpArzoConfig || {};
+        function post(op, data) {
+            var body = new FormData();
+            body.append('nonce', cfg.nonce || '');
+            Object.keys(data || {}).forEach(function (k) { body.append(k, data[k]); });
+            return fetch(cfg.ajaxUrl + '?action=wp_arzo_standalone&tab=login&operation=' + op, { method: 'POST', body: body, credentials: 'same-origin' }).then(function (r) { return r.json(); });
+        }
+        window.tlCopy = function (text, btn) {
+            navigator.clipboard.writeText(text).then(function () {
+                var t = btn.textContent; btn.textContent = 'Copied!';
+                setTimeout(function () { btn.textContent = t; }, 1200);
+            });
+        };
+        var expiry = document.getElementById('tl-expiry');
+        if (expiry) expiry.addEventListener('change', function () {
+            document.getElementById('tl-custom-wrap').style.display = this.value === 'custom' ? '' : 'none';
+        });
+        var createBtn = document.getElementById('tl-create');
+        if (createBtn) createBtn.addEventListener('click', function () {
+            createBtn.disabled = true;
+            post('tl_create', {
+                name: (document.getElementById('tl-name') || {}).value || '',
+                email: (document.getElementById('tl-email') || {}).value || '',
+                role: (document.getElementById('tl-role') || {}).value || 'administrator',
+                expiry: (document.getElementById('tl-expiry') || {}).value || '1day',
+                expire_at: (document.getElementById('tl-expire-at') || {}).value || '',
+                redirect: (document.getElementById('tl-redirect') || {}).value || '',
+                max_logins: (document.getElementById('tl-max') || {}).value || 0
+            }).then(function (res) {
+                createBtn.disabled = false;
+                if (res && res.success) {
+                    document.getElementById('tl-result-url').value = res.login_url;
+                    document.getElementById('tl-result').style.display = '';
+                    setTimeout(function () { location.reload(); }, 1500);
+                } else {
+                    alert((res && res.message) || 'Could not create login.');
+                }
+            }).catch(function () { createBtn.disabled = false; alert('Request failed.'); });
+        });
+        document.querySelectorAll('.tl-delete').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (!confirm('Delete this temporary login? The user account is removed and its content reassigned to you.')) return;
+                var id = btn.closest('tr').getAttribute('data-id');
+                post('tl_delete', { id: id }).then(function (res) {
+                    if (res && res.success) { btn.closest('tr').remove(); } else { alert('Delete failed.'); }
+                });
+            });
+        });
+        document.querySelectorAll('.tl-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = btn.closest('tr').getAttribute('data-id');
+                post('tl_toggle', { id: id, status: btn.getAttribute('data-status') }).then(function (res) {
+                    if (res && res.success) { location.reload(); } else { alert('Update failed.'); }
+                });
+            });
+        });
+    })();
+    </script>
 <?php
 }
 
-// Call the function
 handleQuickLogin();

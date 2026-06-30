@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.31.0
+ * Version: 6.32.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.31.0');
+    define('WP_ARZO_VERSION', '6.32.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -354,6 +354,15 @@ function wp_arzo_uninstall()
         delete_option($option);
     }
 
+    // Remove temporary-login users + their scheduled cleanup.
+    $temp_login = WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-temp-login.php';
+    if (file_exists($temp_login)) {
+        require_once $temp_login;
+        if (class_exists('WP_Arzo_Temp_Login')) {
+            WP_Arzo_Temp_Login::delete_all();
+        }
+    }
+
     // Clean up any remaining transients.
     if (function_exists('delete_transient')) {
         global $wpdb;
@@ -437,8 +446,16 @@ require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature-registry.php')
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-backup-manager.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-snippets.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-media-cleanup.php');
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-temp-login.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-admin.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-setup-wizard.php');
+
+// Temporary-login engine runs site-wide so magic links work outside the console.
+add_action('plugins_loaded', function () {
+    if (class_exists('WP_Arzo_Temp_Login')) {
+        WP_Arzo_Temp_Login::instance()->init();
+    }
+}, 15);
 
 foreach ((array) glob(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/*.php') as $wp_arzo_feature_file) {
     if ($wp_arzo_feature_file) {

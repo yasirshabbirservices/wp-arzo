@@ -18,40 +18,12 @@ if (!function_exists('wp_delete_user')) {
     require_once(ABSPATH . 'wp-admin/includes/user.php');
 }
 
-// Handle login actions before any output
+// The old "create temporary admin" / "direct admin access" Quick Login helpers were
+// replaced by the Temporary Login links system (features/login.php +
+// includes/class-wp-arzo-temp-login.php). These vars remain only so the legacy
+// message/redirect blocks below stay inert.
 $login_message = '';
 $login_redirect = '';
-
-if (isset($_POST['create_temp_admin']) &&
-    isset($_POST['wp_arzo_login_nonce']) &&
-    wp_verify_nonce(wp_unslash($_POST['wp_arzo_login_nonce']), 'wp_arzo_login_action')) {
-    $temp_username = 'temp_admin_' . time();
-    $temp_password = wp_generate_password(16, true, true);
-    $temp_email = 'temp@' . parse_url(home_url(), PHP_URL_HOST);
-
-    $user_id = wp_create_user($temp_username, $temp_password, $temp_email);
-
-    if (!is_wp_error($user_id)) {
-        $user = new WP_User($user_id);
-        $user->set_role('administrator');
-
-        // Clean output buffer before setting headers
-        ob_clean();
-
-        // Clear any existing authentication
-        wp_clear_auth_cookie();
-
-        // Set new authentication
-        wp_set_current_user($user_id, $temp_username);
-        wp_set_auth_cookie($user_id, true);
-        do_action('wp_login', $temp_username, $user);
-
-        $login_redirect = admin_url();
-        $login_message = 'success|<strong>Temporary Admin Created!</strong><br>Username: ' . $temp_username . '<br>Password: ' . $temp_password . '<br><em>Login successful! Opening WordPress admin in new tab...</em>';
-    } else {
-        $login_message = 'error|Error creating temporary admin: ' . $user_id->get_error_message();
-    }
-}
 
 // NOTE: The one-time "maintenance_access" emergency login is handled earlier, in
 // wp_arzo_handle_standalone() (wp-arzo.php), so it can run before the capability
@@ -322,7 +294,7 @@ if ($action === 'wp_arzo_standalone') {
                 'debug'         => 'Debug',
                 'site_modes'    => 'Site Modes',
                 'extra_options' => 'Extra Options',
-                'login'         => 'Quick Login',
+                'login'         => 'Temporary Logins',
             );
             foreach ($wp_arzo_nav_items as $wp_arzo_nav_tab => $wp_arzo_nav_label) {
                 if ($wp_arzo_nav_tab !== 'info' && function_exists('wp_arzo_console_tool_enabled') && !wp_arzo_console_tool_enabled($wp_arzo_nav_tab)) {
