@@ -4,6 +4,16 @@
 > be changed. We build **feature by feature**; each feature starts from a reference plugin
 > the maintainer shares, and we ship a better/faster/more-accessible version.
 
+## 0. Progress log
+
+- **v6.5** — security hardening + broken-feature fixes (CSRF nonces, path-traversal &
+  config-injection fixes, emergency-tool hardening).
+- **v6.6** — Phase 0 (design tokens + component library + icon system), Phase 1 (feature
+  registry + native dashboard), Phase 2 (16 free feature modules), Backup engine v1 (DB
+  snapshots + restore + auto-snapshot before toggle), full-dark branded UI + cross-promo.
+- **Next** — Pro scaffold + Freemius wiring; then Backup v2 (files + scheduled) / cloud
+  remotes, and the marketing/AI/builder modules.
+
 ## 1. Vision
 
 Turn WP Arzo from an admin maintenance console into an **all-in-one WordPress
