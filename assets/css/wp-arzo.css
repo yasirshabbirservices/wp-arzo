@@ -106,9 +106,11 @@ h3 {
 
 /* The first content block opens flush with the tab strip so the tabs→content gap is
    the nav's own 20px margin (matching the brand-bar→tabs gap) — drop its card top
-   padding/margin and its leading heading's margin so nothing stacks on top. */
-.container > .content:first-of-type { margin-top: 0; padding-top: 0; }
-.container > .content:first-of-type > :first-child { margin-top: 0; }
+   padding/margin and its leading heading's margin so nothing stacks on top. (The brand
+   bar is the container's first <div>, so :nth-child(of .content) is needed to reach the
+   first content wrapper specifically; older browsers just keep the original spacing.) */
+.container > :nth-child(1 of .content) { margin-top: 0; padding-top: 0; }
+.container > :nth-child(1 of .content) > :first-child { margin-top: 0; }
 
 .nav a {
   padding: 12px 20px;
