@@ -170,6 +170,12 @@ WP Arzo now has **two** distinct UIs — know which one you're touching:
      `wp_arzo_feature_is_available` (license gate). The gate defers to
      `wp_arzo_is_pro_active()` (filter `wp_arzo_pro_active`); the locked-feature CTA uses
      `wp_arzo_pro_upgrade_url()`. Licensing provider: **Freemius**.
+   - **Pro showcase placeholders:** `includes/features-registry/class-feature-pro-placeholders.php`
+     advertises the Pro catalog (locked **PRO** cards) when the add-on isn't installed.
+     `wp_arzo_register_pro_placeholders()` runs **after** the `wp_arzo_register_features`
+     action and only registers a placeholder for an id the real Pro module didn't register
+     (no duplicates). **When you add or rename a Pro module, update `wp_arzo_pro_feature_catalog()`
+     to match** (id/title/group/icon/description).
    - **WP Arzo Pro** is a separate **private** plugin/repo (`wp-arzo-pro`) — it boots after
      the core, flips `wp_arzo_pro_active` when licensed, and registers its premium modules
      via `wp_arzo_register_features`. Never put Pro code or Freemius secrets in this public
