@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.35.0] — 2026-07-01
+
+### Changed — Full-screen, multi-step Setup Wizard
+- The Setup Wizard is now a modern **full-screen, multi-step** experience (it hides the
+  wp-admin chrome and shows a progress bar): **Welcome → Choose a preset** (or **Configure
+  manually** = every feature grouped with live toggles) **→ Stay in touch → Finish**.
+- New optional **lead capture** step with a **privacy/terms opt-in** (links your site's
+  privacy policy). With consent, the contact is stored locally and emailed to the developer
+  (`apply_filters('wp_arzo_lead_email', …)`, default `leads@yasirshabbir.com`). A **Leads**
+  admin page (WP Arzo → Leads) lists captured opt-ins; the option is removed on uninstall.
+- Everything uses strict brand tokens; presets remain additive (never disable what you set).
+
 ## [6.34.0] — 2026-07-01
 
 ### Fixed
