@@ -200,6 +200,30 @@ class WP_Arzo_Admin
         <?php
     }
 
+    /**
+     * Console-style tab nav, shared by every WP Arzo admin screen for a consistent
+     * look with the standalone console.
+     */
+    private function render_nav($current)
+    {
+        $tabs = array(
+            'dashboard' => array('label' => 'Dashboard', 'icon' => 'settings', 'url' => admin_url('admin.php?page=' . self::PAGE)),
+            'backups'   => array('label' => 'Backups', 'icon' => 'database', 'url' => admin_url('admin.php?page=' . self::PAGE_BACKUPS)),
+            'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
+        );
+        echo '<nav class="wpa-nav" aria-label="WP Arzo sections">';
+        foreach ($tabs as $key => $tab) {
+            $active = ($key === $current) ? ' is-active' : '';
+            $target = !empty($tab['blank']) ? ' target="_blank" rel="noopener"' : '';
+            echo '<a class="wpa-nav__tab' . $active . '" href="' . esc_url($tab['url']) . '"' . $target . '>'
+                . wp_arzo_icon($tab['icon'], array('class' => 'wpa-icon wpa-icon--sm'))
+                . ' ' . esc_html($tab['label'])
+                . (!empty($tab['blank']) ? ' ' . wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--xs')) : '')
+                . '</a>';
+        }
+        echo '</nav>';
+    }
+
     private function render_dashboard()
     {
         $registry = $this->registry();
@@ -208,6 +232,7 @@ class WP_Arzo_Admin
         $enabled  = $registry->count_enabled();
 
         $this->render_brand_bar();
+        $this->render_nav('dashboard');
         ?>
         <div class="wpa-admin__bar">
             <div>
@@ -352,8 +377,10 @@ class WP_Arzo_Admin
     {
         $saved = $this->maybe_save_settings($feature);
         $schema = $feature->settings_schema();
+        $this->render_brand_bar();
+        $this->render_nav('dashboard');
         ?>
-        <div class="wpa-admin__header">
+        <div class="wpa-admin__bar">
             <div>
                 <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE)); ?>">
                     <?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> Back to dashboard
@@ -528,6 +555,7 @@ class WP_Arzo_Admin
         ?>
         <div class="wrap wpa-admin">
             <?php $this->render_brand_bar(); ?>
+            <?php $this->render_nav('backups'); ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('database', array('class' => 'wpa-icon')); ?> Backups</h1>
