@@ -203,7 +203,9 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 ### Media management
 - **Advanced media manager (HappyFiles-style folders/virtual taxonomy, drag-drop,
   bulk, filters)** [P] — built on the DataTable/Tree + Modal components.
-- Media replacement [F], SVG upload [F], image optimization hooks [P]
+- SVG upload [✅ Free], **Auto WebP conversion on upload** (quality, resize, keep-original,
+  per-upload confirm) [✅ Free], media replacement [F], bulk/existing-library WebP +
+  AVIF + optimization [P]
 
 ### Marketing / Analytics / Tracking (mostly Pro)
 - Google Analytics (GA4) + **Google Search Console** verify [P]
