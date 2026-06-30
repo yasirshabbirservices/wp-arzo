@@ -71,9 +71,10 @@ class WP_Arzo_Feature_Custom_Login_URL extends WP_Arzo_Feature
         return $slug;
     }
 
-    private function new_login_url($scheme = null)
+    /** The secret query key that unlocks wp-login.php (the slug itself). */
+    private function key()
     {
-        return home_url('/' . $this->slug . '/', $scheme);
+        return $this->slug;
     }
 
     private function request_path()
@@ -94,72 +95,66 @@ class WP_Arzo_Feature_Custom_Login_URL extends WP_Arzo_Feature
             return;
         }
 
+        // Keep wp-login.php as the real login page (loaded natively — never require()d,
+        // which would leave its internal $user_login/$error undefined), but gate it
+        // behind a secret query key appended to every login link.
         add_filter('site_url', array($this, 'filter_site_url'), 10, 4);
         add_filter('network_site_url', array($this, 'filter_network_site_url'), 10, 3);
         add_filter('wp_redirect', array($this, 'filter_redirect'), 10, 2);
         add_filter('login_url', array($this, 'filter_plain_login_url'), 10, 3);
 
-        // We are on plugins_loaded — the right moment to intercept the request.
-        $this->handle_request();
+        add_action('init', array($this, 'handle_request'));
+        add_action('login_init', array($this, 'guard'));
     }
 
+    /** Pretty /slug → the real login page (wp-login.php?<key>). */
     public function handle_request()
     {
-        $pagenow = isset($GLOBALS['pagenow']) ? $GLOBALS['pagenow'] : '';
-        $path    = $this->request_path();
-        $action  = isset($_REQUEST['action']) ? sanitize_key($_REQUEST['action']) : '';
-
-        // Visiting the secret slug → serve the real login page. We must NOT require
-        // wp-login.php now (we're on plugins_loaded; WordPress hasn't defined
-        // AUTOSAVE_INTERVAL and other functionality constants yet, which wp-login.php
-        // needs). Defer until wp_loaded, by which point everything is defined.
-        if ($path === $this->slug) {
-            add_action('wp_loaded', array($this, 'load_login_page'));
-            return;
-        }
-
-        // Direct hit on the default login endpoint → bounce home (except core flows
-        // that must keep working: logout + password-protected-post submissions).
-        if (($pagenow === 'wp-login.php' || $path === 'wp-login.php') && !in_array($action, array('logout', 'postpass'), true)) {
-            wp_safe_redirect(home_url('/'));
+        if ($this->request_path() === $this->slug) {
+            wp_safe_redirect(site_url('wp-login.php?' . rawurlencode($this->key())));
             exit;
         }
     }
 
-    public function load_login_page()
+    /** Runs when wp-login.php loads: block it unless the secret key is present. */
+    public function guard()
     {
-        global $pagenow;
-        $pagenow = 'wp-login.php';
-        require_once ABSPATH . 'wp-login.php';
+        if (isset($_REQUEST[$this->key()])) {
+            return; // unlocked
+        }
+        // Programmatic flows that may arrive without the key.
+        $action = isset($_REQUEST['action']) ? sanitize_key($_REQUEST['action']) : '';
+        if (in_array($action, array('logout', 'postpass'), true)) {
+            return;
+        }
+        wp_safe_redirect(is_user_logged_in() ? admin_url() : home_url('/'));
         exit;
     }
 
-    private function rewrite($url, $scheme = null)
+    /** Append the secret key to any wp-login.php URL so all login links carry it. */
+    private function with_key($url)
     {
         if (strpos($url, 'wp-login.php') === false) {
             return $url;
         }
-        $parts = explode('?', $url, 2);
-        $query = isset($parts[1]) ? $parts[1] : '';
-        $new   = $this->new_login_url($scheme);
-        return $query !== '' ? $new . '?' . $query : $new;
+        return add_query_arg($this->key(), '', $url);
     }
 
     public function filter_site_url($url, $path, $scheme, $blog_id)
     {
-        return $this->rewrite($url, $scheme);
+        return $this->with_key($url);
     }
     public function filter_network_site_url($url, $path, $scheme)
     {
-        return $this->rewrite($url, $scheme);
+        return $this->with_key($url);
     }
     public function filter_redirect($location, $status)
     {
-        return $this->rewrite($location);
+        return $this->with_key($location);
     }
     public function filter_plain_login_url($login_url, $redirect, $force_reauth)
     {
-        return $this->rewrite($login_url);
+        return $this->with_key($login_url);
     }
 }
 

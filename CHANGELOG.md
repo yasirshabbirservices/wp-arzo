@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.19.1] — 2026-06-30
+
+### Fixed (critical)
+- **Custom Login URL produced PHP warnings on the login page** (`Undefined variable
+  $user_login / $error in wp-login.php`). It loaded `wp-login.php` via `require` inside a
+  method, leaving wp-login's internal variables undefined. Rewritten (ASE-style): wp-login.php
+  now loads **natively** and is gated by a secret query key — the pretty `/slug` redirects to
+  it, all login links carry the key, and direct `wp-login.php` access is bounced away. No more
+  require, no warnings.
+
+### Changed
+- **Auto WebP Conversion → Auto WebP / WebM Conversion.** The per-upload confirmation is now
+  reliable (polls for `wp.Uploader`, so it works in the media modal, block editor, and **bulk**
+  uploads). Added optional **video → WebM** conversion via ffmpeg (size-capped, degrades safely
+  when ffmpeg/exec is unavailable; best for short clips).
+
 ## [6.19.0] — 2026-06-30
 
 ### Added (free) — Scheduled Backups (41 free features total)

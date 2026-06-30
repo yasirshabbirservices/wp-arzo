@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.19.0
+Stable tag: 6.19.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,12 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.19.1 =
+* Fixed (critical): Custom Login URL caused PHP warnings on the login page (wp-login.php
+  is now loaded natively + gated by a secret key, ASE-style)
+* Changed: WebP per-upload confirmation now reliable (incl. bulk uploads); added optional
+  video -> WebM via ffmpeg
 
 = 6.19.0 =
 * New (free): Scheduled Backups — automatic database snapshots on a daily/weekly/monthly
