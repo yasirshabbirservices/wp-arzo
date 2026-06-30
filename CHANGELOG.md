@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.38.0] — 2026-07-01
+
+### Added — Media tools (now free)
+- **Media Folders** (`media_folders`) is now a **free** feature (was a Pro placeholder):
+  organise the library into nestable folders via a private taxonomy, with a **folder filter**
+  on the media list view, a **per-file folder selector**, and a **bulk “Move to folder”**
+  action. Purely additive — it only tags attachments, never moves or deletes files.
+- **Prevent Duplicate Uploads** (`media_replace`): when you upload a file that already exists
+  (match by **name**, or **name + size**), the upload is skipped with a message pointing to the
+  existing item — so you don't pile up duplicates. It modifies/deletes **nothing** (the safe
+  way to "replace instead of duplicate"); to swap an item's contents, edit it in the library.
+
+> Note: Media Folders moved from Pro to free — the Pro repo's catalog/version should be
+> updated to match. Both media features touch the media library; verify on a real WP install.
+
 ## [6.37.0] — 2026-07-01
 
 ### Changed — Advanced Tools console brand consistency
