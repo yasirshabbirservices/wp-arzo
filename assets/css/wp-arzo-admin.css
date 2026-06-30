@@ -246,34 +246,110 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 /* Hide the redundant inline SR label visual gap by keeping toggle tight */
 .wpa-feature-card .wpa-toggle { gap: 0; }
 
-/* Cross-promotion area. */
+/* Cross-promotion ("More from…") — deliberately set apart from the functional feature
+   UI so it reads as a curated recommendation, not a plugin feature: an eyebrow label,
+   an accent-tinted surface + accent rail, elevation, a whole-card click target with a
+   hover lift, and an explicit external-link affordance. Strictly design tokens. */
 .wpa-promos { margin-top: var(--arzo-space-8); }
+.wpa-promos__head { margin-bottom: var(--arzo-space-4); }
+.wpa-promos__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 3px 10px;
+  font-size: var(--arzo-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--arzo-accent);
+  background: var(--arzo-accent-soft);
+  border-radius: var(--arzo-radius-pill);
+}
+.wpa-promos__eyebrow .wpa-icon { width: 13px; height: 13px; }
+.wpa-promos__title { margin: 0; font-size: var(--arzo-fs-lg); font-weight: 700; color: var(--arzo-text-strong); }
+.wpa-promos__sub { margin: 2px 0 0; font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); }
+
 .wpa-promo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
   gap: clamp(10px, 1.2vw, 14px);
 }
+
+/* The whole card is a single external link (one click target, keyboard focusable). */
 .wpa-promo {
+  position: relative;
   display: flex;
   gap: 14px;
-  padding: 16px;
-  background: linear-gradient(180deg, var(--arzo-bg-panel), var(--arzo-bg-dark));
+  padding: 16px 16px 16px 19px;
+  text-decoration: none;
+  color: inherit;
+  background:
+    linear-gradient(180deg, var(--arzo-accent-soft), transparent 60%),
+    linear-gradient(180deg, var(--arzo-bg-panel), var(--arzo-bg-dark));
   border: 1px solid var(--arzo-border);
-  border-radius: var(--arzo-radius);
+  border-radius: var(--arzo-radius-lg);
+  box-shadow: var(--arzo-shadow-sm);
+  overflow: hidden;
+  transition:
+    transform var(--arzo-transition),
+    box-shadow var(--arzo-transition),
+    border-color var(--arzo-transition);
 }
+/* Accent rail down the leading edge — the at-a-glance "this is promoted" cue. */
+.wpa-promo::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--arzo-accent), transparent);
+}
+.wpa-promo:hover,
+.wpa-promo:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--arzo-accent);
+  box-shadow: var(--arzo-shadow);
+  outline: none;
+}
+.wpa-promo:focus-visible { box-shadow: var(--arzo-focus-ring), var(--arzo-shadow); }
+
 .wpa-promo__icon {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--arzo-radius-sm);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--arzo-radius);
   background: var(--arzo-accent-soft);
   color: var(--arzo-accent);
+  transition: background var(--arzo-transition), color var(--arzo-transition);
 }
-.wpa-promo__head { display: flex; align-items: center; gap: 8px; }
-.wpa-promo__title { margin: 0; font-size: var(--arzo-fs-md); font-weight: 700; color: var(--arzo-text-strong); }
+.wpa-promo__icon .wpa-icon { width: 22px; height: 22px; }
+.wpa-promo:hover .wpa-promo__icon,
+.wpa-promo:focus-visible .wpa-promo__icon {
+  background: var(--arzo-accent);
+  color: var(--arzo-text-on-accent);
+}
+
+.wpa-promo__body { display: flex; flex-direction: column; min-width: 0; }
+.wpa-promo__head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wpa-promo__title { font-size: var(--arzo-fs-md); font-weight: 700; color: var(--arzo-text-strong); }
+.wpa-promo__badge { flex-shrink: 0; }
 .wpa-promo__desc { margin: 6px 0 12px; font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); line-height: 1.5; }
+
+/* CTA reads as a link without being a nested interactive element inside the card link. */
+.wpa-promo__cta {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--arzo-fs-sm);
+  font-weight: 600;
+  color: var(--arzo-accent);
+}
+.wpa-promo__cta .wpa-icon { width: 14px; height: 14px; transition: transform var(--arzo-transition); }
+.wpa-promo:hover .wpa-promo__cta .wpa-icon,
+.wpa-promo:focus-visible .wpa-promo__cta .wpa-icon { transform: translate(2px, -2px); }
 
 /* Page-level (window) branded scrollbar — only on WP Arzo admin screens. */
 body.wp-arzo-screen { scrollbar-width: thin; scrollbar-color: var(--arzo-bg-hover) transparent; }
@@ -578,11 +654,10 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
   flex-direction: column;
   gap: var(--arzo-space-4);
 }
-/* Promos stack vertically in the sidebar. */
+/* Promos in the sidebar: single column, keep the icon-beside-body layout. */
 .wpa-aside .wpa-promos { margin-top: 0; }
 .wpa-aside .wpa-promo-grid { grid-template-columns: 1fr; gap: var(--arzo-space-3); }
-.wpa-aside .wpa-promo { flex-direction: column; }
-.wpa-aside .wpa-group__title { font-size: var(--arzo-fs-md); }
+.wpa-aside .wpa-promos__title { font-size: var(--arzo-fs-md); }
 
 /* Sidebar cards (license, etc.). */
 .wpa-aside-card {
