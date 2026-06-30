@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.6.1] — 2026-06-30
+
+### Fixed
+- **Asset cache-busting** no longer depends on bumping the plugin version. The buster now
+  derives from the file's `filemtime` **+ `filesize`**, falls back to a short **content
+  hash** when `filemtime` is unavailable (locked-down / LiteSpeed hosts previously fell
+  back to the static plugin version, so CSS/JS edits didn't take effect until a manual
+  bump), and busts on **every request** when `WP_DEBUG` is on (instant updates while
+  developing).
+
 ## [6.6] — 2026-06-30
 
 WP Arzo becomes a **feature suite**: a native wp-admin dashboard + a feature registry, 16

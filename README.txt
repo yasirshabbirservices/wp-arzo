@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.6
+Stable tag: 6.6.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.6.1 =
+* Fixed: CSS/JS changes now take effect without bumping the plugin version (robust
+  cache-busting via filemtime + filesize, content-hash fallback, and per-request busting
+  when WP_DEBUG is on)
 
 = 6.6 =
 * New: native WP Arzo dashboard (Feature Manager) with a modern toggle grid + 16 free

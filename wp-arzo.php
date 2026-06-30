@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.6
+ * Version: 6.6.1
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.6');
+    define('WP_ARZO_VERSION', '6.6.1');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -47,7 +47,15 @@ if (!defined('WP_ARZO_DEBUG')) {
 /**
  * Return a cache‑busting version string for a given asset.
  *
- * Uses filemtime() when available, with a safe fallback to plugin version.
+ * The buster changes whenever the file's content changes — so CSS/JS edits take
+ * effect WITHOUT bumping the plugin version. It does NOT rely on filemtime alone
+ * (some hosts / LiteSpeed setups return a falsy mtime, which previously forced a
+ * fallback to the static plugin version and required a manual bump):
+ *
+ *   1. WP_DEBUG/dev → unique per request, so edits show instantly.
+ *   2. filemtime + filesize → changes on any edit (size catches same-second edits).
+ *   3. short content hash → bulletproof when stat() is locked down.
+ *   4. plugin version → last resort.
  *
  * @param string $relative_path Path relative to plugin root, e.g. 'assets/css/wp-arzo.css'.
  * @return string
@@ -61,8 +69,26 @@ if (!function_exists('wp_arzo_get_asset_version')) {
         clearstatcache(false, $file);
         $mtime = @filemtime($file);
 
+        // Dev mode: never cache between edits.
+        if (defined('WP_ARZO_DEBUG') && WP_ARZO_DEBUG) {
+            return ($mtime ? $mtime : WP_ARZO_VERSION) . '.' . time();
+        }
+
+        $size = @filesize($file);
+        if ($mtime && $size) {
+            return $mtime . '-' . $size;
+        }
         if ($mtime) {
             return (string) $mtime;
+        }
+
+        // filemtime unavailable (locked-down host): hash the contents instead so the
+        // buster still changes on every real edit.
+        if (is_readable($file)) {
+            $hash = @md5_file($file);
+            if ($hash) {
+                return substr($hash, 0, 12);
+            }
         }
 
         return WP_ARZO_VERSION;
