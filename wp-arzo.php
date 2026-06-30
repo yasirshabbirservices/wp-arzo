@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.6.4
+ * Version: 6.7.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.6.4');
+    define('WP_ARZO_VERSION', '6.7.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -477,6 +477,39 @@ function wp_arzo_bootstrap_features()
     }
 }
 add_action('plugins_loaded', 'wp_arzo_bootstrap_features', 20);
+
+/**
+ * Freemium gate. Free-tier features are always available; pro-tier features are
+ * available only when a Pro signal is present. The WP Arzo Pro add-on flips
+ * `wp_arzo_pro_active` (true) once it is installed and licensed via Freemius.
+ */
+if (!function_exists('wp_arzo_is_pro_active')) {
+    function wp_arzo_is_pro_active()
+    {
+        return (bool) apply_filters('wp_arzo_pro_active', false);
+    }
+}
+
+add_filter('wp_arzo_feature_is_available', function ($available, $feature) {
+    if (!($feature instanceof WP_Arzo_Feature)) {
+        return $available;
+    }
+    if ($feature->tier() !== 'pro') {
+        return true;
+    }
+    return wp_arzo_is_pro_active();
+}, 10, 2);
+
+/**
+ * Upgrade / "get Pro" URL used by the dashboard's locked-feature CTA. Filterable so
+ * the Pro add-on (or Freemius) can point it at the real checkout/account URL.
+ */
+if (!function_exists('wp_arzo_pro_upgrade_url')) {
+    function wp_arzo_pro_upgrade_url()
+    {
+        return apply_filters('wp_arzo_pro_upgrade_url', 'https://yasirshabbir.com/wp-arzo-pro');
+    }
+}
 
 /**
  * The admin menu (top-level "WP Arzo" dashboard + "Advanced Tools" submenu) is

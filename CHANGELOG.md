@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.7.0] — 2026-06-30
+
+### Added
+- **Freemium gate** in the free core: `wp_arzo_is_pro_active()` (filter
+  `wp_arzo_pro_active`) drives `wp_arzo_feature_is_available`, so pro-tier features lock
+  until Pro is active; the dashboard shows an **Unlock** CTA pointing at
+  `wp_arzo_pro_upgrade_url()`. This is the integration surface for the **WP Arzo Pro**
+  add-on (separate private repo) and Freemius licensing.
+
 ## [6.6.4] — 2026-06-30
 
 ### Changed
