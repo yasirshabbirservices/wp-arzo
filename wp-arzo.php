@@ -392,6 +392,7 @@ require_once(WP_ARZO_PLUGIN_DIR . 'includes/maintenance-frontend.php');
 // Feature-manager: base class + registry + built-in feature modules + admin dashboard.
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature-registry.php');
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-backup-manager.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-admin.php');
 
 foreach ((array) glob(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/*.php') as $wp_arzo_feature_file) {
@@ -432,6 +433,9 @@ function wp_arzo_bootstrap_features()
     // Marketing / SEO
     $registry->register(new WP_Arzo_Feature_Manage_Robots_Txt());
     $registry->register(new WP_Arzo_Feature_Manage_Ads_Txt());
+
+    // Backup & restore
+    $registry->register(new WP_Arzo_Feature_Backups());
 
     /**
      * Add-ons register their own feature modules here.

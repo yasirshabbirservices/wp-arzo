@@ -20,8 +20,10 @@ class WP_Arzo_Admin
     private static $instance = null;
 
     const PAGE = 'wp-arzo';
+    const PAGE_BACKUPS = 'wp-arzo-backups';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
+    const NONCE_BACKUPS = 'wp_arzo_backups';
 
     public static function instance()
     {
@@ -36,6 +38,9 @@ class WP_Arzo_Admin
         add_action('admin_menu', array($this, 'add_menu'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue'));
         add_action('wp_ajax_wp_arzo_toggle_feature', array($this, 'ajax_toggle_feature'));
+        add_action('wp_ajax_wp_arzo_backup_create', array($this, 'ajax_backup_create'));
+        add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
+        add_action('wp_ajax_wp_arzo_backup_delete', array($this, 'ajax_backup_delete'));
     }
 
     private function registry()
@@ -58,6 +63,8 @@ class WP_Arzo_Admin
         );
         add_submenu_page(self::PAGE, 'Dashboard', 'Dashboard', 'manage_options', self::PAGE, array($this, 'render'));
 
+        add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'));
+
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
             add_submenu_page(self::PAGE, 'Advanced Tools', 'Advanced Tools', 'manage_options', 'wp-arzo-tool', 'wp_arzo_redirect_page');
@@ -66,7 +73,7 @@ class WP_Arzo_Admin
 
     private function is_our_page()
     {
-        return isset($_GET['page']) && $_GET['page'] === self::PAGE;
+        return isset($_GET['page']) && strpos($_GET['page'], 'wp-arzo') === 0 && $_GET['page'] !== 'wp-arzo-tool';
     }
 
     /* ------------------------------------------------------------ Assets */
@@ -99,8 +106,9 @@ class WP_Arzo_Admin
         }
 
         wp_localize_script('wp-arzo-admin-js', 'wpArzoAdmin', array(
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce'   => wp_create_nonce(self::NONCE_TOGGLE),
+            'ajaxUrl'     => admin_url('admin-ajax.php'),
+            'nonce'       => wp_create_nonce(self::NONCE_TOGGLE),
+            'backupNonce' => wp_create_nonce(self::NONCE_BACKUPS),
         ));
     }
 
@@ -383,5 +391,132 @@ class WP_Arzo_Admin
             'enabled'     => $enabled,
             'hasSettings' => $feature->has_settings(),
         ));
+    }
+
+    /* ----------------------------------------------------------- Backups */
+
+    public function render_backups()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        if (!class_exists('WP_Arzo_Backup_Manager')) {
+            echo '<div class="wrap wpa-admin"><p>Backup engine unavailable.</p></div>';
+            return;
+        }
+
+        $manager   = WP_Arzo_Backup_Manager::instance();
+        $snapshots = $manager->list_snapshots();
+        $total     = size_format($manager->total_size());
+        ?>
+        <div class="wrap wpa-admin">
+            <div class="wpa-admin__header">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('database', array('class' => 'wpa-icon')); ?> Backups</h1>
+                    <p class="wpa-admin__subtitle"><strong><?php echo count($snapshots); ?></strong> snapshot(s) · <?php echo esc_html($total); ?> on disk · database snapshots (v1)</p>
+                </div>
+                <div class="wpa-backup-create">
+                    <select id="wpa-backup-scope" class="wpa-input" data-wpa-select aria-label="Snapshot scope">
+                        <option value="options">Options table only</option>
+                        <option value="full_db">Full database</option>
+                    </select>
+                    <button type="button" id="wpa-backup-create" class="wpa-btn wpa-btn--primary"
+                        data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_BACKUPS)); ?>">
+                        <?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Create snapshot
+                    </button>
+                </div>
+            </div>
+
+            <div class="wpa-card" style="padding:0;overflow:hidden;">
+                <table class="wpa-backup-table" id="wpa-backup-table">
+                    <thead>
+                        <tr>
+                            <th>Snapshot</th>
+                            <th>Scope</th>
+                            <th>Trigger</th>
+                            <th>Size</th>
+                            <th>Created (UTC)</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($snapshots)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="6">No snapshots yet. Create one above, or enable “Automated Snapshots” on the dashboard.</td></tr>
+                        <?php else : foreach ($snapshots as $s) {
+                            $this->render_backup_row($s);
+                        } endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php
+    }
+
+    private function render_backup_row(array $s)
+    {
+        $scope_label = ($s['scope'] === 'full_db') ? 'Full DB' : 'Options';
+        ?>
+        <tr data-snapshot="<?php echo esc_attr($s['id']); ?>">
+            <td>
+                <strong><?php echo esc_html($s['label']); ?></strong>
+                <div class="wpa-backup-meta"><?php echo (int) ($s['row_total'] ?? 0); ?> rows · <?php echo (int) ($s['table_count'] ?? 0); ?> table(s)</div>
+            </td>
+            <td><span class="wpa-badge wpa-badge--neutral"><?php echo esc_html($scope_label); ?></span></td>
+            <td><?php echo esc_html($s['trigger'] ?? 'manual'); ?></td>
+            <td><?php echo esc_html(size_format((int) ($s['bytes'] ?? 0))); ?></td>
+            <td><?php echo esc_html($s['created_gmt'] ?? ''); ?></td>
+            <td class="wpa-backup-actions">
+                <button type="button" class="wpa-btn wpa-btn--secondary wpa-btn--sm wpa-backup-restore" data-id="<?php echo esc_attr($s['id']); ?>">
+                    <?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Restore
+                </button>
+                <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-backup-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snapshot">
+                    <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                </button>
+            </td>
+        </tr>
+        <?php
+    }
+
+    private function verify_backup_request()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_BACKUPS, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (!class_exists('WP_Arzo_Backup_Manager')) {
+            wp_send_json_error(array('message' => 'Backup engine unavailable'), 500);
+        }
+    }
+
+    public function ajax_backup_create()
+    {
+        $this->verify_backup_request();
+        $scope = (isset($_POST['scope']) && $_POST['scope'] === 'full_db') ? 'full_db' : 'options';
+        $result = WP_Arzo_Backup_Manager::instance()->create($scope, '', 'manual');
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 500);
+        }
+        wp_send_json_success(array('manifest' => $result));
+    }
+
+    public function ajax_backup_restore()
+    {
+        $this->verify_backup_request();
+        $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        $result = WP_Arzo_Backup_Manager::instance()->restore($id);
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 500);
+        }
+        wp_send_json_success(array('message' => 'Snapshot restored.'));
+    }
+
+    public function ajax_backup_delete()
+    {
+        $this->verify_backup_request();
+        $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        $ok = WP_Arzo_Backup_Manager::instance()->delete($id);
+        if (!$ok) {
+            wp_send_json_error(array('message' => 'Could not delete snapshot.'), 500);
+        }
+        wp_send_json_success(array('message' => 'Snapshot deleted.'));
     }
 }
