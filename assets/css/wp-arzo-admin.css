@@ -410,6 +410,27 @@ body.wp-arzo-screen::-webkit-scrollbar-thumb:hover { background: var(--arzo-bord
 .wpa-cap { gap: 10px; }
 .wpa-cap .wpa-toggle__label { font-family: var(--arzo-font-mono); font-size: 12.5px; word-break: break-word; }
 
+/* ------------------------------------------------ Feature Manager hero header */
+.wpa-fm-hero { align-items: flex-start; gap: clamp(16px, 3vw, 32px); }
+.wpa-fm-hero__info { flex: 1 1 260px; min-width: 0; }
+.wpa-fm-hero__actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.wpa-fm-progress {
+  height: 8px;
+  max-width: 440px;
+  margin-top: 14px;
+  background: var(--arzo-bg-hover);
+  border-radius: var(--arzo-radius-pill);
+  overflow: hidden;
+}
+.wpa-fm-progress__bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--arzo-accent), #0ea66b);
+  border-radius: var(--arzo-radius-pill);
+  transition: width .45s ease;
+}
+.wpa-fm-progress__meta { margin-top: 7px; font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); }
+.wpa-fm-progress__meta strong { color: var(--arzo-accent); }
+
 /* ------------------------------------------------ Category header + master toggle */
 .wpa-group__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: var(--arzo-space-3); }
 .wpa-group__bar .wpa-group__title { margin: 0; }
@@ -540,6 +561,8 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
 .wpa-aside-card__note.is-error { color: var(--arzo-error); }
 .wpa-aside-card__note.is-ok { color: var(--arzo-accent); }
 .wpa-license__actions { display: flex; gap: var(--arzo-space-2); margin-top: var(--arzo-space-3); }
+/* Activate + Get Pro share the full card width (50 / 50). */
+.wpa-license__actions > .wpa-btn { flex: 1 1 0; justify-content: center; }
 
 @media (max-width: 1100px) {
   .wpa-layout { grid-template-columns: 1fr; }

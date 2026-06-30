@@ -95,6 +95,9 @@ $wp_arzo_cfg = array(
 );
 
 // Unlock + run AdminNeo. CWD must be this dir so it reads adminneo-config.php.
+// (AdminNeo's own login form is auto-submitted from the parent console page, which is not
+// under AdminNeo's strict CSP — see features/database.php. The vendored adminneo.php has its
+// X-Frame-Options relaxed to SAMEORIGIN so the WP-gated iframe can display it.)
 if (!defined('WP_ARZO_ADMINNEO_OK')) {
     define('WP_ARZO_ADMINNEO_OK', true);
 }

@@ -70,9 +70,27 @@ function handleDatabase()
                 <h2 style="margin:0; border:none; padding:0;">Database Manager <span style="font-size:12px; color:var(--muted-text); font-weight:400;">powered by AdminNeo</span></h2>
                 <a class="btn btn-sm" href="<?php echo esc_url($wp_arzo_db_src); ?>" target="_blank" rel="noopener">Open full screen</a>
             </div>
-            <iframe title="AdminNeo database manager" src="<?php echo esc_url($wp_arzo_db_src); ?>"
+            <iframe id="wpa-adminneo-frame" title="AdminNeo database manager" src="<?php echo esc_url($wp_arzo_db_src); ?>"
                 style="width:100%; height:80vh; border:1px solid var(--border-color); border-radius:var(--radius-global); background:#fff;"></iframe>
         </div>
+        <script>
+        // Zero-click connect: AdminNeo can't auto-login, but its form connects with the
+        // configured WP DB credentials when submitted. We're same-origin, so the (parent)
+        // console submits AdminNeo's login form once — outside AdminNeo's strict CSP.
+        (function () {
+            var f = document.getElementById('wpa-adminneo-frame');
+            if (!f) return;
+            f.addEventListener('load', function () {
+                try {
+                    var doc = f.contentDocument || (f.contentWindow && f.contentWindow.document);
+                    if (!doc) return;
+                    var auth = doc.querySelector('[name^="auth["]');
+                    var form = auth ? auth.form : null;
+                    if (auth && form && !f.dataset.tried) { f.dataset.tried = '1'; form.submit(); }
+                } catch (e) { /* cross-origin or already connected */ }
+            });
+        })();
+        </script>
         <?php
         return;
     }
