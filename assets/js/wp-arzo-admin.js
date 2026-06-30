@@ -133,7 +133,27 @@
 
   function reload(delay) { setTimeout(function () { window.location.reload(); }, delay || 600); }
 
-  function init() { bindToggles(); bindSearch(); bindBackups(); }
+  // -------------------------------------------------- Email log
+  function bindEmailLog() {
+    var btn = document.getElementById('wpa-email-clear');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      if (!confirm('Clear the entire email log?')) return;
+      btn.disabled = true;
+      var body = new FormData();
+      body.append('action', 'wp_arzo_email_log_clear');
+      body.append('nonce', btn.dataset.nonce || '');
+      fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.success) { toast('Email log cleared', 'success'); reload(600); }
+          else { btn.disabled = false; toast('Could not clear log', 'error'); }
+        })
+        .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+    });
+  }
+
+  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

@@ -39,6 +39,11 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
   - v1.1.0 — **marketing pixel suite**: Meta Pixel, TikTok Pixel, LinkedIn Insight,
     Pinterest Tag, Google Analytics 4 (gtag), Google Tag Manager (all Pro, group
     "Marketing & Tracking"; IDs sanitized; `<noscript>` fallbacks).
+- **v6.8.0** — **Email (free):** SMTP delivery (phpmailer_init config + force-from) and
+  Email Log (capped option store, sent/failed, WP Arzo → Email Log page with clear).
+  Added `password`/`email` settings-field types (passwords never re-rendered; blank keeps
+  the saved secret). Tiering confirmed: SMTP + email log + local snapshots + custom login
+  = **Free**; only cloud/remote backup destinations = Pro.
 
 ### Not yet built (next up)
 - Wire **Freemius** for real (add SDK + plugin IDs/keys in the Pro repo's
@@ -190,8 +195,9 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 - Crawl optimizations / SEO sitemap toggles [F]
 
 ### Email
-- **SMTP delivery** (multi-provider) [F basic / P advanced]
-- **Email logs + analytics** (sent/failed, open/click where possible, resend, search) [P]
+- **SMTP delivery** (multi-provider) [✅ Free]
+- **Email log** (sent/failed, recipient/subject, errors) [✅ Free]; advanced analytics
+  (open/click, resend, search/export) [P]
 
 ### Security
 - Limit login attempts [F], Disable XML-RPC [F], Obfuscate author slugs [F],
@@ -201,7 +207,8 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 - Password-protect site/pages [F basic / P advanced]
 
 ### Branding / White-label admin
-- **Custom login page designer** (logo, bg, colors, layouts) [P]
+- **Custom login page** (logo, bg, colors, custom login URL) [F]; full white-label
+  designer + advanced layouts [P]
 - **Custom admin UI/UX** (color schemes, fonts, menu styling) [P]
 - **Custom dashboard page** (replace all default boxes with branded widgets when active)
   [P]
@@ -248,7 +255,9 @@ A first-class, **Git/GitHub-style** snapshot system — the headline differentia
   addressed, like Git objects) so history is cheap; full + incremental modes. [P]
 - **One-click restore (checkout):** restore a whole snapshot or **cherry-pick** (just the
   DB, just one plugin folder, a single file). Always creates a safety snapshot before
-  restoring (so restore is itself undoable). [F restore-latest / P any-point + partial]
+  restoring (so restore is itself undoable). [✅ Free for local snapshots; partial/any-point P]
+- **Local storage is always Free.** Only **remote/cloud destinations** (Drive/Dropbox/
+  pCloud/FTP/S3/Git) are Pro.
 - **Diff view:** see what changed between two snapshots (DB row counts/option diffs,
   added/removed/modified files) before restoring. [P]
 - **Automated snapshot triggers** (opt-in, per the maintainer's request):

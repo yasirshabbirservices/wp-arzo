@@ -21,9 +21,11 @@ class WP_Arzo_Admin
 
     const PAGE = 'wp-arzo';
     const PAGE_BACKUPS = 'wp-arzo-backups';
+    const PAGE_EMAIL_LOG = 'wp-arzo-email-log';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
+    const NONCE_EMAIL = 'wp_arzo_email_log';
 
     public static function instance()
     {
@@ -43,6 +45,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_backup_create', array($this, 'ajax_backup_create'));
         add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
         add_action('wp_ajax_wp_arzo_backup_delete', array($this, 'ajax_backup_delete'));
+        add_action('wp_ajax_wp_arzo_email_log_clear', array($this, 'ajax_email_log_clear'));
     }
 
     private function registry()
@@ -97,6 +100,7 @@ class WP_Arzo_Admin
         add_submenu_page(self::PAGE, 'Dashboard', 'Dashboard', 'manage_options', self::PAGE, array($this, 'render'));
 
         add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'));
+        add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'));
 
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
@@ -209,6 +213,7 @@ class WP_Arzo_Admin
         $tabs = array(
             'dashboard' => array('label' => 'Dashboard', 'icon' => 'settings', 'url' => admin_url('admin.php?page=' . self::PAGE)),
             'backups'   => array('label' => 'Backups', 'icon' => 'database', 'url' => admin_url('admin.php?page=' . self::PAGE_BACKUPS)),
+            'email'     => array('label' => 'Email Log', 'icon' => 'mail', 'url' => admin_url('admin.php?page=' . self::PAGE_EMAIL_LOG)),
             'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
         );
         echo '<nav class="wpa-nav" aria-label="WP Arzo sections">';
@@ -441,6 +446,14 @@ class WP_Arzo_Admin
             case 'number':
                 echo '<input class="wpa-input" type="number" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
                 break;
+            case 'email':
+                echo '<input class="wpa-input" type="email" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
+                break;
+            case 'password':
+                // Never echo the stored secret; blank submit keeps the saved value.
+                $has = ($value !== '' && $value !== null);
+                echo '<input class="wpa-input" type="password" autocomplete="new-password" id="' . $fid . '" name="' . $name . '" value="" placeholder="' . ($has ? '••••••••  (leave blank to keep current)' : '') . '">';
+                break;
             case 'select':
                 $options = isset($field['options']) && is_array($field['options']) ? $field['options'] : array();
                 echo '<select class="wpa-input" id="' . $fid . '" name="' . $name . '" data-wpa-select>';
@@ -491,6 +504,13 @@ class WP_Arzo_Admin
                     break;
                 case 'number':
                     $clean[$key] = is_numeric($raw) ? $raw + 0 : 0;
+                    break;
+                case 'email':
+                    $clean[$key] = sanitize_email((string) $raw);
+                    break;
+                case 'password':
+                    // Blank submit keeps the existing secret (we never render it).
+                    $clean[$key] = ($raw === '' || $raw === null) ? (string) $feature->get_setting($key, '') : (string) $raw;
                     break;
                 case 'textarea':
                     $clean[$key] = sanitize_textarea_field((string) $raw);
@@ -666,5 +686,80 @@ class WP_Arzo_Admin
             wp_send_json_error(array('message' => 'Could not delete snapshot.'), 500);
         }
         wp_send_json_success(array('message' => 'Snapshot deleted.'));
+    }
+
+    /* --------------------------------------------------------- Email Log */
+
+    public function render_email_log()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+
+        $enabled = $this->registry()->is_enabled('email_log');
+        $log = get_option('wp_arzo_email_log', array());
+        if (!is_array($log)) {
+            $log = array();
+        }
+        ?>
+        <div class="wrap wpa-admin">
+            <?php $this->render_brand_bar(); ?>
+            <?php $this->render_nav('email'); ?>
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Email Log</h1>
+                    <p class="wpa-admin__subtitle"><strong><?php echo count($log); ?></strong> logged email(s)<?php echo $enabled ? '' : ' · logging is currently OFF (enable “Email Log” on the dashboard)'; ?></p>
+                </div>
+                <?php if (!empty($log)) : ?>
+                    <button type="button" id="wpa-email-clear" class="wpa-btn wpa-btn--ghost"
+                        data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_EMAIL)); ?>">
+                        <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
+                    </button>
+                <?php endif; ?>
+            </div>
+
+            <div class="wpa-card" style="padding:0;overflow:hidden;">
+                <table class="wpa-backup-table">
+                    <thead>
+                        <tr><th>Time (UTC)</th><th>To</th><th>Subject</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($log)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="4">No emails logged yet.</td></tr>
+                        <?php else : foreach ($log as $row) :
+                            $status = isset($row['status']) ? $row['status'] : 'sent';
+                            $failed = ($status === 'failed');
+                            ?>
+                            <tr>
+                                <td><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['time'] ?? 0))); ?></td>
+                                <td><?php echo esc_html($row['to'] ?? ''); ?></td>
+                                <td>
+                                    <?php echo esc_html($row['subject'] ?? ''); ?>
+                                    <?php if ($failed && !empty($row['error'])) : ?>
+                                        <div class="wpa-backup-meta" style="color:var(--arzo-error)"><?php echo esc_html($row['error']); ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="wpa-badge <?php echo $failed ? 'wpa-badge--error' : 'wpa-badge--success'; ?>">
+                                        <?php echo wp_arzo_icon($failed ? 'x' : 'check', array('class' => 'wpa-icon')); ?>
+                                        <?php echo $failed ? 'Failed' : 'Sent'; ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php
+    }
+
+    public function ajax_email_log_clear()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        update_option('wp_arzo_email_log', array(), false);
+        wp_send_json_success(array('message' => 'Email log cleared.'));
     }
 }

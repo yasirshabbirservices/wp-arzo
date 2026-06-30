@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.7.0
+Stable tag: 6.8.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.8.0 =
+* New (free): SMTP Email Delivery (route wp_mail through your SMTP server)
+* New (free): Email Log (sent/failed, recipient, subject) under WP Arzo → Email Log
+* Local snapshots + custom login remain free; only cloud/remote backups are Pro
 
 = 6.7.0 =
 * Added: freemium gate (pro-tier features + Unlock CTA) — integration surface for the

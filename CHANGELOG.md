@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.8.0] — 2026-06-30
+
+### Added (free)
+- **SMTP Email Delivery** — route `wp_mail()` through your SMTP server (host/port/
+  encryption/auth, optional force-from name/email) via `phpmailer_init`.
+- **Email Log** — logs outgoing email (recipient, subject, sent/failed + error),
+  newest-first and capped, with a **WP Arzo → Email Log** page (status badges, clear-log).
+- Settings renderer gained `password` and `email` field types. Passwords are never
+  re-rendered, and a blank submit keeps the saved secret.
+- **Tiering confirmed:** SMTP, Email Log, **local** snapshots, and custom login are all
+  **free**; only **cloud/remote** backup destinations are Pro.
+
 ## [6.7.0] — 2026-06-30
 
 ### Added
