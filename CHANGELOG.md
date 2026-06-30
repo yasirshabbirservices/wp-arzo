@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.15.1] — 2026-06-30
+
+### Fixed (critical)
+- **Custom Login URL caused a fatal on the login page** (`Undefined constant
+  "AUTOSAVE_INTERVAL"`). The feature `require`d `wp-login.php` during `plugins_loaded`, but
+  WordPress defines its functionality constants *after* that hook, so `wp-login.php`'s
+  script localization fataled. The secret-slug request is now detected on `plugins_loaded`
+  but `wp-login.php` is loaded on **`wp_loaded`** (after all constants are defined). Direct
+  `wp-login.php` blocking is unchanged.
+
 ## [6.15.0] — 2026-06-30
 
 ### Added (free) — Code Snippets Manager (39 free features total)

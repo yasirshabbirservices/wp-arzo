@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.15.0
+Stable tag: 6.15.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.15.1 =
+* Fixed (critical): Custom Login URL fatal on the login page (Undefined constant
+  AUTOSAVE_INTERVAL) — wp-login.php is now loaded on wp_loaded, after WP constants exist
 
 = 6.15.0 =
 * New (free): Code Snippets Manager (PHP/CSS/JS/HTML) under WP Arzo -> Snippets, with a
