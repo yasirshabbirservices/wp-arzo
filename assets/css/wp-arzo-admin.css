@@ -282,6 +282,18 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 .wpa-promo__title { margin: 0; font-size: var(--arzo-fs-md); font-weight: 700; color: var(--arzo-text-strong); }
 .wpa-promo__desc { margin: 6px 0 12px; font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); line-height: 1.5; }
 
+/* Page-level (window) branded scrollbar — only on WP Arzo admin screens. */
+body.wp-arzo-screen { scrollbar-width: thin; scrollbar-color: var(--arzo-bg-hover) transparent; }
+body.wp-arzo-screen::-webkit-scrollbar { width: 13px; height: 13px; }
+body.wp-arzo-screen::-webkit-scrollbar-track { background: transparent; }
+body.wp-arzo-screen::-webkit-scrollbar-thumb {
+  background: var(--arzo-bg-hover);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--arzo-radius-pill);
+}
+body.wp-arzo-screen::-webkit-scrollbar-thumb:hover { background: var(--arzo-border-strong); background-clip: padding-box; }
+
 /* ------------------------------------------------ App shell: left sidebar nav + main column */
 .wpa-shell {
   --wpa-sidenav-w: clamp(208px, 17vw, 244px);
@@ -292,6 +304,8 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
   margin-bottom: var(--arzo-space-5);
 }
 .wpa-shell__main { min-width: 0; }
+/* Collapsed rail: icon-only, narrow column. */
+.wpa-shell.is-rail-collapsed { --wpa-sidenav-w: 58px; }
 
 /* Vertical navigation rail (page links + dashboard category filters). */
 .wpa-sidenav {
@@ -304,7 +318,40 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
   background: var(--arzo-bg-panel);
   border: 1px solid var(--arzo-border);
   border-radius: var(--arzo-radius);
+  /* Long nav scrolls within the rail instead of stretching the page. */
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+
+/* Rail header: collapse toggle. */
+.wpa-sidenav__bar { display: flex; justify-content: flex-end; }
+.wpa-sidenav__collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius-sm);
+  background: var(--arzo-bg-hover);
+  color: var(--arzo-text-secondary);
+  cursor: pointer;
+  transition: color var(--arzo-transition), background var(--arzo-transition);
+}
+.wpa-sidenav__collapse:hover { color: var(--arzo-accent); }
+.wpa-sidenav__collapse:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
+.wpa-sidenav__collapse .wpa-icon { width: 16px; height: 16px; transition: transform var(--arzo-transition); }
+.is-rail-collapsed .wpa-sidenav__collapse .wpa-icon { transform: rotate(180deg); }
+
+/* Collapsed state: hide text/labels/counts, center icons. */
+.is-rail-collapsed .wpa-sidenav__label,
+.is-rail-collapsed .wpa-sidenav__text,
+.is-rail-collapsed .wpa-sidenav__count,
+.is-rail-collapsed .wpa-sidenav__ext { display: none; }
+.is-rail-collapsed .wpa-sidenav__bar { justify-content: center; }
+.is-rail-collapsed .wpa-sidenav__item { justify-content: center; padding: 9px 0; gap: 0; }
+.is-rail-collapsed .wpa-sidenav__group + .wpa-sidenav__group { padding-top: var(--arzo-space-2); }
 .wpa-sidenav__group { display: flex; flex-direction: column; gap: 2px; }
 .wpa-sidenav__group + .wpa-sidenav__group { padding-top: var(--arzo-space-3); border-top: 1px solid var(--arzo-border); }
 .wpa-sidenav__label {

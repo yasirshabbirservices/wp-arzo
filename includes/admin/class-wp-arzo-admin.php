@@ -362,12 +362,18 @@ class WP_Arzo_Admin
         $tabs = $this->page_tabs($current);
         echo '<aside class="wpa-sidenav" aria-label="WP Arzo navigation">';
 
+        // Collapse toggle (icon-only rail ⇄ full). State persisted in localStorage by JS.
+        echo '<div class="wpa-sidenav__bar">'
+            . '<button type="button" class="wpa-sidenav__collapse" id="wpa-rail-toggle" aria-label="Collapse navigation" aria-pressed="false" title="Collapse / expand">'
+            . wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm'))
+            . '</button></div>';
+
         echo '<nav class="wpa-sidenav__group" aria-label="Pages">';
         echo '<div class="wpa-sidenav__label">Pages</div>';
         foreach ($tabs as $key => $tab) {
             $active = ($key === $current) ? ' is-active' : '';
             $target = !empty($tab['blank']) ? ' target="_blank" rel="noopener"' : '';
-            echo '<a class="wpa-sidenav__item' . $active . '" href="' . esc_url($tab['url']) . '"' . $target . '>'
+            echo '<a class="wpa-sidenav__item' . $active . '" href="' . esc_url($tab['url']) . '"' . $target . ' title="' . esc_attr($tab['label']) . '">'
                 . wp_arzo_icon($tab['icon'], array('class' => 'wpa-icon wpa-icon--sm'))
                 . '<span class="wpa-sidenav__text">' . esc_html($tab['label']) . '</span>'
                 . (!empty($tab['blank']) ? wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--xs wpa-sidenav__ext')) : '')
@@ -378,12 +384,12 @@ class WP_Arzo_Admin
         if (!empty($categories)) {
             echo '<nav class="wpa-sidenav__group" aria-label="Feature categories">';
             echo '<div class="wpa-sidenav__label">Categories</div>';
-            echo '<a class="wpa-sidenav__item wpa-cat-filter is-active" href="#wpa-feature-grid" data-group-filter="*">'
+            echo '<a class="wpa-sidenav__item wpa-cat-filter is-active" href="#wpa-feature-grid" data-group-filter="*" title="All features">'
                 . wp_arzo_icon('grid', array('class' => 'wpa-icon wpa-icon--sm'))
                 . '<span class="wpa-sidenav__text">All features</span>'
                 . '<span class="wpa-sidenav__count">' . (int) $total . '</span></a>';
             foreach ($categories as $c) {
-                echo '<a class="wpa-sidenav__item wpa-cat-filter" href="#group-' . esc_attr($c['key']) . '" data-group-filter="' . esc_attr($c['key']) . '">'
+                echo '<a class="wpa-sidenav__item wpa-cat-filter" href="#group-' . esc_attr($c['key']) . '" data-group-filter="' . esc_attr($c['key']) . '" title="' . esc_attr($c['label']) . '">'
                     . wp_arzo_icon($c['icon'], array('class' => 'wpa-icon wpa-icon--sm'))
                     . '<span class="wpa-sidenav__text">' . esc_html($c['label']) . '</span>'
                     . '<span class="wpa-sidenav__count">' . (int) $c['count'] . '</span></a>';

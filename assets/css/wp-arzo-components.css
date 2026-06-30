@@ -21,6 +21,35 @@
   border: 0;
 }
 
+/* ============================ Branded scrollbar ====================== */
+/* Dark, branded scrollbars for WP Arzo surfaces (dashboard `.wpa-admin` +
+   standalone console `.container`). Scoped to our roots so wp-admin chrome
+   elsewhere keeps its native scrollbars. Surface stylesheets add the page-level
+   (window) scrollbar (see wp-arzo-admin.css / wp-arzo.css). */
+.wpa-admin, .wpa-admin *,
+.container, .container * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--arzo-bg-hover) transparent;
+}
+.wpa-admin ::-webkit-scrollbar,
+.container ::-webkit-scrollbar { width: 12px; height: 12px; }
+.wpa-admin ::-webkit-scrollbar-track,
+.container ::-webkit-scrollbar-track { background: transparent; }
+.wpa-admin ::-webkit-scrollbar-thumb,
+.container ::-webkit-scrollbar-thumb {
+  background: var(--arzo-bg-hover);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--arzo-radius-pill);
+}
+.wpa-admin ::-webkit-scrollbar-thumb:hover,
+.container ::-webkit-scrollbar-thumb:hover {
+  background: var(--arzo-border-strong);
+  background-clip: padding-box;
+}
+.wpa-admin ::-webkit-scrollbar-corner,
+.container ::-webkit-scrollbar-corner { background: transparent; }
+
 /* ============================ Icon ===================================== */
 .wpa-icon {
   width: 20px;

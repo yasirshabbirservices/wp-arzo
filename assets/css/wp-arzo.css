@@ -15,6 +15,18 @@ body {
   min-height: 100vh;
 }
 
+/* Branded window scrollbar for the standalone console (the whole page is ours). */
+html, body { scrollbar-width: thin; scrollbar-color: var(--arzo-bg-hover) transparent; }
+body::-webkit-scrollbar { width: 13px; height: 13px; }
+body::-webkit-scrollbar-track { background: transparent; }
+body::-webkit-scrollbar-thumb {
+  background: var(--arzo-bg-hover);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--arzo-radius-pill);
+}
+body::-webkit-scrollbar-thumb:hover { background: var(--arzo-border-strong); background-clip: padding-box; }
+
 .container {
   max-width: 1200px;
   margin: 0 auto;

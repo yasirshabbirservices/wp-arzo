@@ -98,6 +98,29 @@
     });
   }
 
+  // -------------------------------------------------- Sidebar collapse (persisted)
+  function bindRailToggle() {
+    var btn = document.getElementById('wpa-rail-toggle');
+    var shell = document.querySelector('.wpa-shell');
+    if (!btn || !shell) return;
+    var KEY = 'wpArzoRailCollapsed';
+
+    function apply(collapsed) {
+      shell.classList.toggle('is-rail-collapsed', collapsed);
+      btn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+      btn.setAttribute('aria-label', collapsed ? 'Expand navigation' : 'Collapse navigation');
+    }
+    var saved = false;
+    try { saved = localStorage.getItem(KEY) === '1'; } catch (e) {}
+    apply(saved);
+
+    btn.addEventListener('click', function () {
+      var collapsed = !shell.classList.contains('is-rail-collapsed');
+      apply(collapsed);
+      try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (e) {}
+    });
+  }
+
   function bindCategoryFilter() {
     var items = document.querySelectorAll('.wpa-cat-filter');
     if (!items.length) return;
@@ -629,7 +652,7 @@
     }
   }
 
-  function init() { bindToggles(); bindSearch(); bindCategoryFilter(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
+  function init() { bindToggles(); bindSearch(); bindCategoryFilter(); bindRailToggle(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

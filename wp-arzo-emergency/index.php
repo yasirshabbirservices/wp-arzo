@@ -570,6 +570,13 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             min-height: 100vh;
         }
 
+        /* Branded scrollbar (self-contained recovery tool). */
+        html, body { scrollbar-width: thin; scrollbar-color: var(--background-light) transparent; }
+        ::-webkit-scrollbar { width: 13px; height: 13px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--background-light); border: 3px solid transparent; background-clip: padding-box; border-radius: var(--radius-pill); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-light); background-clip: padding-box; }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
