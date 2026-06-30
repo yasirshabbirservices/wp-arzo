@@ -83,6 +83,8 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
   logo, custom admin CSS, branded dashboard widget.
 - ✅ **Redirects & 404 Monitor** (Pro v1.9.0) — exact/regex redirects (301/302/307), 404
   log with one-click redirect creation.
+- ✅ **Cron Manager** (Pro v1.10.0) — view/run/delete WP-Cron events, orphan detection,
+  schedules reference.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
@@ -276,7 +278,7 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 - **Site Health integration** + WP Arzo health checks (writability, cron, OPcache, SSL,
   PHP/DB versions). [F]
 - **Cron / scheduled-tasks manager** — view/run/pause WP-Cron events; switch to real
-  cron. [F view / P manage]
+  cron. [✅ Pro v1.10.0 — view/run/delete events + orphan detection + schedules ref]
 - **Transient & cache manager**, **autoloaded-options cleanup**, **database optimizer**
   (overhead, orphaned meta, revisions/spam cleanup). [F basic / P scheduled]
 - **Redirect manager + 404 monitor** [✅ Pro v1.9.0 — exact/regex, 301/302/307, 404 log →
