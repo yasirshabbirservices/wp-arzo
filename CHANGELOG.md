@@ -4,6 +4,13 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.14.0] — 2026-06-30
+
+### Added (free) — 3 new feature modules (38 free features total)
+- **Site Verification** — Google / Bing / Pinterest / Yandex / Baidu verification meta tags.
+- **Remove jQuery Migrate** — drop jquery-migrate.js on the front end.
+- **Disable Front Dashicons** — skip the Dashicons stylesheet for logged-out visitors.
+
 ## [6.13.1] — 2026-06-30
 
 ### Fixed (critical)
