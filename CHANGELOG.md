@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.13.0] — 2026-06-30
+
+### Added (free) — 5 new feature modules (35 free features total)
+- **Crawl Optimizations** — remove generator / RSD / WLW-manifest / shortlink / REST &
+  oEmbed link tags from `<head>`.
+- **Custom Body Class** — add custom classes to the front-end `<body>`.
+- **Disable Application Passwords** — turn off Application Passwords site-wide.
+- **Clean Up Admin Bar** — remove the WP logo / comments / updates / “New” toolbar nodes
+  (toggleable).
+- **Enhance List Tables** — add an ID column and a featured-image thumbnail to posts/pages.
+
 ## [6.12.0] — 2026-06-30
 
 ### Added (free) — 8 new feature modules (30 free features total)
