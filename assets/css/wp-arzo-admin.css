@@ -315,3 +315,22 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 }
 .wpa-nav__tab.is-active:hover { background: var(--arzo-accent-hover); color: var(--arzo-text-on-accent); }
 .wpa-nav__tab .wpa-icon { width: 15px; height: 15px; }
+
+/* --------------------------------------------- Dark form fields (beat wp-admin forms.css) */
+/* wp-admin's input[type="text"] etc. outspecify a single .wpa-input class and force a
+   white background, so override decisively within our screens. */
+.wpa-admin input.wpa-input,
+.wpa-admin select.wpa-input,
+.wpa-admin textarea.wpa-input,
+.wpa-admin .wpa-input {
+  background: var(--arzo-bg-input) !important;
+  color: var(--arzo-text-primary) !important;
+  border: 1px solid var(--arzo-border-strong) !important;
+}
+.wpa-admin .wpa-input::placeholder { color: var(--arzo-text-muted) !important; }
+.wpa-admin .wpa-input:focus,
+.wpa-admin .wpa-input:focus-visible {
+  border-color: var(--arzo-accent) !important;
+  box-shadow: var(--arzo-focus-ring) !important;
+  outline: none !important;
+}

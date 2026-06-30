@@ -76,18 +76,26 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
         if ($logo !== '') {
             $logo_css = '#login h1 a{background-image:url(' . esc_url($logo) . ') !important;background-size:contain !important;width:100% !important;height:72px !important;}';
         }
+        // `login_enqueue_scripts` fires on every wp-login.php view, and `.login form`
+        // matches them all — sign-in, lost password, reset password, register, and
+        // confirm-action — so a single ruleset brands the entire login flow.
         ?>
         <style id="wp-arzo-custom-login">
             body.login { background: <?php echo esc_html($bg); ?> !important; }
-            .login label, .login #nav a, .login #backtoblog a { color: <?php echo esc_html($text); ?> !important; }
-            .login #nav a:hover, .login #backtoblog a:hover { color: <?php echo esc_html($accent); ?> !important; }
-            #loginform, .login .message, .login #login_error {
+            .login label, .login #nav a, .login #backtoblog a, .login p, .login form .forgetmenot label {
+                color: <?php echo esc_html($text); ?> !important;
+            }
+            .login #nav a:hover, .login #backtoblog a:hover, .login a:hover { color: <?php echo esc_html($accent); ?> !important; }
+            .login a { color: <?php echo esc_html($accent); ?> !important; }
+            .login form, .login .message, .login #login_error, .login .notice {
                 background: <?php echo esc_html($formbg); ?> !important;
                 border: 1px solid rgba(255,255,255,.08) !important;
                 color: <?php echo esc_html($text); ?> !important;
                 border-radius: 8px !important;
             }
-            #loginform input[type="text"], #loginform input[type="password"] {
+            .login form input[type="text"],
+            .login form input[type="password"],
+            .login form input[type="email"] {
                 background: <?php echo esc_html($bg); ?> !important;
                 color: <?php echo esc_html($text); ?> !important;
                 border-color: rgba(255,255,255,.15) !important;
