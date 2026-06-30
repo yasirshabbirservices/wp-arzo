@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.21.0] — 2026-06-30
+
+### Added — Activity Log (free)
+- A new **Activity Log** feature records an audit trail of key site events: logins
+  (success / failed / logout), user created/deleted and role changes, content
+  published/trashed, plugin activate/deactivate, theme switches, and WP Arzo feature
+  toggles. Entries are stored in a capped option (no custom table) — newest first, with
+  actor, IP, and a configurable retention (20–1000 entries).
+- New **WP Arzo → Activity Log** page with an event-type filter, per-event status badges
+  + icons, and a one-click **Clear log** (capability + nonce gated). Per-category toggles
+  (auth / users / content / plugins) in the feature's settings let you log only what you
+  need; disabled features add no hooks. Foundation for the Pro advanced audit log.
+
 ## [6.20.0] — 2026-06-30
 
 ### Changed — Custom Login Page UI/UX overhaul

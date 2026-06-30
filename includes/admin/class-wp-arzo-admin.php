@@ -24,6 +24,7 @@ class WP_Arzo_Admin
     const PAGE_EMAIL_LOG = 'wp-arzo-email-log';
     const PAGE_SNIPPETS = 'wp-arzo-snippets';
     const PAGE_MEDIA = 'wp-arzo-media';
+    const PAGE_ACTIVITY = 'wp-arzo-activity';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
@@ -32,6 +33,7 @@ class WP_Arzo_Admin
     const NONCE_SNIPPETS = 'wp_arzo_snippets';
     const NONCE_TEST_EMAIL = 'wp_arzo_test_email';
     const NONCE_MEDIA = 'wp_arzo_media';
+    const NONCE_ACTIVITY = 'wp_arzo_activity';
 
     public static function instance()
     {
@@ -59,6 +61,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_email_resend', array($this, 'ajax_email_resend'));
         add_action('wp_ajax_wp_arzo_media_scan', array($this, 'ajax_media_scan'));
         add_action('wp_ajax_wp_arzo_media_delete', array($this, 'ajax_media_delete'));
+        add_action('wp_ajax_wp_arzo_activity_clear', array($this, 'ajax_activity_clear'));
     }
 
     private function registry()
@@ -116,6 +119,7 @@ class WP_Arzo_Admin
         add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'));
         add_submenu_page(self::PAGE, 'Snippets', 'Snippets', 'manage_options', self::PAGE_SNIPPETS, array($this, 'render_snippets'));
         add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'));
+        add_submenu_page(self::PAGE, 'Activity Log', 'Activity Log', 'manage_options', self::PAGE_ACTIVITY, array($this, 'render_activity_log'));
 
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
@@ -234,6 +238,7 @@ class WP_Arzo_Admin
             'email'     => array('label' => 'Email Log', 'icon' => 'mail', 'url' => admin_url('admin.php?page=' . self::PAGE_EMAIL_LOG)),
             'snippets'  => array('label' => 'Snippets', 'icon' => 'code', 'url' => admin_url('admin.php?page=' . self::PAGE_SNIPPETS)),
             'media'     => array('label' => 'Media Cleanup', 'icon' => 'image', 'url' => admin_url('admin.php?page=' . self::PAGE_MEDIA)),
+            'activity'  => array('label' => 'Activity Log', 'icon' => 'shield', 'url' => admin_url('admin.php?page=' . self::PAGE_ACTIVITY)),
             'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
         );
         echo '<nav class="wpa-nav" aria-label="WP Arzo sections">';
@@ -878,6 +883,109 @@ class WP_Arzo_Admin
         }
         update_option('wp_arzo_email_log', array(), false);
         wp_send_json_success(array('message' => 'Email log cleared.'));
+    }
+
+    /* ----------------------------------------------------- Activity Log */
+
+    public function render_activity_log()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+
+        $enabled = $this->registry()->is_enabled('activity_log');
+        $log = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::instance()->get_log() : array();
+        $filter = isset($_GET['action_filter']) ? sanitize_key(wp_unslash($_GET['action_filter'])) : '';
+
+        // Collect the action types present, for the filter dropdown.
+        $present = array();
+        foreach ($log as $row) {
+            $a = isset($row['a']) ? $row['a'] : '';
+            if ($a !== '') {
+                $present[$a] = true;
+            }
+        }
+        $rows = $filter ? array_values(array_filter($log, function ($r) use ($filter) {
+            return isset($r['a']) && $r['a'] === $filter;
+        })) : $log;
+
+        $nonce = wp_create_nonce(self::NONCE_ACTIVITY);
+        $base  = admin_url('admin.php?page=' . self::PAGE_ACTIVITY);
+        ?>
+        <div class="wrap wpa-admin">
+            <?php $this->render_brand_bar(); ?>
+            <?php $this->render_nav('activity'); ?>
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?> Activity Log</h1>
+                    <p class="wpa-admin__subtitle">
+                        <span class="wpa-badge wpa-badge--info"><?php echo (int) count($log); ?> recorded</span>
+                        <?php echo $enabled ? '' : ' · logging is OFF (enable “Activity Log” on the dashboard)'; ?>
+                    </p>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <?php if (!empty($present)) : ?>
+                        <form method="get" style="margin:0;">
+                            <input type="hidden" name="page" value="<?php echo esc_attr(self::PAGE_ACTIVITY); ?>">
+                            <select name="action_filter" class="wpa-input" onchange="this.form.submit()" style="min-width:170px;">
+                                <option value="">All events</option>
+                                <?php foreach (array_keys($present) as $a) :
+                                    $meta = WP_Arzo_Activity_Log::action_meta($a); ?>
+                                    <option value="<?php echo esc_attr($a); ?>" <?php selected($filter, $a); ?>><?php echo esc_html($meta[0]); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </form>
+                    <?php endif; ?>
+                    <?php if (!empty($log)) : ?>
+                        <button type="button" id="wpa-activity-clear" class="wpa-btn wpa-btn--ghost" data-nonce="<?php echo esc_attr($nonce); ?>">
+                            <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
+                        </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="wpa-card" style="padding:0;overflow:hidden;">
+                <table class="wpa-backup-table">
+                    <thead>
+                        <tr><th>Time (UTC)</th><th>Event</th><th>Detail</th><th>User</th><th>IP</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($rows)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="5"><?php echo $filter ? 'No events of this type.' : 'No activity recorded yet.'; ?></td></tr>
+                        <?php else : foreach ($rows as $row) :
+                            $meta = WP_Arzo_Activity_Log::action_meta(isset($row['a']) ? $row['a'] : '');
+                            ?>
+                            <tr>
+                                <td><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['t'] ?? 0))); ?></td>
+                                <td>
+                                    <span class="wpa-badge wpa-badge--<?php echo esc_attr($meta[1]); ?>">
+                                        <?php echo wp_arzo_icon($meta[2], array('class' => 'wpa-icon')); ?>
+                                        <?php echo esc_html($meta[0]); ?>
+                                    </span>
+                                </td>
+                                <td><?php echo esc_html($row['o'] ?? ''); ?></td>
+                                <td><?php echo esc_html($row['ul'] ?? '—'); ?></td>
+                                <td><code><?php echo esc_html($row['ip'] ?? ''); ?></code></td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php
+    }
+
+    public function ajax_activity_clear()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_ACTIVITY, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (class_exists('WP_Arzo_Activity_Log')) {
+            WP_Arzo_Activity_Log::instance()->clear();
+        } else {
+            update_option('wp_arzo_activity_log', array(), false);
+        }
+        wp_send_json_success(array('message' => 'Activity log cleared.'));
     }
 
     public function ajax_send_test_email()
