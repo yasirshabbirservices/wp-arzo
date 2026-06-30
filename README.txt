@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.6.4
+Stable tag: 6.7.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.7.0 =
+* Added: freemium gate (pro-tier features + Unlock CTA) — integration surface for the
+  WP Arzo Pro add-on and Freemius licensing
 
 = 6.6.4 =
 * Changed: fluid, variable-driven CSS (clamp/calc + container/card variables) so the

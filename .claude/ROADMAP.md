@@ -31,8 +31,15 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
   Backups admin page.
 - **v6.6.1** — reliable asset cache-busting (no manual version bump needed for CSS/JS).
 
+- **v6.7.0** — freemium gate in the free core: `wp_arzo_pro_active` /
+  `wp_arzo_is_pro_active()` / `wp_arzo_pro_upgrade_url()`; pro-tier features lock with an
+  "Unlock" CTA until Pro is active. **WP Arzo Pro** add-on scaffolded in a separate private
+  repo (`wp-arzo-pro`): Freemius add-on init (inert until keys), registers Pro modules via
+  `wp_arzo_register_features`; first Pro module = Meta Pixel.
+
 ### Not yet built (next up)
-- Pro scaffold + **Freemius** licensing wiring (gate via `wp_arzo_feature_is_available`).
+- Wire **Freemius** for real (add SDK + plugin IDs/keys in the Pro repo's
+  `includes/freemius-init.php`) so the license actually enforces `wp_arzo_pro_active`.
 - Backup v2 (bounded file snapshots + scheduled/cron) → cloud remotes (FTP/S3 →
   Drive/Dropbox/pCloud) + encryption.
 - Marketing (pixels/GA4/GTM/GSC), Email (SMTP + logs), Security suite (2FA, audit log,

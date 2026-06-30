@@ -167,7 +167,13 @@ WP Arzo now has **two** distinct UIs — know which one you're touching:
      `wp-arzo-components.css` → `wp-arzo-admin.css`, plus `wp-arzo-components.js` +
      `wp-arzo-admin.js`.
    - Add-on hooks: `wp_arzo_register_features` (Pro registers modules) and
-     `wp_arzo_feature_is_available` (license gate). Licensing provider: **Freemius**.
+     `wp_arzo_feature_is_available` (license gate). The gate defers to
+     `wp_arzo_is_pro_active()` (filter `wp_arzo_pro_active`); the locked-feature CTA uses
+     `wp_arzo_pro_upgrade_url()`. Licensing provider: **Freemius**.
+   - **WP Arzo Pro** is a separate **private** plugin/repo (`wp-arzo-pro`) — it boots after
+     the core, flips `wp_arzo_pro_active` when licensed, and registers its premium modules
+     via `wp_arzo_register_features`. Never put Pro code or Freemius secrets in this public
+     repo.
 
 2. **The standalone console** (`Advanced Tools` submenu → `admin-ajax.php`) — the legacy
    power-tools (Site Info, Users, Database, Files, Debug, Site Modes, Extra Options, Quick

@@ -363,8 +363,10 @@ class WP_Arzo_Admin
                             data-feature="<?php echo esc_attr($id); ?>" <?php checked($enabled); ?>>
                         <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
                     </label>
-                <?php else : ?>
-                    <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="#"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</a>
+                <?php else :
+                    $upgrade = function_exists('wp_arzo_pro_upgrade_url') ? wp_arzo_pro_upgrade_url() : '#';
+                    ?>
+                    <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</a>
                 <?php endif; ?>
             </div>
         </div>
