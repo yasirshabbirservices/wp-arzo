@@ -70,7 +70,8 @@ class WP_Arzo_Setup_Wizard
             'Setup Wizard',
             'manage_options',
             self::PAGE,
-            array($this, 'render')
+            array($this, 'render'),
+            98
         );
         // No "Leads" admin page — wizard opt-ins are collected silently (stored + emailed to
         // the developer via record_lead()); site owners don't need a Leads screen.

@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.47.0] — 2026-07-01
+
+### Changed — Dashboard nav simplified; pages are WP-admin menus
+- **Removed the "Pages" group from the dashboard left rail.** The rail is now purely a
+  **feature-category filter** for the grid; its label is renamed **"Pages/Categories" →
+  "Browse"**. Page-owning features (Backups, Roles, Content Types, …) are reached from the
+  **native WP-admin menu** under *WP Arzo*, not a duplicated in-page nav.
+- Feature pages (Backups, Email Log, Roles, …) now render **full-width** (no empty rail) —
+  the rail only appears on the Dashboard. Added `.wpa-shell--full`.
+- **Ordered the WP Arzo admin submenus deliberately** via explicit `add_submenu_page`
+  positions, leaving gaps for the Pro add-on's pages to interleave logically.
+- Retired the `wp_arzo_admin_page_tabs` filter (no longer needed now that the rail doesn't
+  list pages).
+
 ## [6.46.0] — 2026-07-01
 
 ### Fixed — Pro feature production-readiness (audit follow-up)
