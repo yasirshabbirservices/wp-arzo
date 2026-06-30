@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.6.1
+Stable tag: 6.6.2
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.6.2 =
+* Fixed: admin-menu icon rendered oversized (logo overflowing the sidebar); now
+  constrained to a proper 20x20 icon
 
 = 6.6.1 =
 * Fixed: CSS/JS changes now take effect without bumping the plugin version (robust

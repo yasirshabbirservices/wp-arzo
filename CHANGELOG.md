@@ -4,6 +4,13 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.6.2] — 2026-06-30
+
+### Fixed
+- **Admin-menu icon** rendered at full size (a giant logo overflowing the sidebar into the
+  page). WordPress doesn't size a URL-based menu icon, so the logo PNG is now constrained
+  to 20×20 (with hover/active opacity) via a small global admin style.
+
 ## [6.6.1] — 2026-06-30
 
 ### Fixed

@@ -4,15 +4,40 @@
 > be changed. We build **feature by feature**; each feature starts from a reference plugin
 > the maintainer shares, and we ship a better/faster/more-accessible version.
 
-## 0. Progress log
+## 0. Progress log — what's already built
 
+Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]** planned Pro.
+
+### Shipped
 - **v6.5** — security hardening + broken-feature fixes (CSRF nonces, path-traversal &
-  config-injection fixes, emergency-tool hardening).
-- **v6.6** — Phase 0 (design tokens + component library + icon system), Phase 1 (feature
-  registry + native dashboard), Phase 2 (16 free feature modules), Backup engine v1 (DB
-  snapshots + restore + auto-snapshot before toggle), full-dark branded UI + cross-promo.
-- **Next** — Pro scaffold + Freemius wiring; then Backup v2 (files + scheduled) / cloud
-  remotes, and the marketing/AI/builder modules.
+  config-injection fixes, emergency-tool hardening incl. login throttle + CSP).
+- **v6.6 — Phase 0 (design system foundation):** single-source design tokens, reusable
+  `wpa-` component library (button, modern toggle, custom select, badge/status, card,
+  field, toast), SVG icon system (`wp_arzo_icon`), global a11y layer.
+- **v6.6 — Phase 1 (dashboard + registry):** `WP_Arzo_Feature` base + registry
+  (enable-state, settings, lifecycle hooks), native full-dark **Feature Manager** dashboard
+  (toggle grid, search, schema-driven settings), branded header, logo menu icon,
+  cross-promotion area. Standalone console moved under **Advanced Tools**.
+- **v6.6 — Phase 2 (16 free feature modules):**
+  - Core: Disable Comments, Disable Gutenberg, Disable RSS Feeds, Disable Embeds.
+  - Security: Disable XML-RPC, Restrict REST API, Disable Theme/Plugin Editor, Block User
+    Enumeration.
+  - Utilities: Hide Admin Bar, Disable Dashboard Widgets, Disable Emojis, Disable Self
+    Pingbacks.
+  - Content/Dev: Revisions Control, Heartbeat Control.
+  - Marketing/SEO: Manage robots.txt, Manage ads.txt.
+- **v6.6 — Backup engine v1:** streaming DB snapshots (options/full_db), restore (safety-
+  snapshot-first), delete, retention, **Automated Snapshots** before any feature toggle;
+  Backups admin page.
+- **v6.6.1** — reliable asset cache-busting (no manual version bump needed for CSS/JS).
+
+### Not yet built (next up)
+- Pro scaffold + **Freemius** licensing wiring (gate via `wp_arzo_feature_is_available`).
+- Backup v2 (bounded file snapshots + scheduled/cron) → cloud remotes (FTP/S3 →
+  Drive/Dropbox/pCloud) + encryption.
+- Marketing (pixels/GA4/GTM/GSC), Email (SMTP + logs), Security suite (2FA, audit log,
+  limit login, custom login URL), Branding (login/dashboard/admin), Builders (CPT/CCT,
+  media manager), Code Snippets, AI/MCP layer, Ops/monitoring modules.
 
 ## 1. Vision
 
