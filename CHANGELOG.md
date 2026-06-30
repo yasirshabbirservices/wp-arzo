@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.42.0] — 2026-07-01
+
+### Changed — Setup Wizard polish + brand-token consistency
+- New **welcome / splash** first step: WP Arzo logo, a one-line value prop, three highlight
+  cards (Faster / Safer / In control), and a developer credit linking yasirshabbir.com.
+- Wizard **inputs and checkboxes are now branded** (dark fields + accent checkboxes) — they
+  no longer fall back to wp-admin's white controls (the wizard lives outside `.wpa-admin`).
+- On the manual-features step, **Back / Continue moved to the top**, and the inner toggle
+  **scrollbar was removed** (the page uses the normal browser scroll).
+- **Dark text on accent/primary backgrounds everywhere** — fixed remaining white-on-green
+  spots in the console (pagination + select hover). Native checkboxes/radios across the whole
+  plugin now use `accent-color: var(--arzo-accent)`.
+- **Removed the “Leads” admin page.** Wizard opt-ins are still collected — stored and emailed
+  to the developer (`wp_arzo_lead_email`) — but there's no Leads screen in the site's admin.
+
 ## [6.41.0] — 2026-07-01
 
 ### Added — Content & media features (free)

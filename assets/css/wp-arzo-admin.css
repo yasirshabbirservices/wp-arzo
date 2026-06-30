@@ -486,7 +486,7 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
 .wpa-wiz__preset-body p { margin: 6px 0 0; color: var(--arzo-text-secondary); font-size: var(--arzo-fs-sm); }
 .wpa-wiz__preset .wpa-btn { align-self: flex-start; margin-top: auto; }
 
-.wpa-wiz__features { display: flex; flex-direction: column; gap: 22px; max-height: 60vh; overflow: auto; padding-right: 6px; }
+.wpa-wiz__features { display: flex; flex-direction: column; gap: 22px; }
 .wpa-wiz__group h3 { display: flex; align-items: center; gap: 8px; font-size: var(--arzo-fs-sm); text-transform: uppercase; letter-spacing: .05em; color: var(--arzo-text-muted); margin: 0 0 10px; }
 .wpa-wiz__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
 .wpa-wiz__feature { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--arzo-bg-panel); border: 1px solid var(--arzo-border); border-radius: var(--arzo-radius-sm); }
@@ -502,7 +502,46 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
 .wpa-wiz__consent input { margin-top: 3px; }
 .wpa-wiz__consent a { color: var(--arzo-accent); }
 
+/* Branded form controls inside the wizard (it lives outside .wpa-admin, so it must beat
+   wp-admin's white inputs / native checkboxes itself). */
+.wpa-wiz input.wpa-input,
+.wpa-wiz select.wpa-input,
+.wpa-wiz textarea.wpa-input,
+.wpa-wiz input[type="text"],
+.wpa-wiz input[type="email"],
+.wpa-wiz input[type="url"],
+.wpa-wiz input[type="number"],
+.wpa-wiz input[type="datetime-local"] {
+  background: var(--arzo-bg-input) !important;
+  color: var(--arzo-text-primary) !important;
+  border: 1px solid var(--arzo-border-strong) !important;
+  border-radius: var(--arzo-radius-sm);
+  padding: 10px 12px;
+  box-shadow: none;
+}
+.wpa-wiz .wpa-input::placeholder { color: var(--arzo-text-muted) !important; }
+.wpa-wiz input:focus, .wpa-wiz select:focus, .wpa-wiz textarea:focus {
+  border-color: var(--arzo-accent) !important;
+  box-shadow: var(--arzo-focus-ring) !important;
+  outline: none !important;
+}
+
+/* Welcome / splash screen. */
+.wpa-wiz__welcome { text-align: center; max-width: 760px; margin: 4vh auto; }
+.wpa-wiz__welcome-logo { display: block; width: 84px; height: 84px; margin: 0 auto 18px; padding: 14px; border-radius: 18px; background: var(--arzo-bg-panel); border: 1px solid var(--arzo-border); object-fit: contain; }
+.wpa-wiz__welcome h1 { font-size: clamp(28px, 5vw, 40px); color: var(--arzo-text-strong); margin: 0 0 10px; }
+.wpa-wiz__welcome-sub { color: var(--arzo-text-secondary); font-size: var(--arzo-fs-md); line-height: 1.6; margin: 0 auto 24px; max-width: 620px; }
+.wpa-wiz__highlights { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 0 0 26px; }
+.wpa-wiz__highlight { flex: 1 1 180px; max-width: 220px; display: flex; flex-direction: column; gap: 6px; align-items: center; padding: 18px 16px; background: var(--arzo-bg-panel); border: 1px solid var(--arzo-border); border-radius: var(--arzo-radius); }
+.wpa-wiz__highlight .wpa-icon { width: 26px; height: 26px; color: var(--arzo-accent); }
+.wpa-wiz__highlight strong { color: var(--arzo-text-strong); font-size: var(--arzo-fs-md); }
+.wpa-wiz__highlight span { font-size: 12.5px; color: var(--arzo-text-secondary); }
+.wpa-wiz__by { margin-top: 24px; font-size: 13px; color: var(--arzo-text-muted); }
+.wpa-wiz__by a { color: var(--arzo-accent); text-decoration: none; }
+.wpa-wiz__by a:hover { text-decoration: underline; }
+
 .wpa-wiz__nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 26px; max-width: 920px; margin-left: auto; margin-right: auto; }
+.wpa-wiz__nav--top { margin-top: 0; margin-bottom: 22px; }
 .wpa-wiz__nav-right { display: flex; gap: 10px; }
 
 /* --------------------------------------------- Dark form fields (beat wp-admin forms.css) */
