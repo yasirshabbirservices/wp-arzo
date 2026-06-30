@@ -78,6 +78,8 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
 - ✅ **Code Snippets Manager** (free) — v6.15.0. ✅ **Scheduled Backups** (free) — v6.19.0.
 - ✅ **CPT/CCT builder** (Pro v1.5.0). ✅ **Custom Fields / meta boxes** (Pro v1.6.0).
 - ✅ **API email providers** (Pro v1.4.0). ✅ **Media Folders** (Pro v1.7.0, HappyFiles ref).
+- ✅ **Activity Log** (free) — v6.21.0 (Solid Security ref; Pro audit log extends it).
+- **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
 - **Backup (Pro):** S3-compatible remote, remote restore (WPvivid ref).
@@ -263,7 +265,9 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 
 ### Ops & monitoring (additional suggestions)
 - **Activity log / audit trail** — who did what (logins, content, settings, WP Arzo
-  actions), filterable, exportable. [F basic / P advanced + retention]
+  actions), filterable, exportable. [✅ Free basic (v6.21.0) — capped option store, event
+  filter, per-category toggles, retention; P advanced = real table + export + long
+  retention]
 - **Site Health integration** + WP Arzo health checks (writability, cron, OPcache, SSL,
   PHP/DB versions). [F]
 - **Cron / scheduled-tasks manager** — view/run/pause WP-Cron events; switch to real
