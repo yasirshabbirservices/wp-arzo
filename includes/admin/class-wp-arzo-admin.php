@@ -422,13 +422,18 @@ class WP_Arzo_Admin
         $this->render_brand_bar();
         $this->render_shell_open('dashboard', $categories, $total);
         ?>
-        <div class="wpa-admin__bar">
-            <div>
+        <?php $wpa_pct = $total ? (int) round($enabled / $total * 100) : 0; ?>
+        <div class="wpa-admin__bar wpa-fm-hero">
+            <div class="wpa-fm-hero__info">
                 <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('tools', array('class' => 'wpa-icon')); ?> Feature Manager</h1>
-                <p class="wpa-admin__subtitle">Enable only what you need. <strong><?php echo (int) $enabled; ?></strong> of <?php echo (int) $total; ?> active.</p>
+                <p class="wpa-admin__subtitle">Enable only what you need — everything is off until you turn it on.</p>
+                <div class="wpa-fm-progress" role="progressbar" aria-valuemin="0" aria-valuemax="<?php echo (int) $total; ?>" aria-valuenow="<?php echo (int) $enabled; ?>">
+                    <div class="wpa-fm-progress__bar" style="width:<?php echo (int) $wpa_pct; ?>%"></div>
+                </div>
+                <div class="wpa-fm-progress__meta"><strong><?php echo (int) $enabled; ?></strong> of <?php echo (int) $total; ?> features active · <?php echo (int) $wpa_pct; ?>%</div>
             </div>
-            <div style="display:flex;gap:10px;align-items:center;">
-                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . WP_Arzo_Setup_Wizard::PAGE)); ?>">
+            <div class="wpa-fm-hero__actions">
+                <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . WP_Arzo_Setup_Wizard::PAGE)); ?>">
                     <?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Setup Wizard
                 </a>
                 <div class="wpa-admin__search">
@@ -1745,7 +1750,31 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                 <p class="wpa-admin__subtitle"><strong><?php echo count($roles); ?></strong> role(s)<?php echo $enabled ? '' : ' · the “Role Manager” feature is OFF (enable it on the dashboard)'; ?></p>
             </div>
         </div>
-        <div class="wpa-card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+        <div class="wpa-card" style="margin-bottom:16px;">
+            <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add a role</h2>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
+                    <label class="wpa-field__label" for="wpa-role-name">Display name</label>
+                    <input class="wpa-input" type="text" id="wpa-role-name" placeholder="e.g. Shop Manager">
+                </div>
+                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
+                    <label class="wpa-field__label" for="wpa-role-slug">Slug</label>
+                    <input class="wpa-input" type="text" id="wpa-role-slug" placeholder="shop_manager">
+                </div>
+                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
+                    <label class="wpa-field__label" for="wpa-role-clone">Clone caps from</label>
+                    <select class="wpa-input" id="wpa-role-clone" data-wpa-select>
+                        <option value="">None (empty)</option>
+                        <?php foreach ($roles as $r) {
+                            echo '<option value="' . esc_attr($r['slug']) . '">' . esc_html($r['name']) . '</option>';
+                        } ?>
+                    </select>
+                </div>
+                <button type="button" id="wpa-role-add" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add role</button>
+            </div>
+        </div>
+
+        <div class="wpa-card" style="padding:0;overflow:hidden;">
             <table class="wpa-backup-table">
                 <thead><tr><th>Role</th><th>Slug</th><th>Users</th><th>Capabilities</th><th></th></tr></thead>
                 <tbody>
@@ -1768,30 +1797,6 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
-
-        <div class="wpa-card">
-            <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add a role</h2>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
-                    <label class="wpa-field__label" for="wpa-role-name">Display name</label>
-                    <input class="wpa-input" type="text" id="wpa-role-name" placeholder="e.g. Shop Manager">
-                </div>
-                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
-                    <label class="wpa-field__label" for="wpa-role-slug">Slug</label>
-                    <input class="wpa-input" type="text" id="wpa-role-slug" placeholder="shop_manager">
-                </div>
-                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
-                    <label class="wpa-field__label" for="wpa-role-clone">Clone caps from</label>
-                    <select class="wpa-input" id="wpa-role-clone" data-wpa-select>
-                        <option value="">None (empty)</option>
-                        <?php foreach ($roles as $r) {
-                            echo '<option value="' . esc_attr($r['slug']) . '">' . esc_html($r['name']) . '</option>';
-                        } ?>
-                    </select>
-                </div>
-                <button type="button" id="wpa-role-add" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add role</button>
-            </div>
         </div>
         <?php
     }

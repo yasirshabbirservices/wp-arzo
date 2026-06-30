@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.40.0] — 2026-07-01
+
+### Fixed — Database manager auto-connects (no more login prompt)
+- The bundled **AdminNeo** database tool now opens **already connected** — no login screen.
+  AdminNeo blocked our iframe with `X-Frame-Options: DENY` (now relaxed to `SAMEORIGIN` in the
+  vendored file) and its strict CSP blocked injected scripts, so the **parent console page**
+  (same-origin, WP-gated) auto-submits AdminNeo's own login form, which falls back to the
+  site's wp-config DB credentials. Verified live. ("Open full screen" still shows AdminNeo's
+  one-click prefilled login since there's no parent frame there.)
+
+### Changed — Dashboard polish
+- **Feature Manager** header redesigned with an **activation progress bar** (X of Y active · %).
+- **License** card: the **Activate** and **Get Pro** buttons now fill the card 50 / 50.
+- **Role Manager**: the **Add a role** box moved above the roles table for quicker access.
+
 ## [6.39.0] — 2026-07-01
 
 ### Added — Two-Factor Authentication (free, opt-in)
