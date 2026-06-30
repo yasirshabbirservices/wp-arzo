@@ -47,6 +47,16 @@ $registry->register(new WP_Arzo_Feature_My_Thing());
 ```
 (Pro add-ons register via the `wp_arzo_register_features` action instead of editing core.)
 
+**Also wire these when they apply:**
+- **Pro module** → add it to `wp_arzo_pro_feature_catalog()`
+  (`includes/features-registry/class-feature-pro-placeholders.php`) so the free core
+  advertises it as a locked PRO card; and to the Pro repo's registration list + changelog.
+- **Dedicated admin page** (its own submenu) → add the page→feature mapping to
+  `page_features()` in `class-wp-arzo-admin.php` so the page/tab only shows when enabled.
+- **Worth featuring in a preset?** → add the id to the relevant preset in
+  `class-wp-arzo-setup-wizard.php` (`presets()`); opinionated "disable WP behaviour"
+  toggles also belong in that file's `opinionated()` denylist so "The Works" skips them.
+
 ## Rules
 
 - `boot()` runs on `plugins_loaded` **only if the feature is enabled** — so a disabled

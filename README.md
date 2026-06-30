@@ -1,20 +1,45 @@
 # WP Arzo – Maintenance & Administration Suite
 
-WP Arzo is a maintenance and administration toolkit for WordPress. It provides a
-standalone, dark‑themed console for common maintenance workflows: site info, users,
-database, files, plugins, themes, site modes, debug tools, extra options (PHP limits),
-and quick‑login helpers.
+WP Arzo is an all‑in‑one **administration + site‑enhancement suite** for WordPress, built
+around two surfaces:
 
-This repository is public and intended for production use on shared hosting, VPS, cloud,
-and enterprise WordPress setups. The console is **administrators‑only** and authenticates
-with your existing WordPress session.
+1. A modern, native **Feature Manager dashboard** — a registry‑driven toggle grid of
+   site‑enhancement features (performance, security, email/SMTP, marketing, content,
+   media, backups, developer tools, branding) with schema‑driven settings, a **Setup
+   Wizard** with one‑click presets, and a freemium **Pro** add‑on.
+2. The original standalone, dark‑themed **Advanced Tools console** for hands‑on
+   maintenance: site info, users, database, files, plugins, themes, site modes, debug
+   tools, extra options (PHP limits), and quick‑login helpers.
+
+This repository is the **free core** (public, GPL) and is intended for production use on
+shared hosting, VPS, cloud, and enterprise WordPress setups. Everything is
+**administrators‑only** and authenticates with your existing WordPress session. The paid
+**WP Arzo Pro** add‑on lives in a separate private repo and registers extra modules into
+the same dashboard.
 
 - **Current version:** 6.26.0 (see [CHANGELOG.md](CHANGELOG.md))
 - **Requires:** WordPress ≥ 5.0, PHP ≥ 7.2
 - **Architecture & conventions for contributors / AI agents:** [CLAUDE.md](CLAUDE.md)
 - **Design system:** [.claude/design.md](.claude/design.md)
 
-## Features
+## Feature Manager & Setup Wizard
+
+The native **WP Arzo** admin menu is the modern surface: a grouped grid of ~45 free
+feature modules you enable/disable with modern toggles, each with schema‑driven settings.
+A **Setup Wizard** (first run, and always under *WP Arzo → Setup Wizard*) applies curated
+presets in one click — **Essentials, Velocity, Fortress, Creator, Growth, Command Center,
+The Works** — which only *enable* features (never disable what you've set). Pro modules are
+shown as locked **PRO** cards so you can see the full suite even on the free plan.
+
+Highlights of the free core: SMTP + email log, Activity Log, Code Snippets, local
+backups + scheduled snapshots, auto WebP, SVG upload, custom login page, dozens of
+performance/security/admin tweaks, per‑tool toggles for the console, and Media Cleanup.
+See [CHANGELOG.md](CHANGELOG.md) and [.claude/ROADMAP.md](.claude/ROADMAP.md) for the full,
+current list. Pro adds marketing pixels, GA4/GTM/Ads, a CPT/CCT + Custom Fields builder,
+Media Folders, Admin Branding, Redirects/404, Cron Manager, API email providers, and
+off‑site backups.
+
+## Advanced Tools console
 
 | Tab | What it does |
 |-----|--------------|

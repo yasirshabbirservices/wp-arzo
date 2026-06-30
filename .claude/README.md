@@ -2,6 +2,8 @@
 
 Committed documentation for Claude Code (and human contributors) working in this repo.
 
+- [`start-session.md`](start-session.md) — **read first when starting a new session.**
+  Current versions, what's built, what's next, conventions, and gotchas in brief.
 - [`design.md`](design.md) — the WP Arzo design system: color tokens, components,
   contrast rules, and conventions for new UI.
 - [`ROADMAP.md`](ROADMAP.md) — product & engineering roadmap (feature registry, freemium

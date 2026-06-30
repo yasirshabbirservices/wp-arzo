@@ -2,6 +2,10 @@
 
 Guidance for Claude Code (and human contributors) working in this repository.
 
+> **Starting a new session?** Read [`.claude/start-session.md`](.claude/start-session.md)
+> first — it's the fast brief on current versions, what's built, what's next, and the
+> conventions below in condensed form.
+
 ## Working agreement (ALWAYS do this — do not skip)
 
 On **every** change set, without being asked:
@@ -17,7 +21,12 @@ On **every** change set, without being asked:
    `git push origin wp-plugin` and `git push origin vX.Y.Z`. Create a GitHub **release**
    for the tag when `gh` is available (otherwise note it for the maintainer).
 4. **Verify** — `php -l` every touched PHP file and `node --check` touched JS before
-   committing.
+   committing. With no live WP here, harness new engine/gating logic in the scratchpad
+   (stub the few WP functions, exercise the pure logic) — see `.claude/start-session.md` §6.
+5. **Cross-repo invariants** — when you add/rename a **Pro** module, also update
+   `wp_arzo_pro_feature_catalog()` (free core placeholder showcase) and the Pro repo's
+   `CHANGELOG.md` + version (`WP_ARZO_PRO_VERSION`). When you add a **console tool or
+   operation**, map it in `wp_arzo_console_tool_map()` / `wp_arzo_console_tool_for_request()`.
 
 ### CSS conventions
 
