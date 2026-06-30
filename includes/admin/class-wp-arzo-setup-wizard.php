@@ -138,7 +138,7 @@ class WP_Arzo_Setup_Wizard
                 'features' => array(
                     'disable_xmlrpc', 'block_user_enumeration', 'disable_file_editor',
                     'disable_app_passwords', 'disable_rest_api_guests', 'rest_api_auth',
-                    'limit_login', 'custom_login_url', 'activity_log',
+                    'two_factor', 'limit_login', 'custom_login_url', 'activity_log',
                 ),
             ),
             'creator' => array(
