@@ -81,6 +81,8 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
 - ✅ **Activity Log** (free) — v6.21.0 (Solid Security ref; Pro audit log extends it).
 - ✅ **Admin Branding & Custom Dashboard** (Pro v1.8.0) — accent color, footer, hide WP
   logo, custom admin CSS, branded dashboard widget.
+- ✅ **Redirects & 404 Monitor** (Pro v1.9.0) — exact/regex redirects (301/302/307), 404
+  log with one-click redirect creation.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
@@ -277,7 +279,8 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
   cron. [F view / P manage]
 - **Transient & cache manager**, **autoloaded-options cleanup**, **database optimizer**
   (overhead, orphaned meta, revisions/spam cleanup). [F basic / P scheduled]
-- **Redirect manager + 404 monitor + broken-link checker**. [P]
+- **Redirect manager + 404 monitor** [✅ Pro v1.9.0 — exact/regex, 301/302/307, 404 log →
+  one-click redirect]; broken-link checker still to come. [P]
 - **Maintenance scheduler** — schedule maintenance-mode windows. [P]
 - **Notifications** — email / Slack / Discord / webhook on events (backup, login lockout,
   errors, update available). [P]
