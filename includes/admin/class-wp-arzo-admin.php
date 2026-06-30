@@ -488,6 +488,9 @@ class WP_Arzo_Admin
             case 'textarea':
                 echo '<textarea class="wpa-input" id="' . $fid . '" name="' . $name . '" rows="5">' . esc_textarea((string) $value) . '</textarea>';
                 break;
+            case 'code':
+                echo '<textarea class="wpa-input wpa-code" id="' . $fid . '" name="' . $name . '" rows="8" spellcheck="false" autocomplete="off" style="font-family:var(--arzo-font-mono);font-size:13px;line-height:1.5;">' . esc_textarea((string) $value) . '</textarea>';
+                break;
             case 'number':
                 echo '<input class="wpa-input" type="number" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
                 break;
@@ -567,6 +570,11 @@ class WP_Arzo_Admin
                     break;
                 case 'textarea':
                     $clean[$key] = sanitize_textarea_field((string) $raw);
+                    break;
+                case 'code':
+                    // Raw on purpose: admin-entered code/CSS/scripts, kept exactly as
+                    // typed (the page is manage_options-gated, like WP's code editors).
+                    $clean[$key] = is_string($raw) ? $raw : '';
                     break;
                 case 'select':
                     $options = isset($field['options']) && is_array($field['options']) ? array_keys($field['options']) : array();

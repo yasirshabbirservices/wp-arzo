@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.12.0] — 2026-06-30
+
+### Added (free) — 8 new feature modules (30 free features total)
+- **Page & Post Duplication** — one-click "Duplicate" row action (copies content, taxonomies
+  and meta to a draft).
+- **Missed Schedule Fix** — auto-publishes scheduled posts WordPress missed (throttled).
+- **SVG Upload** — admins can upload SVGs, with basic on-upload sanitization.
+- **Last Login Column** — records last login and shows it in the Users list.
+- **Header / Body / Footer Code** — inject custom code into `<head>`, after `<body>`, or
+  before `</body>` (new raw `code` settings field type).
+- **Custom CSS** — front-end and/or admin CSS.
+- **Disable All Updates** — stop core/plugin/theme update checks, notices and auto-updates.
+- **Login / Logout Redirects** — send users to a custom URL after login (scopeable) or logout.
+
 ## [6.11.0] — 2026-06-30
 
 ### Added
