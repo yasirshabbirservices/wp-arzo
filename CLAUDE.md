@@ -2,6 +2,30 @@
 
 Guidance for Claude Code (and human contributors) working in this repository.
 
+## Working agreement (ALWAYS do this — do not skip)
+
+On **every** change set, without being asked:
+
+1. **Keep docs in sync** — update [`.claude/ROADMAP.md`](.claude/ROADMAP.md) (move shipped
+   items to "what's already built" + adjust "next up"), this `CLAUDE.md`, the relevant
+   [`.claude/skills/`](.claude/skills/), `CHANGELOG.md`, `README.md`, and `README.txt`.
+2. **Bump the version** in all places (`wp-arzo.php` header `Version:` + `WP_ARZO_VERSION`,
+   the version shown in `includes/wp-arzo-header.php`, `README.txt` `Stable tag`,
+   `README.md` "Current version"). PHP changes need a bump so OPcache invalidates; assets
+   self-bust (see `wp_arzo_get_asset_version`).
+3. **Commit, tag, and push** — `git commit`, `git tag -a vX.Y.Z`, then
+   `git push origin wp-plugin` and `git push origin vX.Y.Z`. Create a GitHub **release**
+   for the tag when `gh` is available (otherwise note it for the maintainer).
+4. **Verify** — `php -l` every touched PHP file and `node --check` touched JS before
+   committing.
+
+### CSS conventions
+
+- Use design tokens (the `--arzo-*` variables) for every color/space/radius/shadow.
+- Reach for **`clamp()`** for fluid type/spacing/sizing and **`calc()`** for derived
+  values, and introduce a CSS **variable** when a value repeats or needs theming — wherever
+  it makes sense, rather than hard-coded magic numbers.
+
 ## What this is
 
 **WP Arzo – Maintenance & Administration Suite** is a single-file-bootstrapped WordPress

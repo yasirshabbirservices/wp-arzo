@@ -40,8 +40,11 @@ icons in [`includes/wp-arzo-icons.php`](../includes/wp-arzo-icons.php).
 - **Radius:** `--arzo-radius-sm` 4px · `--arzo-radius` 8px · `--arzo-radius-lg` 14px ·
   `--arzo-radius-pill`.
 - **Spacing (4px base):** `--arzo-space-1` … `--arzo-space-10`.
-- **Type:** family `--arzo-font` (Lato), mono `--arzo-font-mono`; sizes `--arzo-fs-xs`
-  (11) → `--arzo-fs-2xl` (26).
+- **Type:** family `--arzo-font` (Lato), mono `--arzo-font-mono`. Small sizes fixed
+  (`--arzo-fs-xs` 11 … `--arzo-fs-md` 14); headings are **fluid** via `clamp()`
+  (`--arzo-fs-lg`, `--arzo-fs-xl`, `--arzo-fs-2xl`) so they scale with the viewport.
+- **Layout:** `--arzo-container` (fluid max-width) and `--arzo-card-min` (fluid grid
+  column min) — prefer these + `clamp()`/`calc()` over magic numbers.
 - **Elevation:** `--arzo-shadow-sm` / `--arzo-shadow` / `--arzo-shadow-lg`.
 - **Motion:** `--arzo-transition-fast|''|slow` (auto-zeroed under
   `prefers-reduced-motion`).

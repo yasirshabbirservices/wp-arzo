@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.6.4] — 2026-06-30
+
+### Changed
+- **Fluid, variable-driven CSS:** headings now use `clamp()` (`--arzo-fs-lg/xl/2xl`), and
+  the dashboard uses new `--arzo-container` / `--arzo-card-min` variables plus
+  `clamp()`/`calc()` for margins, grid columns, gaps, and the search field — replacing
+  hard-coded magic numbers so the UI scales smoothly across viewports.
+
+### Docs
+- `CLAUDE.md`: added a **Working agreement** (always update roadmap/docs/skills + version +
+  commit/tag/release/push) and CSS conventions (`clamp`/`calc`/variables).
+
 ## [6.6.3] — 2026-06-30
 
 ### Changed
