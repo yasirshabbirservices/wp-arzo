@@ -88,6 +88,9 @@ abstract class WP_Arzo_Feature
         return WP_Arzo_Feature_Registry::instance()->is_enabled($this->id());
     }
 
+    /** @var bool Guards against settings_schema() calling get_setting() recursively. */
+    private $resolving_default = false;
+
     /** Read one of this feature's saved settings (falling back to the schema default). */
     public function get_setting($key, $default = null)
     {
@@ -95,10 +98,18 @@ abstract class WP_Arzo_Feature
         if (array_key_exists($key, $values)) {
             return $values[$key];
         }
-        foreach ($this->settings_schema() as $field) {
-            if (isset($field['key']) && $field['key'] === $key && array_key_exists('default', $field)) {
-                return $field['default'];
+        // Re-entrancy guard: a feature's settings_schema() may itself call
+        // get_setting() (e.g. to build dynamic help text). Without this guard that
+        // would recurse infinitely and exhaust memory.
+        if (!$this->resolving_default) {
+            $this->resolving_default = true;
+            foreach ($this->settings_schema() as $field) {
+                if (isset($field['key']) && $field['key'] === $key && array_key_exists('default', $field)) {
+                    $this->resolving_default = false;
+                    return $field['default'];
+                }
             }
+            $this->resolving_default = false;
         }
         return $default;
     }
