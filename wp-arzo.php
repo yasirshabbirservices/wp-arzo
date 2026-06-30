@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.32.0
+ * Version: 6.33.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.32.0');
+    define('WP_ARZO_VERSION', '6.33.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -388,6 +388,12 @@ function wp_arzo_uninstall()
     $config_file = WP_ARZO_PLUGIN_DIR . 'arzo-safe.php';
     if (file_exists($config_file)) {
         @unlink($config_file);
+    }
+
+    // Remove the runtime-generated AdminNeo connection config (contains DB credentials).
+    $adminneo_config = WP_ARZO_PLUGIN_DIR . 'assets/libs/adminneo/adminneo-config.php';
+    if (file_exists($adminneo_config)) {
+        @unlink($adminneo_config);
     }
 
     // Remove the emergency-tool brute-force throttle file if present.

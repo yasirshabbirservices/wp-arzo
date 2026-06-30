@@ -59,6 +59,24 @@ function handleDatabase()
 {
     global $wpdb;
 
+    // Prefer the bundled AdminNeo database manager when present. It runs WP-gated in an
+    // iframe (assets/libs/adminneo/loader.php), giving a full browse/edit/export/SQL UI.
+    // The lightweight viewer below remains as a fallback if the library is removed.
+    if (file_exists(WP_ARZO_PLUGIN_DIR . 'assets/libs/adminneo/adminneo.php') && defined('WP_ARZO_PLUGIN_FILE')) {
+        $wp_arzo_db_src = plugins_url('assets/libs/adminneo/loader.php', WP_ARZO_PLUGIN_FILE);
+        ?>
+        <div class="content">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                <h2 style="margin:0; border:none; padding:0;">Database Manager <span style="font-size:12px; color:var(--muted-text); font-weight:400;">powered by AdminNeo</span></h2>
+                <a class="btn btn-sm" href="<?php echo esc_url($wp_arzo_db_src); ?>" target="_blank" rel="noopener">Open full screen</a>
+            </div>
+            <iframe title="AdminNeo database manager" src="<?php echo esc_url($wp_arzo_db_src); ?>"
+                style="width:100%; height:80vh; border:1px solid var(--border-color); border-radius:var(--radius-global); background:#fff;"></iframe>
+        </div>
+        <?php
+        return;
+    }
+
     if (isset($_POST['execute_query'])) {
         // CSRF protection: this endpoint can run arbitrary SQL, so it must be
         // protected against forged cross-site requests even though the page is

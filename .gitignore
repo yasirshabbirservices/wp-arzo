@@ -12,3 +12,6 @@
 # Keep the committed .claude/ docs & skills, but ignore local-only Claude state.
 .claude/settings.local.json
 .claude/.cache/
+
+# Runtime-generated AdminNeo connection config (holds DB credentials)
+assets/libs/adminneo/adminneo-config.php

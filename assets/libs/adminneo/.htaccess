@@ -1,0 +1,10 @@
+# Defense in depth (Apache only — adminneo.php is also guarded in PHP for nginx etc.).
+# Only loader.php (the WP-gated entry) may be requested directly.
+<FilesMatch "^(adminneo\.php|adminneo-config\.php)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Deny from all
+  </IfModule>
+</FilesMatch>
