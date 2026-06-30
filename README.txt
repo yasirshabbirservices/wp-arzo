@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.17.0
+Stable tag: 6.18.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.18.0 =
+* New: Media Cleanup tool (WP Arzo -> Media Cleanup) — batched scan with progress, finds
+  attachments with no detectable references, filters + reclaimable-space summary, and
+  confirmed batch delete (conservative usage detection; back up before deleting)
 
 = 6.17.0 =
 * New (free): Auto WebP Conversion — convert uploaded JPEG/PNG to WebP before they enter

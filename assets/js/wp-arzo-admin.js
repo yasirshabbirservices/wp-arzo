@@ -269,7 +269,147 @@
     });
   }
 
-  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); bindLicense(); bindSnippets(); bindEmailExtras(); }
+  // -------------------------------------------------- Media Cleanup
+  function fmtBytes(b) {
+    if (!b) return '0 B';
+    var u = ['B', 'KB', 'MB', 'GB'], i = Math.floor(Math.log(b) / Math.log(1024));
+    return (b / Math.pow(1024, i)).toFixed(i ? 1 : 0) + ' ' + u[i];
+  }
+
+  function bindMediaCleanup() {
+    var scanBtn = document.getElementById('wpa-media-scan');
+    if (!scanBtn) return;
+
+    var items = [];
+    var nonce = scanBtn.dataset.nonce || '';
+    var total = parseInt(scanBtn.dataset.total, 10) || 0;
+    var bar = document.getElementById('wpa-media-bar');
+    var progress = document.getElementById('wpa-media-progress');
+    var progressLabel = document.getElementById('wpa-media-progress-label');
+    var results = document.getElementById('wpa-media-results');
+    var tbody = document.querySelector('#wpa-media-table tbody');
+    var summary = document.getElementById('wpa-media-summary');
+    var delBtn = document.getElementById('wpa-media-delete');
+    var selCount = document.getElementById('wpa-media-selcount');
+
+    function scanFrom(offset) {
+      var body = new FormData();
+      body.append('action', 'wp_arzo_media_scan');
+      body.append('nonce', nonce);
+      body.append('offset', offset);
+      return fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' }).then(function (r) { return r.json(); });
+    }
+
+    scanBtn.addEventListener('click', function () {
+      items = [];
+      scanBtn.disabled = true;
+      if (progress) progress.hidden = false;
+      if (results) results.hidden = true;
+
+      (function loop(offset) {
+        scanFrom(offset).then(function (res) {
+          if (!res || !res.success) { scanBtn.disabled = false; toast('Scan failed', 'error'); return; }
+          items = items.concat(res.data.items || []);
+          var pct = total ? Math.min(100, Math.round(items.length / total * 100)) : 100;
+          if (bar) bar.style.width = pct + '%';
+          if (progressLabel) progressLabel.textContent = 'Scanned ' + items.length + ' of ' + total + '…';
+          if (res.data.count === 20 && items.length < total) {
+            loop(offset + res.data.count);
+          } else {
+            if (progress) progress.hidden = true;
+            scanBtn.disabled = false;
+            render();
+            if (results) results.hidden = false;
+          }
+        }).catch(function () { scanBtn.disabled = false; toast('Request failed', 'error'); });
+      })(0);
+    });
+
+    function filtered() {
+      var unusedOnly = document.getElementById('wpa-media-unused-only');
+      var typeEl = document.getElementById('wpa-media-type');
+      var searchEl = document.getElementById('wpa-media-search');
+      var uo = unusedOnly ? unusedOnly.checked : true;
+      var t = typeEl ? typeEl.value : '';
+      var q = searchEl ? searchEl.value.trim().toLowerCase() : '';
+      return items.filter(function (it) {
+        if (uo && it.used) return false;
+        if (t && (it.mime || '').indexOf(t) !== 0) return false;
+        if (q && (it.filename || '').toLowerCase().indexOf(q) === -1) return false;
+        return true;
+      });
+    }
+
+    function render() {
+      var list = filtered();
+      var unusedCount = items.filter(function (i) { return !i.used; }).length;
+      var unusedBytes = items.reduce(function (a, i) { return a + (i.used ? 0 : (i.size || 0)); }, 0);
+      if (summary) summary.innerHTML = '<strong>' + unusedCount + '</strong> possibly-unused · ' + fmtBytes(unusedBytes) + ' reclaimable';
+      tbody.innerHTML = '';
+      if (!list.length) { tbody.innerHTML = '<tr class="wpa-backup-empty"><td colspan="6">Nothing matches the current filters.</td></tr>'; updateSel(); return; }
+      list.forEach(function (it) {
+        var tr = document.createElement('tr');
+        var thumb = it.thumb ? '<img src="' + it.thumb + '" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:4px;">' : '<span class="wpa-badge wpa-badge--neutral">' + (it.mime || 'file').split('/')[0] + '</span>';
+        tr.innerHTML =
+          '<td><input type="checkbox" class="wpa-media-cb" value="' + it.id + '"></td>' +
+          '<td><div style="display:flex;align-items:center;gap:10px;">' + thumb + '<div><div style="color:var(--arzo-text-strong);">' + escapeHtml(it.filename || it.title) + '</div><div class="wpa-backup-meta">' + escapeHtml(it.title) + '</div></div></div></td>' +
+          '<td>' + escapeHtml(it.mime || '') + '</td>' +
+          '<td>' + fmtBytes(it.size) + '</td>' +
+          '<td>' + escapeHtml(it.date || '') + '</td>' +
+          '<td>' + (it.used
+            ? '<span class="wpa-badge wpa-badge--success">In use</span>'
+            : '<span class="wpa-badge wpa-badge--warning" title="' + escapeHtml(it.reason) + '">Possibly unused</span>') + '</td>';
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('.wpa-media-cb').forEach(function (cb) { cb.addEventListener('change', updateSel); });
+      updateSel();
+    }
+
+    function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+    function selectedIds() {
+      return Array.prototype.slice.call(tbody.querySelectorAll('.wpa-media-cb:checked')).map(function (c) { return c.value; });
+    }
+    function updateSel() {
+      var n = selectedIds().length;
+      if (delBtn) delBtn.disabled = n === 0;
+      if (selCount) selCount.textContent = n ? n + ' selected' : '';
+    }
+
+    ['wpa-media-unused-only', 'wpa-media-type', 'wpa-media-search'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener(el.tagName === 'INPUT' && el.type === 'search' ? 'input' : 'change', render);
+    });
+    var allCb = document.getElementById('wpa-media-all');
+    if (allCb) allCb.addEventListener('change', function () {
+      tbody.querySelectorAll('.wpa-media-cb').forEach(function (cb) { cb.checked = allCb.checked; });
+      updateSel();
+    });
+
+    if (delBtn) delBtn.addEventListener('click', function () {
+      var ids = selectedIds();
+      if (!ids.length) return;
+      if (!confirm('Permanently delete ' + ids.length + ' attachment(s) and all their image sizes? This cannot be undone.')) return;
+      delBtn.disabled = true;
+      var body = new FormData();
+      body.append('action', 'wp_arzo_media_delete');
+      body.append('nonce', delBtn.dataset.nonce || nonce);
+      ids.forEach(function (id) { body.append('ids[]', id); });
+      fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          delBtn.disabled = false;
+          if (res && res.success) {
+            toast('Deleted ' + res.data.deleted + ' file(s)', 'success');
+            items = items.filter(function (i) { return ids.indexOf(String(i.id)) === -1; });
+            render();
+          } else { toast('Delete failed', 'error'); }
+        })
+        .catch(function () { delBtn.disabled = false; toast('Request failed', 'error'); });
+    });
+  }
+
+  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
