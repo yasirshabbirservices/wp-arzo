@@ -8,6 +8,19 @@
   var cfg = window.wpArzoAdmin || {};
   var toast = (window.wpArzo && window.wpArzo.toast) ? window.wpArzo.toast : function (m) { console.log(m); };
 
+  // Small shared helpers (used by the REST / Roles / Config pages).
+  function apiPost(action, fields) {
+    var body = new FormData();
+    body.append('action', action);
+    Object.keys(fields || {}).forEach(function (k) {
+      var v = fields[k];
+      if (Array.isArray(v)) { v.forEach(function (item) { body.append(k + '[]', item); }); }
+      else { body.append(k, v); }
+    });
+    return fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' }).then(function (r) { return r.json(); });
+  }
+  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
   // -------------------------------------------------- Feature toggles
   function bindToggles() {
     document.querySelectorAll('.wpa-feature-toggle').forEach(function (input) {
@@ -459,7 +472,164 @@
     });
   }
 
-  function init() { bindToggles(); bindSearch(); bindCategoryFilter(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); }
+  // -------------------------------------------------- REST API keys
+  function bindRestKeys() {
+    var createBtn = document.getElementById('wpa-rest-create');
+    if (!createBtn) return;
+
+    function bindRevoke(btn) {
+      btn.addEventListener('click', function () {
+        if (!confirm('Revoke this key? Apps using it will stop working immediately.')) return;
+        btn.disabled = true;
+        apiPost('wp_arzo_rest_key_revoke', { nonce: btn.dataset.nonce || cfg.restNonce || '', id: btn.dataset.id })
+          .then(function (res) {
+            if (res && res.success) { toast('Key revoked', 'success'); var row = btn.closest('tr'); if (row) row.parentNode.removeChild(row); }
+            else { btn.disabled = false; toast((res && res.data && res.data.message) || 'Revoke failed', 'error'); }
+          })
+          .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+      });
+    }
+    document.querySelectorAll('.wpa-rest-revoke').forEach(bindRevoke);
+
+    createBtn.addEventListener('click', function () {
+      var labelEl = document.getElementById('wpa-rest-label');
+      var userEl = document.getElementById('wpa-rest-user');
+      createBtn.disabled = true;
+      apiPost('wp_arzo_rest_key_create', {
+        nonce: createBtn.dataset.nonce || cfg.restNonce || '',
+        label: labelEl ? labelEl.value : '',
+        user_id: userEl ? userEl.value : ''
+      }).then(function (res) {
+        createBtn.disabled = false;
+        if (!res || !res.success) { toast((res && res.data && res.data.message) || 'Could not create key', 'error'); return; }
+        var d = res.data;
+        var reveal = document.getElementById('wpa-rest-reveal');
+        var newkey = document.getElementById('wpa-rest-newkey');
+        if (newkey) newkey.textContent = d.plain;
+        if (reveal) reveal.hidden = false;
+        if (labelEl) labelEl.value = '';
+        // Insert a row so the new key shows in the table without losing the one-time secret.
+        var tbody = document.querySelector('#wpa-rest-table tbody');
+        if (tbody) {
+          var emptyRow = tbody.querySelector('.wpa-backup-empty');
+          if (emptyRow) emptyRow.parentNode.removeChild(emptyRow);
+          var tr = document.createElement('tr');
+          tr.setAttribute('data-key', d.id);
+          tr.innerHTML =
+            '<td><strong>' + esc(d.label) + '</strong></td>' +
+            '<td><code>arzo_' + esc(d.prefix) + '…</code></td>' +
+            '<td>' + esc(d.user) + '</td>' +
+            '<td>' + esc(d.created) + '</td>' +
+            '<td>—</td>' +
+            '<td class="wpa-backup-actions"><button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-rest-revoke" data-id="' + esc(d.id) + '" data-nonce="' + esc(createBtn.dataset.nonce || '') + '">Revoke</button></td>';
+          tbody.insertBefore(tr, tbody.firstChild);
+          bindRevoke(tr.querySelector('.wpa-rest-revoke'));
+        }
+        toast('Key generated', 'success');
+      }).catch(function () { createBtn.disabled = false; toast('Request failed', 'error'); });
+    });
+  }
+
+  // -------------------------------------------------- Role manager
+  function bindRoleManager() {
+    var saveBtn = document.getElementById('wpa-role-save');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var caps = Array.prototype.slice.call(document.querySelectorAll('.wpa-cap-input:checked')).map(function (c) { return c.value; });
+        saveBtn.disabled = true;
+        apiPost('wp_arzo_role_save_caps', { nonce: saveBtn.dataset.nonce || cfg.rolesNonce || '', role: saveBtn.dataset.slug, caps: caps })
+          .then(function (res) {
+            saveBtn.disabled = false;
+            toast((res && res.data && res.data.message) || (res && res.success ? 'Saved' : 'Failed'), res && res.success ? 'success' : 'error');
+          })
+          .catch(function () { saveBtn.disabled = false; toast('Request failed', 'error'); });
+      });
+    }
+
+    var addBtn = document.getElementById('wpa-role-add');
+    if (addBtn) {
+      addBtn.addEventListener('click', function () {
+        var name = (document.getElementById('wpa-role-name') || {}).value || '';
+        var slug = (document.getElementById('wpa-role-slug') || {}).value || '';
+        var clone = (document.getElementById('wpa-role-clone') || {}).value || '';
+        if (!name.trim() || !slug.trim()) { toast('Name and slug are required', 'error'); return; }
+        addBtn.disabled = true;
+        apiPost('wp_arzo_role_add', { nonce: addBtn.dataset.nonce || cfg.rolesNonce || '', name: name, slug: slug, clone: clone })
+          .then(function (res) {
+            if (res && res.success) { toast('Role added', 'success'); reload(600); }
+            else { addBtn.disabled = false; toast((res && res.data && res.data.message) || 'Failed', 'error'); }
+          })
+          .catch(function () { addBtn.disabled = false; toast('Request failed', 'error'); });
+      });
+    }
+
+    document.querySelectorAll('.wpa-role-delete').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (!confirm('Delete this role? Users with only this role will be left without one.')) return;
+        btn.disabled = true;
+        apiPost('wp_arzo_role_delete', { nonce: btn.dataset.nonce || cfg.rolesNonce || '', slug: btn.dataset.slug })
+          .then(function (res) {
+            if (res && res.success) { toast('Role deleted', 'success'); var row = btn.closest('tr'); if (row) row.parentNode.removeChild(row); }
+            else { btn.disabled = false; toast((res && res.data && res.data.message) || 'Delete failed', 'error'); }
+          })
+          .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+      });
+    });
+  }
+
+  // -------------------------------------------------- Config import / export
+  function bindConfigIO() {
+    var exportBtn = document.getElementById('wpa-config-export');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function () {
+        exportBtn.disabled = true;
+        apiPost('wp_arzo_config_export', { nonce: exportBtn.dataset.nonce || cfg.configNonce || '' })
+          .then(function (res) {
+            exportBtn.disabled = false;
+            if (!res || !res.success) { toast((res && res.data && res.data.message) || 'Export failed', 'error'); return; }
+            var blob = new Blob([res.data.json], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url; a.download = res.data.filename || 'wp-arzo-config.json';
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
+            toast('Config exported', 'success');
+          })
+          .catch(function () { exportBtn.disabled = false; toast('Request failed', 'error'); });
+      });
+    }
+
+    var importBtn = document.getElementById('wpa-config-import');
+    if (importBtn) {
+      importBtn.addEventListener('click', function () {
+        var fileEl = document.getElementById('wpa-config-file');
+        var msg = document.getElementById('wpa-config-msg');
+        var file = fileEl && fileEl.files ? fileEl.files[0] : null;
+        if (!file) { if (msg) msg.textContent = 'Choose a config file first.'; return; }
+        if (!confirm('Import this config? It overwrites your current feature toggles and settings. A safety snapshot is taken first.')) return;
+        importBtn.disabled = true;
+        var reader = new FileReader();
+        reader.onload = function () {
+          apiPost('wp_arzo_config_import', { nonce: importBtn.dataset.nonce || cfg.configNonce || '', data: reader.result })
+            .then(function (res) {
+              if (res && res.success) {
+                if (msg) msg.textContent = (res.data && res.data.message) || 'Imported.';
+                toast('Config imported', 'success'); reload(1200);
+              } else {
+                importBtn.disabled = false;
+                if (msg) msg.textContent = (res && res.data && res.data.message) || 'Import failed.';
+                toast('Import failed', 'error');
+              }
+            })
+            .catch(function () { importBtn.disabled = false; toast('Request failed', 'error'); });
+        };
+        reader.onerror = function () { importBtn.disabled = false; toast('Could not read the file', 'error'); };
+        reader.readAsText(file);
+      });
+    }
+  }
+
+  function init() { bindToggles(); bindSearch(); bindCategoryFilter(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

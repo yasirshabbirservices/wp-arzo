@@ -8,6 +8,17 @@ description: How to add a feature to the WP Arzo dashboard via the feature regis
 This is the **modern** way to add functionality (the dashboard toggle grid). For the
 legacy standalone console tabs, see `wp-arzo-add-feature` instead.
 
+## 0. Check for duplicates FIRST (don't skip)
+
+Before writing a new module, confirm nothing already covers it:
+- Grep `includes/features-registry/` and `wp_arzo_bootstrap_features()` (wp-arzo.php) for
+  the behaviour and likely `id()`s.
+- Check `wp_arzo_pro_feature_catalog()` (Pro placeholders) so you don't reinvent a planned
+  Pro module.
+- Watch for **near-neighbours**: e.g. `disable_rest_api_guests` ("Restrict REST API",
+  *blocks* anonymous) vs. `rest_api_auth` ("REST API Authentication", *issues keys*). If one
+  exists, extend it — or make the new title + description spell out the distinction.
+
 ## 1. Create the module
 
 Add a file under `includes/features-registry/` (one class, or group related ones in a
@@ -51,8 +62,12 @@ $registry->register(new WP_Arzo_Feature_My_Thing());
 - **Pro module** → add it to `wp_arzo_pro_feature_catalog()`
   (`includes/features-registry/class-feature-pro-placeholders.php`) so the free core
   advertises it as a locked PRO card; and to the Pro repo's registration list + changelog.
-- **Dedicated admin page** (its own submenu) → add the page→feature mapping to
-  `page_features()` in `class-wp-arzo-admin.php` so the page/tab only shows when enabled.
+- **Dedicated admin page** (its own submenu) → add a `PAGE_*` const, an `add_submenu_page`
+  (gated by `page_visible()`), the page→feature mapping in `page_features()`, a
+  `render_*()` that wraps content in `render_shell_open(<key>)` / `render_shell_close()`,
+  and a **`page_tabs()` entry with an `icon`** so it shows in the left sidebar — all in
+  `class-wp-arzo-admin.php`. (See `rest_api_auth` / `role_manager` / `config_io` for a
+  template.)
 - **Worth featuring in a preset?** → add the id to the relevant preset in
   `class-wp-arzo-setup-wizard.php` (`presets()`); opinionated "disable WP behaviour"
   toggles also belong in that file's `opinionated()` denylist so "The Works" skips them.
@@ -62,6 +77,8 @@ $registry->register(new WP_Arzo_Feature_My_Thing());
 - `boot()` runs on `plugins_loaded` **only if the feature is enabled** — so a disabled
   feature costs nothing on the front end. Hook `init`/`admin_init`/etc. from inside it.
 - Never do work at construct time; only in `boot()`.
+- Always implement `icon()` with a real `wp_arzo_icon()` key (add an SVG to
+  `wp_arzo_icon_paths()` if none fits) — every card and nav item must have an icon.
 - Read settings with `$this->get_setting('key', $default)` (falls back to the schema
   default). The dashboard renders + sanitizes settings from `settings_schema()` — no custom
   settings UI needed for standard field types.

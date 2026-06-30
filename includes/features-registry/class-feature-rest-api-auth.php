@@ -1,0 +1,233 @@
+<?php
+
+/**
+ * Feature: REST API Authentication.
+ *
+ * Lets external apps authenticate to the WP REST API with issuable / revocable
+ * **API keys** (sent as a Bearer token, an X-API-Key header, or the password of
+ * an HTTP Basic credential). This is the COMPLEMENT of the "Restrict REST API"
+ * security feature (`disable_rest_api_guests`), which only *blocks* anonymous
+ * access — this one lets trusted clients *in* as a chosen WordPress user.
+ *
+ * Keys are stored hashed (only an 8-char lookup prefix is kept in clear), exactly
+ * like WordPress Application Passwords — the full key is shown once at creation.
+ *
+ * @package WP_Arzo
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
+{
+    /** Option holding the list of issued keys. */
+    const OPT = 'wp_arzo_rest_api_keys';
+
+    /** Throttle last-used writes to at most once per this many seconds. */
+    const TOUCH_INTERVAL = 300;
+
+    public function id()
+    {
+        return 'rest_api_auth';
+    }
+    public function title()
+    {
+        return 'REST API Authentication';
+    }
+    public function description()
+    {
+        return 'Issue API keys so external apps can authenticate to the REST API (Bearer / X-API-Key / Basic).';
+    }
+    public function group()
+    {
+        return 'security';
+    }
+    public function icon()
+    {
+        return 'key';
+    }
+    public function settings_schema()
+    {
+        return array(
+            array('key' => 'enable_key_auth', 'type' => 'toggle', 'label' => 'Accept API keys via Bearer / X-API-Key header', 'default' => 1),
+            array('key' => 'enable_basic_auth', 'type' => 'toggle', 'label' => 'Accept API keys via HTTP Basic (key as the password)', 'default' => 1),
+            array('key' => 'require_https', 'type' => 'toggle', 'label' => 'Only accept keys over HTTPS (recommended)', 'default' => 1),
+        );
+    }
+
+    public function boot()
+    {
+        // Authenticate API requests that present a valid key. Runs late so cookie
+        // / nonce auth wins when present; we only act when nobody is logged in yet.
+        add_filter('determine_current_user', array($this, 'authenticate'), 20);
+    }
+
+    /**
+     * @param int|false $user_id Current resolution from earlier filters.
+     * @return int|false
+     */
+    public function authenticate($user_id)
+    {
+        if (!empty($user_id)) {
+            return $user_id; // already authenticated (cookie / app password / etc.)
+        }
+
+        $key = $this->presented_key();
+        if ($key === '') {
+            return $user_id;
+        }
+
+        // HTTPS gate (front-controller may sit behind a proxy — is_ssl() covers the
+        // common X-Forwarded cases WordPress already understands).
+        if ($this->get_setting('require_https', 1) && !is_ssl()) {
+            return $user_id;
+        }
+
+        $entry = self::match($key);
+        if (!$entry) {
+            return $user_id;
+        }
+
+        self::touch($entry['id']);
+        return (int) $entry['user_id'];
+    }
+
+    /** Read the presented key from the enabled transports, or '' if none. */
+    private function presented_key()
+    {
+        // Bearer / X-API-Key
+        if ($this->get_setting('enable_key_auth', 1)) {
+            $auth = '';
+            if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+                $auth = $_SERVER['HTTP_AUTHORIZATION'];
+            } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+                $auth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+            }
+            if ($auth !== '' && stripos($auth, 'bearer ') === 0) {
+                $candidate = trim(substr($auth, 7));
+                if (self::looks_like_key($candidate)) {
+                    return $candidate;
+                }
+            }
+            if (!empty($_SERVER['HTTP_X_API_KEY'])) {
+                $candidate = trim((string) $_SERVER['HTTP_X_API_KEY']);
+                if (self::looks_like_key($candidate)) {
+                    return $candidate;
+                }
+            }
+        }
+
+        // HTTP Basic — the key is sent as the password (username is ignored).
+        if ($this->get_setting('enable_basic_auth', 1) && !empty($_SERVER['PHP_AUTH_PW'])) {
+            $candidate = trim((string) $_SERVER['PHP_AUTH_PW']);
+            if (self::looks_like_key($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return '';
+    }
+
+    /* ----------------------------------------------------------- key store */
+
+    /** Cheap shape check before any DB work. Keys look like arzo_<8 prefix><32 secret>. */
+    public static function looks_like_key($key)
+    {
+        return is_string($key) && strlen($key) === 45 && strpos($key, 'arzo_') === 0
+            && ctype_xdigit(substr($key, 5));
+    }
+
+    /** @return array<int,array> Stored key entries (without the secret hash exposed by callers). */
+    public static function all_keys()
+    {
+        $keys = get_option(self::OPT, array());
+        return is_array($keys) ? array_values($keys) : array();
+    }
+
+    /**
+     * Create a key for the given user. Returns the stored entry plus the one-time
+     * plaintext key under 'plain' (never persisted in clear), or WP_Error.
+     */
+    public static function create_key($label, $user_id)
+    {
+        $user_id = (int) $user_id;
+        if ($user_id <= 0 || !get_userdata($user_id)) {
+            return new WP_Error('wp_arzo_bad_user', 'Choose a valid user for the key.');
+        }
+        $prefix = bin2hex(random_bytes(4));   // 8 hex chars, kept in clear for lookup
+        $secret = bin2hex(random_bytes(16));  // 32 hex chars
+        $plain  = 'arzo_' . $prefix . $secret;
+
+        $entry = array(
+            'id'            => 'rk_' . substr(md5(uniqid('', true)), 0, 12),
+            'label'         => sanitize_text_field($label) ?: 'API key',
+            'prefix'        => $prefix,
+            'hash'          => password_hash($plain, PASSWORD_DEFAULT),
+            'user_id'       => $user_id,
+            'created_gmt'   => gmdate('Y-m-d H:i:s'),
+            'last_used_gmt' => '',
+        );
+
+        $keys = get_option(self::OPT, array());
+        if (!is_array($keys)) {
+            $keys = array();
+        }
+        $keys[$entry['id']] = $entry;
+        update_option(self::OPT, $keys, false);
+
+        $public = $entry;
+        unset($public['hash']);
+        $public['plain'] = $plain;
+        return $public;
+    }
+
+    /** Permanently remove a key by id. */
+    public static function revoke_key($id)
+    {
+        $keys = get_option(self::OPT, array());
+        if (!is_array($keys) || !isset($keys[$id])) {
+            return false;
+        }
+        unset($keys[$id]);
+        update_option(self::OPT, $keys, false);
+        return true;
+    }
+
+    /** Find the stored entry a presented plaintext key matches (prefix + hash), or null. */
+    private static function match($key)
+    {
+        $prefix = substr($key, 5, 8);
+        $keys = get_option(self::OPT, array());
+        if (!is_array($keys)) {
+            return null;
+        }
+        foreach ($keys as $entry) {
+            if (!isset($entry['prefix'], $entry['hash'], $entry['user_id'])) {
+                continue;
+            }
+            if (!hash_equals($entry['prefix'], $prefix)) {
+                continue;
+            }
+            if (password_verify($key, $entry['hash']) && get_userdata((int) $entry['user_id'])) {
+                return $entry;
+            }
+        }
+        return null;
+    }
+
+    /** Stamp last-used, throttled to avoid a DB write on every single request. */
+    private static function touch($id)
+    {
+        $keys = get_option(self::OPT, array());
+        if (!is_array($keys) || !isset($keys[$id])) {
+            return;
+        }
+        $last = !empty($keys[$id]['last_used_gmt']) ? strtotime($keys[$id]['last_used_gmt'] . ' UTC') : 0;
+        if ((time() - $last) < self::TOUCH_INTERVAL) {
+            return;
+        }
+        $keys[$id]['last_used_gmt'] = gmdate('Y-m-d H:i:s');
+        update_option(self::OPT, $keys, false);
+    }
+}

@@ -114,6 +114,13 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
   `class-wp-arzo-admin.php`). The dashboard sidebar adds a **Categories** filter that scopes
   the feature grid (composes with search; wired in `wp-arzo-admin.js`). Scales as more
   pages/features are added.
+- ✅ **REST API Authentication** (free v6.28.0) — issuable/revocable API keys + Basic Auth
+  (`determine_current_user`), hashed storage, dedicated keys page. The *complement* of the
+  existing "Restrict REST API" gate. `class-feature-rest-api-auth.php`.
+- ✅ **Role Manager** (free v6.28.0) — view roles, edit capabilities, add/clone/delete custom
+  roles via the Roles API, with an administrator-lockout guard. `class-feature-role-manager.php`.
+- ✅ **Config Import/Export** (free v6.28.0) — versioned JSON of feature toggles + settings +
+  snippets; safety-snapshot before import. `class-feature-config-io.php`.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.

@@ -8,6 +8,20 @@ Guidance for Claude Code (and human contributors) working in this repository.
 
 ## Working agreement (ALWAYS do this — do not skip)
 
+> **Before adding anything new — check for duplicates first.** Inventory what already
+> exists before building a feature, tool, option, or page: grep the feature registry
+> (`includes/features-registry/`), `wp_arzo_bootstrap_features()`, the Pro catalog
+> (`wp_arzo_pro_feature_catalog()`), and the console tool map. If a **near-neighbour**
+> exists (e.g. "Restrict REST API" vs. "REST API Authentication"), don't duplicate it —
+> either extend it or name/scope the new thing so the distinction is explicit in its
+> title + description. When in doubt, present a short plan first.
+
+> **Icons everywhere (modern UI/UX).** Every feature card, dashboard page, and **left
+> sidebar nav item** must carry a real `wp_arzo_icon()` SVG — never emoji, dashicons, or
+> a missing glyph. New features must implement `icon()`; new sidebar pages must set an
+> `icon` in `page_tabs()` (`includes/admin/class-wp-arzo-admin.php`). Add a new SVG to
+> `wp_arzo_icon_paths()` (`includes/wp-arzo-icons.php`) if no fitting key exists.
+
 On **every** change set, without being asked:
 
 1. **Keep docs in sync** — update [`.claude/ROADMAP.md`](.claude/ROADMAP.md) (move shipped
@@ -181,10 +195,14 @@ WP Arzo now has **two** distinct UIs — know which one you're touching:
      in `wp_arzo_bootstrap_features()` (wp-arzo.php). See the
      [`wp-arzo-feature-module`](.claude/skills/wp-arzo-feature-module/SKILL.md) skill.
    - `includes/admin/class-wp-arzo-admin.php` — renders the dashboard (toggle grid),
-     schema-driven settings, the **Backups** page, and the AJAX toggle/backup handlers
-     (all capability + nonce gated). Dashboard assets: `design-tokens.css` →
-     `wp-arzo-components.css` → `wp-arzo-admin.css`, plus `wp-arzo-components.js` +
-     `wp-arzo-admin.js`.
+     schema-driven settings, and the feature-owned pages — **Backups, Email Log, Snippets,
+     Media Cleanup, Activity Log, REST API Auth, Roles, Import/Export** — plus their AJAX
+     handlers (all capability + nonce gated). Navigation is a **left sidebar**
+     (`render_shell_open()`/`render_sidenav()`, from `page_tabs()`); on the dashboard the
+     sidebar also lists the feature categories as a grid filter. Every page-owning feature
+     is registered in `page_features()` (gates the submenu + sidebar entry behind its
+     toggle). Dashboard assets: `design-tokens.css` → `wp-arzo-components.css` →
+     `wp-arzo-admin.css`, plus `wp-arzo-components.js` + `wp-arzo-admin.js`.
    - Add-on hooks: `wp_arzo_register_features` (Pro registers modules) and
      `wp_arzo_feature_is_available` (license gate). The gate defers to
      `wp_arzo_is_pro_active()` (filter `wp_arzo_pro_active`); the locked-feature CTA uses

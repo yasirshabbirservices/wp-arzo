@@ -25,6 +25,9 @@ class WP_Arzo_Admin
     const PAGE_SNIPPETS = 'wp-arzo-snippets';
     const PAGE_MEDIA = 'wp-arzo-media';
     const PAGE_ACTIVITY = 'wp-arzo-activity';
+    const PAGE_REST_AUTH = 'wp-arzo-rest-auth';
+    const PAGE_ROLES = 'wp-arzo-roles';
+    const PAGE_CONFIG = 'wp-arzo-config';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
@@ -34,6 +37,9 @@ class WP_Arzo_Admin
     const NONCE_TEST_EMAIL = 'wp_arzo_test_email';
     const NONCE_MEDIA = 'wp_arzo_media';
     const NONCE_ACTIVITY = 'wp_arzo_activity';
+    const NONCE_REST = 'wp_arzo_rest_auth';
+    const NONCE_ROLES = 'wp_arzo_roles';
+    const NONCE_CONFIG = 'wp_arzo_config';
 
     public static function instance()
     {
@@ -62,6 +68,13 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_media_scan', array($this, 'ajax_media_scan'));
         add_action('wp_ajax_wp_arzo_media_delete', array($this, 'ajax_media_delete'));
         add_action('wp_ajax_wp_arzo_activity_clear', array($this, 'ajax_activity_clear'));
+        add_action('wp_ajax_wp_arzo_rest_key_create', array($this, 'ajax_rest_key_create'));
+        add_action('wp_ajax_wp_arzo_rest_key_revoke', array($this, 'ajax_rest_key_revoke'));
+        add_action('wp_ajax_wp_arzo_role_save_caps', array($this, 'ajax_role_save_caps'));
+        add_action('wp_ajax_wp_arzo_role_add', array($this, 'ajax_role_add'));
+        add_action('wp_ajax_wp_arzo_role_delete', array($this, 'ajax_role_delete'));
+        add_action('wp_ajax_wp_arzo_config_export', array($this, 'ajax_config_export'));
+        add_action('wp_ajax_wp_arzo_config_import', array($this, 'ajax_config_import'));
     }
 
     private function registry()
@@ -131,6 +144,15 @@ class WP_Arzo_Admin
         if ($this->page_visible(self::PAGE_ACTIVITY)) {
             add_submenu_page(self::PAGE, 'Activity Log', 'Activity Log', 'manage_options', self::PAGE_ACTIVITY, array($this, 'render_activity_log'));
         }
+        if ($this->page_visible(self::PAGE_REST_AUTH)) {
+            add_submenu_page(self::PAGE, 'REST API Auth', 'REST API Auth', 'manage_options', self::PAGE_REST_AUTH, array($this, 'render_rest_auth'));
+        }
+        if ($this->page_visible(self::PAGE_ROLES)) {
+            add_submenu_page(self::PAGE, 'Roles', 'Roles', 'manage_options', self::PAGE_ROLES, array($this, 'render_roles'));
+        }
+        if ($this->page_visible(self::PAGE_CONFIG)) {
+            add_submenu_page(self::PAGE, 'Import / Export', 'Import / Export', 'manage_options', self::PAGE_CONFIG, array($this, 'render_config_io'));
+        }
 
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
@@ -153,6 +175,9 @@ class WP_Arzo_Admin
             self::PAGE_SNIPPETS  => array('code_snippets'),
             self::PAGE_ACTIVITY  => array('activity_log'),
             self::PAGE_MEDIA     => array('media_cleanup'),
+            self::PAGE_REST_AUTH => array('rest_api_auth'),
+            self::PAGE_ROLES     => array('role_manager'),
+            self::PAGE_CONFIG    => array('config_io'),
         );
     }
 
@@ -215,6 +240,9 @@ class WP_Arzo_Admin
             'licenseNonce' => wp_create_nonce(self::NONCE_LICENSE),
             'snippetNonce' => wp_create_nonce(self::NONCE_SNIPPETS),
             'mediaNonce'   => wp_create_nonce(self::NONCE_MEDIA),
+            'restNonce'    => wp_create_nonce(self::NONCE_REST),
+            'rolesNonce'   => wp_create_nonce(self::NONCE_ROLES),
+            'configNonce'  => wp_create_nonce(self::NONCE_CONFIG),
         ));
     }
 
@@ -289,6 +317,9 @@ class WP_Arzo_Admin
             'snippets'  => array('label' => 'Snippets', 'icon' => 'code', 'url' => admin_url('admin.php?page=' . self::PAGE_SNIPPETS), 'page' => self::PAGE_SNIPPETS),
             'media'     => array('label' => 'Media Cleanup', 'icon' => 'image', 'url' => admin_url('admin.php?page=' . self::PAGE_MEDIA), 'page' => self::PAGE_MEDIA),
             'activity'  => array('label' => 'Activity Log', 'icon' => 'shield', 'url' => admin_url('admin.php?page=' . self::PAGE_ACTIVITY), 'page' => self::PAGE_ACTIVITY),
+            'rest_auth' => array('label' => 'REST API Auth', 'icon' => 'key', 'url' => admin_url('admin.php?page=' . self::PAGE_REST_AUTH), 'page' => self::PAGE_REST_AUTH),
+            'roles'     => array('label' => 'Roles', 'icon' => 'users', 'url' => admin_url('admin.php?page=' . self::PAGE_ROLES), 'page' => self::PAGE_ROLES),
+            'config'    => array('label' => 'Import / Export', 'icon' => 'sliders', 'url' => admin_url('admin.php?page=' . self::PAGE_CONFIG), 'page' => self::PAGE_CONFIG),
             'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
         );
         foreach ($tabs as $key => $tab) {
@@ -1479,5 +1510,409 @@ class WP_Arzo_Admin
         }
 
         wp_send_json_error(array('message' => 'Licensing is not connected on this site yet. Install WP Arzo Pro to activate.'), 501);
+    }
+
+    /* ----------------------------------------------------- REST API Auth */
+
+    public function render_rest_auth()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $enabled = $this->registry()->is_enabled('rest_api_auth');
+        $keys    = class_exists('WP_Arzo_Feature_REST_API_Auth') ? WP_Arzo_Feature_REST_API_Auth::all_keys() : array();
+        $users   = get_users(array('fields' => array('ID', 'display_name', 'user_login'), 'number' => 300, 'orderby' => 'display_name'));
+        $nonce   = wp_create_nonce(self::NONCE_REST);
+        $example = home_url('/wp-json/wp/v2/posts');
+        ?>
+        <div class="wrap wpa-admin">
+            <?php $this->render_brand_bar(); ?>
+            <?php $this->render_shell_open('rest_auth'); ?>
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('key', array('class' => 'wpa-icon')); ?> REST API Authentication</h1>
+                    <p class="wpa-admin__subtitle">
+                        <span class="wpa-badge wpa-badge--info"><?php echo count($keys); ?> key(s)</span>
+                        <?php echo $enabled ? '' : ' · the “REST API Authentication” feature is OFF (enable it on the dashboard) — keys won’t authenticate'; ?>
+                    </p>
+                </div>
+            </div>
+
+            <div class="wpa-card" style="margin-bottom:16px;">
+                <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Generate a key</h2>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+                    <div class="wpa-field" style="flex:1;min-width:200px;margin:0;">
+                        <label class="wpa-field__label" for="wpa-rest-label">Label</label>
+                        <input class="wpa-input" type="text" id="wpa-rest-label" placeholder="e.g. Mobile app">
+                    </div>
+                    <div class="wpa-field" style="flex:1;min-width:200px;margin:0;">
+                        <label class="wpa-field__label" for="wpa-rest-user">Authenticate as</label>
+                        <select class="wpa-input" id="wpa-rest-user" data-wpa-select>
+                            <?php foreach ($users as $u) {
+                                echo '<option value="' . (int) $u->ID . '">' . esc_html($u->display_name . ' (' . $u->user_login . ')') . '</option>';
+                            } ?>
+                        </select>
+                    </div>
+                    <button type="button" id="wpa-rest-create" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>">
+                        <?php echo wp_arzo_icon('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Generate key
+                    </button>
+                </div>
+                <div id="wpa-rest-reveal" class="wpa-toast wpa-toast--success" hidden style="position:static;margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                    <span>Copy this key now — it won’t be shown again:</span>
+                    <code id="wpa-rest-newkey" style="user-select:all;font-weight:700;"></code>
+                </div>
+                <p class="wpa-field__help" style="margin-top:10px;">A key grants the chosen user’s privileges to anyone holding it. Prefer a least-privilege user, and always use HTTPS.</p>
+            </div>
+
+            <div class="wpa-card" style="padding:0;overflow:hidden;">
+                <table class="wpa-backup-table" id="wpa-rest-table">
+                    <thead><tr><th>Label</th><th>Key</th><th>Authenticates as</th><th>Created (UTC)</th><th>Last used (UTC)</th><th></th></tr></thead>
+                    <tbody>
+                        <?php if (empty($keys)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="6">No keys yet. Generate one above.</td></tr>
+                        <?php else : foreach ($keys as $k) :
+                            $ku = get_userdata((int) $k['user_id']); ?>
+                            <tr data-key="<?php echo esc_attr($k['id']); ?>">
+                                <td><strong><?php echo esc_html($k['label']); ?></strong></td>
+                                <td><code>arzo_<?php echo esc_html($k['prefix']); ?>…</code></td>
+                                <td><?php echo $ku ? esc_html($ku->display_name) : '<span class="wpa-badge wpa-badge--error">missing user</span>'; ?></td>
+                                <td><?php echo esc_html($k['created_gmt']); ?></td>
+                                <td><?php echo esc_html(!empty($k['last_used_gmt']) ? $k['last_used_gmt'] : '—'); ?></td>
+                                <td class="wpa-backup-actions">
+                                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-rest-revoke" data-id="<?php echo esc_attr($k['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>">
+                                        <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Revoke
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="wpa-card" style="margin-top:16px;">
+                <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> How to call</h2>
+                <p class="wpa-aside-card__text">Send the key with any REST request using one of these (HTTPS recommended):</p>
+                <pre style="margin:0;padding:14px;background:var(--arzo-bg-input);border:1px solid var(--arzo-border-strong);border-radius:var(--arzo-radius-sm);overflow:auto;font-family:var(--arzo-font-mono);font-size:12.5px;line-height:1.6;color:var(--arzo-text-primary);"><code>curl -H "Authorization: Bearer arzo_…" <?php echo esc_html($example); ?>
+
+curl -H "X-API-Key: arzo_…" <?php echo esc_html($example); ?>
+
+curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
+            </div>
+            <?php $this->render_shell_close(); ?>
+        </div>
+        <?php
+    }
+
+    public function ajax_rest_key_create()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_REST, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (!$this->registry()->is_enabled('rest_api_auth')) {
+            wp_send_json_error(array('message' => 'Enable “REST API Authentication” on the dashboard first.'), 403);
+        }
+        $label   = isset($_POST['label']) ? sanitize_text_field(wp_unslash($_POST['label'])) : '';
+        $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+        $res = WP_Arzo_Feature_REST_API_Auth::create_key($label, $user_id);
+        if (is_wp_error($res)) {
+            wp_send_json_error(array('message' => $res->get_error_message()), 400);
+        }
+        $ku = get_userdata((int) $res['user_id']);
+        wp_send_json_success(array(
+            'plain' => $res['plain'],
+            'id'    => $res['id'],
+            'label' => $res['label'],
+            'prefix' => $res['prefix'],
+            'user'  => $ku ? $ku->display_name : '',
+            'created' => $res['created_gmt'],
+        ));
+    }
+
+    public function ajax_rest_key_revoke()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_REST, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        if (!WP_Arzo_Feature_REST_API_Auth::revoke_key($id)) {
+            wp_send_json_error(array('message' => 'Key not found.'), 404);
+        }
+        wp_send_json_success(array('message' => 'Key revoked.'));
+    }
+
+    /* ----------------------------------------------------- Role Manager */
+
+    public function render_roles()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $slug = isset($_GET['role']) ? sanitize_key(wp_unslash($_GET['role'])) : '';
+        echo '<div class="wrap wpa-admin">';
+        $this->render_brand_bar();
+        $this->render_shell_open('roles');
+        if ($slug !== '' && get_role($slug)) {
+            $this->render_role_editor($slug);
+        } else {
+            $this->render_roles_list();
+        }
+        $this->render_shell_close();
+        echo '</div>';
+    }
+
+    private function render_roles_list()
+    {
+        $enabled = $this->registry()->is_enabled('role_manager');
+        $roles   = WP_Arzo_Feature_Role_Manager::roles_overview();
+        $nonce   = wp_create_nonce(self::NONCE_ROLES);
+        ?>
+        <div class="wpa-admin__bar">
+            <div>
+                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('users', array('class' => 'wpa-icon')); ?> Role Manager</h1>
+                <p class="wpa-admin__subtitle"><strong><?php echo count($roles); ?></strong> role(s)<?php echo $enabled ? '' : ' · the “Role Manager” feature is OFF (enable it on the dashboard)'; ?></p>
+            </div>
+        </div>
+        <div class="wpa-card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+            <table class="wpa-backup-table">
+                <thead><tr><th>Role</th><th>Slug</th><th>Users</th><th>Capabilities</th><th></th></tr></thead>
+                <tbody>
+                    <?php foreach ($roles as $r) :
+                        $edit = admin_url('admin.php?page=' . self::PAGE_ROLES . '&role=' . $r['slug']); ?>
+                        <tr data-role="<?php echo esc_attr($r['slug']); ?>">
+                            <td><strong><?php echo esc_html($r['name']); ?></strong>
+                                <?php echo $r['is_builtin'] ? '<span class="wpa-badge wpa-badge--neutral">built-in</span>' : '<span class="wpa-badge wpa-badge--info">custom</span>'; ?>
+                            </td>
+                            <td><code><?php echo esc_html($r['slug']); ?></code></td>
+                            <td><?php echo (int) $r['users']; ?></td>
+                            <td><?php echo (int) $r['caps']; ?></td>
+                            <td class="wpa-backup-actions">
+                                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($edit); ?>"><?php echo wp_arzo_icon('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?> Edit caps</a>
+                                <?php if (!$r['is_builtin']) : ?>
+                                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-role-delete" data-slug="<?php echo esc_attr($r['slug']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>" aria-label="Delete role"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="wpa-card">
+            <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add a role</h2>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
+                    <label class="wpa-field__label" for="wpa-role-name">Display name</label>
+                    <input class="wpa-input" type="text" id="wpa-role-name" placeholder="e.g. Shop Manager">
+                </div>
+                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
+                    <label class="wpa-field__label" for="wpa-role-slug">Slug</label>
+                    <input class="wpa-input" type="text" id="wpa-role-slug" placeholder="shop_manager">
+                </div>
+                <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
+                    <label class="wpa-field__label" for="wpa-role-clone">Clone caps from</label>
+                    <select class="wpa-input" id="wpa-role-clone" data-wpa-select>
+                        <option value="">None (empty)</option>
+                        <?php foreach ($roles as $r) {
+                            echo '<option value="' . esc_attr($r['slug']) . '">' . esc_html($r['name']) . '</option>';
+                        } ?>
+                    </select>
+                </div>
+                <button type="button" id="wpa-role-add" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add role</button>
+            </div>
+        </div>
+        <?php
+    }
+
+    private function render_role_editor($slug)
+    {
+        $role  = get_role($slug);
+        $all   = wp_roles();
+        $name  = isset($all->roles[$slug]['name']) ? $all->roles[$slug]['name'] : $slug;
+        $caps  = WP_Arzo_Feature_Role_Manager::all_capabilities();
+        $has   = ($role && is_array($role->capabilities)) ? $role->capabilities : array();
+        $nonce = wp_create_nonce(self::NONCE_ROLES);
+        $is_admin_role = ($slug === 'administrator');
+        ?>
+        <div class="wpa-admin__bar">
+            <div>
+                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_ROLES)); ?>"><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> All roles</a>
+                <h1 class="wpa-admin__title" style="margin-top:10px;"><?php echo wp_arzo_icon('users', array('class' => 'wpa-icon')); ?> <?php echo esc_html($name); ?> <code style="font-size:13px;"><?php echo esc_html($slug); ?></code></h1>
+            </div>
+            <button type="button" id="wpa-role-save" class="wpa-btn wpa-btn--primary" data-slug="<?php echo esc_attr($slug); ?>" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save capabilities</button>
+        </div>
+        <?php if ($is_admin_role) : ?>
+            <div class="wpa-card" style="margin-bottom:16px;"><p class="wpa-aside-card__text" style="margin:0;"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon wpa-icon--sm')); ?> This is the administrator role — <code>manage_options</code> is locked on to prevent lockout.</p></div>
+        <?php endif; ?>
+        <div class="wpa-card">
+            <div class="wpa-caps-grid">
+                <?php foreach ($caps as $cap) :
+                    $on   = !empty($has[$cap]);
+                    $lock = ($is_admin_role && $cap === 'manage_options'); ?>
+                    <label class="wpa-toggle wpa-cap">
+                        <input type="checkbox" class="wpa-toggle__input wpa-cap-input" role="switch" value="<?php echo esc_attr($cap); ?>" <?php checked($on); ?> <?php disabled($lock); ?>>
+                        <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+                        <span class="wpa-toggle__label"><?php echo esc_html($cap); ?></span>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php
+    }
+
+    private function verify_role_request()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_ROLES, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (!$this->registry()->is_enabled('role_manager')) {
+            wp_send_json_error(array('message' => 'Enable “Role Manager” on the dashboard first.'), 403);
+        }
+    }
+
+    public function ajax_role_save_caps()
+    {
+        $this->verify_role_request();
+        $slug = isset($_POST['role']) ? sanitize_key(wp_unslash($_POST['role'])) : '';
+        $role = get_role($slug);
+        if (!$role) {
+            wp_send_json_error(array('message' => 'Unknown role.'), 404);
+        }
+        $granted = isset($_POST['caps']) ? (array) wp_unslash($_POST['caps']) : array();
+        $granted = array_fill_keys(array_map('sanitize_key', $granted), true);
+        if ($slug === 'administrator') {
+            $granted['manage_options'] = true; // lockout guard
+        }
+        foreach (WP_Arzo_Feature_Role_Manager::all_capabilities() as $cap) {
+            if (!empty($granted[$cap])) {
+                $role->add_cap($cap);
+            } else {
+                $role->remove_cap($cap);
+            }
+        }
+        wp_send_json_success(array('message' => 'Capabilities saved.', 'count' => count($granted)));
+    }
+
+    public function ajax_role_add()
+    {
+        $this->verify_role_request();
+        $name  = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+        $slug  = isset($_POST['slug']) ? sanitize_key(wp_unslash($_POST['slug'])) : '';
+        $clone = isset($_POST['clone']) ? sanitize_key(wp_unslash($_POST['clone'])) : '';
+        if ($name === '' || $slug === '') {
+            wp_send_json_error(array('message' => 'Name and slug are both required.'), 400);
+        }
+        if (get_role($slug)) {
+            wp_send_json_error(array('message' => 'A role with that slug already exists.'), 409);
+        }
+        $caps = array();
+        if ($clone !== '' && ($src = get_role($clone)) && is_array($src->capabilities)) {
+            $caps = $src->capabilities;
+        }
+        add_role($slug, $name, $caps);
+        wp_send_json_success(array('message' => 'Role added.', 'slug' => $slug));
+    }
+
+    public function ajax_role_delete()
+    {
+        $this->verify_role_request();
+        $slug = isset($_POST['slug']) ? sanitize_key(wp_unslash($_POST['slug'])) : '';
+        if (WP_Arzo_Feature_Role_Manager::is_builtin($slug)) {
+            wp_send_json_error(array('message' => 'Built-in roles cannot be deleted.'), 400);
+        }
+        if (!get_role($slug)) {
+            wp_send_json_error(array('message' => 'Unknown role.'), 404);
+        }
+        remove_role($slug);
+        wp_send_json_success(array('message' => 'Role deleted.'));
+    }
+
+    /* ------------------------------------------------- Config Import/Export */
+
+    public function render_config_io()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $enabled = $this->registry()->is_enabled('config_io');
+        $nonce   = wp_create_nonce(self::NONCE_CONFIG);
+        ?>
+        <div class="wrap wpa-admin">
+            <?php $this->render_brand_bar(); ?>
+            <?php $this->render_shell_open('config'); ?>
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon')); ?> Config Import / Export</h1>
+                    <p class="wpa-admin__subtitle">Move your WP Arzo setup between sites<?php echo $enabled ? '' : ' · the “Config Import / Export” feature is OFF (enable it on the dashboard)'; ?>.</p>
+                </div>
+            </div>
+            <div class="wpa-layout">
+                <div class="wpa-main">
+                    <div class="wpa-card" style="margin-bottom:16px;">
+                        <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</h2>
+                        <p class="wpa-aside-card__text">Download a JSON file with your feature toggles, feature settings, and code snippets.</p>
+                        <button type="button" id="wpa-config-export" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Download config</button>
+                    </div>
+                    <div class="wpa-card">
+                        <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</h2>
+                        <p class="wpa-aside-card__text">Importing <strong>overwrites</strong> your current feature toggles and settings, and merges snippets. A safety snapshot of the options table is taken first.</p>
+                        <input type="file" id="wpa-config-file" accept="application/json,.json" class="wpa-input" style="margin-bottom:10px;">
+                        <button type="button" id="wpa-config-import" class="wpa-btn wpa-btn--danger" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import config</button>
+                        <p class="wpa-field__help" id="wpa-config-msg"></p>
+                    </div>
+                </div>
+                <aside class="wpa-aside">
+                    <div class="wpa-aside-card">
+                        <div class="wpa-aside-card__head"><?php echo wp_arzo_icon('info', array('class' => 'wpa-icon')); ?><h3 class="wpa-aside-card__title">What’s included</h3></div>
+                        <p class="wpa-aside-card__text">The feature on/off map, per-feature settings, and code snippets. It does <strong>not</strong> include other plugins’ options or your content/database — use Backups for those.</p>
+                    </div>
+                </aside>
+            </div>
+            <?php $this->render_shell_close(); ?>
+        </div>
+        <?php
+    }
+
+    public function ajax_config_export()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_CONFIG, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (!$this->registry()->is_enabled('config_io')) {
+            wp_send_json_error(array('message' => 'Enable “Config Import / Export” on the dashboard first.'), 403);
+        }
+        wp_send_json_success(array(
+            'filename' => WP_Arzo_Feature_Config_IO::export_filename(),
+            'json'     => wp_json_encode(WP_Arzo_Feature_Config_IO::export_payload(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+        ));
+    }
+
+    public function ajax_config_import()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_CONFIG, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (!$this->registry()->is_enabled('config_io')) {
+            wp_send_json_error(array('message' => 'Enable “Config Import / Export” on the dashboard first.'), 403);
+        }
+        $raw  = isset($_POST['data']) ? wp_unslash($_POST['data']) : '';
+        $data = json_decode((string) $raw, true);
+        if (!is_array($data)) {
+            wp_send_json_error(array('message' => 'Could not read that file as JSON.'), 400);
+        }
+        $clean = WP_Arzo_Feature_Config_IO::validate($data);
+        if (is_wp_error($clean)) {
+            wp_send_json_error(array('message' => $clean->get_error_message()), 400);
+        }
+        $s = WP_Arzo_Feature_Config_IO::apply($clean);
+        wp_send_json_success(array(
+            'message' => sprintf(
+                'Imported %d feature toggle(s), %d setting group(s), %d snippet(s).%s',
+                $s['features'],
+                $s['settings'],
+                $s['snippets'],
+                $s['snapshot'] ? ' A safety snapshot was taken.' : ''
+            ),
+        ));
     }
 }
