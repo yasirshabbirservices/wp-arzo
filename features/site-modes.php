@@ -830,13 +830,19 @@ function handleMaintenanceModes()
                 <div class="controls-container">
                     <?php if ($emergency_configured): ?>
                         <div class="active-controls" id="emergency-active-controls">
-                            <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo home_url('/wp-arzo/emergency/'); ?>', this)">
+                            <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo esc_js(home_url('/wp-arzo/emergency/')); ?>', this)">
                                 <i class="fas fa-link"></i> Copy Link
+                            </button>
+                            <button type="button" class="btn-action" title="Works even when WordPress rewrites are down" onclick="copyToClipboard('<?php echo esc_js(WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/index.php'); ?>', this)">
+                                <i class="fas fa-life-ring"></i> Copy Direct Link
                             </button>
                             <button type="button" class="btn-action" onclick="resetEmergencyPassword(this)">
                                 <i class="fas fa-key"></i> Reset Password
                             </button>
                         </div>
+                        <p style="grid-column:1/-1; margin:8px 0 0; font-size:12px; color:var(--muted-text);">
+                            <i class="fas fa-life-ring"></i> <strong>Direct Link</strong> is the file URL — bookmark it. It keeps working even when WordPress is fully down (WSOD) and the pretty <code>/wp-arzo/emergency/</code> rewrite can't load.
+                        </p>
                     <?php else: ?>
                         <div id="emergency-inactive-controls">
                             <!-- Placeholder for consistency -->

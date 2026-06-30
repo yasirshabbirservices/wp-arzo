@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.31.0] — 2026-07-01
+
+### Improved — Emergency Recovery reliability (works when WordPress is down)
+- The standalone recovery tool (`wp-arzo-emergency/index.php`) now finds **wp-config.php**
+  more reliably — it checks the WordPress root *and* the "split config" location one
+  directory above the webroot, and only accepts a file that actually defines `DB_NAME`.
+- The DB connection now parses `DB_HOST` into **host / TCP port / Unix socket**
+  (`host:3306`, `host:/path.sock`) and honours `DB_CHARSET` — so it connects on hosts the
+  old naive parser couldn't.
+- The most sensitive writes (create admin, reset password, update URLs) now use **prepared
+  statements**.
+- New one-click **Repair & Recovery** actions: switch to a default `Twenty*` theme, restore
+  the default `.htaccess` (backing up the current one), and clear all transients — alongside
+  the existing safe-mode (deactivate all plugins but WP Arzo).
+- **Discoverability**: the Site Modes emergency card now also offers a **Direct Link** (the
+  recovery file's real URL) that keeps working even when WordPress can't load its rewrites —
+  bookmark it for a true WSOD.
+
 ## [6.30.0] — 2026-07-01
 
 ### Changed — Consistent header across both surfaces
