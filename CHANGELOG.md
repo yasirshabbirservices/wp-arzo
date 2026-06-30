@@ -21,8 +21,14 @@ The backbone of the suite: a native wp-admin feature manager that everything plu
   nonce), Pro chips, and a schema-driven per-feature **settings** screen. Menu restructured
   to a top-level **WP Arzo** dashboard with the standalone power-console moved under
   **Advanced Tools**.
-- **First feature modules:** Disable Comments, Hide Admin Bar (with scope setting),
-  Disable XML-RPC, Disable Dashboard Widgets — all free, all driven by the registry.
+- **Feature modules (16 free, registry-driven):**
+  - Utilities/Admin: Hide Admin Bar (scope), Disable Dashboard Widgets, Disable Emojis,
+    Disable Self Pingbacks.
+  - Core: Disable Comments, Disable Gutenberg, Disable RSS Feeds, Disable Embeds.
+  - Security: Disable XML-RPC, Restrict REST API, Disable Theme/Plugin Editor, Block User
+    Enumeration.
+  - Content/Dev: Revisions Control (max setting), Heartbeat Control (behavior + frequency).
+  - Marketing/SEO: Manage robots.txt, Manage ads.txt (both with content settings).
 - Add-on hook `wp_arzo_register_features` so the future Pro plugin registers its modules
   into the same registry, and `wp_arzo_feature_is_available` to gate Pro features by
   license.
