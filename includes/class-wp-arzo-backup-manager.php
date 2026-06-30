@@ -151,6 +151,16 @@ class WP_Arzo_Backup_Manager
 
         $this->prune();
 
+        /**
+         * Fires after a snapshot is written. Off-site/remote destinations (Pro) hook
+         * this to push the snapshot folder to FTP/S3/cloud storage.
+         *
+         * @param string $id       Snapshot id.
+         * @param array  $manifest Snapshot manifest.
+         * @param string $dir      Absolute path to the snapshot folder.
+         */
+        do_action('wp_arzo_after_snapshot_created', $id, $manifest, $dir);
+
         return $manifest;
     }
 

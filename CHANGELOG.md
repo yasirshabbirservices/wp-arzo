@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.11.0] — 2026-06-30
+
+### Added
+- **Off-site backup hook** — the backup engine now fires
+  `do_action('wp_arzo_after_snapshot_created', $id, $manifest, $dir)` after each snapshot,
+  so Pro/cloud destinations can push the snapshot off-site. (First destination —
+  **FTP** — ships in WP Arzo Pro 1.2.0; cloud/S3/Drive follow.)
+
 ## [6.10.0] — 2026-06-30
 
 ### Added (free)

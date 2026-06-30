@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.10.0
+Stable tag: 6.11.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.11.0 =
+* Added: off-site backup hook (wp_arzo_after_snapshot_created) so Pro can push snapshots
+  to FTP/cloud after each local snapshot
 
 = 6.10.0 =
 * New (free): Custom Login URL — move wp-login.php to a secret slug
