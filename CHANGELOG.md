@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.18.0] — 2026-06-30
+
+### Added — Media Cleanup tool
+- **WP Arzo → Media Cleanup** — scan the media library (batched, with a **progress bar**)
+  to find attachments with **no detectable references**. Usage is checked conservatively
+  (featured image, site logo/icon, post content incl. `wp-image-<id>`, and post meta /
+  ACF / page-builder storage), biased toward "in use" so live files aren't flagged.
+- **Filters** (possibly-unused only, type, filename search) + a **reclaimable-space**
+  summary, thumbnails, select-all, and **batch delete** (explicit selection + confirm;
+  removes all image sizes). Clear warning to back up first — detection can't see theme
+  options / hard-coded CSS / external caches.
+
 ## [6.17.0] — 2026-06-30
 
 ### Added (free) — Auto WebP Conversion (40 free features total)

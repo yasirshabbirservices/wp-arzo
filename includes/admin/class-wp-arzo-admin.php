@@ -23,6 +23,7 @@ class WP_Arzo_Admin
     const PAGE_BACKUPS = 'wp-arzo-backups';
     const PAGE_EMAIL_LOG = 'wp-arzo-email-log';
     const PAGE_SNIPPETS = 'wp-arzo-snippets';
+    const PAGE_MEDIA = 'wp-arzo-media';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
@@ -30,6 +31,7 @@ class WP_Arzo_Admin
     const NONCE_LICENSE = 'wp_arzo_license';
     const NONCE_SNIPPETS = 'wp_arzo_snippets';
     const NONCE_TEST_EMAIL = 'wp_arzo_test_email';
+    const NONCE_MEDIA = 'wp_arzo_media';
 
     public static function instance()
     {
@@ -55,6 +57,8 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
         add_action('wp_ajax_wp_arzo_send_test_email', array($this, 'ajax_send_test_email'));
         add_action('wp_ajax_wp_arzo_email_resend', array($this, 'ajax_email_resend'));
+        add_action('wp_ajax_wp_arzo_media_scan', array($this, 'ajax_media_scan'));
+        add_action('wp_ajax_wp_arzo_media_delete', array($this, 'ajax_media_delete'));
     }
 
     private function registry()
@@ -111,6 +115,7 @@ class WP_Arzo_Admin
         add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'));
         add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'));
         add_submenu_page(self::PAGE, 'Snippets', 'Snippets', 'manage_options', self::PAGE_SNIPPETS, array($this, 'render_snippets'));
+        add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'));
 
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
@@ -158,6 +163,7 @@ class WP_Arzo_Admin
             'backupNonce'  => wp_create_nonce(self::NONCE_BACKUPS),
             'licenseNonce' => wp_create_nonce(self::NONCE_LICENSE),
             'snippetNonce' => wp_create_nonce(self::NONCE_SNIPPETS),
+            'mediaNonce'   => wp_create_nonce(self::NONCE_MEDIA),
         ));
     }
 
@@ -227,6 +233,7 @@ class WP_Arzo_Admin
             'backups'   => array('label' => 'Backups', 'icon' => 'database', 'url' => admin_url('admin.php?page=' . self::PAGE_BACKUPS)),
             'email'     => array('label' => 'Email Log', 'icon' => 'mail', 'url' => admin_url('admin.php?page=' . self::PAGE_EMAIL_LOG)),
             'snippets'  => array('label' => 'Snippets', 'icon' => 'code', 'url' => admin_url('admin.php?page=' . self::PAGE_SNIPPETS)),
+            'media'     => array('label' => 'Media Cleanup', 'icon' => 'image', 'url' => admin_url('admin.php?page=' . self::PAGE_MEDIA)),
             'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
         );
         echo '<nav class="wpa-nav" aria-label="WP Arzo sections">';
@@ -1093,6 +1100,105 @@ class WP_Arzo_Admin
         $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
         WP_Arzo_Snippets::instance()->delete($id);
         wp_send_json_success(array('message' => 'Snippet deleted.'));
+    }
+
+    /* ---------------------------------------------------- Media Cleanup */
+
+    public function render_media_cleanup()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $total = class_exists('WP_Arzo_Media_Cleanup') ? WP_Arzo_Media_Cleanup::instance()->count_attachments() : 0;
+        ?>
+        <div class="wrap wpa-admin">
+            <?php $this->render_brand_bar(); ?>
+            <?php $this->render_nav('media'); ?>
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('image', array('class' => 'wpa-icon')); ?> Media Cleanup</h1>
+                    <p class="wpa-admin__subtitle"><strong><?php echo (int) $total; ?></strong> attachment(s). Scan to find files with no detectable references.</p>
+                </div>
+                <button type="button" id="wpa-media-scan" class="wpa-btn wpa-btn--primary" data-total="<?php echo (int) $total; ?>" data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_MEDIA)); ?>">
+                    <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?> Scan media
+                </button>
+            </div>
+
+            <div class="wpa-card" id="wpa-media-intro">
+                <p class="wpa-aside-card__text" style="margin:0;">
+                    “Possibly unused” means no reference was found in post content, featured images, post meta
+                    (ACF / page builders), or the site logo/icon. Detection can’t see theme options, hard-coded
+                    CSS, or external caches, so <strong>review each item</strong> before deleting — and take a backup
+                    first (WP Arzo → Backups). Deletion is permanent and removes all image sizes.
+                </p>
+            </div>
+
+            <div class="wpa-media-progress" id="wpa-media-progress" hidden>
+                <div class="wpa-progress"><div class="wpa-progress__bar" id="wpa-media-bar"></div></div>
+                <div class="wpa-progress__label" id="wpa-media-progress-label">Scanning…</div>
+            </div>
+
+            <div id="wpa-media-results" hidden>
+                <div class="wpa-admin__bar" style="margin-top:16px;">
+                    <div class="wpa-media-filters">
+                        <label class="wpa-toggle"><input type="checkbox" class="wpa-toggle__input" id="wpa-media-unused-only" role="switch" checked><span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span><span class="wpa-toggle__label">Possibly-unused only</span></label>
+                        <select id="wpa-media-type" class="wpa-input" data-wpa-select style="width:160px;">
+                            <option value="">All types</option>
+                            <option value="image">Images</option>
+                            <option value="video">Video</option>
+                            <option value="audio">Audio</option>
+                            <option value="application">Documents</option>
+                        </select>
+                        <input type="search" id="wpa-media-search" class="wpa-input" placeholder="Search filename…" style="width:180px;">
+                    </div>
+                    <div class="wpa-media-summary" id="wpa-media-summary"></div>
+                </div>
+                <div class="wpa-card" style="padding:0;overflow:hidden;">
+                    <table class="wpa-backup-table" id="wpa-media-table">
+                        <thead><tr>
+                            <th style="width:34px;"><input type="checkbox" id="wpa-media-all"></th>
+                            <th>File</th><th>Type</th><th>Size</th><th>Date</th><th>Status</th>
+                        </tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:14px;display:flex;gap:10px;align-items:center;">
+                    <button type="button" id="wpa-media-delete" class="wpa-btn wpa-btn--danger" data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_MEDIA)); ?>" disabled>
+                        <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Delete selected
+                    </button>
+                    <span class="wpa-backup-meta" id="wpa-media-selcount"></span>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    private function verify_media_request()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_MEDIA, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (!class_exists('WP_Arzo_Media_Cleanup')) {
+            wp_send_json_error(array('message' => 'Media cleanup unavailable'), 500);
+        }
+    }
+
+    public function ajax_media_scan()
+    {
+        $this->verify_media_request();
+        $offset = isset($_POST['offset']) ? max(0, (int) $_POST['offset']) : 0;
+        $limit  = 20;
+        $rows = WP_Arzo_Media_Cleanup::instance()->scan_batch($offset, $limit);
+        wp_send_json_success(array('items' => $rows, 'count' => count($rows)));
+    }
+
+    public function ajax_media_delete()
+    {
+        $this->verify_media_request();
+        $ids = isset($_POST['ids']) ? (array) $_POST['ids'] : array();
+        $ids = array_map('intval', $ids);
+        $deleted = WP_Arzo_Media_Cleanup::instance()->delete($ids);
+        wp_send_json_success(array('deleted' => $deleted));
     }
 
     /* -------------------------------------------------------- License */
