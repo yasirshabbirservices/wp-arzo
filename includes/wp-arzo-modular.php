@@ -109,6 +109,13 @@ if (isset($_GET['tab'])) {
             exit;
         }
     }
+    // Handle Temporary Login operations (login.php returns JSON + exits for these).
+    if (($_GET['tab'] === 'login' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['tl_create', 'tl_delete', 'tl_toggle'])) {
+        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/login.php')) {
+            include(WP_ARZO_PLUGIN_DIR . 'features/login.php');
+            exit;
+        }
+    }
 }
 
 // Include the header (everything before switch statement - lines 1-1464)

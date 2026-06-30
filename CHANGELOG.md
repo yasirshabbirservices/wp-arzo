@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.32.0] — 2026-07-01
+
+### Changed — Temporary Login links (replaces the old Quick Login)
+- The Advanced Tools **Quick Login** tab is now a proper **Temporary Login links** manager
+  (engine: `includes/class-wp-arzo-temp-login.php`). Create passwordless, **expiring,
+  revocable** links that sign someone in as a chosen role — for support, clients, or
+  developers — with no password sharing.
+- Each link is a real WordPress user marked with `wp_arzo_tl_*` usermeta (64-byte CSPRNG
+  token, role, absolute expiry, redirect, usage count, optional max-uses, status). Sign-in
+  runs site-wide on `init`; expiry is enforced on click **and** on every page load.
+- Safer than typical temp-login plugins: a **capability guard** stops you minting a link
+  more privileged than your own account, **max-use limits are enforced**, and a **daily
+  cron** deletes expired accounts (reassigning their content to the creator). Temp users
+  can't manage users/profiles or reset passwords. Uninstall removes all temp users + the cron.
+- **Removed** the old "Create Temporary Admin" / "Direct Admin Access" helpers and the
+  redundant "Current Login Status" card (the Users tab already covers that).
+
 ## [6.31.0] — 2026-07-01
 
 ### Improved — Emergency Recovery reliability (works when WordPress is down)

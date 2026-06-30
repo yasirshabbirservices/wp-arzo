@@ -111,7 +111,7 @@ function wp_arzo_console_tool_catalog()
         'debug'         => array('id' => 'tool_debug', 'title' => 'Debug Tools (Console)', 'icon' => 'bug', 'description' => 'Advanced Tools → Debug: toggle WP_DEBUG and view/clear the debug log.'),
         'site_modes'    => array('id' => 'tool_site_modes', 'title' => 'Site Modes (Console)', 'icon' => 'lock', 'description' => 'Advanced Tools → Site Modes: maintenance / coming-soon / payment-required and the emergency script.'),
         'extra_options' => array('id' => 'tool_extra_options', 'title' => 'Extra Options (Console)', 'icon' => 'settings', 'description' => 'Advanced Tools → Extra Options: PHP limits and other server tweaks.'),
-        'login'         => array('id' => 'tool_login', 'title' => 'Quick Login (Console)', 'icon' => 'external', 'description' => 'Advanced Tools → Quick Login: one-click login helpers.'),
+        'login'         => array('id' => 'tool_login', 'title' => 'Temporary Logins (Console)', 'icon' => 'key', 'description' => 'Advanced Tools → Quick Login: create passwordless, expiring, revocable login links.'),
     );
 }
 
@@ -166,6 +166,9 @@ function wp_arzo_console_tool_for_request($tab, $op)
         'update_maintenance_option' => 'site_modes',
         'activate_mode'             => 'site_modes',
         'deactivate_mode'           => 'site_modes',
+        'tl_create'                 => 'login',
+        'tl_delete'                 => 'login',
+        'tl_toggle'                 => 'login',
     );
     return isset($op_map[$op]) ? $op_map[$op] : '';
 }
