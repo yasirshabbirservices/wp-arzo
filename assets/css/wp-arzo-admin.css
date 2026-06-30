@@ -410,6 +410,74 @@ body.wp-arzo-screen::-webkit-scrollbar-thumb:hover { background: var(--arzo-bord
 .wpa-cap { gap: 10px; }
 .wpa-cap .wpa-toggle__label { font-family: var(--arzo-font-mono); font-size: 12.5px; word-break: break-word; }
 
+/* ============================ Setup Wizard (full-screen takeover) ===== */
+body.wp-arzo-wizard #adminmenumain,
+body.wp-arzo-wizard #wpadminbar,
+body.wp-arzo-wizard #wpfooter { display: none !important; }
+body.wp-arzo-wizard #wpcontent,
+body.wp-arzo-wizard #wpbody-content { margin-left: 0 !important; padding: 0 !important; }
+body.wp-arzo-wizard #wpbody-content > .wrap { margin: 0 !important; max-width: none; }
+body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
+
+.wpa-wiz {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: radial-gradient(120% 80% at 50% -10%, rgba(22, 231, 145, 0.08), transparent 60%), var(--arzo-bg-dark);
+  color: var(--arzo-text-primary);
+}
+.wpa-wiz__head { display: flex; align-items: center; justify-content: space-between; padding: clamp(14px, 2vw, 22px) clamp(16px, 4vw, 48px); }
+.wpa-wiz__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--arzo-text-strong); }
+.wpa-wiz__logo { width: 34px; height: 34px; }
+.wpa-wiz__exit { display: inline-flex; align-items: center; gap: 6px; color: var(--arzo-text-secondary); text-decoration: none; font-size: var(--arzo-fs-sm); }
+.wpa-wiz__exit:hover { color: var(--arzo-accent); }
+.wpa-wiz__progress { height: 4px; background: var(--arzo-bg-hover); }
+.wpa-wiz__bar { height: 100%; width: 20%; background: var(--arzo-accent); transition: width .35s ease; }
+.wpa-wiz__body { flex: 1; display: flex; justify-content: center; padding: clamp(20px, 4vw, 56px) clamp(16px, 4vw, 48px); }
+.wpa-wiz__step { display: none; width: 100%; max-width: 920px; animation: wpaWizIn .35s ease; }
+.wpa-wiz__step.is-active { display: block; }
+@keyframes wpaWizIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.wpa-wiz__hero { text-align: center; max-width: 640px; margin: 6vh auto; }
+.wpa-wiz__hero-icon { display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto 18px; border-radius: 50%; background: var(--arzo-accent-soft); color: var(--arzo-accent); }
+.wpa-wiz__hero-icon .wpa-icon { width: 34px; height: 34px; }
+.wpa-wiz__hero-icon--ok { background: var(--arzo-success-soft); }
+.wpa-wiz__hero h1 { font-size: clamp(24px, 4vw, 34px); color: var(--arzo-text-strong); margin: 0 0 10px; }
+.wpa-wiz__hero p { color: var(--arzo-text-secondary); font-size: var(--arzo-fs-md); line-height: 1.6; margin: 0 0 24px; }
+.wpa-wiz__cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.wpa-wiz__stephead { text-align: center; margin-bottom: 24px; }
+.wpa-wiz__stephead h2 { font-size: clamp(20px, 3vw, 28px); color: var(--arzo-text-strong); margin: 0 0 8px; }
+.wpa-wiz__stephead p { color: var(--arzo-text-secondary); margin: 0; }
+
+.wpa-wiz__presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.wpa-wiz__preset { display: flex; flex-direction: column; gap: 10px; padding: 18px; background: var(--arzo-bg-panel); border: 1px solid var(--arzo-border); border-radius: var(--arzo-radius); }
+.wpa-wiz__preset:hover { border-color: var(--arzo-accent-soft); }
+.wpa-wiz__preset-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--arzo-radius-sm); background: var(--arzo-accent-soft); color: var(--arzo-accent); }
+.wpa-wiz__preset-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wpa-wiz__preset-head h3 { margin: 0; font-size: var(--arzo-fs-md); color: var(--arzo-text-strong); }
+.wpa-wiz__preset-body p { margin: 6px 0 0; color: var(--arzo-text-secondary); font-size: var(--arzo-fs-sm); }
+.wpa-wiz__preset .wpa-btn { align-self: flex-start; margin-top: auto; }
+
+.wpa-wiz__features { display: flex; flex-direction: column; gap: 22px; max-height: 60vh; overflow: auto; padding-right: 6px; }
+.wpa-wiz__group h3 { display: flex; align-items: center; gap: 8px; font-size: var(--arzo-fs-sm); text-transform: uppercase; letter-spacing: .05em; color: var(--arzo-text-muted); margin: 0 0 10px; }
+.wpa-wiz__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.wpa-wiz__feature { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--arzo-bg-panel); border: 1px solid var(--arzo-border); border-radius: var(--arzo-radius-sm); }
+.wpa-wiz__feature.is-on { box-shadow: inset 3px 0 0 var(--arzo-accent); }
+.wpa-wiz__feature-icon { width: 30px; height: 30px; display: grid; place-items: center; color: var(--arzo-accent); flex-shrink: 0; }
+.wpa-wiz__feature-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.wpa-wiz__feature-body strong { font-size: 13px; color: var(--arzo-text-strong); display: flex; align-items: center; gap: 6px; }
+.wpa-wiz__feature-body span { font-size: 12px; color: var(--arzo-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.wpa-wiz__form { max-width: 680px; margin: 0 auto; }
+.wpa-wiz__form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.wpa-wiz__consent { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); }
+.wpa-wiz__consent input { margin-top: 3px; }
+.wpa-wiz__consent a { color: var(--arzo-accent); }
+
+.wpa-wiz__nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 26px; max-width: 920px; margin-left: auto; margin-right: auto; }
+.wpa-wiz__nav-right { display: flex; gap: 10px; }
+
 /* --------------------------------------------- Dark form fields (beat wp-admin forms.css) */
 /* wp-admin's input[type="text"] etc. outspecify a single .wpa-input class and force a
    white background, so override decisively within our screens. */
