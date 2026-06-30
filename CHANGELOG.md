@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.41.0] — 2026-07-01
+
+### Added — Content & media features (free)
+- **Content Order** (`content_order`): **drag-and-drop ordering** of posts, pages, and any
+  custom post type right in the admin list (writes `menu_order`); enabled types are then
+  ordered by `menu_order` in the admin list **and** on the front end. Per-post-type toggles.
+  Verified live (jQuery-UI sortable wired on the Pages list).
+- **Image SEO** (`image_seo`): auto-fill an empty image **Alt text** from the filename, and
+  **convert underscores to hyphens** in uploaded filenames (two independent toggles).
+- **Disable Archives** (`disable_archives`): turn off **category / tag / author / date**
+  archive pages on the front end (each an independent toggle → 404).
+
 ## [6.40.0] — 2026-07-01
 
 ### Fixed — Database manager auto-connects (no more login prompt)
