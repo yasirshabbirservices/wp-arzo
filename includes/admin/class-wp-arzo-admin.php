@@ -449,6 +449,10 @@ class WP_Arzo_Admin
             case 'email':
                 echo '<input class="wpa-input" type="email" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
                 break;
+            case 'color':
+                $cval = ($value !== '' && $value !== null) ? $value : (isset($field['default']) ? $field['default'] : '#16e791');
+                echo '<input type="color" style="width:64px;height:40px;padding:4px;background:var(--arzo-bg-input);border:1px solid var(--arzo-border-strong);border-radius:var(--arzo-radius-sm);" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $cval) . '">';
+                break;
             case 'password':
                 // Never echo the stored secret; blank submit keeps the saved value.
                 $has = ($value !== '' && $value !== null);
@@ -507,6 +511,10 @@ class WP_Arzo_Admin
                     break;
                 case 'email':
                     $clean[$key] = sanitize_email((string) $raw);
+                    break;
+                case 'color':
+                    $color = sanitize_hex_color((string) $raw);
+                    $clean[$key] = $color ? $color : (isset($field['default']) ? $field['default'] : '');
                     break;
                 case 'password':
                     // Blank submit keeps the existing secret (we never render it).
