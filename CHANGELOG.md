@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.27.0] — 2026-07-01
+
+### Changed — Dashboard navigation moved to a left sidebar
+- The Feature Manager's top **tab bar** is now a **vertical left sidebar** that runs down
+  every WP Arzo admin screen (Dashboard, Backups, Email Log, Snippets, Media Cleanup,
+  Activity Log, Advanced Tools). Top tabs ran out of room as the suite grew; a sidebar
+  scales vertically and reads cleanly with many entries.
+- On the **dashboard**, the sidebar adds a **Categories** section mirroring the feature
+  groups (Utilities, Core, Content, Media, …), each with a count. Clicking a category
+  **filters the feature grid** to that group and scrolls it into view; "All features"
+  clears the filter. The category filter and the existing search **compose** — a card
+  shows only when it matches both.
+- The sidebar is sticky on wide screens and **collapses to a horizontal band** above the
+  content on narrow admin viewports (≤ 960px). Built entirely from `--arzo-*` design
+  tokens; a new `grid` icon was added to `wp_arzo_icon()`.
+
 ## [6.26.0] — 2026-06-30
 
 ### Added — Setup Wizard & feature presets

@@ -282,39 +282,84 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 .wpa-promo__title { margin: 0; font-size: var(--arzo-fs-md); font-weight: 700; color: var(--arzo-text-strong); }
 .wpa-promo__desc { margin: 6px 0 12px; font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); line-height: 1.5; }
 
-/* ------------------------------------------------ Shared tab nav (console-style) */
-.wpa-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+/* ------------------------------------------------ App shell: left sidebar nav + main column */
+.wpa-shell {
+  --wpa-sidenav-w: clamp(208px, 17vw, 244px);
+  display: grid;
+  grid-template-columns: var(--wpa-sidenav-w) minmax(0, 1fr);
+  gap: clamp(16px, 1.8vw, 26px);
+  align-items: start;
   margin-bottom: var(--arzo-space-5);
-  border-bottom: 2px solid var(--arzo-border);
 }
-.wpa-nav__tab {
-  display: inline-flex;
+.wpa-shell__main { min-width: 0; }
+
+/* Vertical navigation rail (page links + dashboard category filters). */
+.wpa-sidenav {
+  position: sticky;
+  top: 42px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--arzo-space-4);
+  padding: var(--arzo-space-3);
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+}
+.wpa-sidenav__group { display: flex; flex-direction: column; gap: 2px; }
+.wpa-sidenav__group + .wpa-sidenav__group { padding-top: var(--arzo-space-3); border-top: 1px solid var(--arzo-border); }
+.wpa-sidenav__label {
+  padding: 4px 10px;
+  font-size: var(--arzo-fs-xs);
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--arzo-text-muted);
+}
+.wpa-sidenav__item {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 11px 18px;
-  background: var(--arzo-bg-hover);
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--arzo-radius-sm);
   color: var(--arzo-text-secondary);
   text-decoration: none;
-  border: 1px solid var(--arzo-border);
-  border-bottom: none;
-  border-radius: var(--arzo-radius-sm) var(--arzo-radius-sm) 0 0;
   font-weight: 600;
   font-size: var(--arzo-fs-sm);
-  margin-bottom: -2px;
+  line-height: 1.2;
   transition: background var(--arzo-transition), color var(--arzo-transition);
 }
-.wpa-nav__tab:hover { color: var(--arzo-accent); background: var(--arzo-bg-elev); }
-.wpa-nav__tab:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
-.wpa-nav__tab.is-active {
-  background: var(--arzo-accent);
-  color: var(--arzo-text-on-accent);
-  border-color: var(--arzo-accent);
+.wpa-sidenav__item:hover { background: var(--arzo-bg-hover); color: var(--arzo-accent); }
+.wpa-sidenav__item:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
+.wpa-sidenav__item.is-active {
+  background: var(--arzo-accent-soft);
+  color: var(--arzo-text-strong);
+  box-shadow: inset 3px 0 0 var(--arzo-accent);
 }
-.wpa-nav__tab.is-active:hover { background: var(--arzo-accent-hover); color: var(--arzo-text-on-accent); }
-.wpa-nav__tab .wpa-icon { width: 15px; height: 15px; }
+.wpa-sidenav__item .wpa-icon { flex-shrink: 0; width: 16px; height: 16px; color: var(--arzo-text-muted); transition: color var(--arzo-transition); }
+.wpa-sidenav__item:hover .wpa-icon,
+.wpa-sidenav__item.is-active .wpa-icon { color: var(--arzo-accent); }
+.wpa-sidenav__text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wpa-sidenav__ext { width: 13px; height: 13px; }
+.wpa-sidenav__count {
+  flex-shrink: 0;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: var(--arzo-radius-pill);
+  background: var(--arzo-bg-hover);
+  color: var(--arzo-text-secondary);
+  font-size: var(--arzo-fs-xs);
+  font-weight: 700;
+  text-align: center;
+}
+.wpa-sidenav__item.is-active .wpa-sidenav__count { background: var(--arzo-accent); color: var(--arzo-text-on-accent); }
+
+/* On narrow admin viewports the rail collapses to a horizontal band above the content. */
+@media (max-width: 960px) {
+  .wpa-shell { grid-template-columns: 1fr; }
+  .wpa-sidenav { position: static; flex-direction: row; flex-wrap: wrap; gap: var(--arzo-space-3); }
+  .wpa-sidenav__group { flex: 1 1 240px; }
+  .wpa-sidenav__group + .wpa-sidenav__group { padding-top: 0; border-top: none; }
+}
 
 /* --------------------------------------------- Dark form fields (beat wp-admin forms.css) */
 /* wp-admin's input[type="text"] etc. outspecify a single .wpa-input class and force a
