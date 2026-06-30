@@ -56,7 +56,11 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
 - **Pro v1.5.0** — **Content Types (CPT/CCT) builder** (JetEngine ref): UI under
   **WP Arzo → Content Types** to define custom post types + taxonomies (labels, public/
   archive/hierarchical/REST, menu icon, rewrite slug, supports), registered on `init` with
-  auto rewrite-flush (**13 Pro modules**). Custom fields / meta-box builder is next.
+  auto rewrite-flush (**13 Pro modules**).
+- **Pro v1.6.0** — **Custom Fields (meta-box builder)** (JetEngine ref): field groups under
+  **WP Arzo → Custom Fields** attached to post types; 11 field types (text/textarea/number/
+  email/url/date/color/select/checkbox/image/WYSIWYG), required + help, main/side placement;
+  values stored as post meta with per-group nonce + type-aware sanitization (**14 modules**).
 
 ### Competitor references (local: C:\Users\yasir\Downloads\Dev)
 ASE, Solid Security, **erropix-advanced-scripts** (snippets: priority + shortcode +
@@ -68,8 +72,9 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
 
 ### Still to build (next up)
 - ✅ **Code Snippets Manager** (free) — v6.15.0. ✅ **Scheduled Backups** (free) — v6.19.0.
-- ✅ **CPT/CCT builder** (Pro v1.5.0). ✅ **API email providers** (Pro v1.4.0).
-- **Builders (Pro):** custom fields / meta-box builder (next), media folders (HappyFiles ref).
+- ✅ **CPT/CCT builder** (Pro v1.5.0). ✅ **Custom Fields / meta boxes** (Pro v1.6.0).
+- ✅ **API email providers** (Pro v1.4.0).
+- **Builders (Pro):** media folders / advanced media manager (HappyFiles ref) — next.
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
 - **Backup (Pro):** S3-compatible remote, remote restore (WPvivid ref).
 - **Branding (Pro):** custom admin/dashboard, white-label. **AI/MCP** layer.
