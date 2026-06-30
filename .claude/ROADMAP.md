@@ -120,7 +120,15 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
 - ✅ **Role Manager** (free v6.28.0) — view roles, edit capabilities, add/clone/delete custom
   roles via the Roles API, with an administrator-lockout guard. `class-feature-role-manager.php`.
 - ✅ **Config Import/Export** (free v6.28.0) — versioned JSON of feature toggles + settings +
-  snippets; safety-snapshot before import. `class-feature-config-io.php`.
+  snippets; safety-snapshot before import. `class-feature-config-io.php`. (Made a permanent
+  always-on tool — no toggle — in v6.34.0.)
+- ✅ **Console/UX overhaul (v6.29–6.39)** — collapsible+scrollable left sidebar & branded
+  scrollbars; unified `.wpa-brandbar` header (GitHub icon); hardened standalone **emergency
+  recovery**; **Temporary Login links**; **AdminNeo** DB manager; brand-color sweep (no
+  wp-admin blue) + consistent card widths; **full-screen multi-step Setup Wizard + lead
+  capture** (WP Arzo → Leads); **bulk per-category enable/disable**; **Media Folders** +
+  **Prevent Duplicate Uploads** (both free); and **Two-Factor Auth** (TOTP + recovery codes,
+  free, opt-in — `class-feature-two-factor.php`).
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.

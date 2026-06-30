@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.39.0] — 2026-07-01
+
+### Added — Two-Factor Authentication (free, opt-in)
+- New **Two-Factor Authentication** feature (`two_factor`, Security): **TOTP** (Google
+  Authenticator / Authy / 1Password / etc.) plus single-use **recovery codes**, enrolled
+  **per user** from the profile screen. The TOTP engine is hand-rolled (no library) and
+  verified against the **RFC 6238** test vectors.
+- The login flow is challenged only for users who opt in. **Two lockout escapes:** recovery
+  codes, and a `WP_ARZO_2FA_DISABLE` constant (in `wp-config.php`) — plus the WP Arzo
+  emergency tool can clear a user's 2FA meta. Added to the **Fortress** preset.
+
+> ⚠️ 2FA changes the login flow. The feature is **off by default** and the challenge code
+> can't be exercised in this dev environment — **enrol a test user and verify login +
+> recovery on staging before enabling it on a production site.**
+
 ## [6.38.0] — 2026-07-01
 
 ### Added — Media tools (now free)
