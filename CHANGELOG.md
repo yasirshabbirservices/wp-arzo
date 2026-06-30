@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.23.0] — 2026-06-30
+
+### Changed — Feature pages appear only when the feature is on
+- A feature's dedicated admin page (and its nav tab) is now **hidden until that feature's
+  toggle is enabled**. **Email Log** needs *Email Log*, **Snippets** needs *Code Snippets*,
+  **Activity Log** needs *Activity Log*, and **Backups** needs *Automated Snapshots* or
+  *Scheduled Backups*. Enabling a feature that owns a page now reloads the dashboard so the
+  menu/tabs update immediately (the toggle response signals `ownsPage`).
+- Pro feature pages were already gated this way — they register inside the module's
+  `boot()`, which only runs while the feature is enabled. *Media Cleanup* stays always
+  available: it's an on-demand maintenance tool with no enable toggle.
+
 ## [6.22.0] — 2026-06-30
 
 ### Added — Pro feature showcase in the dashboard
