@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.42.0
+ * Version: 6.43.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.42.0');
+    define('WP_ARZO_VERSION', '6.43.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -443,6 +443,12 @@ add_action('admin_init', 'wp_arzo_check_rewrite_rules');
 
 // Shared icon system (inline SVG helper used across the console & features).
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/wp-arzo-icons.php');
+
+// GitHub-release self-updater (admin only): one-click / auto updates from Releases.
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-updater.php');
+if (is_admin()) {
+    WP_Arzo_Updater::boot(plugin_basename(WP_ARZO_PLUGIN_FILE), WP_ARZO_VERSION, 'yasirshabbirservices/wp-arzo');
+}
 
 // Load Maintenance Mode Frontend
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/maintenance-frontend.php');
