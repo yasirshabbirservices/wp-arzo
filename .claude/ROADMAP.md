@@ -91,6 +91,11 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
   Pro modules in the dashboard when Pro isn't installed (auto-suppressed when it is). See
   `includes/features-registry/class-feature-pro-placeholders.php` — keep its catalog in
   sync with the Pro repo's registered modules.
+- ✅ **Feature-page gating** (free v6.23.0) — feature admin pages/tabs hidden until enabled.
+- ✅ **Advanced Tools per-tool toggles** (free v6.24.0) — each console tool (Users/DB/Files/
+  Plugins/Themes/Debug/Site Modes/Extra Options/Login) is a dashboard toggle in a new
+  "Advanced Tools (Console)" group; disabling gates nav + page + AJAX/file/DB ops. See
+  `includes/features-registry/class-features-advanced-tools.php`.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.

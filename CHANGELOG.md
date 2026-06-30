@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.24.0] — 2026-06-30
+
+### Added — Per-tool toggles for the Advanced Tools console
+- Every tool in the standalone **Advanced Tools** console (Users, Database, File Manager,
+  Plugins, Themes, Debug, Site Modes, Extra Options, Quick Login) is now an individual
+  **dashboard toggle** under a new **Advanced Tools (Console)** group — so you can lock down
+  dangerous tools (e.g. File Manager / Database) on production. *Site Info* stays always on
+  as the console home.
+- Disabling a tool **hides it from the console nav, shows a "Tool disabled" notice on its
+  page, and — importantly — blocks its AJAX/file/DB operations** (the router gates the
+  operation by tool, including the legacy `tab=ajax` calls and file downloads). Tools
+  default to **enabled**, so existing behaviour is unchanged until you opt out. State lives
+  in `wp_arzo_features` alongside every other feature toggle.
+
 ## [6.23.0] — 2026-06-30
 
 ### Changed — Feature pages appear only when the feature is on
