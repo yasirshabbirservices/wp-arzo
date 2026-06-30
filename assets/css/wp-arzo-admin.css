@@ -334,3 +334,47 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
   box-shadow: var(--arzo-focus-ring) !important;
   outline: none !important;
 }
+
+/* --------------------------------------------- Two-column layout (main + sidebar) */
+.wpa-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 24vw, 340px);
+  gap: clamp(16px, 2vw, 28px);
+  align-items: start;
+}
+.wpa-main { min-width: 0; }
+.wpa-aside {
+  position: sticky;
+  top: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--arzo-space-4);
+}
+/* Promos stack vertically in the sidebar. */
+.wpa-aside .wpa-promos { margin-top: 0; }
+.wpa-aside .wpa-promo-grid { grid-template-columns: 1fr; gap: var(--arzo-space-3); }
+.wpa-aside .wpa-promo { flex-direction: column; }
+.wpa-aside .wpa-group__title { font-size: var(--arzo-fs-md); }
+
+/* Sidebar cards (license, etc.). */
+.wpa-aside-card {
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+  padding: var(--arzo-space-4);
+}
+.wpa-license.is-active { border-color: var(--arzo-accent-soft); box-shadow: inset 3px 0 0 var(--arzo-accent); }
+.wpa-aside-card__head { display: flex; align-items: center; gap: var(--arzo-space-2); margin-bottom: var(--arzo-space-2); }
+.wpa-aside-card__head .wpa-icon { color: var(--arzo-accent); }
+.wpa-aside-card__title { margin: 0; font-size: var(--arzo-fs-md); font-weight: 700; color: var(--arzo-text-strong); margin-right: auto; }
+.wpa-aside-card__text { margin: 0 0 var(--arzo-space-3); font-size: var(--arzo-fs-sm); color: var(--arzo-text-secondary); line-height: 1.5; }
+.wpa-aside-card__note { margin: var(--arzo-space-2) 0 0; font-size: var(--arzo-fs-xs); }
+.wpa-aside-card__note.is-error { color: var(--arzo-error); }
+.wpa-aside-card__note.is-ok { color: var(--arzo-accent); }
+.wpa-license__actions { display: flex; gap: var(--arzo-space-2); margin-top: var(--arzo-space-3); }
+
+@media (max-width: 1100px) {
+  .wpa-layout { grid-template-columns: 1fr; }
+  .wpa-aside { position: static; flex-direction: row; flex-wrap: wrap; }
+  .wpa-aside > * { flex: 1 1 320px; }
+}

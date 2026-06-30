@@ -153,7 +153,38 @@
     });
   }
 
-  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); }
+  // -------------------------------------------------- License activate
+  function bindLicense() {
+    var btn = document.getElementById('wpa-license-activate');
+    if (!btn) return;
+    var msg = document.getElementById('wpa-license-msg');
+    function note(text, ok) {
+      if (!msg) { toast(text, ok ? 'success' : 'error'); return; }
+      msg.hidden = false;
+      msg.textContent = text;
+      msg.className = 'wpa-aside-card__note ' + (ok ? 'is-ok' : 'is-error');
+    }
+    btn.addEventListener('click', function () {
+      var keyEl = document.getElementById('wpa-license-key');
+      var key = keyEl ? keyEl.value.trim() : '';
+      if (!key) { note('Enter your license key first.', false); return; }
+      btn.disabled = true;
+      var body = new FormData();
+      body.append('action', 'wp_arzo_activate_license');
+      body.append('nonce', btn.dataset.nonce || cfg.licenseNonce || '');
+      body.append('key', key);
+      fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          btn.disabled = false;
+          if (res && res.success) { note((res.data && res.data.message) || 'Activated.', true); reload(1000); }
+          else { note((res && res.data && res.data.message) || 'Activation failed.', false); }
+        })
+        .catch(function () { btn.disabled = false; note('Request failed.', false); });
+    });
+  }
+
+  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); bindLicense(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
