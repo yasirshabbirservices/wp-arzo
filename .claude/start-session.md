@@ -20,7 +20,7 @@
 
 | Repo | Path | Branch | Visibility | Current |
 |------|------|--------|------------|---------|
-| **Free core** | `D:\Github\wp-arzo` | `wp-plugin` | public | **v6.27.0** |
+| **Free core** | `D:\Github\wp-arzo` | `wp-plugin` | public | **v6.29.0** |
 | **Pro add-on** | `D:\Github\wp-arzo-pro` | `main` | private | **v1.10.1** |
 
 - Pro registers its modules into the free core's registry via the `wp_arzo_register_features`
@@ -31,7 +31,7 @@
 
 ## 3. Current state (what's built)
 
-**Free core (6.28.0):** ~48 feature modules across Utilities, Core controls, Content,
+**Free core (6.29.0):** ~48 feature modules across Utilities, Core controls, Content,
 Media, Marketing/SEO, Email (SMTP + log), Security, Branding (custom login), Developer
 (Code Snippets), Backup (local snapshots + scheduled), Ops (Activity Log), plus:
 - **REST API Authentication** (`rest_api_auth`) — issuable/revocable API keys + Basic Auth

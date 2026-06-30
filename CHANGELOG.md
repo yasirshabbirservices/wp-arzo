@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.29.0] — 2026-07-01
+
+### Changed — Collapsible sidebar + branded scrollbars
+- The dashboard's **left sidebar can now collapse** to an icon-only rail (toggle at the top;
+  state persists in `localStorage`, tooltips show labels when collapsed) and **scrolls within
+  itself** instead of stretching the page — so it stays usable as the nav grows.
+- A **branded, dark scrollbar** now applies across the whole plugin — the dashboard, the
+  standalone Advanced Tools console, and the emergency recovery tool — all from `--arzo-*`
+  tokens. Scoped to WP Arzo surfaces so the rest of wp-admin keeps its native scrollbars.
+
 ## [6.28.0] — 2026-07-01
 
 ### Added — REST API Authentication
