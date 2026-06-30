@@ -100,6 +100,10 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
   (page + scan/delete AJAX gated). Every feature now has a toggle.
 - ✅ **New branding** (free v6.25.0) — `wp-arzo-glyph.svg` (menu/emergency) +
   `wp-arzo-icon.svg` (brand bars); old YS PNG removed.
+- ✅ **Setup Wizard + presets** (free v6.26.0) — first-run onboarding with 7 named presets
+  (Essentials/Velocity/Fortress/Creator/Growth/Command Center/The Works) that one-click
+  enable curated feature bundles (additive; Pro features skipped+reported). See
+  `includes/admin/class-wp-arzo-setup-wizard.php`.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
