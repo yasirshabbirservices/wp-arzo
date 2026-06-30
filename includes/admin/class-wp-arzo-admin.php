@@ -274,10 +274,13 @@ class WP_Arzo_Admin
     }
 
     /**
-     * Console-style tab nav, shared by every WP Arzo admin screen for a consistent
-     * look with the standalone console.
+     * Page-level navigation items, shared by every WP Arzo admin screen. Tabs whose
+     * feature page is currently gated off are dropped (except the active one, so the
+     * current screen always has a highlighted entry).
+     *
+     * @return array<string,array>
      */
-    private function render_nav($current)
+    private function page_tabs($current)
     {
         $tabs = array(
             'dashboard' => array('label' => 'Dashboard', 'icon' => 'settings', 'url' => admin_url('admin.php?page=' . self::PAGE)),
@@ -288,23 +291,76 @@ class WP_Arzo_Admin
             'activity'  => array('label' => 'Activity Log', 'icon' => 'shield', 'url' => admin_url('admin.php?page=' . self::PAGE_ACTIVITY), 'page' => self::PAGE_ACTIVITY),
             'tools'     => array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true),
         );
-        // Hide tabs whose feature page is currently gated off (keep the one we're on).
         foreach ($tabs as $key => $tab) {
             if (!empty($tab['page']) && $key !== $current && !$this->page_visible($tab['page'])) {
                 unset($tabs[$key]);
             }
         }
-        echo '<nav class="wpa-nav" aria-label="WP Arzo sections">';
+        return $tabs;
+    }
+
+    /**
+     * Open the page shell: a vertical left sidebar (page nav + optional in-page
+     * "Categories" filter for the dashboard) followed by the main content column.
+     * Always pair with render_shell_close().
+     *
+     * @param string $current    Active page key for the nav highlight.
+     * @param array  $categories Optional list of ['key','label','icon','count'] to render
+     *                           the dashboard category filter; empty hides that block.
+     * @param int    $total      Total feature count (for the "All features" item).
+     */
+    private function render_shell_open($current, $categories = array(), $total = 0)
+    {
+        echo '<div class="wpa-shell">';
+        $this->render_sidenav($current, $categories, $total);
+        echo '<div class="wpa-shell__main">';
+    }
+
+    private function render_shell_close()
+    {
+        echo '</div></div>';
+    }
+
+    /**
+     * The left navigation rail: page links plus, on the dashboard, a category filter
+     * that scopes the feature grid (wired up in wp-arzo-admin.js). Replaces the old
+     * top-tab bar so the nav scales vertically as more pages/categories are added.
+     */
+    private function render_sidenav($current, $categories = array(), $total = 0)
+    {
+        $tabs = $this->page_tabs($current);
+        echo '<aside class="wpa-sidenav" aria-label="WP Arzo navigation">';
+
+        echo '<nav class="wpa-sidenav__group" aria-label="Pages">';
+        echo '<div class="wpa-sidenav__label">Pages</div>';
         foreach ($tabs as $key => $tab) {
             $active = ($key === $current) ? ' is-active' : '';
             $target = !empty($tab['blank']) ? ' target="_blank" rel="noopener"' : '';
-            echo '<a class="wpa-nav__tab' . $active . '" href="' . esc_url($tab['url']) . '"' . $target . '>'
+            echo '<a class="wpa-sidenav__item' . $active . '" href="' . esc_url($tab['url']) . '"' . $target . '>'
                 . wp_arzo_icon($tab['icon'], array('class' => 'wpa-icon wpa-icon--sm'))
-                . ' ' . esc_html($tab['label'])
-                . (!empty($tab['blank']) ? ' ' . wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--xs')) : '')
+                . '<span class="wpa-sidenav__text">' . esc_html($tab['label']) . '</span>'
+                . (!empty($tab['blank']) ? wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--xs wpa-sidenav__ext')) : '')
                 . '</a>';
         }
         echo '</nav>';
+
+        if (!empty($categories)) {
+            echo '<nav class="wpa-sidenav__group" aria-label="Feature categories">';
+            echo '<div class="wpa-sidenav__label">Categories</div>';
+            echo '<a class="wpa-sidenav__item wpa-cat-filter is-active" href="#wpa-feature-grid" data-group-filter="*">'
+                . wp_arzo_icon('grid', array('class' => 'wpa-icon wpa-icon--sm'))
+                . '<span class="wpa-sidenav__text">All features</span>'
+                . '<span class="wpa-sidenav__count">' . (int) $total . '</span></a>';
+            foreach ($categories as $c) {
+                echo '<a class="wpa-sidenav__item wpa-cat-filter" href="#group-' . esc_attr($c['key']) . '" data-group-filter="' . esc_attr($c['key']) . '">'
+                    . wp_arzo_icon($c['icon'], array('class' => 'wpa-icon wpa-icon--sm'))
+                    . '<span class="wpa-sidenav__text">' . esc_html($c['label']) . '</span>'
+                    . '<span class="wpa-sidenav__count">' . (int) $c['count'] . '</span></a>';
+            }
+            echo '</nav>';
+        }
+
+        echo '</aside>';
     }
 
     private function render_dashboard()
@@ -314,8 +370,19 @@ class WP_Arzo_Admin
         $total    = count($registry->all());
         $enabled  = $registry->count_enabled();
 
+        // Mirror the feature groups into the sidebar as in-page category filters.
+        $categories = array();
+        foreach ($grouped as $group_key => $features) {
+            $categories[] = array(
+                'key'   => $group_key,
+                'label' => $registry->group_label($group_key),
+                'icon'  => $registry->group_icon($group_key),
+                'count' => count($features),
+            );
+        }
+
         $this->render_brand_bar();
-        $this->render_nav('dashboard');
+        $this->render_shell_open('dashboard', $categories, $total);
         ?>
         <div class="wpa-admin__bar">
             <div>
@@ -337,7 +404,7 @@ class WP_Arzo_Admin
             <div class="wpa-main">
                 <div id="wpa-feature-grid">
                     <?php foreach ($grouped as $group_key => $features) : ?>
-                        <section class="wpa-group" data-group="<?php echo esc_attr($group_key); ?>">
+                        <section class="wpa-group" id="group-<?php echo esc_attr($group_key); ?>" data-group="<?php echo esc_attr($group_key); ?>">
                             <h2 class="wpa-group__title">
                                 <?php echo wp_arzo_icon($registry->group_icon($group_key), array('class' => 'wpa-icon wpa-icon--sm')); ?>
                                 <?php echo esc_html($registry->group_label($group_key)); ?>
@@ -375,6 +442,7 @@ class WP_Arzo_Admin
             </aside>
         </div>
         <?php
+        $this->render_shell_close();
     }
 
     /**
@@ -524,7 +592,7 @@ class WP_Arzo_Admin
         $saved = $this->maybe_save_settings($feature);
         $schema = $feature->settings_schema();
         $this->render_brand_bar();
-        $this->render_nav('dashboard');
+        $this->render_shell_open('dashboard');
         ?>
         <div class="wpa-admin__bar">
             <div>
@@ -558,6 +626,7 @@ class WP_Arzo_Admin
             </div>
         </form>
         <?php
+        $this->render_shell_close();
     }
 
     private function render_field(WP_Arzo_Feature $feature, array $field)
@@ -751,7 +820,7 @@ class WP_Arzo_Admin
         ?>
         <div class="wrap wpa-admin">
             <?php $this->render_brand_bar(); ?>
-            <?php $this->render_nav('backups'); ?>
+            <?php $this->render_shell_open('backups'); ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('database', array('class' => 'wpa-icon')); ?> Backups</h1>
@@ -790,6 +859,7 @@ class WP_Arzo_Admin
                     </tbody>
                 </table>
             </div>
+            <?php $this->render_shell_close(); ?>
         </div>
         <?php
     }
@@ -886,7 +956,7 @@ class WP_Arzo_Admin
         ?>
         <div class="wrap wpa-admin">
             <?php $this->render_brand_bar(); ?>
-            <?php $this->render_nav('email'); ?>
+            <?php $this->render_shell_open('email'); ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Email Log</h1>
@@ -942,6 +1012,7 @@ class WP_Arzo_Admin
                     </tbody>
                 </table>
             </div>
+            <?php $this->render_shell_close(); ?>
         </div>
         <?php
     }
@@ -984,7 +1055,7 @@ class WP_Arzo_Admin
         ?>
         <div class="wrap wpa-admin">
             <?php $this->render_brand_bar(); ?>
-            <?php $this->render_nav('activity'); ?>
+            <?php $this->render_shell_open('activity'); ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?> Activity Log</h1>
@@ -1041,6 +1112,7 @@ class WP_Arzo_Admin
                     </tbody>
                 </table>
             </div>
+            <?php $this->render_shell_close(); ?>
         </div>
         <?php
     }
@@ -1116,12 +1188,13 @@ class WP_Arzo_Admin
         $view = isset($_GET['view']) ? sanitize_key($_GET['view']) : 'list';
         echo '<div class="wrap wpa-admin">';
         $this->render_brand_bar();
-        $this->render_nav('snippets');
+        $this->render_shell_open('snippets');
         if ($view === 'edit') {
             $this->render_snippet_edit(isset($_GET['id']) ? sanitize_text_field(wp_unslash($_GET['id'])) : '');
         } else {
             $this->render_snippet_list();
         }
+        $this->render_shell_close();
         echo '</div>';
     }
 
@@ -1291,7 +1364,7 @@ class WP_Arzo_Admin
         ?>
         <div class="wrap wpa-admin">
             <?php $this->render_brand_bar(); ?>
-            <?php $this->render_nav('media'); ?>
+            <?php $this->render_shell_open('media'); ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('image', array('class' => 'wpa-icon')); ?> Media Cleanup</h1>
@@ -1347,6 +1420,7 @@ class WP_Arzo_Admin
                     <span class="wpa-backup-meta" id="wpa-media-selcount"></span>
                 </div>
             </div>
+            <?php $this->render_shell_close(); ?>
         </div>
         <?php
     }

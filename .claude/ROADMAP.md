@@ -109,6 +109,11 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
   (Essentials/Velocity/Fortress/Creator/Growth/Command Center/The Works) that one-click
   enable curated feature bundles (additive; Pro features skipped+reported). See
   `includes/admin/class-wp-arzo-setup-wizard.php`.
+- ✅ **Left sidebar navigation** (free v6.27.0) — replaced the dashboard's top tab bar with
+  a vertical left sidebar (`render_shell_open()`/`render_sidenav()` in
+  `class-wp-arzo-admin.php`). The dashboard sidebar adds a **Categories** filter that scopes
+  the feature grid (composes with search; wired in `wp-arzo-admin.js`). Scales as more
+  pages/features are added.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.

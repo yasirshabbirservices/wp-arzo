@@ -51,27 +51,54 @@
     });
   }
 
-  // -------------------------------------------------- Live search
+  // -------------------------------------------------- Live search + category filter
+  // Search text and the active sidebar category compose: a card shows only when it
+  // matches both. A group heading hides when none of its cards survive the filters.
+  var featureQuery = '';
+  var featureCat = '*';
+
+  function applyFeatureFilters() {
+    if (!document.getElementById('wpa-feature-grid')) return;
+    var empty = document.getElementById('wpa-no-results');
+    var anyVisible = false;
+
+    document.querySelectorAll('.wpa-group').forEach(function (group) {
+      var inCat = featureCat === '*' || group.getAttribute('data-group') === featureCat;
+      var groupHasMatch = false;
+      group.querySelectorAll('[data-feature-card]').forEach(function (card) {
+        var match = inCat && (!featureQuery || (card.dataset.search || '').indexOf(featureQuery) !== -1);
+        card.hidden = !match;
+        if (match) { groupHasMatch = true; anyVisible = true; }
+      });
+      group.hidden = !groupHasMatch;
+    });
+
+    if (empty) empty.hidden = anyVisible;
+  }
+
   function bindSearch() {
     var box = document.getElementById('wpa-feature-search');
     if (!box) return;
-    var empty = document.getElementById('wpa-no-results');
-
     box.addEventListener('input', function () {
-      var q = box.value.trim().toLowerCase();
-      var anyVisible = false;
+      featureQuery = box.value.trim().toLowerCase();
+      applyFeatureFilters();
+    });
+  }
 
-      document.querySelectorAll('.wpa-group').forEach(function (group) {
-        var groupHasMatch = false;
-        group.querySelectorAll('[data-feature-card]').forEach(function (card) {
-          var match = !q || (card.dataset.search || '').indexOf(q) !== -1;
-          card.hidden = !match;
-          if (match) { groupHasMatch = true; anyVisible = true; }
-        });
-        group.hidden = !groupHasMatch;
+  function bindCategoryFilter() {
+    var items = document.querySelectorAll('.wpa-cat-filter');
+    if (!items.length) return;
+    items.forEach(function (item) {
+      item.addEventListener('click', function (e) {
+        e.preventDefault();
+        featureCat = item.getAttribute('data-group-filter') || '*';
+        items.forEach(function (i) { i.classList.toggle('is-active', i === item); });
+        applyFeatureFilters();
+        if (featureCat !== '*') {
+          var grid = document.getElementById('wpa-feature-grid');
+          if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       });
-
-      if (empty) empty.hidden = anyVisible;
     });
   }
 
@@ -432,7 +459,7 @@
     });
   }
 
-  function init() { bindToggles(); bindSearch(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); }
+  function init() { bindToggles(); bindSearch(); bindCategoryFilter(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
