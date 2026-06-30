@@ -130,34 +130,36 @@ class WP_Arzo_Admin
         add_submenu_page(self::PAGE, 'Dashboard', 'Dashboard', 'manage_options', self::PAGE, array($this, 'render'));
 
         // Feature pages appear only while their feature is enabled (see page_visible()).
-        if ($this->page_visible(self::PAGE_BACKUPS)) {
-            add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'));
-        }
-        if ($this->page_visible(self::PAGE_EMAIL_LOG)) {
-            add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'));
-        }
+        // Explicit positions give a deliberate order and leave gaps (20–25, 40, 55) for the
+        // Pro add-on's pages (Content Types, Custom Fields, Redirects, Cron) to slot in.
         if ($this->page_visible(self::PAGE_SNIPPETS)) {
-            add_submenu_page(self::PAGE, 'Snippets', 'Snippets', 'manage_options', self::PAGE_SNIPPETS, array($this, 'render_snippets'));
+            add_submenu_page(self::PAGE, 'Snippets', 'Snippets', 'manage_options', self::PAGE_SNIPPETS, array($this, 'render_snippets'), 30);
         }
         if ($this->page_visible(self::PAGE_MEDIA)) {
-            add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'));
+            add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'), 35);
+        }
+        if ($this->page_visible(self::PAGE_EMAIL_LOG)) {
+            add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'), 45);
+        }
+        if ($this->page_visible(self::PAGE_BACKUPS)) {
+            add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'), 50);
         }
         if ($this->page_visible(self::PAGE_ACTIVITY)) {
-            add_submenu_page(self::PAGE, 'Activity Log', 'Activity Log', 'manage_options', self::PAGE_ACTIVITY, array($this, 'render_activity_log'));
+            add_submenu_page(self::PAGE, 'Activity Log', 'Activity Log', 'manage_options', self::PAGE_ACTIVITY, array($this, 'render_activity_log'), 60);
         }
         if ($this->page_visible(self::PAGE_REST_AUTH)) {
-            add_submenu_page(self::PAGE, 'REST API Auth', 'REST API Auth', 'manage_options', self::PAGE_REST_AUTH, array($this, 'render_rest_auth'));
+            add_submenu_page(self::PAGE, 'REST API Auth', 'REST API Auth', 'manage_options', self::PAGE_REST_AUTH, array($this, 'render_rest_auth'), 65);
         }
         if ($this->page_visible(self::PAGE_ROLES)) {
-            add_submenu_page(self::PAGE, 'Roles', 'Roles', 'manage_options', self::PAGE_ROLES, array($this, 'render_roles'));
+            add_submenu_page(self::PAGE, 'Roles', 'Roles', 'manage_options', self::PAGE_ROLES, array($this, 'render_roles'), 70);
         }
         if ($this->page_visible(self::PAGE_CONFIG)) {
-            add_submenu_page(self::PAGE, 'Import / Export', 'Import / Export', 'manage_options', self::PAGE_CONFIG, array($this, 'render_config_io'));
+            add_submenu_page(self::PAGE, 'Import / Export', 'Import / Export', 'manage_options', self::PAGE_CONFIG, array($this, 'render_config_io'), 85);
         }
 
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
-            add_submenu_page(self::PAGE, 'Advanced Tools', 'Advanced Tools', 'manage_options', 'wp-arzo-tool', 'wp_arzo_redirect_page');
+            add_submenu_page(self::PAGE, 'Advanced Tools', 'Advanced Tools', 'manage_options', 'wp-arzo-tool', 'wp_arzo_redirect_page', 95);
         }
     }
 
@@ -303,77 +305,23 @@ class WP_Arzo_Admin
     }
 
     /**
-     * Page-level navigation items, shared by every WP Arzo admin screen. Tabs whose
-     * feature page is currently gated off are dropped (except the active one, so the
-     * current screen always has a highlighted entry).
-     *
-     * @return array<string,array>
-     */
-    private function page_tabs($current)
-    {
-        $tabs = array(
-            'dashboard' => array('label' => 'Dashboard', 'icon' => 'settings', 'url' => admin_url('admin.php?page=' . self::PAGE)),
-            'backups'   => array('label' => 'Backups', 'icon' => 'database', 'url' => admin_url('admin.php?page=' . self::PAGE_BACKUPS), 'page' => self::PAGE_BACKUPS),
-            'email'     => array('label' => 'Email Log', 'icon' => 'mail', 'url' => admin_url('admin.php?page=' . self::PAGE_EMAIL_LOG), 'page' => self::PAGE_EMAIL_LOG),
-            'snippets'  => array('label' => 'Snippets', 'icon' => 'code', 'url' => admin_url('admin.php?page=' . self::PAGE_SNIPPETS), 'page' => self::PAGE_SNIPPETS),
-            'media'     => array('label' => 'Media Cleanup', 'icon' => 'image', 'url' => admin_url('admin.php?page=' . self::PAGE_MEDIA), 'page' => self::PAGE_MEDIA),
-            'activity'  => array('label' => 'Activity Log', 'icon' => 'shield', 'url' => admin_url('admin.php?page=' . self::PAGE_ACTIVITY), 'page' => self::PAGE_ACTIVITY),
-            'rest_auth' => array('label' => 'REST API Auth', 'icon' => 'key', 'url' => admin_url('admin.php?page=' . self::PAGE_REST_AUTH), 'page' => self::PAGE_REST_AUTH),
-            'roles'     => array('label' => 'Roles', 'icon' => 'users', 'url' => admin_url('admin.php?page=' . self::PAGE_ROLES), 'page' => self::PAGE_ROLES),
-            'config'    => array('label' => 'Import / Export', 'icon' => 'sliders', 'url' => admin_url('admin.php?page=' . self::PAGE_CONFIG), 'page' => self::PAGE_CONFIG),
-        );
-
-        /**
-         * Let add-ons (e.g. WP Arzo Pro) surface their own page-owning features in the
-         * dashboard sidebar. Each entry is keyed by a unique string and is an array of:
-         *   'label' (string), 'icon' (wp_arzo_icon key), 'url' (string),
-         *   'feature' (optional feature id — the tab shows only while that feature is
-         *              enabled), 'blank' (optional bool — open in a new tab).
-         * Core pages keep their place; "Advanced Tools" is appended last below.
-         *
-         * @param array  $tabs    Tab definitions so far.
-         * @param string $current Active page key.
-         */
-        $tabs = apply_filters('wp_arzo_admin_page_tabs', $tabs, $current);
-        if (!is_array($tabs)) {
-            $tabs = array();
-        }
-
-        // Advanced Tools always sits last, after any add-on entries.
-        $tabs['tools'] = array('label' => 'Advanced Tools', 'icon' => 'tools', 'url' => admin_url('admin.php?page=wp-arzo-tool'), 'blank' => true);
-
-        foreach ($tabs as $key => $tab) {
-            if ($key === $current) {
-                continue;
-            }
-            // Add-on tabs may gate directly on a feature id; core tabs use the page map.
-            if (!empty($tab['feature'])) {
-                if (!$this->registry()->is_enabled($tab['feature'])) {
-                    unset($tabs[$key]);
-                }
-                continue;
-            }
-            if (!empty($tab['page']) && !$this->page_visible($tab['page'])) {
-                unset($tabs[$key]);
-            }
-        }
-        return $tabs;
-    }
-
-    /**
-     * Open the page shell: a vertical left sidebar (page nav + optional in-page
-     * "Categories" filter for the dashboard) followed by the main content column.
+     * Open the page shell. On the dashboard a left rail renders the feature-category
+     * filter; feature-owned pages (Backups, Roles, …) pass no categories and render
+     * full-width (they're reached from the native WP-admin menu, not an in-page rail).
      * Always pair with render_shell_close().
      *
-     * @param string $current    Active page key for the nav highlight.
-     * @param array  $categories Optional list of ['key','label','icon','count'] to render
-     *                           the dashboard category filter; empty hides that block.
+     * @param string $current    Active page key (retained for callers; nav is filter-only).
+     * @param array  $categories Optional list of ['key','label','icon','count']; when empty
+     *                           the rail is omitted and the content spans the full width.
      * @param int    $total      Total feature count (for the "All features" item).
      */
     private function render_shell_open($current, $categories = array(), $total = 0)
     {
-        echo '<div class="wpa-shell">';
-        $this->render_sidenav($current, $categories, $total);
+        $has_rail = !empty($categories);
+        echo '<div class="wpa-shell' . ($has_rail ? '' : ' wpa-shell--full') . '">';
+        if ($has_rail) {
+            $this->render_sidenav($current, $categories, $total);
+        }
         echo '<div class="wpa-shell__main">';
     }
 
@@ -389,7 +337,6 @@ class WP_Arzo_Admin
      */
     private function render_sidenav($current, $categories = array(), $total = 0)
     {
-        $tabs = $this->page_tabs($current);
         echo '<aside class="wpa-sidenav" aria-label="WP Arzo navigation">';
 
         // Collapse toggle (icon-only rail ⇄ full). State persisted in localStorage by JS.
@@ -398,22 +345,11 @@ class WP_Arzo_Admin
             . wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm'))
             . '</button></div>';
 
-        echo '<nav class="wpa-sidenav__group" aria-label="Pages">';
-        echo '<div class="wpa-sidenav__label">Pages</div>';
-        foreach ($tabs as $key => $tab) {
-            $active = ($key === $current) ? ' is-active' : '';
-            $target = !empty($tab['blank']) ? ' target="_blank" rel="noopener"' : '';
-            echo '<a class="wpa-sidenav__item' . $active . '" href="' . esc_url($tab['url']) . '"' . $target . ' title="' . esc_attr($tab['label']) . '">'
-                . wp_arzo_icon($tab['icon'], array('class' => 'wpa-icon wpa-icon--sm'))
-                . '<span class="wpa-sidenav__text">' . esc_html($tab['label']) . '</span>'
-                . (!empty($tab['blank']) ? wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--xs wpa-sidenav__ext')) : '')
-                . '</a>';
-        }
-        echo '</nav>';
-
+        // The rail is purely a feature-grid filter now — page-owning features (Backups,
+        // Roles, Content Types, …) live in the native WP-admin menu under "WP Arzo".
         if (!empty($categories)) {
-            echo '<nav class="wpa-sidenav__group" aria-label="Feature categories">';
-            echo '<div class="wpa-sidenav__label">Categories</div>';
+            echo '<nav class="wpa-sidenav__group" aria-label="Browse features by group">';
+            echo '<div class="wpa-sidenav__label">Browse</div>';
             echo '<a class="wpa-sidenav__item wpa-cat-filter is-active" href="#wpa-feature-grid" data-group-filter="*" title="All features">'
                 . wp_arzo_icon('grid', array('class' => 'wpa-icon wpa-icon--sm'))
                 . '<span class="wpa-sidenav__text">All features</span>'

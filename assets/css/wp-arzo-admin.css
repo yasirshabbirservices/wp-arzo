@@ -375,6 +375,8 @@ body.wp-arzo-screen::-webkit-scrollbar-thumb:hover { background: var(--arzo-bord
 .wpa-shell__main { min-width: 0; }
 /* Collapsed rail: icon-only, narrow column. */
 .wpa-shell.is-rail-collapsed { --wpa-sidenav-w: 58px; }
+/* No rail (feature pages): content spans the full content column. */
+.wpa-shell--full { grid-template-columns: minmax(0, 1fr); }
 
 /* Vertical navigation rail (page links + dashboard category filters). */
 .wpa-sidenav {

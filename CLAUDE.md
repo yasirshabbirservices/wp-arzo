@@ -22,6 +22,16 @@ Guidance for Claude Code (and human contributors) working in this repository.
 > `icon` in `page_tabs()` (`includes/admin/class-wp-arzo-admin.php`). Add a new SVG to
 > `wp_arzo_icon_paths()` (`includes/wp-arzo-icons.php`) if no fitting key exists.
 
+> **Reference plugins (research before building).** A curated library of competitor /
+> reference WordPress plugins lives at **`C:\Users\yasir\Downloads\Dev`** (each as both a
+> `.zip` and an extracted folder). Study the relevant one for UX/architecture patterns
+> before building a comparable feature. Current set: **happyfiles-pro** (media folders),
+> **jet-engine** (CPT/CCT + custom fields), **admin-site-enhancements**, **better-wp-security**,
+> **suremails** (SMTP/email API), **wpvivid-backuprestore**, **wp-reset-pro**,
+> **wp-rest-api-authentication**, **temporary-login-without-password**,
+> **erropix-advanced-scripts** (code snippets). Use them as references only — never copy
+> GPL-incompatible or proprietary code into this repo.
+
 On **every** change set, without being asked:
 
 1. **Keep docs in sync** — update [`.claude/ROADMAP.md`](.claude/ROADMAP.md) (move shipped
