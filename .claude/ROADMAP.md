@@ -33,9 +33,12 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
 
 - **v6.7.0** — freemium gate in the free core: `wp_arzo_pro_active` /
   `wp_arzo_is_pro_active()` / `wp_arzo_pro_upgrade_url()`; pro-tier features lock with an
-  "Unlock" CTA until Pro is active. **WP Arzo Pro** add-on scaffolded in a separate private
-  repo (`wp-arzo-pro`): Freemius add-on init (inert until keys), registers Pro modules via
-  `wp_arzo_register_features`; first Pro module = Meta Pixel.
+  "Unlock" CTA until Pro is active.
+- **WP Arzo Pro** (private repo `wp-arzo-pro`, published):
+  - v1.0.0 — add-on scaffold + Freemius-ready init (inert until keys) + Meta Pixel.
+  - v1.1.0 — **marketing pixel suite**: Meta Pixel, TikTok Pixel, LinkedIn Insight,
+    Pinterest Tag, Google Analytics 4 (gtag), Google Tag Manager (all Pro, group
+    "Marketing & Tracking"; IDs sanitized; `<noscript>` fallbacks).
 
 ### Not yet built (next up)
 - Wire **Freemius** for real (add SDK + plugin IDs/keys in the Pro repo's
