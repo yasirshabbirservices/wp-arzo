@@ -3,8 +3,10 @@
 /**
  * Feature: Custom Login Page (free).
  *
- * Restyles wp-login.php with a custom logo, colors and optional extra CSS, and
- * points the logo link back to the site.
+ * Fully restyles wp-login.php — the card, logo, labels, inputs, password toggle,
+ * remember-me checkbox, submit button, links and messages — using configurable
+ * colors, and applies to every login screen (sign-in, lost password, reset,
+ * register). The logo links back to the site.
  *
  * @package WP_Arzo
  */
@@ -19,36 +21,34 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
     {
         return 'custom_login';
     }
-
     public function title()
     {
         return 'Custom Login Page';
     }
-
     public function description()
     {
-        return 'Brand the wp-login.php screen with your logo, colors and custom CSS.';
+        return 'Brand wp-login.php — logo, colors, fully styled form, links and buttons.';
     }
-
     public function group()
     {
         return 'branding';
     }
-
     public function icon()
     {
         return 'sparkles';
     }
-
     public function settings_schema()
     {
         return array(
-            array('key' => 'logo_url', 'type' => 'text', 'label' => 'Logo image URL', 'help' => 'Square or wide PNG/SVG works best. Leave blank to keep the WordPress logo.'),
+            array('key' => 'logo_url', 'type' => 'text', 'label' => 'Logo image URL', 'help' => 'Wide or square PNG/SVG. Leave blank to keep the WordPress logo.'),
             array('key' => 'bg_color', 'type' => 'color', 'label' => 'Page background', 'default' => '#121212'),
-            array('key' => 'form_bg', 'type' => 'color', 'label' => 'Form background', 'default' => '#1e1e1e'),
-            array('key' => 'text_color', 'type' => 'color', 'label' => 'Form text', 'default' => '#e0e0e0'),
-            array('key' => 'accent', 'type' => 'color', 'label' => 'Button / link color', 'default' => '#16e791'),
-            array('key' => 'custom_css', 'type' => 'textarea', 'label' => 'Additional CSS', 'help' => 'Advanced: extra CSS applied to the login screen.'),
+            array('key' => 'form_bg', 'type' => 'color', 'label' => 'Form / card background', 'default' => '#1e1e1e'),
+            array('key' => 'input_bg', 'type' => 'color', 'label' => 'Input background', 'default' => '#151515'),
+            array('key' => 'text_color', 'type' => 'color', 'label' => 'Text', 'default' => '#e0e0e0'),
+            array('key' => 'accent', 'type' => 'color', 'label' => 'Accent (button, links, focus)', 'default' => '#16e791'),
+            array('key' => 'button_text', 'type' => 'color', 'label' => 'Button text', 'default' => '#121212'),
+            array('key' => 'rounded', 'type' => 'toggle', 'label' => 'Rounded corners', 'default' => 1),
+            array('key' => 'custom_css', 'type' => 'code', 'label' => 'Additional CSS'),
         );
     }
 
@@ -63,59 +63,141 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
         });
     }
 
+    private function c($key, $default)
+    {
+        $v = sanitize_hex_color((string) $this->get_setting($key, $default));
+        return $v ? $v : $default;
+    }
+
     public function print_styles()
     {
         $logo   = trim((string) $this->get_setting('logo_url', ''));
-        $bg     = $this->color('bg_color', '#121212');
-        $formbg = $this->color('form_bg', '#1e1e1e');
-        $text   = $this->color('text_color', '#e0e0e0');
-        $accent = $this->color('accent', '#16e791');
+        $bg     = $this->c('bg_color', '#121212');
+        $form   = $this->c('form_bg', '#1e1e1e');
+        $input  = $this->c('input_bg', '#151515');
+        $text   = $this->c('text_color', '#e0e0e0');
+        $accent = $this->c('accent', '#16e791');
+        $btext  = $this->c('button_text', '#121212');
+        $radius = $this->get_setting('rounded', 1) ? '10px' : '0';
+        $ir     = $this->get_setting('rounded', 1) ? '6px' : '0';
         $extra  = (string) $this->get_setting('custom_css', '');
 
         $logo_css = '';
         if ($logo !== '') {
-            $logo_css = '#login h1 a{background-image:url(' . esc_url($logo) . ') !important;background-size:contain !important;width:100% !important;height:72px !important;}';
+            $logo_css = '#login h1 a{background-image:url(' . esc_url($logo) . ')!important;background-size:contain!important;background-position:center!important;width:auto!important;max-width:320px!important;height:80px!important;margin:0 auto 8px!important;}';
         }
-        // `login_enqueue_scripts` fires on every wp-login.php view, and `.login form`
-        // matches them all — sign-in, lost password, reset password, register, and
-        // confirm-action — so a single ruleset brands the entire login flow.
+        // `.login form` matches every wp-login.php view (sign-in, lostpassword, resetpass, register).
         ?>
         <style id="wp-arzo-custom-login">
-            body.login { background: <?php echo esc_html($bg); ?> !important; }
-            .login label, .login #nav a, .login #backtoblog a, .login p, .login form .forgetmenot label {
-                color: <?php echo esc_html($text); ?> !important;
+            body.login {
+                background: <?php echo esc_html($bg); ?> !important;
+                color: <?php echo esc_html($text); ?>;
             }
-            .login #nav a:hover, .login #backtoblog a:hover, .login a:hover { color: <?php echo esc_html($accent); ?> !important; }
-            .login a { color: <?php echo esc_html($accent); ?> !important; }
-            .login form, .login .message, .login #login_error, .login .notice {
-                background: <?php echo esc_html($formbg); ?> !important;
+            #login { width: 340px; max-width: 92vw; padding: 6% 0 4%; }
+
+            /* Card */
+            .login form,
+            .login .message,
+            .login .notice,
+            .login #login_error {
+                background: <?php echo esc_html($form); ?> !important;
                 border: 1px solid rgba(255,255,255,.08) !important;
                 color: <?php echo esc_html($text); ?> !important;
-                border-radius: 8px !important;
+                border-radius: <?php echo $radius; ?> !important;
+                box-shadow: 0 8px 32px rgba(0,0,0,.45) !important;
             }
-            .login form input[type="text"],
-            .login form input[type="password"],
-            .login form input[type="email"] {
-                background: <?php echo esc_html($bg); ?> !important;
+            .login form { padding: 26px 24px !important; margin-top: 18px; }
+
+            /* Labels + text */
+            .login label,
+            .login form p,
+            .login .forgetmenot label {
                 color: <?php echo esc_html($text); ?> !important;
-                border-color: rgba(255,255,255,.15) !important;
+                font-size: 14px;
             }
-            .wp-core-ui .button-primary {
+
+            /* Inputs */
+            .login input[type="text"],
+            .login input[type="password"],
+            .login input[type="email"] {
+                background: <?php echo esc_html($input); ?> !important;
+                color: <?php echo esc_html($text); ?> !important;
+                border: 1px solid rgba(255,255,255,.15) !important;
+                border-radius: <?php echo $ir; ?> !important;
+                padding: 10px 12px !important;
+                box-shadow: none !important;
+                transition: border-color .15s ease, box-shadow .15s ease;
+            }
+            .login input[type="text"]:focus,
+            .login input[type="password"]:focus,
+            .login input[type="email"]:focus {
+                border-color: <?php echo esc_html($accent); ?> !important;
+                box-shadow: 0 0 0 3px <?php echo esc_html($accent); ?>40 !important;
+                outline: none !important;
+            }
+
+            /* Show/hide password button */
+            .login .wp-pwd .button.wp-hide-pw {
+                background: transparent !important;
+                border: 0 !important;
+                color: <?php echo esc_html($text); ?> !important;
+            }
+            .login .wp-pwd .button.wp-hide-pw:hover { color: <?php echo esc_html($accent); ?> !important; }
+            .login .wp-pwd .button.wp-hide-pw .dashicons { color: inherit !important; }
+
+            /* Remember-me checkbox */
+            .login .forgetmenot input[type="checkbox"] {
+                accent-color: <?php echo esc_html($accent); ?>;
+                border-color: rgba(255,255,255,.3) !important;
+                background: <?php echo esc_html($input); ?> !important;
+                border-radius: 3px !important;
+            }
+            .login .forgetmenot input[type="checkbox"]:checked {
                 background: <?php echo esc_html($accent); ?> !important;
                 border-color: <?php echo esc_html($accent); ?> !important;
-                color: #121212 !important;
+            }
+            .login .forgetmenot input[type="checkbox"]:checked::before { color: <?php echo esc_html($btext); ?>; }
+
+            /* Submit button */
+            .wp-core-ui .button-primary,
+            .login .button-primary {
+                background: <?php echo esc_html($accent); ?> !important;
+                border-color: <?php echo esc_html($accent); ?> !important;
+                color: <?php echo esc_html($btext); ?> !important;
                 text-shadow: none !important;
                 box-shadow: none !important;
+                border-radius: <?php echo $ir; ?> !important;
+                padding: 4px 16px !important;
+                font-weight: 600 !important;
+                transition: filter .15s ease, transform .05s ease;
             }
+            .wp-core-ui .button-primary:hover { filter: brightness(1.08); }
+            .wp-core-ui .button-primary:active { transform: translateY(1px); }
+            .wp-core-ui .button-primary:focus {
+                box-shadow: 0 0 0 3px <?php echo esc_html($accent); ?>55 !important;
+                outline: none !important;
+            }
+
+            /* Links */
+            .login #nav a,
+            .login #backtoblog a,
+            .login a {
+                color: <?php echo esc_html($text); ?> !important;
+                opacity: .85;
+                transition: color .15s ease, opacity .15s ease;
+            }
+            .login #nav a:hover,
+            .login #backtoblog a:hover,
+            .login a:hover { color: <?php echo esc_html($accent); ?> !important; opacity: 1; }
+            .login #nav, .login #backtoblog { text-align: center; }
+
+            /* Message / error accents */
+            .login .message, .login .notice { border-left: 4px solid <?php echo esc_html($accent); ?> !important; }
+            .login #login_error { border-left: 4px solid #ff4d4f !important; }
+
             <?php echo $logo_css; ?>
             <?php echo wp_strip_all_tags($extra); ?>
         </style>
         <?php
-    }
-
-    private function color($key, $default)
-    {
-        $val = sanitize_hex_color((string) $this->get_setting($key, $default));
-        return $val ? $val : $default;
     }
 }

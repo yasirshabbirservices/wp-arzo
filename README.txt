@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.19.1
+Stable tag: 6.20.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.20.0 =
+* Improved: Custom Login Page now fully styles the form (inputs, labels, links, button,
+  remember-me checkbox, password toggle, messages) across all login screens; adds input
+  background, button text color, and rounded-corners options
 
 = 6.19.1 =
 * Fixed (critical): Custom Login URL caused PHP warnings on the login page (wp-login.php
