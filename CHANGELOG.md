@@ -4,9 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — backup engine v1 (DB snapshots)
+## [6.6] — 2026-06-30
 
-### Added
+WP Arzo becomes a **feature suite**: a native wp-admin dashboard + a feature registry, 16
+free features, a database backup engine, and a full design-system / UI overhaul — on top of
+the v6.5 security and bug fixes.
+
+### UI & branding
+- Dashboard restyled to a **full-dark, branded** screen — no white wp-admin chrome on WP
+  Arzo pages. Branded header bar (YS logo + version + GitHub) mirroring the console, and the
+  **plugin logo is used as the admin-menu icon**.
+- **Compact toggle-box** feature cards (Debug-settings style): label + 2-line-clamped
+  description on the left, modern toggle on the right; smaller boxes, better readability.
+- Fixed a duplicated toggle label (the SR-only label was rendering visibly on the dashboard).
+- Added a **filterable cross-promotion area** (`wp_arzo_promoted_products`) on the dashboard
+  to surface WP Arzo Pro and other products.
+
+### Added — backup engine v1 (DB snapshots)
 - **Backup Manager** (`includes/class-wp-arzo-backup-manager.php`): low-memory, streaming
   **database snapshots** (JSONL, gzip when available) at two scopes — `options` (fast) or
   `full_db`. Create / list / **restore** (takes a safety snapshot first; structure-
@@ -25,7 +39,7 @@ and [Semantic Versioning](https://semver.org/).
 - Locked **Freemius** as the licensing/checkout provider; documented the SDK integration
   plan (gate Pro via `wp_arzo_feature_is_available` → Freemius license state).
 
-## [Unreleased] — feature dashboard & registry (Phase 1)
+### Added — feature dashboard & registry
 
 The backbone of the suite: a native wp-admin feature manager that everything plugs into.
 
@@ -57,7 +71,7 @@ The backbone of the suite: a native wp-admin feature manager that everything plu
 ### Changed
 - `wp_arzo_features` and `wp_arzo_settings` options are removed on uninstall.
 
-## [Unreleased] — design-system foundation (Phase 0)
+### Added — design-system foundation
 
 Groundwork for the larger feature-suite roadmap ([.claude/ROADMAP.md](.claude/ROADMAP.md)).
 No feature behavior changes; this is the design/UI foundation everything else builds on.

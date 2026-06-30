@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.5
+Stable tag: 6.6
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,16 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.6 =
+* New: native WP Arzo dashboard (Feature Manager) with a modern toggle grid + 16 free
+  features (disable comments/gutenberg/feeds/embeds/xmlrpc/emojis, restrict REST API,
+  block user enumeration, heartbeat & revisions control, robots.txt/ads.txt managers, …)
+* New: database Backup engine with one-click restore + automatic snapshot before any
+  feature toggle (WP Arzo → Backups)
+* New: design-system foundation (unified tokens, reusable components, SVG icon system),
+  full-dark branded admin UI, cross-promotion area
+* Licensing for the upcoming Pro add-on will use Freemius
 
 = 6.5 =
 * Fixed the broken Quick Login "Direct Admin Access" link (404) and bound the one-time
