@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.22.0] — 2026-06-30
+
+### Added — Pro feature showcase in the dashboard
+- The Feature Manager now **advertises the full Pro catalog** even when the WP Arzo Pro
+  add-on isn't installed: every premium module (18 of them — pixels, GA4/GTM/Ads, CPT/CCT
+  builder, Custom Fields, Media Folders, Admin Branding, Redirects, Cron Manager, API
+  email, FTP backups) appears as a card with a **PRO** badge and a locked **Unlock** CTA,
+  in its proper group. Users can see exactly what the paid tier offers at a glance.
+- These are inert **placeholders**: they carry no behaviour, can't be toggled (the
+  freemium gate blocks it), and are **automatically suppressed** for any module the real
+  Pro plugin already registers — so there's never a duplicate card. When Pro is active and
+  licensed, the genuine, fully-functional modules take their place.
+
 ## [6.21.0] — 2026-06-30
 
 ### Added — Activity Log (free)

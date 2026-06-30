@@ -85,6 +85,12 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
   log with one-click redirect creation.
 - ✅ **Cron Manager** (Pro v1.10.0) — view/run/delete WP-Cron events, orphan detection,
   schedules reference.
+- ✅ **Pro dependency guard** (Pro v1.10.1) — Pro refuses to activate / self-deactivates
+  without the free core.
+- ✅ **Pro feature showcase** (free v6.22.0) — locked placeholder cards advertise all 18
+  Pro modules in the dashboard when Pro isn't installed (auto-suppressed when it is). See
+  `includes/features-registry/class-feature-pro-placeholders.php` — keep its catalog in
+  sync with the Pro repo's registered modules.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.

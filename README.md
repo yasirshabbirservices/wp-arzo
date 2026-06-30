@@ -9,7 +9,7 @@ This repository is public and intended for production use on shared hosting, VPS
 and enterprise WordPress setups. The console is **administrators‑only** and authenticates
 with your existing WordPress session.
 
-- **Current version:** 6.21.0 (see [CHANGELOG.md](CHANGELOG.md))
+- **Current version:** 6.22.0 (see [CHANGELOG.md](CHANGELOG.md))
 - **Requires:** WordPress ≥ 5.0, PHP ≥ 7.2
 - **Architecture & conventions for contributors / AI agents:** [CLAUDE.md](CLAUDE.md)
 - **Design system:** [.claude/design.md](.claude/design.md)
