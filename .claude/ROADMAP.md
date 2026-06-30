@@ -126,7 +126,7 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
   scrollbars; unified `.wpa-brandbar` header (GitHub icon); hardened standalone **emergency
   recovery**; **Temporary Login links**; **AdminNeo** DB manager; brand-color sweep (no
   wp-admin blue) + consistent card widths; **full-screen multi-step Setup Wizard + lead
-  capture** (WP Arzo → Leads); **bulk per-category enable/disable**; **Media Folders** +
+  capture** (opt-in, emailed to the developer); **bulk per-category enable/disable**; **Media Folders** +
   **Prevent Duplicate Uploads** (both free); and **Two-Factor Auth** (TOTP + recovery codes,
   free, opt-in — `class-feature-two-factor.php`).
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.

@@ -21,6 +21,13 @@
   border: 0;
 }
 
+/* Native checkboxes / radios pick up the brand accent across every WP Arzo surface. */
+.wpa-admin input[type="checkbox"], .wpa-admin input[type="radio"],
+.wpa-wiz input[type="checkbox"], .wpa-wiz input[type="radio"],
+.container input[type="checkbox"], .container input[type="radio"] {
+  accent-color: var(--arzo-accent);
+}
+
 /* ============================ Branded scrollbar ====================== */
 /* Dark, branded scrollbars for WP Arzo surfaces (dashboard `.wpa-admin` +
    standalone console `.container`). Scoped to our roots so wp-admin chrome

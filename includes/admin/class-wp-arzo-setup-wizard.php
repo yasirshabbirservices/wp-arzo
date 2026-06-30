@@ -22,7 +22,6 @@ if (!defined('ABSPATH')) {
 class WP_Arzo_Setup_Wizard
 {
     const PAGE = 'wp-arzo-setup';
-    const PAGE_LEADS = 'wp-arzo-leads';
     const NONCE = 'wp_arzo_wizard';
     const OPT_DONE = 'wp_arzo_wizard_done';
     const OPT_LEADS = 'wp_arzo_leads';
@@ -73,14 +72,8 @@ class WP_Arzo_Setup_Wizard
             self::PAGE,
             array($this, 'render')
         );
-        add_submenu_page(
-            'wp-arzo',
-            'Leads',
-            'Leads',
-            'manage_options',
-            self::PAGE_LEADS,
-            array($this, 'render_leads')
-        );
+        // No "Leads" admin page — wizard opt-ins are collected silently (stored + emailed to
+        // the developer via record_lead()); site owners don't need a Leads screen.
     }
 
     /** First-run: redirect to the wizard once after activation. */
@@ -243,16 +236,22 @@ class WP_Arzo_Setup_Wizard
             <div class="wpa-wiz__progress"><div class="wpa-wiz__bar" id="wpa-wiz-bar"></div></div>
 
             <main class="wpa-wiz__body">
-                <!-- Step 1: Welcome -->
+                <!-- Step 1: Welcome / splash -->
                 <section class="wpa-wiz__step is-active" data-step="1">
-                    <div class="wpa-wiz__hero">
-                        <div class="wpa-wiz__hero-icon"><?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon')); ?></div>
+                    <div class="wpa-wiz__welcome">
+                        <img class="wpa-wiz__welcome-logo" src="<?php echo esc_url($logo); ?>" alt="WP Arzo">
                         <h1>Welcome to WP Arzo</h1>
-                        <p>Let’s get your site set up in under a minute. Apply a curated preset, or hand-pick exactly what you want — nothing is switched on without your say-so.</p>
+                        <p class="wpa-wiz__welcome-sub">Your all-in-one maintenance &amp; administration suite — performance, security, backups, email, a full database manager, and dozens of one-click tweaks. Let’s set up your site in under a minute.</p>
+                        <div class="wpa-wiz__highlights">
+                            <div class="wpa-wiz__highlight"><?php echo wp_arzo_icon('bolt', array('class' => 'wpa-icon')); ?><strong>Faster</strong><span>Trim bloat &amp; control Heartbeat</span></div>
+                            <div class="wpa-wiz__highlight"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?><strong>Safer</strong><span>2FA, login limits, REST keys</span></div>
+                            <div class="wpa-wiz__highlight"><?php echo wp_arzo_icon('database', array('class' => 'wpa-icon')); ?><strong>In control</strong><span>Backups, DB manager, snippets</span></div>
+                        </div>
                         <div class="wpa-wiz__cta">
                             <button type="button" class="wpa-btn wpa-btn--primary wpa-btn--lg" data-goto="2"><?php echo wp_arzo_icon('bolt', array('class' => 'wpa-icon wpa-icon--sm')); ?> Get started</button>
                             <button type="button" class="wpa-btn wpa-btn--ghost" data-goto="3">I’ll configure manually</button>
                         </div>
+                        <p class="wpa-wiz__by">Built by <a href="https://yasirshabbir.com" target="_blank" rel="noopener">Yasir Shabbir</a> · bespoke WordPress plugins &amp; performance work</p>
                     </div>
                 </section>
 
@@ -308,6 +307,10 @@ class WP_Arzo_Setup_Wizard
                         <h2>Turn on what you need</h2>
                         <p>Flip any switch — changes save instantly, and you can change all of this later from the dashboard.</p>
                     </div>
+                    <div class="wpa-wiz__nav wpa-wiz__nav--top">
+                        <button type="button" class="wpa-btn wpa-btn--ghost" data-goto="2">Back</button>
+                        <button type="button" class="wpa-btn wpa-btn--primary" data-goto="4">Continue <?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                    </div>
                     <div class="wpa-wiz__features">
                         <?php foreach ($grouped as $gk => $features) : ?>
                             <section class="wpa-wiz__group">
@@ -337,10 +340,6 @@ class WP_Arzo_Setup_Wizard
                                 </div>
                             </section>
                         <?php endforeach; ?>
-                    </div>
-                    <div class="wpa-wiz__nav">
-                        <button type="button" class="wpa-btn wpa-btn--ghost" data-goto="2">Back</button>
-                        <button type="button" class="wpa-btn wpa-btn--primary" data-goto="4">Continue <?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                     </div>
                 </section>
 
@@ -591,44 +590,4 @@ class WP_Arzo_Setup_Wizard
         }
     }
 
-    /** Admin view listing captured leads. */
-    public function render_leads()
-    {
-        if (!current_user_can('manage_options')) {
-            wp_die('You do not have sufficient permissions to access this page.');
-        }
-        $leads = get_option(self::OPT_LEADS, array());
-        if (!is_array($leads)) {
-            $leads = array();
-        }
-        $leads = array_reverse($leads);
-        ?>
-        <div class="wrap wpa-admin">
-            <div class="wpa-admin__bar">
-                <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('users', array('class' => 'wpa-icon')); ?> Leads</h1>
-                    <p class="wpa-admin__subtitle"><strong><?php echo count($leads); ?></strong> opt-in contact(s) collected by the Setup Wizard.</p>
-                </div>
-            </div>
-            <div class="wpa-card" style="padding:0;overflow:hidden;">
-                <table class="wpa-backup-table">
-                    <thead><tr><th>Name</th><th>Email</th><th>Website</th><th>Needs</th><th>When (UTC)</th></tr></thead>
-                    <tbody>
-                        <?php if (empty($leads)) : ?>
-                            <tr class="wpa-backup-empty"><td colspan="5">No leads yet. They’re captured (with consent) on the final step of the Setup Wizard.</td></tr>
-                        <?php else : foreach ($leads as $l) : ?>
-                            <tr>
-                                <td><strong><?php echo esc_html(isset($l['name']) ? $l['name'] : ''); ?></strong></td>
-                                <td><?php echo esc_html(isset($l['email']) ? $l['email'] : ''); ?></td>
-                                <td><?php echo esc_html(isset($l['website']) ? $l['website'] : ''); ?></td>
-                                <td><?php echo esc_html(isset($l['needs']) ? $l['needs'] : ''); ?></td>
-                                <td><?php echo esc_html(isset($l['time_gmt']) ? $l['time_gmt'] : ''); ?></td>
-                            </tr>
-                        <?php endforeach; endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <?php
-    }
 }
