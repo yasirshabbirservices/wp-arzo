@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.37.0] — 2026-07-01
+
+### Changed — Advanced Tools console brand consistency
+- Re-toned the console to match the dashboard's design system: the legacy “rainbow” action
+  buttons (purple download, green view, Bootstrap info/success/etc.) now use **brand tokens**
+  — subtle secondary buttons, accent primary/success, brand amber/error — with no
+  hard-coded hover colors. Links read as the brand accent and focus uses the brand ring (no
+  default/browser blue). (Header + scrollbar were already unified in 6.30 / 6.29.)
+
 ## [6.36.0] — 2026-07-01
 
 ### Added — Bulk enable/disable per category
