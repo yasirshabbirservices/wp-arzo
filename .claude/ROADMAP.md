@@ -79,6 +79,8 @@ SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic), **WP Res
 - ✅ **CPT/CCT builder** (Pro v1.5.0). ✅ **Custom Fields / meta boxes** (Pro v1.6.0).
 - ✅ **API email providers** (Pro v1.4.0). ✅ **Media Folders** (Pro v1.7.0, HappyFiles ref).
 - ✅ **Activity Log** (free) — v6.21.0 (Solid Security ref; Pro audit log extends it).
+- ✅ **Admin Branding & Custom Dashboard** (Pro v1.8.0) — accent color, footer, hide WP
+  logo, custom admin CSS, branded dashboard widget.
 - **Security (Pro):** 2FA, advanced audit log (real table + retention + export) — next.
 - **Builders (Pro):** media drag-drop grid assignment (enhancement to v1.7.0 folders).
 - **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
@@ -258,9 +260,10 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 ### Branding / White-label admin
 - **Custom login page** (logo, bg/form/text/accent colors, custom CSS) [✅ Free]; custom
   login URL [F, next]; full white-label designer + advanced layouts [P]
-- **Custom admin UI/UX** (color schemes, fonts, menu styling) [P]
+- **Custom admin UI/UX** (color schemes, fonts, menu styling) [✅ Pro v1.8.0 — accent
+  recolor + custom admin CSS + footer + hide WP logo; fonts/menu reorder later]
 - **Custom dashboard page** (replace all default boxes with branded widgets when active)
-  [P]
+  [✅ Pro v1.8.0 — Custom Dashboard removes defaults + branded welcome panel]
 - Login/Logout menu item, redirect after login/logout [F]
 
 ### Ops & monitoring (additional suggestions)
