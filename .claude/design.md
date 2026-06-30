@@ -77,6 +77,12 @@ that inherit `currentColor`. **No emoji, no default browser glyphs.** Add new ic
 the registry rather than inlining one-offs. Decorative by default; pass `aria-label` when
 the icon conveys meaning.
 
+**Icons everywhere — including navigation.** Every feature card, dashboard page heading,
+and **left sidebar nav item** carries an icon. A new feature module must implement
+`icon()`; a new sidebar page must set an `icon` in `page_tabs()`
+(`includes/admin/class-wp-arzo-admin.php`). Never ship a nav item, card, or page header
+without one — add a fitting SVG to the registry if none exists.
+
 ## Conventions for new UI
 
 1. Reference a `--arzo-*` token for every color/space/radius/shadow; add a token if one is

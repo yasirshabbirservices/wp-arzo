@@ -4,6 +4,38 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.28.0] — 2026-07-01
+
+### Added — REST API Authentication
+- New **REST API Authentication** feature (`rest_api_auth`, Security). Issue and revoke
+  **API keys** that let external apps authenticate to the WP REST API as a chosen user —
+  sent as `Authorization: Bearer …`, an `X-API-Key:` header, or the password of an HTTP
+  Basic credential. Keys are stored **hashed** (only an 8-char lookup prefix in clear) and
+  the full key is shown **once** at creation, just like Application Passwords.
+- This is the **complement** of the existing "Restrict REST API" toggle (which only blocks
+  anonymous access) — one keeps strangers out, the other lets trusted clients in.
+- Per-feature settings: accept keys via header / via Basic / require HTTPS (all on by
+  default). Dedicated **REST API Auth** page with a key table + "How to call" examples.
+
+### Added — Role Manager
+- New **Role Manager** feature (`role_manager`, Core controls). View every role (user count,
+  capability count), **edit a role's capabilities** from a searchable toggle grid, and
+  **add / clone / delete** custom roles — all through WordPress's Roles API (persisted to
+  `wp_user_roles`). Built-in roles can't be deleted and the administrator role can't lose
+  `manage_options` (lockout guard).
+
+### Added — Config Import / Export
+- New **Config Import / Export** feature (`config_io`, Core controls). **Export** your WP
+  Arzo setup — feature toggles, feature settings, and code snippets — to a versioned JSON
+  file, and **import** it on another site. Import takes a **safety snapshot** of the options
+  table first (when Backups is available) and merges snippets by id. It never touches other
+  plugins' options or your content.
+
+### Conventions
+- Documented two standing rules in `CLAUDE.md`, `design.md`, the feature-module skill, and
+  the session brief: **check for duplicates before adding anything**, and **use a real icon
+  on every feature card, page header, and sidebar nav item** (never emoji/none).
+
 ## [6.27.0] — 2026-07-01
 
 ### Changed — Dashboard navigation moved to a left sidebar

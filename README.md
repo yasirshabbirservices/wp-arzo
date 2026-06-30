@@ -17,7 +17,7 @@ shared hosting, VPS, cloud, and enterprise WordPress setups. Everything is
 **WP Arzo Pro** add‑on lives in a separate private repo and registers extra modules into
 the same dashboard.
 
-- **Current version:** 6.27.0 (see [CHANGELOG.md](CHANGELOG.md))
+- **Current version:** 6.28.0 (see [CHANGELOG.md](CHANGELOG.md))
 - **Requires:** WordPress ≥ 5.0, PHP ≥ 7.2
 - **Architecture & conventions for contributors / AI agents:** [CLAUDE.md](CLAUDE.md)
 - **Design system:** [.claude/design.md](.claude/design.md)
@@ -36,7 +36,10 @@ shown as locked **PRO** cards so you can see the full suite even on the free pla
 
 Highlights of the free core: SMTP + email log, Activity Log, Code Snippets, local
 backups + scheduled snapshots, auto WebP, SVG upload, custom login page, dozens of
-performance/security/admin tweaks, per‑tool toggles for the console, and Media Cleanup.
+performance/security/admin tweaks, per‑tool toggles for the console, Media Cleanup,
+**REST API Authentication** (issuable API keys + Basic Auth), a **Role Manager**
+(capability editor + custom roles), and **Config Import/Export** (move your WP Arzo setup
+between sites as versioned JSON).
 See [CHANGELOG.md](CHANGELOG.md) and [.claude/ROADMAP.md](.claude/ROADMAP.md) for the full,
 current list. Pro adds marketing pixels, GA4/GTM/Ads, a CPT/CCT + Custom Fields builder,
 Media Folders, Admin Branding, Redirects/404, Cron Manager, API email providers, and

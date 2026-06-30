@@ -31,9 +31,15 @@
 
 ## 3. Current state (what's built)
 
-**Free core (6.27.0):** ~45 feature modules across Utilities, Core controls, Content,
+**Free core (6.28.0):** ~48 feature modules across Utilities, Core controls, Content,
 Media, Marketing/SEO, Email (SMTP + log), Security, Branding (custom login), Developer
 (Code Snippets), Backup (local snapshots + scheduled), Ops (Activity Log), plus:
+- **REST API Authentication** (`rest_api_auth`) — issuable/revocable API keys + Basic Auth
+  via `determine_current_user` (complements, not duplicates, "Restrict REST API"). Page +
+  keys table in `class-wp-arzo-admin.php`; engine in `class-feature-rest-api-auth.php`.
+- **Role Manager** (`role_manager`) — roles/caps editor + add/clone/delete via the Roles API.
+- **Config Import/Export** (`config_io`) — versioned JSON of features+settings+snippets,
+  safety-snapshot before import.
 - **Left sidebar navigation** (`render_shell_open()`/`render_sidenav()` in
   `class-wp-arzo-admin.php`) — page tabs went vertical; the dashboard sidebar also has a
   **category filter** that scopes the feature grid (wired in `wp-arzo-admin.js`).
@@ -77,6 +83,11 @@ GA4 / GTM / Google Ads, **Content Types (CPT/CCT)**, **Custom Fields (meta boxes
    core (placeholder showcase) so it appears for free users.
 6. **When adding a console tool/operation:** map it in `wp_arzo_console_tool_map()` /
    `wp_arzo_console_tool_for_request()` so the per-tool gating stays complete.
+7. **No duplicates — check first.** Grep the registry / bootstrap / Pro catalog before
+   adding anything; differentiate near-neighbours explicitly (see CLAUDE.md).
+8. **Icons everywhere** — every feature card, page header, and **sidebar nav item** needs
+   a real `wp_arzo_icon()` SVG (new features implement `icon()`; new pages set an `icon` in
+   `page_tabs()`).
 
 ## 6. Verification pattern (use it)
 

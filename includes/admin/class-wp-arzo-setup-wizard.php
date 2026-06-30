@@ -116,8 +116,8 @@ class WP_Arzo_Setup_Wizard
                 'icon'    => 'shield',
                 'features' => array(
                     'disable_xmlrpc', 'block_user_enumeration', 'disable_file_editor',
-                    'disable_app_passwords', 'disable_rest_api_guests', 'limit_login',
-                    'custom_login_url', 'activity_log',
+                    'disable_app_passwords', 'disable_rest_api_guests', 'rest_api_auth',
+                    'limit_login', 'custom_login_url', 'activity_log',
                 ),
             ),
             'creator' => array(
@@ -148,6 +148,7 @@ class WP_Arzo_Setup_Wizard
                 'features' => array(
                     'code_snippets', 'custom_code', 'custom_css', 'heartbeat_control',
                     'auto_snapshots', 'scheduled_backups', 'media_cleanup',
+                    'role_manager', 'config_io', 'rest_api_auth',
                     'tool_users', 'tool_database', 'tool_files', 'tool_plugins',
                     'tool_themes', 'tool_debug', 'tool_site_modes', 'tool_extra_options',
                     'tool_login',
