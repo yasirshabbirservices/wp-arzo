@@ -44,6 +44,7 @@ class WP_Arzo_Feature_Registry
             'ai'        => array('label' => 'AI', 'icon' => 'sparkles'),
             'core'      => array('label' => 'Core Controls', 'icon' => 'settings'),
             'ops'       => array('label' => 'Ops & Monitoring', 'icon' => 'bug'),
+            'advanced_tools' => array('label' => 'Advanced Tools (Console)', 'icon' => 'tools'),
         );
     }
 

@@ -299,7 +299,7 @@ if ($action === 'wp_arzo_standalone') {
                 </div>
             </div>
             <div style="color: var(--accent-color); display:flex; align-items:center; gap:10px;">
-                v6.23.0
+                v6.24.0
                 <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
                     style="color: #fff; text-decoration: none; display:flex; align-items:center; gap:5px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;">
@@ -314,27 +314,30 @@ if ($action === 'wp_arzo_standalone') {
         <h1>WP Arzo - Administration Suite</h1>
 
         <div class="nav">
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=info'); ?>"
-                <?php echo ($action === 'info') ? 'class="active"' : ''; ?>>Site Info</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=users'); ?>"
-                <?php echo ($action === 'users') ? 'class="active"' : ''; ?>>Users</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=database'); ?>"
-                <?php echo ($action === 'database') ? 'class="active"' : ''; ?>>Database</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=files'); ?>"
-                <?php echo ($action === 'files') ? 'class="active"' : ''; ?>>Files</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=plugins'); ?>"
-                <?php echo ($action === 'plugins') ? 'class="active"' : ''; ?>>Plugins</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=themes'); ?>"
-                <?php echo ($action === 'themes') ? 'class="active"' : ''; ?>>Themes</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=debug'); ?>"
-                <?php echo ($action === 'debug') ? 'class="active"' : ''; ?>>Debug</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=site_modes'); ?>"
-                <?php echo ($action === 'site_modes' || $action === 'maintenance') ? 'class="active"' : ''; ?>>Site
-                Modes</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=extra_options'); ?>"
-                <?php echo ($action === 'extra_options') ? 'class="active"' : ''; ?>>Extra Options</a>
-            <a href="<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=login'); ?>"
-                <?php echo ($action === 'login') ? 'class="active"' : ''; ?>>Quick Login</a>
+            <?php
+            // Console nav: Site Info is always present (the home); every other tool
+            // appears only while its dashboard toggle is enabled.
+            $wp_arzo_nav_items = array(
+                'info'          => 'Site Info',
+                'users'         => 'Users',
+                'database'      => 'Database',
+                'files'         => 'Files',
+                'plugins'       => 'Plugins',
+                'themes'        => 'Themes',
+                'debug'         => 'Debug',
+                'site_modes'    => 'Site Modes',
+                'extra_options' => 'Extra Options',
+                'login'         => 'Quick Login',
+            );
+            foreach ($wp_arzo_nav_items as $wp_arzo_nav_tab => $wp_arzo_nav_label) {
+                if ($wp_arzo_nav_tab !== 'info' && function_exists('wp_arzo_console_tool_enabled') && !wp_arzo_console_tool_enabled($wp_arzo_nav_tab)) {
+                    continue;
+                }
+                $wp_arzo_nav_active = ($action === $wp_arzo_nav_tab || ($wp_arzo_nav_tab === 'site_modes' && $action === 'maintenance')) ? ' class="active"' : '';
+                $wp_arzo_nav_url = admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=' . $wp_arzo_nav_tab);
+                echo '<a href="' . esc_url($wp_arzo_nav_url) . '"' . $wp_arzo_nav_active . '>' . esc_html($wp_arzo_nav_label) . '</a>';
+            }
+            ?>
         </div>
 
         <?php

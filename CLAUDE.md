@@ -81,6 +81,16 @@ HTML page served through `admin-ajax.php`:
 `tab=ajax` plus an `operation` param. When adding an operation, wire it in **both** the
 router (`wp-arzo-modular.php`) and the feature file.
 
+**Console tool toggles:** each console tab (except `info`) can be individually
+enabled/disabled from the dashboard — registered as `WP_Arzo_Feature_Console_Tool`
+instances (group `advanced_tools`) in
+[`includes/features-registry/class-features-advanced-tools.php`](includes/features-registry/class-features-advanced-tools.php).
+The router gates disabled tools at three points: the early AJAX/file/DB operation guard
+(`wp_arzo_console_tool_for_request()` → JSON 403), the page-view route (notice instead of
+the feature file), and the console nav (`wp-arzo-header.php`). **When you add a new console
+tab or `operation`, also map it in `wp_arzo_console_tool_map()` /
+`wp_arzo_console_tool_for_request()`** so the gating stays complete.
+
 ## Front-end ↔ back-end contract
 
 `assets/js/wp-arzo.js` issues `fetch()` calls to `admin-ajax.php` with

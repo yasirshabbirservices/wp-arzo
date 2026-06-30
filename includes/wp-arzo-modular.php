@@ -22,6 +22,34 @@ if ($action === 'wp_arzo_standalone') {
 $login_message = '';
 $login_redirect = '';
 
+// Gate disabled console tools for AJAX/file/DB operations BEFORE any handler runs.
+// (The nav + page view are gated further down / in the header.) This is the
+// security-critical path: a disabled tool must not execute its operations even if
+// called directly via admin-ajax.
+if (function_exists('wp_arzo_console_tool_for_request')) {
+    $wp_arzo_op  = isset($_GET['operation']) ? $_GET['operation'] : '';
+    $wp_arzo_tab = isset($_GET['tab']) ? $_GET['tab'] : '';
+    $wp_arzo_is_op_call = ($wp_arzo_op !== '')
+        || ($wp_arzo_tab === 'ajax')
+        || ($wp_arzo_tab === 'files' && isset($_GET['download']));
+
+    if ($wp_arzo_is_op_call) {
+        // The emergency-script ops belong to either Site Modes or Extra Options.
+        if (in_array($wp_arzo_op, array('generate_emergency_script', 'delete_emergency_script'), true)) {
+            $wp_arzo_op_allowed = wp_arzo_console_tool_enabled('site_modes') || wp_arzo_console_tool_enabled('extra_options');
+        } else {
+            $wp_arzo_owner = wp_arzo_console_tool_for_request($wp_arzo_tab, $wp_arzo_op);
+            $wp_arzo_op_allowed = ($wp_arzo_owner === '') ? true : wp_arzo_console_tool_enabled($wp_arzo_owner);
+        }
+
+        if (!$wp_arzo_op_allowed) {
+            header('Content-Type: application/json');
+            echo json_encode(array('success' => false, 'message' => 'This tool is disabled in WP Arzo settings.'));
+            exit;
+        }
+    }
+}
+
 // Check for file download or AJAX file operations which need to run before headers if they happen to be in a feature file
 if (isset($_GET['tab'])) {
     // Handle File operations (support both 'files' tab and legacy 'ajax' tab calls).
@@ -101,7 +129,9 @@ $feature_files = [
     'login' => 'login.php',
 ];
 
-if (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features/' . $feature_files[$action])) {
+if (function_exists('wp_arzo_console_tool_enabled') && !wp_arzo_console_tool_enabled($action)) {
+    echo '<div class="content"><h2>Tool disabled</h2><p>The &ldquo;' . esc_html($action) . '&rdquo; tool is disabled. Enable it from <strong>WP Arzo &rarr; Dashboard</strong> (Advanced Tools group) to use it.</p></div>';
+} elseif (isset($feature_files[$action]) && file_exists(WP_ARZO_PLUGIN_DIR . 'features/' . $feature_files[$action])) {
     include(WP_ARZO_PLUGIN_DIR . 'features/' . $feature_files[$action]);
 } else {
     echo '<div class="content"><h2>Feature Not Found</h2><p>The requested feature "' . esc_html($action) . '" is not available.</p></div>';
