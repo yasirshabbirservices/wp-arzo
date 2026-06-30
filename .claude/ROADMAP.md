@@ -52,11 +52,17 @@ Legend in the catalog (§4): **[✅]** shipped · **[F]** planned free · **[P]*
 - **Pro v1.3.0** — ad-pixel suite completed: Snapchat, X (Twitter), Microsoft/Bing UET,
   Google Ads — joining Meta/TikTok/LinkedIn/Pinterest + GA4/GTM (**10 marketing modules**).
 
+### Competitor references (local: C:\Users\yasir\Downloads\Dev)
+ASE, Solid Security, erropix-advanced-scripts, HappyFiles Pro, JetEngine, **SureMail**
+(providers: SES/Brevo/Mailgun/Mailjet/Postmark/SendGrid/SMTP2Go/SparkPost/Elastic),
+WP Reset Pro, **WPvivid** (backup + cloud). Mine each for the matching build.
+
 ### Still to build (next up)
-- ✅ **Code Snippets Manager** (free) — shipped v6.15.0 (own page + PHP fatal-guard).
-- **Builders (Pro):** CPT/CCT builder, media manager (HappyFiles-style).
-- **Security (Pro):** 2FA, advanced audit log. **Free:** activity log (basic).
-- **Backup (Pro):** S3-compatible remote, scheduled backups, remote restore.
+- ✅ **Code Snippets Manager** (free) — v6.15.0. ✅ **Scheduled Backups** (free) — v6.19.0.
+- **Builders (Pro):** CPT/CCT builder (JetEngine ref), media folders (HappyFiles ref).
+- **Email (Pro):** API providers (SureMail ref) — SES/Brevo/Mailgun/SendGrid/Postmark/…
+- **Security (Pro):** 2FA, advanced audit log (Solid Security ref). **Free:** activity log.
+- **Backup (Pro):** S3-compatible remote, remote restore (WPvivid ref).
 - **Branding (Pro):** custom admin/dashboard, white-label. **AI/MCP** layer.
 - Ops: cron manager, redirect/404, notifications, GSC verification.
 - **v6.8.0** — **Email (free):** SMTP delivery (phpmailer_init config + force-from) and

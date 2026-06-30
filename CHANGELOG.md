@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.19.0] — 2026-06-30
+
+### Added (free) — Scheduled Backups (41 free features total)
+- **Scheduled Backups** — automatic database snapshots on a WP-Cron schedule
+  (**daily / weekly / monthly**) with scope (options / full DB) and retention. Registers
+  `weekly`/`monthly` cron schedules, keeps the event in sync with the chosen frequency,
+  and clears the cron when the feature is disabled / the plugin is deactivated.
+
 ## [6.18.0] — 2026-06-30
 
 ### Added — Media Cleanup tool
