@@ -3,6 +3,11 @@
 > Status: proposed plan. Default architecture choices are marked **[default]** — any can
 > be changed. We build **feature by feature**; each feature starts from a reference plugin
 > the maintainer shares, and we ship a better/faster/more-accessible version.
+>
+> **Snapshot:** free core **v6.26.0** (~45 modules) · Pro **v1.10.1** (18 modules). Next:
+> Advanced Audit Log (Pro) → 2FA (Pro, held during live testing) → S3 remote backup →
+> Notifications → AI/MCP → Freemius wiring (last). See
+> [`start-session.md`](start-session.md) for the full brief.
 
 ## 0. Progress log — what's already built
 

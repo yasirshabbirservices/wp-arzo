@@ -21,11 +21,28 @@ Quick scan for stragglers (ignore the Font Awesome `6.4.0` CDN string and elFind
 grep -rn "<old-version>" wp-arzo.php includes README.md README.txt
 ```
 
+### Pro add-on (separate repo `wp-arzo-pro`, branch `main`)
+
+When releasing the Pro add-on, bump **both**:
+
+- `wp-arzo-pro.php` — header `* Version:` line
+- `wp-arzo-pro.php` — `define('WP_ARZO_PRO_VERSION', 'X.Y.Z');`
+
+…and update the Pro repo's own `CHANGELOG.md`. **Cross-repo invariant:** if you add or
+rename a Pro module, also update `wp_arzo_pro_feature_catalog()` in the free core
+(`includes/features-registry/class-feature-pro-placeholders.php`) so free users still see
+it as a locked **PRO** card, plus the free core's `ROADMAP.md`.
+
 ## 2. Update docs
 
 - Add a dated section to `CHANGELOG.md` (Fixed / Security / Added), newest first.
 - Mirror the highlights into the `== Changelog ==` block of `README.txt`.
-- Update `README.md` / `CLAUDE.md` if architecture, routing, or conventions changed.
+- Update `README.md` / `CLAUDE.md` / `.claude/ROADMAP.md` if architecture, routing,
+  conventions, or the feature set changed. Refresh the **Snapshot** line in `ROADMAP.md`
+  and the version/state in [`.claude/start-session.md`](../../start-session.md).
+- New console tab/operation? Map it in `wp_arzo_console_tool_map()` /
+  `wp_arzo_console_tool_for_request()`. New feature with a dedicated admin page? Add it to
+  `page_features()` in `class-wp-arzo-admin.php` so the page gates behind its toggle.
 
 ## 3. Verify
 
