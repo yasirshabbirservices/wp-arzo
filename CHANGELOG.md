@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.49.0] — 2026-07-01
+
+### Added — `.wpa-check` checkbox chips (component)
+- New reusable **`.wpa-checks` / `.wpa-check`** component: a row of selectable pill chips for
+  multi-checkbox fields (e.g. CPT "Supports", "Attach to post types"), replacing ad-hoc
+  inline-styled checkbox lists. Active chips light with the brand accent; strictly tokens.
+  Used by the Pro Content Types / Custom Fields builders for design-system consistency.
+
 ## [6.48.0] — 2026-07-01
 
 ### Changed
