@@ -4,6 +4,13 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.9.0] — 2026-06-30
+
+### Added (free)
+- **Custom Login Page** — brand `wp-login.php` with a custom logo, page/form/text/accent
+  colors and optional extra CSS; the logo links back to the site.
+- Settings renderer gained a `color` field type (native color picker, `sanitize_hex_color`).
+
 ## [6.8.0] — 2026-06-30
 
 ### Added (free)

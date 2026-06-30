@@ -207,8 +207,8 @@ Grouped like ASE plus the requested additions. **[F]** = Free, **[P]** = Pro
 - Password-protect site/pages [F basic / P advanced]
 
 ### Branding / White-label admin
-- **Custom login page** (logo, bg, colors, custom login URL) [F]; full white-label
-  designer + advanced layouts [P]
+- **Custom login page** (logo, bg/form/text/accent colors, custom CSS) [✅ Free]; custom
+  login URL [F, next]; full white-label designer + advanced layouts [P]
 - **Custom admin UI/UX** (color schemes, fonts, menu styling) [P]
 - **Custom dashboard page** (replace all default boxes with branded widgets when active)
   [P]
