@@ -4,6 +4,13 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.74.0] — 2026-07-02
+
+### Added — advertise pCloud off-site backups (Pro)
+
+- The locked Pro catalog now lists **Off-site Backups: pCloud** (Backup), matching the new Pro
+  module (OAuth connect + automatic snapshot upload + retention + AJAX remote-file manager).
+
 ## [6.73.0] — 2026-07-02
 
 ### Added — advertise Google Drive off-site backups (Pro)
