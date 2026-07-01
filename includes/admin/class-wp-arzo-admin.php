@@ -223,6 +223,7 @@ class WP_Arzo_Admin
             self::PAGE_SNIPPETS       => 70,
             'wp-arzo-redirects'       => 72, // Pro
             'wp-arzo-cron'            => 74, // Pro
+            'wp-arzo-mcp'             => 76, // Pro (AI / MCP Server)
             // Tools (bottom)
             self::PAGE_CONFIG         => 90, // Import / Export
             'wp-arzo-tool'            => 95, // Advanced Tools console (opens standalone)

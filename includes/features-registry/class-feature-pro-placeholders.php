@@ -113,6 +113,7 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'cron_manager', 'title' => 'Cron Manager', 'group' => 'ops', 'icon' => 'clock', 'description' => 'View, run, and delete WP-Cron events and inspect schedules.'),
         array('id' => 'audit_log', 'title' => 'Advanced Audit Log', 'group' => 'ops', 'icon' => 'shield', 'description' => 'A durable, database-backed audit trail extending the free Activity Log — retention windows, advanced filters (action, user, date range, search), and CSV export.'),
         array('id' => 'notifications', 'title' => 'Notifications', 'group' => 'ops', 'icon' => 'bolt', 'description' => 'Push site events — security, backups, email failures, system changes — to Slack, Discord, n8n (cloud or self-hosted), or any webhook, with per-channel event selection.'),
+        array('id' => 'mcp_server', 'title' => 'AI / MCP Server', 'group' => 'ops', 'icon' => 'sparkles', 'description' => 'Expose the site to AI agents (Claude, etc.) via a Model Context Protocol endpoint — read tools plus confirm-gated write tools, authenticated with your REST API keys.'),
 
         // Email
 

@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.83.0] — 2026-07-02
+
+### Added — advertise the AI / MCP Server (Pro)
+
+- The locked Pro catalog now lists **AI / MCP Server** (Ops) — expose the site to AI agents
+  (Claude, etc.) through a Model Context Protocol endpoint, authenticated with your REST API
+  keys, with read tools plus confirm-gated, admin-enabled write tools.
+
 ## [6.82.0] — 2026-07-02
 
 ### Changed — menu order by use, Setup Wizard menu removed
