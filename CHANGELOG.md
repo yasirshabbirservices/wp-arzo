@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.78.0] — 2026-07-02
+
+### Changed — one Backups page with tabs (WPvivid-style)
+
+- The **Backups** page is now tabbed: **Local snapshots** plus any off-site destinations
+  (FTP / Google Drive / pCloud) that Pro registers via the new `wp_arzo_backup_destinations`
+  filter — all managed in one place instead of a separate admin menu per destination.
+- The Backups page now also unlocks when any Pro backup destination is enabled (not only the
+  local snapshot features).
+
 ## [6.77.0] — 2026-07-02
 
 ### Changed — Two-Factor Authentication is now Pro-only (de-duplicated)

@@ -230,7 +230,7 @@ class WP_Arzo_Admin
     private function page_features()
     {
         return array(
-            self::PAGE_BACKUPS   => array('auto_snapshots', 'scheduled_backups'),
+            self::PAGE_BACKUPS   => array('auto_snapshots', 'scheduled_backups', 'backup_ftp', 'backup_gdrive', 'backup_pcloud'),
             self::PAGE_EMAIL     => array('smtp', 'email_log'),
             self::PAGE_SNIPPETS  => array('code_snippets'),
             self::PAGE_ACTIVITY  => array('activity_log'),
@@ -1010,12 +1010,50 @@ class WP_Arzo_Admin
             return;
         }
 
+        // One Backups page, WPvivid-style: a "Local snapshots" tab plus any off-site
+        // destinations (FTP / Google Drive / pCloud) that Pro registers via the filter —
+        // each entry: ['label','icon','render'=>callable]. No separate menu per destination.
+        $destinations = apply_filters('wp_arzo_backup_destinations', array());
+        $tabs = array('local' => array('label' => 'Local snapshots', 'icon' => 'database'));
+        foreach ($destinations as $id => $d) {
+            $tabs[sanitize_key($id)] = array('label' => isset($d['label']) ? $d['label'] : $id, 'icon' => isset($d['icon']) ? $d['icon'] : 'cloud');
+        }
+        $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'local';
+        if (!isset($tabs[$tab])) {
+            $tab = 'local';
+        }
+        $base = admin_url('admin.php?page=' . self::PAGE_BACKUPS);
+
+        echo '<div class="wrap wpa-admin">';
+        if (count($tabs) > 1) {
+            echo '<nav class="wpa-tabs" aria-label="Backups">';
+            foreach ($tabs as $key => $t) {
+                printf(
+                    '<a class="wpa-tab%s" href="%s">%s<span>%s</span></a>',
+                    $key === $tab ? ' is-active' : '',
+                    esc_url(add_query_arg('tab', $key, $base)),
+                    wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')),
+                    esc_html($t['label'])
+                );
+            }
+            echo '</nav>';
+        }
+
+        if ($tab !== 'local' && isset($destinations[$tab]['render']) && is_callable($destinations[$tab]['render'])) {
+            call_user_func($destinations[$tab]['render']);
+        } else {
+            $this->render_backups_local();
+        }
+        echo '</div>';
+    }
+
+    /** The "Local snapshots" tab body (create / list / restore / delete). */
+    private function render_backups_local()
+    {
         $manager   = WP_Arzo_Backup_Manager::instance();
         $snapshots = $manager->list_snapshots();
         $total     = size_format($manager->total_size());
         ?>
-        <div class="wrap wpa-admin">
-            <?php $this->render_shell_open('backups'); ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('database', array('class' => 'wpa-icon')); ?> Backups</h1>
@@ -1054,8 +1092,6 @@ class WP_Arzo_Admin
                     </tbody>
                 </table>
             </div>
-            <?php $this->render_shell_close(); ?>
-        </div>
         <?php
     }
 
