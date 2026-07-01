@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.77.0] — 2026-07-02
+
+### Changed — Two-Factor Authentication is now Pro-only (de-duplicated)
+
+- Removed the free Two-Factor Authentication feature (and its bundled QR generator) — 2FA now
+  lives solely in **WP Arzo Pro**, where it gains a scannable QR code at enrollment. This
+  resolves a duplicate: 2FA was registered by both the free core and the new Pro module. The
+  free core keeps advertising it as a locked **Pro** catalog card.
+
 ## [6.76.0] — 2026-07-02
 
 ### Changed — Email UX: sensible default tab + Brevo recommended
