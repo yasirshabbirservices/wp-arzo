@@ -66,12 +66,13 @@ class WP_Arzo_Snippets
         $scopes = array('everywhere', 'admin', 'front');
 
         $snippet = array(
-            'id'     => (isset($data['id']) && $data['id'] !== '') ? preg_replace('/[^a-z0-9_]/', '', $data['id']) : $this->generate_id(),
-            'title'  => sanitize_text_field(isset($data['title']) ? $data['title'] : 'Untitled'),
-            'type'   => in_array(($data['type'] ?? ''), $types, true) ? $data['type'] : 'php',
-            'scope'  => in_array(($data['scope'] ?? ''), $scopes, true) ? $data['scope'] : 'everywhere',
-            'code'   => isset($data['code']) ? (string) $data['code'] : '',
-            'active' => !empty($data['active']) ? 1 : 0,
+            'id'       => (isset($data['id']) && $data['id'] !== '') ? preg_replace('/[^a-z0-9_]/', '', $data['id']) : $this->generate_id(),
+            'title'    => sanitize_text_field(isset($data['title']) ? $data['title'] : 'Untitled'),
+            'type'     => in_array(($data['type'] ?? ''), $types, true) ? $data['type'] : 'php',
+            'scope'    => in_array(($data['scope'] ?? ''), $scopes, true) ? $data['scope'] : 'everywhere',
+            'priority' => isset($data['priority']) ? max(1, min(9999, (int) $data['priority'])) : 10,
+            'code'     => isset($data['code']) ? (string) $data['code'] : '',
+            'active'   => !empty($data['active']) ? 1 : 0,
         );
 
         $list   = $this->get_all();
@@ -142,7 +143,15 @@ class WP_Arzo_Snippets
     {
         register_shutdown_function(array($this, 'shutdown_guard'));
 
-        foreach ($this->get_all() as $snippet) {
+        // Run/register snippets in ascending priority order (lower runs first).
+        $snippets = $this->get_all();
+        usort($snippets, function ($a, $b) {
+            $pa = isset($a['priority']) ? (int) $a['priority'] : 10;
+            $pb = isset($b['priority']) ? (int) $b['priority'] : 10;
+            return $pa <=> $pb;
+        });
+
+        foreach ($snippets as $snippet) {
             if (empty($snippet['active']) || !$this->in_scope($snippet['scope'])) {
                 continue;
             }
@@ -193,34 +202,36 @@ class WP_Arzo_Snippets
     {
         $front = ($snippet['scope'] !== 'admin');
         $admin = ($snippet['scope'] !== 'front');
+        // Snippet priority also drives the hook order, so a lower number renders earlier.
+        $prio  = isset($snippet['priority']) ? (int) $snippet['priority'] : 10;
 
         if ($snippet['type'] === 'css') {
             if ($front) {
                 add_action('wp_head', function () use ($snippet) {
                     echo "\n<style id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . wp_strip_all_tags($snippet['code']) . "</style>\n";
-                }, 100);
+                }, $prio);
             }
             if ($admin) {
                 add_action('admin_head', function () use ($snippet) {
                     echo "\n<style id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . wp_strip_all_tags($snippet['code']) . "</style>\n";
-                }, 100);
+                }, $prio);
             }
         } elseif ($snippet['type'] === 'js') {
             if ($front) {
                 add_action('wp_footer', function () use ($snippet) {
                     echo "\n<script id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . $snippet['code'] . "</script>\n";
-                }, 100);
+                }, $prio);
             }
             if ($admin) {
                 add_action('admin_footer', function () use ($snippet) {
                     echo "\n<script id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . $snippet['code'] . "</script>\n";
-                }, 100);
+                }, $prio);
             }
         } else { // html
             if ($front) {
                 add_action('wp_footer', function () use ($snippet) {
                     echo "\n" . $snippet['code'] . "\n";
-                }, 100);
+                }, $prio);
             }
         }
     }

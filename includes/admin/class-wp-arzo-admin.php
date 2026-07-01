@@ -1376,10 +1376,10 @@ class WP_Arzo_Admin
 
         <div class="wpa-card" style="padding:0;overflow:hidden;">
             <table class="wpa-backup-table">
-                <thead><tr><th>Title</th><th>Type</th><th>Scope</th><th>Status</th><th></th></tr></thead>
+                <thead><tr><th>Title</th><th>Type</th><th>Scope</th><th>Priority</th><th>Status</th><th></th></tr></thead>
                 <tbody>
                     <?php if (empty($snippets)) : ?>
-                        <tr class="wpa-backup-empty"><td colspan="5">No snippets yet. Click “New snippet” to add one.</td></tr>
+                        <tr class="wpa-backup-empty"><td colspan="6">No snippets yet. Click “New snippet” to add one.</td></tr>
                     <?php else : foreach ($snippets as $s) :
                         $edit = admin_url('admin.php?page=' . self::PAGE_SNIPPETS . '&view=edit&id=' . $s['id']);
                         $err  = !empty($s['last_error']);
@@ -1391,6 +1391,7 @@ class WP_Arzo_Admin
                             </td>
                             <td><span class="wpa-badge wpa-badge--neutral"><?php echo esc_html(strtoupper($s['type'])); ?></span></td>
                             <td><?php echo esc_html($s['scope']); ?></td>
+                            <td><?php echo esc_html(isset($s['priority']) ? (int) $s['priority'] : 10); ?></td>
                             <td>
                                 <label class="wpa-toggle">
                                     <input type="checkbox" class="wpa-toggle__input wpa-snippet-toggle" role="switch" data-id="<?php echo esc_attr($s['id']); ?>" <?php checked(!empty($s['active'])); ?>>
@@ -1415,7 +1416,7 @@ class WP_Arzo_Admin
         $saved   = $this->maybe_save_snippet();
         $snippet = $id !== '' ? $manager->get($id) : null;
         if (!$snippet) {
-            $snippet = array('id' => '', 'title' => '', 'type' => 'php', 'scope' => 'everywhere', 'code' => '', 'active' => 0);
+            $snippet = array('id' => '', 'title' => '', 'type' => 'php', 'scope' => 'everywhere', 'priority' => 10, 'code' => '', 'active' => 0);
         }
         $types  = array('php' => 'PHP', 'css' => 'CSS', 'js' => 'JavaScript', 'html' => 'HTML');
         $scopes = array('everywhere' => 'Everywhere', 'admin' => 'Admin only', 'front' => 'Front-end only');
@@ -1454,6 +1455,11 @@ class WP_Arzo_Admin
                         } ?>
                     </select>
                 </div>
+                <div class="wpa-field" style="flex:1;min-width:180px;">
+                    <label class="wpa-field__label" for="snp-priority">Priority</label>
+                    <input class="wpa-input" type="number" id="snp-priority" name="snippet_priority" min="1" max="9999" value="<?php echo esc_attr(isset($snippet['priority']) ? (int) $snippet['priority'] : 10); ?>">
+                    <p class="wpa-field__help">Load order — lower runs first (default 10).</p>
+                </div>
             </div>
             <div class="wpa-field">
                 <label class="wpa-field__label" for="snp-code">Code</label>
@@ -1482,10 +1488,11 @@ class WP_Arzo_Admin
         WP_Arzo_Snippets::instance()->save(array(
             'id'     => isset($_POST['snippet_id']) ? sanitize_text_field(wp_unslash($_POST['snippet_id'])) : '',
             'title'  => isset($_POST['snippet_title']) ? wp_unslash($_POST['snippet_title']) : '',
-            'type'   => isset($_POST['snippet_type']) ? sanitize_key($_POST['snippet_type']) : 'php',
-            'scope'  => isset($_POST['snippet_scope']) ? sanitize_key($_POST['snippet_scope']) : 'everywhere',
-            'code'   => isset($_POST['snippet_code']) ? wp_unslash($_POST['snippet_code']) : '',
-            'active' => !empty($_POST['snippet_active']),
+            'type'     => isset($_POST['snippet_type']) ? sanitize_key($_POST['snippet_type']) : 'php',
+            'scope'    => isset($_POST['snippet_scope']) ? sanitize_key($_POST['snippet_scope']) : 'everywhere',
+            'priority' => isset($_POST['snippet_priority']) ? (int) $_POST['snippet_priority'] : 10,
+            'code'     => isset($_POST['snippet_code']) ? wp_unslash($_POST['snippet_code']) : '',
+            'active'   => !empty($_POST['snippet_active']),
         ));
         return true;
     }
