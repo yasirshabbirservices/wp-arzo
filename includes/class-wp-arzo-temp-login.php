@@ -31,6 +31,7 @@ class WP_Arzo_Temp_Login
     const META_CREATED_BY = 'wp_arzo_tl_created_by';
     const META_CREATED    = 'wp_arzo_tl_created_gmt';
     const META_LAST_LOGIN = 'wp_arzo_tl_last_login_gmt';
+    const META_LAST_IP    = 'wp_arzo_tl_last_ip';
     const META_COUNT      = 'wp_arzo_tl_login_count';
     const META_MAX        = 'wp_arzo_tl_max_logins';  // 0 = unlimited
     const META_STATUS     = 'wp_arzo_tl_status';      // active | disabled
@@ -104,6 +105,7 @@ class WP_Arzo_Temp_Login
 
         // Sign in.
         update_user_meta($uid, self::META_LAST_LOGIN, gmdate('Y-m-d H:i:s'));
+        update_user_meta($uid, self::META_LAST_IP, self::client_ip());
         update_user_meta($uid, self::META_COUNT, $count + 1);
         wp_set_current_user($uid);
         wp_set_auth_cookie($uid, true);
@@ -224,6 +226,65 @@ class WP_Arzo_Temp_Login
         );
     }
 
+    /**
+     * Email a branded login-link invitation to the temp user's address.
+     *
+     * @param int    $id      Temp user ID.
+     * @param string $message Optional personal note prepended to the email.
+     * @return true|WP_Error
+     */
+    public function send_invite($id, $message = '')
+    {
+        $id = (int) $id;
+        if (!self::is_temp($id)) {
+            return new WP_Error('not_temp', 'Not a temporary login.');
+        }
+        $user = get_userdata($id);
+        if (!$user || !is_email($user->user_email)) {
+            return new WP_Error('email', 'This login has no valid email address to send to.');
+        }
+
+        $token = get_user_meta($id, self::META_TOKEN, true);
+        if (!$token) {
+            return new WP_Error('token', 'This login link is unavailable.');
+        }
+        $verdict = self::evaluate(
+            get_user_meta($id, self::META_STATUS, true),
+            (int) get_user_meta($id, self::META_EXPIRE, true),
+            (int) get_user_meta($id, self::META_MAX, true),
+            (int) get_user_meta($id, self::META_COUNT, true)
+        );
+        if ($verdict !== 'ok') {
+            return new WP_Error('inactive', 'This login link is not active, so it wasn’t emailed.');
+        }
+
+        $url    = $this->login_url($token);
+        $site   = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+        $expire = (int) get_user_meta($id, self::META_EXPIRE, true);
+        $role   = get_user_meta($id, self::META_ROLE, true);
+
+        $subject = sprintf('Your login link for %s', $site);
+        $lines   = array();
+        $lines[] = sprintf('Hello%s,', $user->display_name ? ' ' . $user->display_name : '');
+        $lines[] = '';
+        $note = trim(wp_strip_all_tags((string) $message));
+        if ($note !== '') {
+            $lines[] = $note;
+            $lines[] = '';
+        }
+        $lines[] = sprintf('You have been given temporary "%s" access to %s. Use this one-tap link to sign in — no password needed:', $role, $site);
+        $lines[] = '';
+        $lines[] = $url;
+        $lines[] = '';
+        if ($expire) {
+            $lines[] = sprintf('This link expires on %s UTC.', gmdate('Y-m-d H:i', $expire));
+        }
+        $lines[] = 'If you weren’t expecting this, you can safely ignore this email.';
+
+        $sent = wp_mail($user->user_email, $subject, implode("\n", $lines));
+        return $sent ? true : new WP_Error('send', 'The email could not be sent (check the site’s mail configuration).');
+    }
+
     public function set_status($id, $status)
     {
         $id = (int) $id;
@@ -288,6 +349,7 @@ class WP_Arzo_Temp_Login
                 'count'      => (int) get_user_meta($u->ID, self::META_COUNT, true),
                 'max'        => (int) get_user_meta($u->ID, self::META_MAX, true),
                 'last_login' => get_user_meta($u->ID, self::META_LAST_LOGIN, true),
+                'last_ip'    => get_user_meta($u->ID, self::META_LAST_IP, true),
                 'status'     => get_user_meta($u->ID, self::META_STATUS, true) ?: 'active',
                 'login_url'  => $this->login_url($token),
             );
@@ -331,6 +393,14 @@ class WP_Arzo_Temp_Login
     public function login_url($token)
     {
         return add_query_arg(self::QUERY_VAR, $token, home_url('/'));
+    }
+
+    /** Best-effort client IP, validated; empty string if none. */
+    public static function client_ip()
+    {
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+        $ip = filter_var(trim($ip), FILTER_VALIDATE_IP);
+        return $ip ? $ip : '';
     }
 
     private function unique_login($name)

@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 /* ----------------------------------------------------------- AJAX ops */
-if (isset($_GET['operation']) && in_array($_GET['operation'], array('tl_create', 'tl_delete', 'tl_toggle'), true)) {
+if (isset($_GET['operation']) && in_array($_GET['operation'], array('tl_create', 'tl_delete', 'tl_toggle', 'tl_invite'), true)) {
     header('Content-Type: application/json');
     if (!current_user_can('manage_options') || !check_ajax_referer('wp_arzo_ajax', 'nonce', false)) {
         echo wp_json_encode(array('success' => false, 'message' => 'Security check failed'));
@@ -58,6 +58,18 @@ if (isset($_GET['operation']) && in_array($_GET['operation'], array('tl_create',
             isset($_POST['status']) ? sanitize_key(wp_unslash($_POST['status'])) : 'active'
         );
         echo wp_json_encode(array('success' => (bool) $ok));
+        exit;
+    }
+    if ($op === 'tl_invite') {
+        $res = $engine->send_invite(
+            isset($_POST['id']) ? (int) $_POST['id'] : 0,
+            isset($_POST['message']) ? wp_unslash($_POST['message']) : ''
+        );
+        if (is_wp_error($res)) {
+            echo wp_json_encode(array('success' => false, 'message' => $res->get_error_message()));
+        } else {
+            echo wp_json_encode(array('success' => true, 'message' => 'Invitation sent.'));
+        }
         exit;
     }
     exit;
@@ -140,11 +152,12 @@ function handleQuickLogin()
                 <th>Expires (UTC)</th>
                 <th>Logins</th>
                 <th>Last login</th>
+                <th>Last IP</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
             <?php if (empty($logins)) : ?>
-                <tr><td colspan="7" style="color:var(--muted-text);">No temporary logins yet.</td></tr>
+                <tr><td colspan="8" style="color:var(--muted-text);">No temporary logins yet.</td></tr>
             <?php else : foreach ($logins as $t) :
                 $expired = $t['expire'] && $now > $t['expire'];
                 $status  = $expired ? 'expired' : $t['status'];
@@ -158,6 +171,7 @@ function handleQuickLogin()
                     <td><?php echo $t['expire'] ? esc_html(gmdate('Y-m-d H:i', $t['expire'])) : '—'; ?></td>
                     <td><?php echo (int) $t['count']; ?><?php echo $t['max'] > 0 ? ' / ' . (int) $t['max'] : ''; ?></td>
                     <td><?php echo $t['last_login'] ? esc_html($t['last_login']) : '<span style="color:var(--muted-text);">never</span>'; ?></td>
+                    <td><?php echo !empty($t['last_ip']) ? esc_html($t['last_ip']) : '<span style="color:var(--muted-text);">—</span>'; ?></td>
                     <td>
                         <?php
                         $badge = $status === 'active' ? 'badge-active' : 'badge-inactive';
@@ -166,7 +180,7 @@ function handleQuickLogin()
                     </td>
                     <td style="white-space:nowrap;">
                         <button type="button" class="btn btn-sm" title="Copy link" onclick="tlCopy('<?php echo esc_js($t['login_url']); ?>', this)">Copy</button>
-                        <a class="btn btn-sm" title="Email link" href="mailto:<?php echo esc_attr($t['email']); ?>?subject=<?php echo rawurlencode('Your login link'); ?>&body=<?php echo rawurlencode($t['login_url']); ?>">Email</a>
+                        <button type="button" class="btn btn-sm tl-invite" title="Email a branded invitation with this link">Email invite</button>
                         <button type="button" class="btn btn-sm tl-toggle" data-status="<?php echo $t['status'] === 'active' ? 'disabled' : 'active'; ?>"><?php echo $t['status'] === 'active' ? 'Disable' : 'Enable'; ?></button>
                         <button type="button" class="btn btn-sm btn-danger tl-delete">Delete</button>
                     </td>
@@ -223,6 +237,25 @@ function handleQuickLogin()
                 post('tl_delete', { id: id }).then(function (res) {
                     if (res && res.success) { btn.closest('tr').remove(); } else { alert('Delete failed.'); }
                 });
+            });
+        });
+        document.querySelectorAll('.tl-invite').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = btn.closest('tr').getAttribute('data-id');
+                var message = prompt('Optional personal note to include in the invitation email (leave blank for none):', '');
+                if (message === null) return; // cancelled
+                btn.disabled = true;
+                var label = btn.textContent; btn.textContent = 'Sending…';
+                post('tl_invite', { id: id, message: message }).then(function (res) {
+                    btn.disabled = false;
+                    if (res && res.success) {
+                        btn.textContent = 'Sent!';
+                        setTimeout(function () { btn.textContent = label; }, 1500);
+                    } else {
+                        btn.textContent = label;
+                        alert((res && res.message) || 'Could not send the invitation.');
+                    }
+                }).catch(function () { btn.disabled = false; btn.textContent = label; alert('Request failed.'); });
             });
         });
         document.querySelectorAll('.tl-toggle').forEach(function (btn) {

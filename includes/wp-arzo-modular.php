@@ -110,7 +110,7 @@ if (isset($_GET['tab'])) {
         }
     }
     // Handle Temporary Login operations (login.php returns JSON + exits for these).
-    if (($_GET['tab'] === 'login' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['tl_create', 'tl_delete', 'tl_toggle'])) {
+    if (($_GET['tab'] === 'login' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['tl_create', 'tl_delete', 'tl_toggle', 'tl_invite'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/login.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/login.php');
             exit;
