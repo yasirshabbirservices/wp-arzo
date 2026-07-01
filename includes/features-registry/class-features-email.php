@@ -118,6 +118,7 @@ class WP_Arzo_Feature_Email_Log extends WP_Arzo_Feature
     {
         add_filter('wp_mail', array($this, 'log_mail'));
         add_action('wp_mail_failed', array($this, 'log_failed'));
+        add_action('wp_arzo_email_delivered', array($this, 'log_delivered'), 10, 4);
     }
 
     public function log_mail($args)
@@ -133,8 +134,9 @@ class WP_Arzo_Feature_Email_Log extends WP_Arzo_Feature
             'subject' => sanitize_text_field(isset($args['subject']) ? (string) $args['subject'] : ''),
             'message' => isset($args['message']) ? (string) $args['message'] : '',
             'headers' => isset($args['headers']) ? $args['headers'] : '',
-            'status'  => 'sent',
-            'error'   => '',
+            'status'     => 'sent',
+            'error'      => '',
+            'connection' => '',
         ));
         return $args;
     }
@@ -145,6 +147,17 @@ class WP_Arzo_Feature_Email_Log extends WP_Arzo_Feature
         if (is_array($log) && !empty($log)) {
             $log[0]['status'] = 'failed';
             $log[0]['error']  = is_wp_error($wp_error) ? $wp_error->get_error_message() : 'Unknown error';
+            update_option(self::OPTION, $log, false);
+        }
+    }
+
+    /** Stamp the most-recent log entry with the connection that delivered it. */
+    public function log_delivered($id, $title, $atts, $attempts)
+    {
+        $log = get_option(self::OPTION, array());
+        if (is_array($log) && !empty($log)) {
+            $log[0]['status']     = 'sent';
+            $log[0]['connection'] = sanitize_text_field((string) $title);
             update_option(self::OPTION, $log, false);
         }
     }
