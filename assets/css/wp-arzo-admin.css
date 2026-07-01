@@ -461,7 +461,23 @@ body.wp-arzo-screen::-webkit-scrollbar-thumb:hover { background: var(--arzo-bord
 /* ------------------------------------------------ Feature Manager hero header */
 .wpa-fm-hero { align-items: flex-start; gap: clamp(16px, 3vw, 32px); }
 .wpa-fm-hero__info { flex: 1 1 260px; min-width: 0; }
-.wpa-fm-hero__actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.wpa-fm-hero__actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+/* Prominent full-width feature search, above the grid. */
+.wpa-fm-searchbar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--arzo-bg-panel); border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius); padding: 4px 14px;
+  margin-bottom: clamp(14px, 2vw, 20px);
+  transition: border-color var(--arzo-transition) ease, box-shadow var(--arzo-transition) ease;
+}
+.wpa-fm-searchbar:focus-within { border-color: var(--arzo-accent); box-shadow: var(--arzo-focus-ring); }
+.wpa-fm-searchbar .wpa-icon { color: var(--arzo-text-muted); flex: 0 0 auto; width: 18px; height: 18px; }
+.wpa-fm-searchbar input {
+  flex: 1; width: 100%; background: transparent; border: 0; outline: none;
+  color: var(--arzo-text-primary); font-size: var(--arzo-fs-md); padding: 10px 0;
+}
+.wpa-fm-searchbar input::placeholder { color: var(--arzo-text-muted); }
 .wpa-fm-progress {
   height: 8px;
   max-width: 440px;

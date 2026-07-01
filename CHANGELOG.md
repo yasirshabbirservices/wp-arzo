@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.84.0] — 2026-07-02
+
+### Changed — one Settings hub, fewer menus, prominent search
+
+- Seven config pages are consolidated into a single **Settings** submenu with tabs:
+  **Login Security · Roles · REST API Auth · Import/Export** (free) plus **Two-Factor ·
+  Notifications · AI/MCP** (Pro, via the new `wp_arzo_settings_tabs` filter). The WP Arzo menu
+  drops from ~16 items to ~10 — the rest keep their own menu only when they're a distinct
+  destination (Dashboard, Activity Log, Email, Backups, Content Types, Custom Fields, Media
+  Cleanup, Snippets, Advanced Tools).
+- The **feature search** moved out of the header into a prominent full-width bar above the grid,
+  and the **Setup Wizard** button is aligned cleanly in the header.
+- Menu order stays grouped by use (monitor → content → developer → Settings → tools).
+
 ## [6.83.0] — 2026-07-02
 
 ### Added — advertise the AI / MCP Server (Pro)
