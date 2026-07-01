@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.69.0] — 2026-07-02
+
+### Added — Email onboarding wizard (first-run)
+
+- When the **Email → Connections** tab has no connections yet, it now shows a guided
+  **first-run wizard** instead of a bare empty state: a 4-step flow — **Provider → Configure
+  → Test → Done** — with a progress stepper, all in the wpa- design system (SureMail
+  onboarding reference).
+- Pick a provider from the card grid, fill the schema-driven form inline, **Save & continue**
+  (creates the connection), then **send a test** to the admin address (with skip), and finish
+  to the connections list. Reuses the existing provider registry, field builder and
+  `wp_arzo_conn_save` / `wp_arzo_conn_test` AJAX — no new endpoints.
+- Completes the SureMail-style Email rebuild (Phases 1–4): connections manager (v6.64) →
+  unified tabbed hub (v6.66) → N-step fallback engine (v6.67) → Logs upgrade (v6.68) →
+  onboarding wizard (v6.69).
+
 ## [6.68.0] — 2026-07-02
 
 ### Added — Email Logs upgrade (detail drawer, filters, deliverability)

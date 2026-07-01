@@ -481,6 +481,46 @@
 .wpa-provider-card__name { font-weight: 600; font-size: var(--arzo-fs-md); line-height: 1.25; }
 .wpa-provider-card__badge { position: absolute; top: var(--arzo-space-2); right: var(--arzo-space-2); }
 
+/* Email onboarding wizard (first-run: pick provider -> configure -> test -> done) */
+.wpa-ewiz { padding: 0; overflow: hidden; }
+.wpa-ewiz__steps {
+  display: flex; border-bottom: 1px solid var(--arzo-border);
+  background: var(--arzo-bg-elev);
+}
+.wpa-ewiz__step {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: var(--arzo-space-2); padding: var(--arzo-space-3) var(--arzo-space-2);
+  font-size: var(--arzo-fs-sm); color: var(--arzo-text-muted); font-weight: 500;
+  min-width: 0;
+}
+.wpa-ewiz__step-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wpa-ewiz__num {
+  flex: 0 0 auto; width: 24px; height: 24px; border-radius: var(--arzo-radius-pill);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--arzo-bg-input); color: var(--arzo-text-muted);
+  font-size: 12px; font-weight: 700;
+}
+.wpa-ewiz__step.is-active { color: var(--arzo-text-strong); }
+.wpa-ewiz__step.is-active .wpa-ewiz__num { background: var(--arzo-accent); color: var(--arzo-bg-dark); }
+.wpa-ewiz__step.is-done .wpa-ewiz__num { background: var(--arzo-success); color: var(--arzo-bg-dark); }
+.wpa-ewiz__body { padding: clamp(24px, 4vw, 40px); }
+.wpa-ewiz__center { text-align: center; max-width: 52ch; margin: 0 auto; }
+.wpa-ewiz__hero {
+  width: 56px; height: 56px; margin: 0 auto var(--arzo-space-4);
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--arzo-radius-lg);
+  background: var(--arzo-accent-soft); color: var(--arzo-accent);
+}
+.wpa-ewiz__hero .wpa-icon { width: 30px; height: 30px; }
+.wpa-ewiz__foot {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: var(--arzo-space-3); margin-top: var(--arzo-space-5);
+}
+.wpa-ewiz__form { display: grid; gap: var(--arzo-space-4); text-align: left; }
+@media (max-width: 640px) {
+  .wpa-ewiz__step-label { display: none; }
+}
+
 /* Right-side drawer */
 .wpa-drawer__panel {
   position: absolute; top: 0; right: 0; bottom: 0;

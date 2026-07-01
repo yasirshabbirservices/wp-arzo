@@ -1433,11 +1433,74 @@ class WP_Arzo_Admin
             </div>
 
             <?php if (empty($connections)) : ?>
-                <div class="wpa-card" style="text-align:center;padding:40px 24px;">
-                    <div style="margin:0 auto 12px;width:48px;height:48px;color:var(--arzo-accent);"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon', 'style' => 'width:48px;height:48px;')); ?></div>
-                    <h2 style="margin:0 0 6px;">Connect your first email provider</h2>
-                    <p style="color:var(--arzo-text-muted);max-width:46ch;margin:0 auto 18px;">Route WordPress email through a reliable provider — Gmail, Outlook, Amazon SES, SendGrid and more. Add several and WP Arzo falls back automatically if one fails.</p>
-                    <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-add-empty"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add connection</button>
+                <?php $wiz_steps = array('Provider', 'Configure', 'Test', 'Done'); ?>
+                <div class="wpa-card wpa-ewiz" id="wpa-email-wizard" data-admin-email="<?php echo esc_attr(get_option('admin_email')); ?>">
+                    <div class="wpa-ewiz__steps">
+                        <?php foreach ($wiz_steps as $i => $label) : ?>
+                            <div class="wpa-ewiz__step<?php echo $i === 0 ? ' is-active' : ''; ?>" data-step-ind="<?php echo (int) $i; ?>">
+                                <span class="wpa-ewiz__num"><?php echo (int) $i + 1; ?></span>
+                                <span class="wpa-ewiz__step-label"><?php echo esc_html($label); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="wpa-ewiz__body">
+                        <!-- Step 1: choose a provider -->
+                        <section data-step="provider">
+                            <div class="wpa-ewiz__center" style="margin-bottom:22px;">
+                                <span class="wpa-ewiz__hero"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?></span>
+                                <h2 style="margin:0 0 6px;">Connect your first email provider</h2>
+                                <p style="color:var(--arzo-text-muted);margin:0;">Route WordPress email through a reliable provider — Gmail, Outlook, Amazon SES, SendGrid and more. Pick one to get started; you can add fallbacks later.</p>
+                            </div>
+                            <div class="wpa-provider-grid" style="padding:0;">
+                                <?php foreach ($providers as $key => $def) : ?>
+                                    <button type="button" class="wpa-provider-card wpa-ewiz-provider" data-provider="<?php echo esc_attr($key); ?>">
+                                        <span class="wpa-provider-card__icon"><?php echo wp_arzo_icon($def['icon'], array('class' => 'wpa-icon')); ?></span>
+                                        <span class="wpa-provider-card__name"><?php echo esc_html($def['label']); ?></span>
+                                        <?php if (!empty($def['badge'])) : ?><span class="wpa-badge wpa-badge--neutral wpa-provider-card__badge"><?php echo esc_html($def['badge']); ?></span><?php endif; ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                        </section>
+
+                        <!-- Step 2: configure the chosen provider -->
+                        <section data-step="configure" hidden>
+                            <h2 style="margin:0 0 4px;" id="wpa-ewiz-conf-title">Configure</h2>
+                            <p style="color:var(--arzo-text-muted);margin:0 0 20px;">Enter the connection details. Secrets are stored on your site only.</p>
+                            <form class="wpa-ewiz__form" id="wpa-ewiz-form"><!-- fields injected by JS --></form>
+                            <div class="wpa-ewiz__foot">
+                                <button type="button" class="wpa-btn wpa-btn--ghost" data-ewiz-back>Back</button>
+                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-save"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save &amp; continue</button>
+                            </div>
+                        </section>
+
+                        <!-- Step 3: send a test -->
+                        <section data-step="test" hidden>
+                            <div class="wpa-ewiz__center">
+                                <span class="wpa-ewiz__hero"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?></span>
+                                <h2 style="margin:0 0 6px;">Send a test email</h2>
+                                <p style="color:var(--arzo-text-muted);margin:0 0 18px;">Confirm the connection works by sending a test message.</p>
+                                <div class="wpa-field" style="text-align:left;max-width:360px;margin:0 auto;">
+                                    <label class="wpa-field__label" for="wpa-ewiz-test-to">Send test to</label>
+                                    <input class="wpa-input" type="email" id="wpa-ewiz-test-to" value="<?php echo esc_attr(get_option('admin_email')); ?>" style="width:100%;">
+                                </div>
+                                <p id="wpa-ewiz-test-msg" style="margin:14px 0 0;min-height:20px;"></p>
+                            </div>
+                            <div class="wpa-ewiz__foot">
+                                <button type="button" class="wpa-btn wpa-btn--ghost" data-ewiz-skip-test>Skip</button>
+                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-test-btn"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> Send test</button>
+                            </div>
+                        </section>
+
+                        <!-- Step 4: done -->
+                        <section data-step="done" hidden>
+                            <div class="wpa-ewiz__center">
+                                <span class="wpa-ewiz__hero" style="background:var(--arzo-success-soft);color:var(--arzo-success);"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon')); ?></span>
+                                <h2 style="margin:0 0 6px;">You're all set</h2>
+                                <p style="color:var(--arzo-text-muted);margin:0 0 20px;">Your first connection is live and now sends your site's email. Add more providers to build an automatic fallback chain.</p>
+                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-finish"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> View connections</button>
+                            </div>
+                        </section>
+                    </div>
                 </div>
             <?php else : ?>
                 <div class="wpa-card" style="padding:0;overflow:hidden;">

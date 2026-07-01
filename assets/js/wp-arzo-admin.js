@@ -376,6 +376,112 @@
     });
   }
 
+  // First-run email onboarding wizard: provider -> configure -> test -> done.
+  function bindEmailOnboarding() {
+    var wiz = document.getElementById('wpa-email-wizard');
+    if (!wiz) return;
+    var data = window.wpArzoConn || {};
+    var providers = data.providers || {};
+    var form = document.getElementById('wpa-ewiz-form');
+    var inds = Array.prototype.slice.call(wiz.querySelectorAll('.wpa-ewiz__step'));
+    var order = ['provider', 'configure', 'test', 'done'];
+    var chosen = '';   // provider key
+    var savedId = '';  // connection id after save
+
+    function showStep(name) {
+      order.forEach(function (s) {
+        var sec = wiz.querySelector('[data-step="' + s + '"]');
+        if (sec) sec.hidden = (s !== name);
+      });
+      var idx = order.indexOf(name);
+      inds.forEach(function (el, i) {
+        el.classList.toggle('is-active', i === idx);
+        el.classList.toggle('is-done', i < idx);
+      });
+    }
+
+    function buildForm(provider) {
+      var schema = providers[provider];
+      if (!schema || !form) return;
+      var title = document.getElementById('wpa-ewiz-conf-title');
+      if (title) title.textContent = 'Configure ' + schema.label;
+      form.innerHTML = '';
+      schema.fields.forEach(function (f) {
+        form.appendChild(connBuildField(f, null, false));
+      });
+      if (window.wpArzo && wpArzo.initSelects) { wpArzo.initSelects(form); }
+    }
+
+    function collect() {
+      var out = {};
+      form.querySelectorAll('[data-key]').forEach(function (el) {
+        out[el.dataset.key] = (el.type === 'checkbox') ? (el.checked ? '1' : '0') : el.value;
+      });
+      return out;
+    }
+
+    // Step 1: provider cards
+    wiz.querySelectorAll('.wpa-ewiz-provider').forEach(function (card) {
+      card.addEventListener('click', function () {
+        chosen = card.getAttribute('data-provider');
+        buildForm(chosen);
+        showStep('configure');
+      });
+    });
+
+    // Step 2: back + save
+    var backBtn = wiz.querySelector('[data-ewiz-back]');
+    if (backBtn) backBtn.addEventListener('click', function () { showStep('provider'); });
+
+    var saveBtn = document.getElementById('wpa-ewiz-save');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var fields = collect();
+        if (!fields.title || !fields.title.trim()) { toast('Give the connection a name.', 'error'); return; }
+        saveBtn.disabled = true;
+        connRequest('wp_arzo_conn_save', { provider: chosen, id: '', fields: fields }).then(function (res) {
+          saveBtn.disabled = false;
+          if (res && res.success && res.data && res.data.id) {
+            savedId = res.data.id;
+            showStep('test');
+          } else {
+            toast((res && res.data && res.data.message) || 'Could not save the connection.', 'error');
+          }
+        }).catch(function () { saveBtn.disabled = false; toast('Request failed.', 'error'); });
+      });
+    }
+
+    // Step 3: send test (or skip)
+    var testBtn = document.getElementById('wpa-ewiz-test-btn');
+    var testMsg = document.getElementById('wpa-ewiz-test-msg');
+    if (testBtn) {
+      testBtn.addEventListener('click', function () {
+        var to = (document.getElementById('wpa-ewiz-test-to') || {}).value || '';
+        if (!to.trim()) { if (testMsg) testMsg.textContent = 'Enter a recipient first.'; return; }
+        testBtn.disabled = true;
+        if (testMsg) { testMsg.style.color = 'var(--arzo-text-muted)'; testMsg.textContent = 'Sending…'; }
+        connRequest('wp_arzo_conn_test', { id: savedId, to: to }).then(function (res) {
+          testBtn.disabled = false;
+          var ok = res && res.success;
+          if (testMsg) {
+            testMsg.style.color = ok ? 'var(--arzo-success)' : 'var(--arzo-error)';
+            testMsg.textContent = ok ? 'Test sent — check the inbox.' : ((res && res.data && res.data.message) || 'Test failed. You can still finish and fix it later.');
+          }
+          if (ok) { setTimeout(function () { showStep('done'); }, 700); }
+        }).catch(function () {
+          testBtn.disabled = false;
+          if (testMsg) { testMsg.style.color = 'var(--arzo-error)'; testMsg.textContent = 'Request failed.'; }
+        });
+      });
+    }
+    var skipBtn = wiz.querySelector('[data-ewiz-skip-test]');
+    if (skipBtn) skipBtn.addEventListener('click', function () { showStep('done'); });
+
+    // Step 4: finish -> reload to the connections list
+    var finishBtn = document.getElementById('wpa-ewiz-finish');
+    if (finishBtn) finishBtn.addEventListener('click', function () { location.reload(); });
+  }
+
   function bindCategoryFilter() {
     var items = document.querySelectorAll('.wpa-cat-filter');
     if (!items.length) return;
@@ -1076,7 +1182,7 @@
     }
   }
 
-  function init() { bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSmtpPresets(); bindEmailConnections(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
+  function init() { bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSmtpPresets(); bindEmailConnections(); bindEmailOnboarding(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
