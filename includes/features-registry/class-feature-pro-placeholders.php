@@ -108,6 +108,7 @@ function wp_arzo_pro_feature_catalog()
         // Ops & Monitoring
         array('id' => 'redirects', 'title' => 'Redirects & 404 Monitor', 'group' => 'ops', 'icon' => 'external', 'description' => 'Create URL redirects (exact or regex, 301/302/307) and monitor 404s.'),
         array('id' => 'cron_manager', 'title' => 'Cron Manager', 'group' => 'ops', 'icon' => 'clock', 'description' => 'View, run, and delete WP-Cron events and inspect schedules.'),
+        array('id' => 'audit_log', 'title' => 'Advanced Audit Log', 'group' => 'ops', 'icon' => 'shield', 'description' => 'A durable, database-backed audit trail extending the free Activity Log — retention windows, advanced filters (action, user, date range, search), and CSV export.'),
 
         // Email
 
