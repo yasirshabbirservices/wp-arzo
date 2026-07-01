@@ -4,6 +4,12 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.63.0] — 2026-07-01
+
+### Changed — Pro catalog
+- Note the new **Custom Dashboard presets** in the Admin Branding placeholder description
+  (the real Pro module ships five ready-made welcome-panel templates).
+
 ## [6.62.0] — 2026-07-01
 
 ### Added — SMTP provider presets (auto-fill)
