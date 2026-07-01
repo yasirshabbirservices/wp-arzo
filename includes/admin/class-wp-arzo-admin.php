@@ -1329,14 +1329,20 @@ class WP_Arzo_Admin
         if (!current_user_can('manage_options')) {
             wp_die('You do not have sufficient permissions to access this page.');
         }
-        $tab  = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'connections';
+        // Default-tab best practice: land on the most useful tab. Once at least one
+        // connection exists, that's the Log (what's happening); with none, send the user
+        // to Connections so they meet the setup wizard. Logs is listed first either way.
+        $conn         = $this->connections();
+        $has_conn     = $conn ? $conn->count() > 0 : false;
+        $default_tab  = $has_conn ? 'logs' : 'connections';
+        $tab          = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : $default_tab;
         $tabs = array(
-            'connections' => array('label' => 'Connections', 'icon' => 'mail'),
             'logs'        => array('label' => 'Logs', 'icon' => 'list'),
+            'connections' => array('label' => 'Connections', 'icon' => 'mail'),
             'settings'    => array('label' => 'Settings', 'icon' => 'settings'),
         );
         if (!isset($tabs[$tab])) {
-            $tab = 'connections';
+            $tab = $default_tab;
         }
         $base = admin_url('admin.php?page=' . self::PAGE_EMAIL);
 
@@ -1462,7 +1468,7 @@ class WP_Arzo_Admin
                                     <button type="button" class="wpa-provider-card wpa-ewiz-provider" data-provider="<?php echo esc_attr($key); ?>">
                                         <span class="wpa-provider-card__icon"><?php echo wp_arzo_icon($def['icon'], array('class' => 'wpa-icon')); ?></span>
                                         <span class="wpa-provider-card__name"><?php echo esc_html($def['label']); ?></span>
-                                        <?php if (!empty($def['badge'])) : ?><span class="wpa-badge wpa-badge--neutral wpa-provider-card__badge"><?php echo esc_html($def['badge']); ?></span><?php endif; ?>
+                                        <?php if (!empty($def['badge'])) : ?><span class="wpa-badge wpa-badge--<?php echo $def['badge'] === 'Recommended' ? 'success' : 'neutral'; ?> wpa-provider-card__badge"><?php echo esc_html($def['badge']); ?></span><?php endif; ?>
                                     </button>
                                 <?php endforeach; ?>
                             </div>
@@ -1557,7 +1563,7 @@ class WP_Arzo_Admin
                             <button type="button" class="wpa-provider-card" data-provider="<?php echo esc_attr($key); ?>">
                                 <span class="wpa-provider-card__icon"><?php echo wp_arzo_icon($def['icon'], array('class' => 'wpa-icon')); ?></span>
                                 <span class="wpa-provider-card__name"><?php echo esc_html($def['label']); ?></span>
-                                <?php if (!empty($def['badge'])) : ?><span class="wpa-badge wpa-badge--neutral wpa-provider-card__badge"><?php echo esc_html($def['badge']); ?></span><?php endif; ?>
+                                <?php if (!empty($def['badge'])) : ?><span class="wpa-badge wpa-badge--<?php echo $def['badge'] === 'Recommended' ? 'success' : 'neutral'; ?> wpa-provider-card__badge"><?php echo esc_html($def['badge']); ?></span><?php endif; ?>
                             </button>
                         <?php endforeach; ?>
                     </div>

@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.76.0] — 2026-07-02
+
+### Changed — Email UX: sensible default tab + Brevo recommended
+
+- The **Email** page now lists **Logs** first and lands there by default once you have a
+  connection (with none, it defaults to **Connections** so you meet the setup wizard) — instead
+  of always opening on Connections. This "most-useful-tab-first / state-aware default" is now a
+  documented convention for every multi-tab page.
+- **Brevo** is now the **Recommended** provider (green badge) and appears at the top of the
+  provider picker + onboarding wizard — a reliable free-tier API sender that avoids SMTP
+  port/auth headaches.
+- Documented two structural conventions in CLAUDE.md: **consolidate menus** (group related
+  config into one tabbed parent page rather than a menu per feature) and **keep the docs
+  learning** (record new patterns/gotchas/dedup checks every change set).
+
 ## [6.75.0] — 2026-07-02
 
 ### Added — advertise Two-Factor Authentication (Pro)
