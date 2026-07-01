@@ -102,7 +102,7 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'media_folders', 'title' => 'Media Folders', 'group' => 'media', 'icon' => 'folder', 'description' => 'Organise the media library into nestable folders, with library filters and per-file assignment.'),
 
         // Branding & UI
-        array('id' => 'admin_branding', 'title' => 'Admin Branding & Dashboard', 'group' => 'branding', 'icon' => 'sparkles', 'description' => 'White-label wp-admin: accent color, custom footer, and a branded Custom Dashboard.'),
+        array('id' => 'admin_branding', 'title' => 'Admin Branding & Dashboard', 'group' => 'branding', 'icon' => 'sparkles', 'description' => 'White-label wp-admin: accent color, custom footer, and a branded Custom Dashboard with ready-made welcome-panel presets.'),
         array('id' => 'text_replacement', 'title' => 'Text Replacement (White-label)', 'group' => 'branding', 'icon' => 'edit', 'description' => 'Rebrand wp-admin — replace any text (e.g. “WordPress” → your brand) across menus, toolbar and labels.'),
 
         // Ops & Monitoring
