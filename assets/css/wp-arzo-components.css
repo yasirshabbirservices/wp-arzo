@@ -418,3 +418,87 @@
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ------------------------------------------------------------- Modal + Drawer
+   Overlay surfaces used by the Email → Connections provider picker (modal) and
+   the connection config form (right-side drawer). */
+.wpa-modal,
+.wpa-drawer { position: fixed; inset: 0; z-index: var(--arzo-z-modal); }
+.wpa-modal[hidden],
+.wpa-drawer[hidden] { display: none; }
+.wpa-modal__backdrop,
+.wpa-drawer__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  animation: wpa-fade-in var(--arzo-transition) ease;
+}
+.wpa-modal__panel {
+  position: relative;
+  max-width: min(720px, calc(100vw - 2 * var(--arzo-space-4)));
+  margin: max(6vh, var(--arzo-space-8)) auto 0;
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-lg);
+  box-shadow: var(--arzo-shadow-lg);
+  animation: wpa-pop-in var(--arzo-transition) ease;
+  max-height: 84vh; display: flex; flex-direction: column;
+}
+.wpa-modal__head,
+.wpa-drawer__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--arzo-space-3);
+  padding: var(--arzo-space-4) var(--arzo-space-5);
+  border-bottom: 1px solid var(--arzo-border);
+}
+.wpa-modal__head h2,
+.wpa-drawer__head h2 { margin: 0; font-size: var(--arzo-fs-lg); }
+
+/* Provider picker grid */
+.wpa-provider-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--arzo-space-3);
+  padding: var(--arzo-space-5);
+  overflow-y: auto;
+}
+.wpa-provider-card {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start;
+  gap: var(--arzo-space-2);
+  padding: var(--arzo-space-4);
+  background: var(--arzo-bg-elev);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius);
+  color: var(--arzo-text-primary);
+  cursor: pointer; text-align: left;
+  transition: border-color var(--arzo-transition) ease, transform var(--arzo-transition) ease, background var(--arzo-transition) ease;
+}
+.wpa-provider-card:hover { border-color: var(--arzo-accent); transform: translateY(-1px); background: var(--arzo-bg-hover); }
+.wpa-provider-card:focus-visible { outline: 2px solid var(--arzo-focus-ring); outline-offset: 2px; }
+.wpa-provider-card__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: var(--arzo-radius-sm);
+  background: var(--arzo-bg-input); color: var(--arzo-accent);
+}
+.wpa-provider-card__name { font-weight: 600; font-size: var(--arzo-fs-md); line-height: 1.25; }
+.wpa-provider-card__badge { position: absolute; top: var(--arzo-space-2); right: var(--arzo-space-2); }
+
+/* Right-side drawer */
+.wpa-drawer__panel {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: min(480px, calc(100vw - var(--arzo-space-6)));
+  background: var(--arzo-bg-panel);
+  border-left: 1px solid var(--arzo-border-strong);
+  box-shadow: var(--arzo-shadow-lg);
+  display: flex; flex-direction: column;
+  animation: wpa-slide-in var(--arzo-transition) ease;
+}
+.wpa-drawer__body { padding: var(--arzo-space-5); overflow-y: auto; flex: 1; }
+.wpa-drawer__foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--arzo-space-3);
+  padding: var(--arzo-space-4) var(--arzo-space-5);
+  border-top: 1px solid var(--arzo-border);
+}
+
+@keyframes wpa-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wpa-pop-in { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes wpa-slide-in { from { transform: translateX(24px); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }

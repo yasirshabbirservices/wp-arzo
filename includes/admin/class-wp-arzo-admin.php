@@ -29,6 +29,7 @@ class WP_Arzo_Admin
     const PAGE_ROLES = 'wp-arzo-roles';
     const PAGE_CONFIG = 'wp-arzo-config';
     const PAGE_LOGIN_SECURITY = 'wp-arzo-login-security';
+    const PAGE_EMAIL = 'wp-arzo-email';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
@@ -42,6 +43,7 @@ class WP_Arzo_Admin
     const NONCE_ROLES = 'wp_arzo_roles';
     const NONCE_CONFIG = 'wp_arzo_config';
     const NONCE_LOGIN_SECURITY = 'wp_arzo_login_security';
+    const NONCE_EMAIL_CONN = 'wp_arzo_email_conn';
 
     public static function instance()
     {
@@ -82,6 +84,11 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_role_delete', array($this, 'ajax_role_delete'));
         add_action('wp_ajax_wp_arzo_config_export', array($this, 'ajax_config_export'));
         add_action('wp_ajax_wp_arzo_config_import', array($this, 'ajax_config_import'));
+        add_action('wp_ajax_wp_arzo_conn_save', array($this, 'ajax_conn_save'));
+        add_action('wp_ajax_wp_arzo_conn_delete', array($this, 'ajax_conn_delete'));
+        add_action('wp_ajax_wp_arzo_conn_primary', array($this, 'ajax_conn_primary'));
+        add_action('wp_ajax_wp_arzo_conn_reorder', array($this, 'ajax_conn_reorder'));
+        add_action('wp_ajax_wp_arzo_conn_test', array($this, 'ajax_conn_test'));
     }
 
     private function registry()
@@ -144,6 +151,9 @@ class WP_Arzo_Admin
         if ($this->page_visible(self::PAGE_MEDIA)) {
             add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'), 35);
         }
+        if ($this->page_visible(self::PAGE_EMAIL)) {
+            add_submenu_page(self::PAGE, 'Email', 'Email', 'manage_options', self::PAGE_EMAIL, array($this, 'render_email_connections'), 44);
+        }
         if ($this->page_visible(self::PAGE_EMAIL_LOG)) {
             add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'), 45);
         }
@@ -190,6 +200,7 @@ class WP_Arzo_Admin
             self::PAGE_SNIPPETS     => 30,
             self::PAGE_MEDIA        => 35,
             'wp-arzo-redirects'     => 40,  // Pro
+            self::PAGE_EMAIL        => 44,
             self::PAGE_EMAIL_LOG    => 45,
             self::PAGE_BACKUPS      => 50,
             'wp-arzo-cron'          => 55,  // Pro
@@ -227,6 +238,7 @@ class WP_Arzo_Admin
             self::PAGE_REST_AUTH => array('rest_api_auth'),
             self::PAGE_ROLES     => array('role_manager'),
             self::PAGE_LOGIN_SECURITY => array('limit_login'),
+            self::PAGE_EMAIL     => array('smtp'),
             // PAGE_CONFIG is intentionally NOT mapped — Config Import/Export is always available.
         );
     }
@@ -293,6 +305,8 @@ class WP_Arzo_Admin
             'restNonce'    => wp_create_nonce(self::NONCE_REST),
             'rolesNonce'   => wp_create_nonce(self::NONCE_ROLES),
             'configNonce'  => wp_create_nonce(self::NONCE_CONFIG),
+            'connNonce'    => wp_create_nonce(self::NONCE_EMAIL_CONN),
+            'adminEmail'   => get_option('admin_email'),
         ));
     }
 
@@ -1192,6 +1206,211 @@ class WP_Arzo_Admin
         }
         update_option('wp_arzo_email_log', array(), false);
         wp_send_json_success(array('message' => 'Email log cleared.'));
+    }
+
+    /* ------------------------------------------------ Email Connections */
+
+    private function connections()
+    {
+        return class_exists('WP_Arzo_Email_Connections') ? WP_Arzo_Email_Connections::instance() : null;
+    }
+
+    public function render_email_connections()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $engine = $this->connections();
+        if (!$engine) {
+            echo '<div class="wrap wpa-admin"><p>Email engine unavailable.</p></div>';
+            return;
+        }
+        $enabled     = $this->registry()->is_enabled('smtp');
+        $providers   = WP_Arzo_Email_Connections::providers();
+        $connections = $engine->all();
+
+        // Provider schemas + existing connection values (secrets stripped) for the JS drawer.
+        $schemas = array();
+        foreach ($providers as $key => $def) {
+            $schemas[$key] = array(
+                'label'     => $def['label'],
+                'transport' => $def['transport'],
+                'fields'    => WP_Arzo_Email_Connections::fields_for($key),
+            );
+        }
+        $conn_js = array();
+        foreach ($connections as $i => $c) {
+            foreach (array('password', 'api_key') as $secret) {
+                if (isset($c[$secret]) && $c[$secret] !== '') {
+                    $c[$secret] = '';
+                    $c['_has_' . $secret] = true;
+                }
+            }
+            $c['_primary'] = ($i === 0);
+            $conn_js[] = $c;
+        }
+        ?>
+        <div class="wrap wpa-admin">
+            <?php $this->render_brand_bar(); ?>
+            <?php $this->render_shell_open('email'); ?>
+
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Email</h1>
+                    <p class="wpa-admin__subtitle"><strong><?php echo count($connections); ?></strong> connection(s)<?php echo $enabled ? '' : ' · the “Email Delivery” feature is OFF, so nothing is routed (enable it on the dashboard)'; ?></p>
+                </div>
+                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-add"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add connection</button>
+            </div>
+
+            <?php if (empty($connections)) : ?>
+                <div class="wpa-card" style="text-align:center;padding:40px 24px;">
+                    <div style="margin:0 auto 12px;width:48px;height:48px;color:var(--arzo-accent);"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon', 'style' => 'width:48px;height:48px;')); ?></div>
+                    <h2 style="margin:0 0 6px;">Connect your first email provider</h2>
+                    <p style="color:var(--arzo-text-muted);max-width:46ch;margin:0 auto 18px;">Route WordPress email through a reliable provider — Gmail, Outlook, Amazon SES, SendGrid and more. Add several and WP Arzo falls back automatically if one fails.</p>
+                    <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-add-empty"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add connection</button>
+                </div>
+            <?php else : ?>
+                <div class="wpa-card" style="padding:0;overflow:hidden;">
+                    <table class="wpa-backup-table">
+                        <thead><tr><th></th><th>Connection</th><th>Provider</th><th>From</th><th>Priority</th><th></th></tr></thead>
+                        <tbody>
+                            <?php foreach ($connections as $i => $c) :
+                                $pdef = isset($providers[$c['provider']]) ? $providers[$c['provider']] : array('label' => $c['provider'], 'icon' => 'mail');
+                                ?>
+                                <tr data-conn="<?php echo esc_attr($c['id']); ?>">
+                                    <td style="width:34px;color:var(--arzo-accent);"><?php echo wp_arzo_icon($pdef['icon'], array('class' => 'wpa-icon')); ?></td>
+                                    <td><strong style="color:var(--arzo-text-strong);"><?php echo esc_html($c['title']); ?></strong></td>
+                                    <td><?php echo esc_html($pdef['label']); ?></td>
+                                    <td style="color:var(--arzo-text-muted);"><?php echo esc_html(!empty($c['from_email']) ? $c['from_email'] : '—'); ?></td>
+                                    <td>
+                                        <?php if ($i === 0) : ?>
+                                            <span class="wpa-badge wpa-badge--success"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon')); ?> Primary</span>
+                                        <?php else : ?>
+                                            <span class="wpa-badge wpa-badge--neutral">Fallback <?php echo (int) $i; ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="wpa-backup-actions" style="white-space:nowrap;">
+                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-test" data-id="<?php echo esc_attr($c['id']); ?>"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> Test</button>
+                                        <?php if ($i !== 0) : ?>
+                                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-primary" data-id="<?php echo esc_attr($c['id']); ?>">Make primary</button>
+                                        <?php endif; ?>
+                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-edit" data-id="<?php echo esc_attr($c['id']); ?>"><?php echo wp_arzo_icon('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-conn-delete" data-id="<?php echo esc_attr($c['id']); ?>" aria-label="Delete connection"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="wpa-field__help" style="margin-top:12px;">Connections are tried top-to-bottom: the <strong>Primary</strong> sends your mail, and if it fails the next connection is tried automatically. “Make primary” reorders them.</p>
+            <?php endif; ?>
+
+            <!-- Provider picker (radio cards) -->
+            <div class="wpa-modal" id="wpa-conn-picker" hidden>
+                <div class="wpa-modal__backdrop" data-conn-close></div>
+                <div class="wpa-modal__panel" role="dialog" aria-modal="true" aria-label="Choose an email provider">
+                    <div class="wpa-modal__head">
+                        <h2>Choose a provider</h2>
+                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-conn-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                    </div>
+                    <div class="wpa-provider-grid">
+                        <?php foreach ($providers as $key => $def) : ?>
+                            <button type="button" class="wpa-provider-card" data-provider="<?php echo esc_attr($key); ?>">
+                                <span class="wpa-provider-card__icon"><?php echo wp_arzo_icon($def['icon'], array('class' => 'wpa-icon')); ?></span>
+                                <span class="wpa-provider-card__name"><?php echo esc_html($def['label']); ?></span>
+                                <?php if (!empty($def['badge'])) : ?><span class="wpa-badge wpa-badge--neutral wpa-provider-card__badge"><?php echo esc_html($def['badge']); ?></span><?php endif; ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Config drawer (form built by JS) -->
+            <div class="wpa-drawer" id="wpa-conn-drawer" hidden>
+                <div class="wpa-drawer__backdrop" data-conn-close></div>
+                <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-label="Configure connection">
+                    <div class="wpa-drawer__head">
+                        <h2 id="wpa-conn-drawer-title">Configure</h2>
+                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-conn-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                    </div>
+                    <form class="wpa-drawer__body" id="wpa-conn-form"><!-- fields injected here --></form>
+                    <div class="wpa-drawer__foot">
+                        <button type="button" class="wpa-btn wpa-btn--ghost" data-conn-back>Back</button>
+                        <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-save"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save connection</button>
+                    </div>
+                </div>
+            </div>
+
+            <script>window.wpArzoConn = <?php echo wp_json_encode(array('providers' => $schemas, 'connections' => $conn_js)); ?>;</script>
+            <?php $this->render_shell_close(); ?>
+        </div>
+        <?php
+    }
+
+    private function verify_conn_request()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL_CONN, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+    }
+
+    public function ajax_conn_save()
+    {
+        $this->verify_conn_request();
+        $engine = $this->connections();
+        if (!$engine) {
+            wp_send_json_error(array('message' => 'Engine unavailable'), 500);
+        }
+        $data = isset($_POST['fields']) && is_array($_POST['fields']) ? wp_unslash($_POST['fields']) : array();
+        $data['provider'] = isset($_POST['provider']) ? sanitize_key(wp_unslash($_POST['provider'])) : '';
+        $data['id']       = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        $res = $engine->save($data);
+        if (is_wp_error($res)) {
+            wp_send_json_error(array('message' => $res->get_error_message()));
+        }
+        wp_send_json_success(array('id' => $res));
+    }
+
+    public function ajax_conn_delete()
+    {
+        $this->verify_conn_request();
+        $engine = $this->connections();
+        $ok = $engine && $engine->delete(isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '');
+        wp_send_json_success(array('deleted' => (bool) $ok));
+    }
+
+    public function ajax_conn_primary()
+    {
+        $this->verify_conn_request();
+        $engine = $this->connections();
+        $ok = $engine && $engine->set_primary(isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '');
+        wp_send_json_success(array('ok' => (bool) $ok));
+    }
+
+    public function ajax_conn_reorder()
+    {
+        $this->verify_conn_request();
+        $engine = $this->connections();
+        $ids = isset($_POST['ids']) && is_array($_POST['ids']) ? array_map('sanitize_text_field', wp_unslash($_POST['ids'])) : array();
+        $ok = $engine && $engine->reorder($ids);
+        wp_send_json_success(array('ok' => (bool) $ok));
+    }
+
+    public function ajax_conn_test()
+    {
+        $this->verify_conn_request();
+        $engine = $this->connections();
+        if (!$engine) {
+            wp_send_json_error(array('message' => 'Engine unavailable'), 500);
+        }
+        $res = $engine->test(
+            isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '',
+            isset($_POST['to']) ? sanitize_email(wp_unslash($_POST['to'])) : ''
+        );
+        if (is_wp_error($res)) {
+            wp_send_json_error(array('message' => $res->get_error_message()));
+        }
+        wp_send_json_success(array('message' => 'Test email sent — check the inbox.'));
     }
 
     /* --------------------------------------------------- Login Security */
