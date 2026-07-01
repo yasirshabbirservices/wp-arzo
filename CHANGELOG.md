@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.72.0] — 2026-07-02
+
+### Changed — Activity Log now tracks all site activity (not just plugin activity)
+
+- The Activity Log captures a much broader event set: **password resets & profile updates**;
+  **post updates & permanent deletes** (in addition to publish/trash), **media uploads/deletes**,
+  **category/tag create & delete**; **comments** (posted, approved/unapproved, spam, trashed,
+  deleted); **plugin/theme deletes** and **install/update of plugins, themes & WordPress core**
+  (via `upgrader_process_complete`); and **settings changes** to a curated set of important
+  options, **menu edits**, and **site exports**. Noisy sources are guarded (autosaves/revisions
+  skipped; only whitelisted options; status-transition edits not double-logged).
+- Each event type has its own badge tone + icon. The Pro **Advanced Audit Log** mirrors all of
+  these into its DB table automatically (via `wp_arzo_activity_recorded`), so its filters/export
+  cover the full activity set with no extra code.
+- New settings toggles let you scope what's logged: **authentication, users, content, comments,
+  plugins & themes, settings & site changes** (the settings schema now renders correctly, too).
+
 ## [6.71.0] — 2026-07-02
 
 ### Changed — Clean feature pages (no brand header or sidebar)
