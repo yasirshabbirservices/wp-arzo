@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.50.0] — 2026-07-01
+
+### Added — Conditional settings fields (`show_if`)
+- Settings fields can now **reveal based on another field's value** — a schema field may
+  declare `'show_if' => array('field' => 'x', 'value' => 'y')` (or a list of conditions, ALL
+  of which must match). Toggled live in JS; hidden fields still submit, so switching back
+  preserves values. Applied to **SMTP** (username/password appear only with auth; the whole
+  backup section only when the backup connection is enabled; backup credentials need both
+  backup + backup-auth; the failure address only when notifications are on) and to the Pro
+  **API Email Providers** (Mailgun domain/region show only for Mailgun, etc.).
+
+### Changed
+- **Removed the dashboard sidebar collapse/expand toggle** — the rail is a compact
+  category filter and didn't need it.
+- **Emergency Recovery page** now matches the dashboard/console **brand bar** (logo + "WP
+  Arzo" + a "Recovery Mode" pill + version + GitHub + Logout); dropped the redundant `<h1>`
+  and fixed the GitHub URL.
+
 ## [6.49.0] — 2026-07-01
 
 ### Added — `.wpa-check` checkbox chips (component)

@@ -876,6 +876,20 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             color: #999;
         }
 
+        /* Recovery-mode pill in the brand bar (accent fill, dark text per brand rules). */
+        .badge-recovery {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+            padding: 2px 9px;
+            border-radius: var(--radius-pill, 999px);
+            background: var(--accent-color);
+            color: var(--background-dark);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
         /* Branding Header */
         .developer-info {
             display: flex;
@@ -898,7 +912,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         .developer-logo img {
             width: 40px;
             height: 40px;
-            border-radius: 50%;
+            border-radius: 10px;
         }
 
         .developer-logo a {
@@ -1128,18 +1142,18 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         </div>
     <?php else: ?>
         <div class="container">
-            <!-- Branding Header -->
+            <!-- Branding Header (matches the dashboard/console brand bar) -->
             <div class="developer-info">
                 <div class="developer-logo">
                     <img src="<?php echo get_asset_url('wp-arzo-glyph.svg'); ?>" alt="WP Arzo">
                     <div>
-                        <div>WP Arzo</div>
+                        <div><strong>WP Arzo</strong> <span class="badge-recovery">Recovery Mode</span></div>
                         <a href="https://yasirshabbir.com" target="_blank" rel="noopener">by Yasir Shabbir</a>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:10px;">
+                <div style="display:flex; align-items:center; gap:12px;">
                     <span style="color:var(--accent-color);">v<?php echo WP_ARZO_EMERGENCY_VERSION; ?></span>
-                    <a href="https://github.com/yasirshabbir/wp-arzo" target="_blank"
+                    <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
                         style="text-decoration:none; color:var(--primary-text); display:flex; align-items:center; gap:5px;">
                         <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
                             <path
@@ -1148,15 +1162,11 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                         </svg>
                         GitHub
                     </a>
+                    <?php if ($is_authenticated): ?>
+                        <form method="post" style="margin:0;"><input type="hidden" name="action" value="logout"><button
+                                type="submit" class="btn btn-danger btn-sm">Logout</button></form>
+                    <?php endif; ?>
                 </div>
-            </div>
-
-            <div class="flex-between" style="margin-bottom: 20px;">
-                <h1>WP Arzo - Administration Suite (Recovery Mode)</h1>
-                <?php if ($is_authenticated): ?>
-                    <form method="post" style="margin:0;"><input type="hidden" name="action" value="logout"><button
-                            type="submit" class="btn btn-danger">Logout</button></form>
-                <?php endif; ?>
             </div>
 
             <?php if ($success_msg) echo "<div class='alert alert-success'>$success_msg</div>"; ?>
