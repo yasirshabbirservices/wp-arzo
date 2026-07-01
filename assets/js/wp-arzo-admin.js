@@ -456,21 +456,148 @@
 
   // -------------------------------------------------- Email log
   function bindEmailLog() {
-    var btn = document.getElementById('wpa-email-clear');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      if (!confirm('Clear the entire email log?')) return;
-      btn.disabled = true;
+    var clearBtn = document.getElementById('wpa-email-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        if (!confirm('Clear the entire email log?')) return;
+        clearBtn.disabled = true;
+        var body = new FormData();
+        body.append('action', 'wp_arzo_email_log_clear');
+        body.append('nonce', clearBtn.dataset.nonce || '');
+        fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res && res.success) { toast('Email log cleared', 'success'); reload(600); }
+            else { clearBtn.disabled = false; toast('Could not clear log', 'error'); }
+          })
+          .catch(function () { clearBtn.disabled = false; toast('Request failed', 'error'); });
+      });
+    }
+
+    var table = document.getElementById('wpa-emaillog-table');
+    if (!table) return;
+    var rows = Array.prototype.slice.call(table.querySelectorAll('tr.wpa-email-row'));
+    if (!rows.length) return;
+
+    // ---- Search + status filtering -------------------------------------
+    var search = document.getElementById('wpa-emaillog-search');
+    var status = document.getElementById('wpa-emaillog-status');
+    var emptyEl = document.getElementById('wpa-emaillog-empty');
+    function applyFilter() {
+      var q = (search && search.value ? search.value : '').trim().toLowerCase();
+      var st = status && status.value ? status.value : 'all';
+      var shown = 0;
+      rows.forEach(function (row) {
+        var okText = !q || (row.getAttribute('data-filter') || '').indexOf(q) !== -1;
+        var okStat = st === 'all' || row.getAttribute('data-status') === st;
+        var vis = okText && okStat;
+        row.hidden = !vis;
+        if (vis) shown++;
+      });
+      if (emptyEl) emptyEl.hidden = shown !== 0;
+    }
+    if (search) search.addEventListener('input', applyFilter);
+    if (status) status.addEventListener('change', applyFilter);
+
+    // ---- Row-click detail drawer ---------------------------------------
+    var drawer = document.getElementById('wpa-emaillog-drawer');
+    var detail = document.getElementById('wpa-emaillog-detail');
+    var titleEl = document.getElementById('wpa-emaillog-drawer-title');
+    var resendBtn = document.getElementById('wpa-emaillog-resend');
+    if (!drawer || !detail) return;
+
+    function closeDrawer() { drawer.hidden = true; }
+    drawer.querySelectorAll('[data-maillog-close]').forEach(function (el) {
+      el.addEventListener('click', closeDrawer);
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !drawer.hidden) closeDrawer(); });
+
+    function detailRow(label, value, opts) {
+      opts = opts || {};
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--arzo-border,rgba(255,255,255,.08));';
+      var l = document.createElement('div');
+      l.textContent = label;
+      l.style.cssText = 'flex:0 0 96px;color:var(--arzo-text-muted);font-size:13px;';
+      var v = document.createElement('div');
+      v.style.cssText = 'flex:1;min-width:0;word-break:break-word;' + (opts.color ? 'color:' + opts.color + ';' : '');
+      if (opts.html) { v.appendChild(opts.html); } else { v.textContent = value; }
+      wrap.appendChild(l); wrap.appendChild(v);
+      return wrap;
+    }
+
+    function openRow(id) {
+      detail.innerHTML = '';
+      var loading = document.createElement('p');
+      loading.textContent = 'Loading…';
+      loading.style.color = 'var(--arzo-text-muted)';
+      detail.appendChild(loading);
+      drawer.hidden = false;
+      if (resendBtn) { resendBtn.dataset.id = id; resendBtn.disabled = true; resendBtn.hidden = true; }
+
       var body = new FormData();
-      body.append('action', 'wp_arzo_email_log_clear');
-      body.append('nonce', btn.dataset.nonce || '');
+      body.append('action', 'wp_arzo_email_log_detail');
+      body.append('nonce', drawer.dataset.nonce || '');
+      body.append('id', id);
       fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (res) {
-          if (res && res.success) { toast('Email log cleared', 'success'); reload(600); }
-          else { btn.disabled = false; toast('Could not clear log', 'error'); }
+          detail.innerHTML = '';
+          if (!res || !res.success || !res.data) {
+            var err = document.createElement('p');
+            err.textContent = (res && res.data && res.data.message) || 'Could not load this email.';
+            err.style.color = 'var(--arzo-error)';
+            detail.appendChild(err);
+            return;
+          }
+          var d = res.data;
+          var failed = d.status === 'failed';
+          if (titleEl) titleEl.textContent = d.subject || '(no subject)';
+
+          var badge = document.createElement('span');
+          badge.className = 'wpa-badge ' + (failed ? 'wpa-badge--error' : 'wpa-badge--success');
+          badge.textContent = failed ? 'Failed' : 'Sent';
+          detail.appendChild(detailRow('Status', '', { html: badge }));
+          detail.appendChild(detailRow('Time', d.time || ''));
+          detail.appendChild(detailRow('To', d.to || ''));
+          detail.appendChild(detailRow('Subject', d.subject || ''));
+          detail.appendChild(detailRow('Connection', d.connection || '—'));
+          if (failed && d.error) detail.appendChild(detailRow('Error', d.error, { color: 'var(--arzo-error)' }));
+          if (d.headers) {
+            var pre = document.createElement('pre');
+            pre.textContent = d.headers;
+            pre.style.cssText = 'margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;color:var(--arzo-text-muted);';
+            detail.appendChild(detailRow('Headers', '', { html: pre }));
+          }
+          var bodyPre = document.createElement('pre');
+          bodyPre.textContent = d.message || '(empty body)';
+          bodyPre.style.cssText = 'margin:0;max-height:320px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:13px;background:var(--arzo-surface-2,rgba(255,255,255,.04));padding:12px;border-radius:8px;';
+          var bwrap = document.createElement('div');
+          bwrap.style.cssText = 'padding-top:12px;';
+          var blabel = document.createElement('div');
+          blabel.textContent = 'Message';
+          blabel.style.cssText = 'color:var(--arzo-text-muted);font-size:13px;margin-bottom:6px;';
+          bwrap.appendChild(blabel); bwrap.appendChild(bodyPre);
+          detail.appendChild(bwrap);
+
+          if (resendBtn) { resendBtn.hidden = !d.resendable; resendBtn.disabled = !d.resendable; resendBtn.dataset.id = d.id; }
         })
-        .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+        .catch(function () {
+          detail.innerHTML = '';
+          var err = document.createElement('p');
+          err.textContent = 'Request failed.';
+          err.style.color = 'var(--arzo-error)';
+          detail.appendChild(err);
+        });
+    }
+
+    rows.forEach(function (row) {
+      var id = row.getAttribute('data-id');
+      if (!id) return;
+      row.addEventListener('click', function () { openRow(id); });
+      row.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRow(id); }
+      });
     });
   }
 

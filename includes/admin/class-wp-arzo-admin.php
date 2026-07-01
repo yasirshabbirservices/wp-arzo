@@ -69,6 +69,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
         add_action('wp_ajax_wp_arzo_backup_delete', array($this, 'ajax_backup_delete'));
         add_action('wp_ajax_wp_arzo_email_log_clear', array($this, 'ajax_email_log_clear'));
+        add_action('wp_ajax_wp_arzo_email_log_detail', array($this, 'ajax_email_log_detail'));
         add_action('wp_ajax_wp_arzo_activate_license', array($this, 'ajax_activate_license'));
         add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
         add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
@@ -1129,12 +1130,21 @@ class WP_Arzo_Admin
             $log = array();
         }
         $failed_count = 0;
+        $by_conn = array(); // connection label => ['sent'=>n,'failed'=>n]
         foreach ($log as $row) {
-            if (isset($row['status']) && $row['status'] === 'failed') {
+            $failed = (isset($row['status']) && $row['status'] === 'failed');
+            if ($failed) {
                 $failed_count++;
             }
+            $label = (isset($row['connection']) && $row['connection'] !== '') ? (string) $row['connection'] : '—';
+            if (!isset($by_conn[$label])) {
+                $by_conn[$label] = array('sent' => 0, 'failed' => 0);
+            }
+            $by_conn[$label][$failed ? 'failed' : 'sent']++;
         }
-        $sent_count = count($log) - $failed_count;
+        $total       = count($log);
+        $sent_count  = $total - $failed_count;
+        $pct_sent    = $total > 0 ? round(($sent_count / $total) * 100) : 0;
         $email_nonce = wp_create_nonce(self::NONCE_EMAIL);
         ?>
             <div class="wpa-admin__bar">
@@ -1153,10 +1163,51 @@ class WP_Arzo_Admin
                 <?php endif; ?>
             </div>
 
+            <?php if (!empty($log)) : ?>
+                <!-- Deliverability summary: success bar + per-connection breakdown -->
+                <div class="wpa-card" style="margin-bottom:16px;">
+                    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                        <div style="flex:1 1 220px;min-width:200px;">
+                            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--arzo-text-muted);margin-bottom:6px;">
+                                <span>Deliverability</span><span><strong style="color:var(--arzo-text-strong);"><?php echo (int) $pct_sent; ?>%</strong> delivered</span>
+                            </div>
+                            <div class="wpa-meter" style="height:10px;border-radius:999px;overflow:hidden;background:var(--arzo-surface-2,rgba(255,255,255,.06));display:flex;">
+                                <span style="width:<?php echo (int) $pct_sent; ?>%;background:var(--arzo-success);"></span>
+                                <span style="width:<?php echo (int) (100 - $pct_sent); ?>%;background:var(--arzo-error);"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <?php if (!empty($by_conn)) : ?>
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
+                            <?php foreach ($by_conn as $label => $c) : ?>
+                                <span class="wpa-badge wpa-badge--neutral" title="<?php echo esc_attr(sprintf('%d sent · %d failed', $c['sent'], $c['failed'])); ?>">
+                                    <?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?>
+                                    <?php echo esc_html($label); ?>
+                                    <strong style="margin-left:4px;color:var(--arzo-success);"><?php echo (int) $c['sent']; ?></strong>
+                                    <?php if ($c['failed']) : ?><strong style="margin-left:2px;color:var(--arzo-error);">/ <?php echo (int) $c['failed']; ?></strong><?php endif; ?>
+                                </span>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Filter toolbar -->
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+                    <div style="flex:1 1 240px;min-width:200px;position:relative;">
+                        <input type="search" id="wpa-emaillog-search" class="wpa-input" placeholder="Search recipient, subject or connection…" style="width:100%;" autocomplete="off" />
+                    </div>
+                    <select id="wpa-emaillog-status" class="wpa-input" data-wpa-select>
+                        <option value="all">All statuses</option>
+                        <option value="sent">Sent</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+            <?php endif; ?>
+
             <div class="wpa-card" style="padding:0;overflow:hidden;">
-                <table class="wpa-backup-table">
+                <table class="wpa-backup-table" id="wpa-emaillog-table">
                     <thead>
-                        <tr><th>Time (UTC)</th><th>To</th><th>Subject</th><th>Status</th><th></th></tr>
+                        <tr><th>Time (UTC)</th><th>To</th><th>Subject</th><th>Connection</th><th>Status</th></tr>
                     </thead>
                     <tbody>
                         <?php if (empty($log)) : ?>
@@ -1164,34 +1215,49 @@ class WP_Arzo_Admin
                         <?php else : foreach ($log as $row) :
                             $status = isset($row['status']) ? $row['status'] : 'sent';
                             $failed = ($status === 'failed');
+                            $id     = isset($row['id']) ? (string) $row['id'] : '';
+                            $conn   = (isset($row['connection']) && $row['connection'] !== '') ? (string) $row['connection'] : '';
+                            $needle = strtolower(($row['to'] ?? '') . ' ' . ($row['subject'] ?? '') . ' ' . $conn);
                             ?>
-                            <tr>
+                            <tr class="wpa-email-row" data-id="<?php echo esc_attr($id); ?>" data-status="<?php echo esc_attr($failed ? 'failed' : 'sent'); ?>" data-filter="<?php echo esc_attr($needle); ?>" tabindex="0" style="cursor:pointer;">
                                 <td><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['time'] ?? 0))); ?></td>
                                 <td><?php echo esc_html($row['to'] ?? ''); ?></td>
-                                <td>
-                                    <?php echo esc_html($row['subject'] ?? ''); ?>
-                                    <?php if ($failed && !empty($row['error'])) : ?>
-                                        <div class="wpa-backup-meta" style="color:var(--arzo-error)"><?php echo esc_html($row['error']); ?></div>
-                                    <?php endif; ?>
-                                </td>
+                                <td><?php echo esc_html($row['subject'] ?? ''); ?></td>
+                                <td style="color:var(--arzo-text-muted);"><?php echo $conn !== '' ? esc_html($conn) : '—'; ?></td>
                                 <td>
                                     <span class="wpa-badge <?php echo $failed ? 'wpa-badge--error' : 'wpa-badge--success'; ?>">
                                         <?php echo wp_arzo_icon($failed ? 'x' : 'check', array('class' => 'wpa-icon')); ?>
                                         <?php echo $failed ? 'Failed' : 'Sent'; ?>
                                     </span>
                                 </td>
-                                <td class="wpa-backup-actions">
-                                    <?php if (!empty($row['id']) && isset($row['message'])) : ?>
-                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-email-resend" data-id="<?php echo esc_attr($row['id']); ?>" data-nonce="<?php echo esc_attr($email_nonce); ?>">
-                                            <?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Resend
-                                        </button>
-                                    <?php endif; ?>
-                                </td>
                             </tr>
                         <?php endforeach; endif; ?>
                     </tbody>
                 </table>
+                <?php if (!empty($log)) : ?>
+                    <div id="wpa-emaillog-empty" hidden style="padding:24px;text-align:center;color:var(--arzo-text-muted);">No emails match your filter.</div>
+                <?php endif; ?>
             </div>
+
+            <?php if (!empty($log)) : ?>
+                <!-- Detail drawer (filled by JS from wp_arzo_email_log_detail) -->
+                <div class="wpa-drawer" id="wpa-emaillog-drawer" hidden data-nonce="<?php echo esc_attr($email_nonce); ?>">
+                    <div class="wpa-drawer__backdrop" data-maillog-close></div>
+                    <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-label="Email details">
+                        <div class="wpa-drawer__head">
+                            <h2 id="wpa-emaillog-drawer-title">Email details</h2>
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-maillog-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                        </div>
+                        <div class="wpa-drawer__body" id="wpa-emaillog-detail"><!-- filled by JS --></div>
+                        <div class="wpa-drawer__foot">
+                            <button type="button" class="wpa-btn wpa-btn--ghost" data-maillog-close>Close</button>
+                            <button type="button" class="wpa-btn wpa-btn--primary wpa-email-resend" id="wpa-emaillog-resend" data-id="" data-nonce="<?php echo esc_attr($email_nonce); ?>">
+                                <?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Resend
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         <?php
     }
 
@@ -1202,6 +1268,42 @@ class WP_Arzo_Admin
         }
         update_option('wp_arzo_email_log', array(), false);
         wp_send_json_success(array('message' => 'Email log cleared.'));
+    }
+
+    /** Return one logged email (for the Logs-tab detail drawer). */
+    public function ajax_email_log_detail()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $id  = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        $log = get_option('wp_arzo_email_log', array());
+        $entry = null;
+        foreach ((array) $log as $row) {
+            if (isset($row['id']) && $row['id'] === $id) {
+                $entry = $row;
+                break;
+            }
+        }
+        if (!$entry) {
+            wp_send_json_error(array('message' => 'Log entry not found.'), 404);
+        }
+        $headers = isset($entry['headers']) ? $entry['headers'] : '';
+        if (is_array($headers)) {
+            $headers = implode("\n", $headers);
+        }
+        wp_send_json_success(array(
+            'id'         => (string) ($entry['id'] ?? ''),
+            'time'       => gmdate('Y-m-d H:i:s', (int) ($entry['time'] ?? 0)) . ' UTC',
+            'to'         => (string) ($entry['to'] ?? ''),
+            'subject'    => (string) ($entry['subject'] ?? ''),
+            'status'     => (string) ($entry['status'] ?? 'sent'),
+            'error'      => (string) ($entry['error'] ?? ''),
+            'connection' => (string) ($entry['connection'] ?? ''),
+            'headers'    => (string) $headers,
+            'message'    => (string) ($entry['message'] ?? ''),
+            'resendable' => isset($entry['message']) && $entry['to'] !== '',
+        ));
     }
 
     /* ------------------------------------------------ Email Connections */
