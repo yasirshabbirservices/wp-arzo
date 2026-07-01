@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.65.0] — 2026-07-01
+
+### Changed — Snippets: Advanced-Scripts-style editor app
+- The **Snippets** page is rebuilt into a full editor app: a **CodeMirror** syntax-highlighted
+  code editor (dark theme, line numbers, mode switches automatically with the snippet Type —
+  PHP/CSS/JS/HTML) as the centrepiece, a compact meta panel (Title, **Description** (new),
+  Type, Run on, Priority, Active), and a **right-hand snippet list** with inline active
+  toggles and click-to-edit — all on one screen. Reference: erropix Advanced Scripts.
+- Snippets gain an optional **Description** field. The editor uses WordPress’s bundled
+  CodeMirror (`wp_enqueue_code_editor`), so it respects the user’s “disable syntax
+  highlighting” profile setting and adds no third-party editor.
+
 ## [6.64.0] — 2026-07-01
 
 ### Added — Email: multi-connection provider manager (SureMail-style UX)

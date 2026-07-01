@@ -66,13 +66,14 @@ class WP_Arzo_Snippets
         $scopes = array('everywhere', 'admin', 'front');
 
         $snippet = array(
-            'id'       => (isset($data['id']) && $data['id'] !== '') ? preg_replace('/[^a-z0-9_]/', '', $data['id']) : $this->generate_id(),
-            'title'    => sanitize_text_field(isset($data['title']) ? $data['title'] : 'Untitled'),
-            'type'     => in_array(($data['type'] ?? ''), $types, true) ? $data['type'] : 'php',
-            'scope'    => in_array(($data['scope'] ?? ''), $scopes, true) ? $data['scope'] : 'everywhere',
-            'priority' => isset($data['priority']) ? max(1, min(9999, (int) $data['priority'])) : 10,
-            'code'     => isset($data['code']) ? (string) $data['code'] : '',
-            'active'   => !empty($data['active']) ? 1 : 0,
+            'id'          => (isset($data['id']) && $data['id'] !== '') ? preg_replace('/[^a-z0-9_]/', '', $data['id']) : $this->generate_id(),
+            'title'       => sanitize_text_field(isset($data['title']) ? $data['title'] : 'Untitled'),
+            'description' => sanitize_text_field(isset($data['description']) ? $data['description'] : ''),
+            'type'        => in_array(($data['type'] ?? ''), $types, true) ? $data['type'] : 'php',
+            'scope'       => in_array(($data['scope'] ?? ''), $scopes, true) ? $data['scope'] : 'everywhere',
+            'priority'    => isset($data['priority']) ? max(1, min(9999, (int) $data['priority'])) : 10,
+            'code'        => isset($data['code']) ? (string) $data['code'] : '',
+            'active'      => !empty($data['active']) ? 1 : 0,
         );
 
         $list   = $this->get_all();

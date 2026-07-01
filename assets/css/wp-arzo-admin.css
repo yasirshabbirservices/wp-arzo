@@ -675,3 +675,104 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
 .wpa-media-summary { color: var(--arzo-text-secondary); font-size: var(--arzo-fs-sm); }
 .wpa-media-summary strong { color: var(--arzo-accent); }
 #wpa-media-table td:first-child, #wpa-media-table th:first-child { text-align: center; }
+
+/* ------------------------------------------------------------- Snippets app
+   Advanced-Scripts-style editor: code editor + meta on the left, snippet list
+   on the right, with a syntax-highlighted CodeMirror surface. */
+.wpa-code-app {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--arzo-space-4);
+  align-items: start;
+}
+.wpa-code-app__editor {
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-lg);
+  padding: var(--arzo-space-4);
+}
+.wpa-code-app__toolbar {
+  display: flex; align-items: center; gap: var(--arzo-space-3);
+  margin-bottom: var(--arzo-space-4);
+}
+.wpa-code-app__title { flex: 1; font-weight: 600; font-size: var(--arzo-fs-md); }
+.wpa-code-app__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--arzo-space-3);
+  margin-bottom: var(--arzo-space-4);
+}
+.wpa-code-app__meta .wpa-field { margin: 0; }
+.wpa-code-app__desc { grid-column: 1 / -1; }
+.wpa-code-app__code {
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius);
+  overflow: hidden;
+}
+.wpa-code-app__code textarea {
+  width: 100%; min-height: 360px;
+  font-family: var(--arzo-font-mono); font-size: 13px; line-height: 1.5;
+  border: 0; background: var(--arzo-bg-dark); color: var(--arzo-text-primary);
+  padding: var(--arzo-space-3);
+}
+
+/* Dark CodeMirror to match the admin theme. */
+.wpa-code-app .CodeMirror {
+  height: 440px;
+  background: var(--arzo-bg-dark);
+  color: var(--arzo-text-primary);
+  font-family: var(--arzo-font-mono); font-size: 13px; line-height: 1.55;
+  border-radius: var(--arzo-radius);
+}
+.wpa-code-app .CodeMirror-gutters { background: var(--arzo-bg-panel); border-right: 1px solid var(--arzo-border); }
+.wpa-code-app .CodeMirror-linenumber { color: var(--arzo-text-muted); }
+.wpa-code-app .CodeMirror-cursor { border-left-color: var(--arzo-accent); }
+.wpa-code-app .CodeMirror-selected { background: rgba(255, 255, 255, 0.08); }
+.wpa-code-app .CodeMirror-activeline-background { background: rgba(255, 255, 255, 0.03); }
+.wpa-code-app .cm-comment { color: var(--arzo-text-muted); font-style: italic; }
+.wpa-code-app .cm-keyword, .wpa-code-app .cm-builtin { color: #c792ea; }
+.wpa-code-app .cm-string, .wpa-code-app .cm-string-2 { color: #c3e88d; }
+.wpa-code-app .cm-number, .wpa-code-app .cm-atom { color: #f78c6c; }
+.wpa-code-app .cm-variable, .wpa-code-app .cm-variable-2 { color: var(--arzo-text-primary); }
+.wpa-code-app .cm-property { color: #82aaff; }
+.wpa-code-app .cm-tag { color: #f07178; }
+.wpa-code-app .cm-attribute { color: #ffcb6b; }
+.wpa-code-app .cm-def { color: #82aaff; }
+.wpa-code-app .cm-operator { color: #89ddff; }
+
+/* Snippet list sidebar */
+.wpa-code-app__list {
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-lg);
+  overflow: hidden;
+  position: sticky; top: var(--arzo-space-4);
+}
+.wpa-code-app__list-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--arzo-space-3) var(--arzo-space-4);
+  border-bottom: 1px solid var(--arzo-border);
+  font-weight: 600;
+}
+.wpa-code-app__list-body { max-height: 560px; overflow-y: auto; }
+.wpa-code-app__empty { color: var(--arzo-text-muted); padding: var(--arzo-space-4); margin: 0; }
+.wpa-code-item {
+  display: flex; align-items: center; gap: var(--arzo-space-2);
+  padding: var(--arzo-space-2) var(--arzo-space-3);
+  border-bottom: 1px solid var(--arzo-border);
+}
+.wpa-code-item:hover { background: var(--arzo-bg-hover); }
+.wpa-code-item.is-active { background: var(--arzo-bg-hover); box-shadow: inset 3px 0 0 var(--arzo-accent); }
+.wpa-code-item__main {
+  display: flex; align-items: center; gap: var(--arzo-space-2);
+  flex: 1; min-width: 0; text-decoration: none; color: var(--arzo-text-primary);
+}
+.wpa-code-item__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--arzo-fs-sm); }
+.wpa-code-item__type { flex-shrink: 0; font-size: 10px; }
+
+.wpa-toggle--sm { transform: scale(0.85); }
+
+@media (max-width: 900px) {
+  .wpa-code-app { grid-template-columns: 1fr; }
+  .wpa-code-app__list { position: static; }
+}

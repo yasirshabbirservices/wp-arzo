@@ -308,6 +308,16 @@ class WP_Arzo_Admin
             'connNonce'    => wp_create_nonce(self::NONCE_EMAIL_CONN),
             'adminEmail'   => get_option('admin_email'),
         ));
+
+        // Syntax-highlighting code editor (CodeMirror) for the Snippets app. The PHP
+        // mode bundle pulls in css/javascript/htmlmixed too, so every snippet type is
+        // covered by one enqueue. Returns false if the user disabled it in their profile.
+        if (isset($_GET['page']) && $_GET['page'] === self::PAGE_SNIPPETS && function_exists('wp_enqueue_code_editor')) {
+            $cm = wp_enqueue_code_editor(array('type' => 'application/x-httpd-php'));
+            if ($cm !== false) {
+                wp_add_inline_script('wp-arzo-admin-js', 'window.wpArzoCM = ' . wp_json_encode($cm) . ';', 'before');
+            }
+        }
     }
 
     private function asset_url($rel)
@@ -1679,134 +1689,119 @@ class WP_Arzo_Admin
         if (!current_user_can('manage_options')) {
             wp_die('You do not have sufficient permissions to access this page.');
         }
-        $view = isset($_GET['view']) ? sanitize_key($_GET['view']) : 'list';
+        $manager  = WP_Arzo_Snippets::instance();
+        $saved    = $this->maybe_save_snippet();
+        $snippets = $manager->get_all();
+        $enabled  = $this->registry()->is_enabled('code_snippets');
+
+        $id = isset($_GET['id']) ? sanitize_text_field(wp_unslash($_GET['id'])) : '';
+        $current = $id !== '' ? $manager->get($id) : null;
+        if (!$current) {
+            $current = array('id' => '', 'title' => '', 'description' => '', 'type' => 'php', 'scope' => 'everywhere', 'priority' => 10, 'code' => '', 'active' => 0);
+        }
+
+        $types  = array('php' => 'PHP', 'css' => 'CSS', 'js' => 'JavaScript', 'html' => 'HTML');
+        $scopes = array('everywhere' => 'Everywhere', 'admin' => 'Admin only', 'front' => 'Front-end only');
+        $base   = admin_url('admin.php?page=' . self::PAGE_SNIPPETS);
+
         echo '<div class="wrap wpa-admin">';
         $this->render_brand_bar();
         $this->render_shell_open('snippets');
-        if ($view === 'edit') {
-            $this->render_snippet_edit(isset($_GET['id']) ? sanitize_text_field(wp_unslash($_GET['id'])) : '');
-        } else {
-            $this->render_snippet_list();
-        }
-        $this->render_shell_close();
-        echo '</div>';
-    }
-
-    private function render_snippet_list()
-    {
-        $manager  = WP_Arzo_Snippets::instance();
-        $snippets = $manager->get_all();
-        $enabled  = $this->registry()->is_enabled('code_snippets');
-        $new_url  = admin_url('admin.php?page=' . self::PAGE_SNIPPETS . '&view=edit');
         ?>
         <div class="wpa-admin__bar">
             <div>
                 <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon')); ?> Code Snippets</h1>
                 <p class="wpa-admin__subtitle"><strong><?php echo count($snippets); ?></strong> snippet(s)<?php echo $enabled ? '' : ' · the “Code Snippets” feature is OFF, so nothing runs (enable it on the dashboard)'; ?></p>
             </div>
-            <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url($new_url); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> New snippet</a>
-        </div>
-
-        <div class="wpa-card" style="padding:0;overflow:hidden;">
-            <table class="wpa-backup-table">
-                <thead><tr><th>Title</th><th>Type</th><th>Scope</th><th>Priority</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                    <?php if (empty($snippets)) : ?>
-                        <tr class="wpa-backup-empty"><td colspan="6">No snippets yet. Click “New snippet” to add one.</td></tr>
-                    <?php else : foreach ($snippets as $s) :
-                        $edit = admin_url('admin.php?page=' . self::PAGE_SNIPPETS . '&view=edit&id=' . $s['id']);
-                        $err  = !empty($s['last_error']);
-                        ?>
-                        <tr data-snippet="<?php echo esc_attr($s['id']); ?>">
-                            <td>
-                                <a href="<?php echo esc_url($edit); ?>" style="color:var(--arzo-text-strong);font-weight:600;text-decoration:none;"><?php echo esc_html($s['title']); ?></a>
-                                <?php if ($err) : ?><div class="wpa-backup-meta" style="color:var(--arzo-error)"><?php echo wp_arzo_icon('alert', array('class' => 'wpa-icon wpa-icon--xs')); ?> auto-disabled: <?php echo esc_html($s['last_error']); ?></div><?php endif; ?>
-                            </td>
-                            <td><span class="wpa-badge wpa-badge--neutral"><?php echo esc_html(strtoupper($s['type'])); ?></span></td>
-                            <td><?php echo esc_html($s['scope']); ?></td>
-                            <td><?php echo esc_html(isset($s['priority']) ? (int) $s['priority'] : 10); ?></td>
-                            <td>
-                                <label class="wpa-toggle">
-                                    <input type="checkbox" class="wpa-toggle__input wpa-snippet-toggle" role="switch" data-id="<?php echo esc_attr($s['id']); ?>" <?php checked(!empty($s['active'])); ?>>
-                                    <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
-                                </label>
-                            </td>
-                            <td class="wpa-backup-actions">
-                                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($edit); ?>"><?php echo wp_arzo_icon('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?> Edit</a>
-                                <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
-                            </td>
-                        </tr>
-                    <?php endforeach; endif; ?>
-                </tbody>
-            </table>
-        </div>
-        <?php
-    }
-
-    private function render_snippet_edit($id)
-    {
-        $manager = WP_Arzo_Snippets::instance();
-        $saved   = $this->maybe_save_snippet();
-        $snippet = $id !== '' ? $manager->get($id) : null;
-        if (!$snippet) {
-            $snippet = array('id' => '', 'title' => '', 'type' => 'php', 'scope' => 'everywhere', 'priority' => 10, 'code' => '', 'active' => 0);
-        }
-        $types  = array('php' => 'PHP', 'css' => 'CSS', 'js' => 'JavaScript', 'html' => 'HTML');
-        $scopes = array('everywhere' => 'Everywhere', 'admin' => 'Admin only', 'front' => 'Front-end only');
-        ?>
-        <div class="wpa-admin__bar">
-            <div>
-                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_SNIPPETS)); ?>"><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> All snippets</a>
-                <h1 class="wpa-admin__title" style="margin-top:10px;"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon')); ?> <?php echo $snippet['id'] ? 'Edit snippet' : 'New snippet'; ?></h1>
-            </div>
+            <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url($base); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> New snippet</a>
         </div>
         <?php if ($saved) : ?>
             <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Snippet saved.</div>
         <?php endif; ?>
 
-        <form method="post" class="wpa-card">
-            <?php wp_nonce_field(self::NONCE_SNIPPETS, 'wp_arzo_snippet_nonce'); ?>
-            <input type="hidden" name="snippet_id" value="<?php echo esc_attr($snippet['id']); ?>">
-            <div class="wpa-field">
-                <label class="wpa-field__label" for="snp-title">Title</label>
-                <input class="wpa-input" type="text" id="snp-title" name="snippet_title" value="<?php echo esc_attr($snippet['title']); ?>" required>
-            </div>
-            <div style="display:flex;gap:16px;flex-wrap:wrap;">
-                <div class="wpa-field" style="flex:1;min-width:180px;">
-                    <label class="wpa-field__label" for="snp-type">Type</label>
-                    <select class="wpa-input" id="snp-type" name="snippet_type" data-wpa-select>
-                        <?php foreach ($types as $v => $l) {
-                            echo '<option value="' . esc_attr($v) . '"' . selected($snippet['type'], $v, false) . '>' . esc_html($l) . '</option>';
-                        } ?>
-                    </select>
+        <div class="wpa-code-app">
+            <!-- Editor -->
+            <form method="post" class="wpa-code-app__editor" id="wpa-snippet-form">
+                <?php wp_nonce_field(self::NONCE_SNIPPETS, 'wp_arzo_snippet_nonce'); ?>
+                <input type="hidden" name="snippet_id" value="<?php echo esc_attr($current['id']); ?>">
+
+                <div class="wpa-code-app__toolbar">
+                    <input class="wpa-input wpa-code-app__title" type="text" name="snippet_title" placeholder="Snippet title…" value="<?php echo esc_attr($current['title']); ?>" required>
+                    <label class="wpa-toggle">
+                        <input type="checkbox" class="wpa-toggle__input" role="switch" name="snippet_active" value="1" <?php checked(!empty($current['active'])); ?>>
+                        <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+                        <span class="wpa-toggle__label">Active</span>
+                    </label>
+                    <button type="submit" name="wp_arzo_save_snippet" class="wpa-btn wpa-btn--primary"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save</button>
                 </div>
-                <div class="wpa-field" style="flex:1;min-width:180px;">
-                    <label class="wpa-field__label" for="snp-scope">Run on</label>
-                    <select class="wpa-input" id="snp-scope" name="snippet_scope" data-wpa-select>
-                        <?php foreach ($scopes as $v => $l) {
-                            echo '<option value="' . esc_attr($v) . '"' . selected($snippet['scope'], $v, false) . '>' . esc_html($l) . '</option>';
-                        } ?>
-                    </select>
+
+                <div class="wpa-code-app__meta">
+                    <div class="wpa-field">
+                        <label class="wpa-field__label" for="snp-type">Type</label>
+                        <select class="wpa-input" id="snp-type" name="snippet_type" data-wpa-select>
+                            <?php foreach ($types as $v => $l) {
+                                echo '<option value="' . esc_attr($v) . '"' . selected($current['type'], $v, false) . '>' . esc_html($l) . '</option>';
+                            } ?>
+                        </select>
+                    </div>
+                    <div class="wpa-field">
+                        <label class="wpa-field__label" for="snp-scope">Run on</label>
+                        <select class="wpa-input" id="snp-scope" name="snippet_scope" data-wpa-select>
+                            <?php foreach ($scopes as $v => $l) {
+                                echo '<option value="' . esc_attr($v) . '"' . selected($current['scope'], $v, false) . '>' . esc_html($l) . '</option>';
+                            } ?>
+                        </select>
+                    </div>
+                    <div class="wpa-field">
+                        <label class="wpa-field__label" for="snp-priority">Priority</label>
+                        <input class="wpa-input" type="number" id="snp-priority" name="snippet_priority" min="1" max="9999" value="<?php echo esc_attr(isset($current['priority']) ? (int) $current['priority'] : 10); ?>">
+                    </div>
+                    <div class="wpa-field wpa-code-app__desc">
+                        <label class="wpa-field__label" for="snp-desc">Description</label>
+                        <input class="wpa-input" type="text" id="snp-desc" name="snippet_description" value="<?php echo esc_attr(isset($current['description']) ? $current['description'] : ''); ?>" placeholder="Optional — what this snippet does">
+                    </div>
                 </div>
-                <div class="wpa-field" style="flex:1;min-width:180px;">
-                    <label class="wpa-field__label" for="snp-priority">Priority</label>
-                    <input class="wpa-input" type="number" id="snp-priority" name="snippet_priority" min="1" max="9999" value="<?php echo esc_attr(isset($snippet['priority']) ? (int) $snippet['priority'] : 10); ?>">
-                    <p class="wpa-field__help">Load order — lower runs first (default 10).</p>
+
+                <?php if (!empty($current['last_error'])) : ?>
+                    <div class="wpa-toast wpa-toast--error" style="position:static;margin:0 0 10px;display:inline-flex;"><?php echo wp_arzo_icon('alert', array('class' => 'wpa-icon wpa-icon--sm')); ?> Auto-disabled after an error: <?php echo esc_html($current['last_error']); ?></div>
+                <?php endif; ?>
+
+                <div class="wpa-code-app__code" data-snippet-type="<?php echo esc_attr($current['type']); ?>">
+                    <textarea id="snp-code" name="snippet_code" spellcheck="false"><?php echo esc_textarea($current['code']); ?></textarea>
                 </div>
-            </div>
-            <div class="wpa-field">
-                <label class="wpa-field__label" for="snp-code">Code</label>
-                <textarea class="wpa-input wpa-code" id="snp-code" name="snippet_code" rows="14" spellcheck="false" style="font-family:var(--arzo-font-mono);font-size:13px;line-height:1.5;"><?php echo esc_textarea($snippet['code']); ?></textarea>
-                <p class="wpa-field__help">PHP snippets run as code (omit or include the opening &lt;?php tag). A PHP snippet that errors is auto-disabled.</p>
-            </div>
-            <label class="wpa-toggle" style="margin-bottom:16px;">
-                <input type="checkbox" class="wpa-toggle__input" role="switch" name="snippet_active" value="1" <?php checked(!empty($snippet['active'])); ?>>
-                <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
-                <span class="wpa-toggle__label">Active</span>
-            </label>
-            <div><button type="submit" name="wp_arzo_save_snippet" class="wpa-btn wpa-btn--primary"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save snippet</button></div>
-        </form>
+                <p class="wpa-field__help">PHP snippets run as code (the opening &lt;?php tag is optional). A PHP snippet that fatals is auto-disabled so it can’t break your site.</p>
+            </form>
+
+            <!-- Snippet list -->
+            <aside class="wpa-code-app__list">
+                <div class="wpa-code-app__list-head">
+                    <span>Snippets</span>
+                    <a class="wpa-btn wpa-btn--ghost wpa-btn--icon" href="<?php echo esc_url($base); ?>" title="New snippet"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
+                </div>
+                <div class="wpa-code-app__list-body">
+                    <?php if (empty($snippets)) : ?>
+                        <p class="wpa-code-app__empty">No snippets yet. Write one and hit Save.</p>
+                    <?php else : foreach ($snippets as $s) :
+                        $is_current = ($s['id'] === $current['id'] && $current['id'] !== '');
+                        ?>
+                        <div class="wpa-code-item<?php echo $is_current ? ' is-active' : ''; ?>" data-snippet="<?php echo esc_attr($s['id']); ?>">
+                            <a class="wpa-code-item__main" href="<?php echo esc_url(add_query_arg('id', $s['id'], $base)); ?>">
+                                <span class="wpa-code-item__type wpa-badge wpa-badge--neutral"><?php echo esc_html(strtoupper($s['type'])); ?></span>
+                                <span class="wpa-code-item__title"><?php echo esc_html($s['title'] !== '' ? $s['title'] : '[Untitled]'); ?><?php echo !empty($s['last_error']) ? ' ' . wp_arzo_icon('alert', array('class' => 'wpa-icon wpa-icon--xs', 'style' => 'color:var(--arzo-error)')) : ''; ?></span>
+                            </a>
+                            <label class="wpa-toggle wpa-toggle--sm" title="Active">
+                                <input type="checkbox" class="wpa-toggle__input wpa-snippet-toggle" role="switch" data-id="<?php echo esc_attr($s['id']); ?>" <?php checked(!empty($s['active'])); ?>>
+                                <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+                            </label>
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+            </aside>
+        </div>
         <?php
+        $this->render_shell_close();
+        echo '</div>';
     }
 
     private function maybe_save_snippet()
@@ -1819,8 +1814,9 @@ class WP_Arzo_Admin
             wp_die('Security check failed.');
         }
         WP_Arzo_Snippets::instance()->save(array(
-            'id'     => isset($_POST['snippet_id']) ? sanitize_text_field(wp_unslash($_POST['snippet_id'])) : '',
-            'title'  => isset($_POST['snippet_title']) ? wp_unslash($_POST['snippet_title']) : '',
+            'id'          => isset($_POST['snippet_id']) ? sanitize_text_field(wp_unslash($_POST['snippet_id'])) : '',
+            'title'       => isset($_POST['snippet_title']) ? wp_unslash($_POST['snippet_title']) : '',
+            'description' => isset($_POST['snippet_description']) ? wp_unslash($_POST['snippet_description']) : '',
             'type'     => isset($_POST['snippet_type']) ? sanitize_key($_POST['snippet_type']) : 'php',
             'scope'    => isset($_POST['snippet_scope']) ? sanitize_key($_POST['snippet_scope']) : 'everywhere',
             'priority' => isset($_POST['snippet_priority']) ? (int) $_POST['snippet_priority'] : 10,

@@ -557,12 +557,54 @@
         fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
           .then(function (res) {
-            if (res && res.success) { toast('Snippet deleted', 'success'); var row = btn.closest('tr'); if (row) row.parentNode.removeChild(row); }
-            else { btn.disabled = false; toast('Delete failed', 'error'); }
+            if (res && res.success) {
+              toast('Snippet deleted', 'success');
+              var item = btn.closest('.wpa-code-item') || btn.closest('tr');
+              if (item && item.classList.contains('is-active')) { location.href = location.pathname + '?page=wp-arzo-snippets'; return; }
+              if (item) { item.parentNode.removeChild(item); } else { location.reload(); }
+            } else { btn.disabled = false; toast('Delete failed', 'error'); }
           })
           .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
       });
     });
+
+    bindSnippetEditor();
+  }
+
+  // CodeMirror-powered snippet editor (Advanced-Scripts-style) with per-type modes.
+  function bindSnippetEditor() {
+    var ta = document.getElementById('snp-code');
+    if (!ta || !window.wpArzoCM || !window.wp || !wp.codeEditor) { return; }
+    var modeFor = {
+      php: 'application/x-httpd-php',
+      css: 'text/css',
+      js: 'text/javascript',
+      html: 'htmlmixed'
+    };
+    var typeSel = document.getElementById('snp-type');
+    var startType = typeSel ? typeSel.value : 'php';
+
+    // Clone the localized settings and set the starting mode.
+    var settings = JSON.parse(JSON.stringify(window.wpArzoCM));
+    settings.codemirror = Object.assign({}, settings.codemirror, {
+      mode: modeFor[startType] || 'application/x-httpd-php',
+      lineNumbers: true,
+      indentUnit: 4,
+      tabSize: 4
+    });
+    var editor;
+    try { editor = wp.codeEditor.initialize(ta, settings); } catch (e) { return; }
+    if (!editor || !editor.codemirror) { return; }
+    var cm = editor.codemirror;
+
+    if (typeSel) {
+      typeSel.addEventListener('change', function () {
+        cm.setOption('mode', modeFor[typeSel.value] || 'text/plain');
+      });
+    }
+    // Ensure the textarea is synced before the form submits.
+    var form = document.getElementById('wpa-snippet-form');
+    if (form) { form.addEventListener('submit', function () { cm.save(); }); }
   }
 
   // -------------------------------------------------- Test email + resend

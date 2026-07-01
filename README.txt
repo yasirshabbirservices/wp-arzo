@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.64.0
+Stable tag: 6.65.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,18 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.65.0 =
+* Changed (free): Snippets rebuilt into an editor app — a CodeMirror syntax-highlighted
+  editor (mode per type) + meta panel + right-hand snippet list with inline toggles; adds an
+  optional per-snippet Description (erropix Advanced Scripts-inspired)
+
+= 6.64.0 =
+* New (free): Email connections manager (WP Arzo -> Email) — a provider-card picker
+  (Custom SMTP, Gmail, Outlook, Zoho, Yahoo, Fastmail, Amazon SES, Mailjet, SendGrid, Brevo,
+  Mailgun, Postmark) opening a config drawer, with multiple named connections, a primary +
+  ordered fallback, and a per-connection test send (SureMail-inspired). Legacy SMTP settings
+  auto-migrate
 
 = 6.20.0 =
 * Improved: Custom Login Page now fully styles the form (inputs, labels, links, button,
