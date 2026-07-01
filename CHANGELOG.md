@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.64.0] — 2026-07-01
+
+### Added — Email: multi-connection provider manager (SureMail-style UX)
+- A new **WP Arzo → Email** page replaces the old single SMTP form with a **provider-card
+  picker** (Custom SMTP, Gmail, Outlook, Zoho, Yahoo, Fastmail, Amazon SES, Mailjet,
+  SendGrid, Brevo, Mailgun, Postmark) → a **slide-in config drawer** with each provider’s
+  own fields (SMTP presets auto-applied; SES host built from region).
+- **Multiple named connections** with a **Primary + ordered fallbacks**: the primary sends
+  your mail and the next connection is tried automatically if it fails. Make-primary,
+  edit, delete, and a **per-connection Test send** (independent of `wp_mail`).
+- Legacy single-SMTP settings are **auto-migrated** into a connection on upgrade, so mail
+  keeps flowing without reconfiguration. New reusable `.wpa-modal` / `.wpa-drawer` /
+  provider-card components.
+- The **Email Delivery** feature (was “Advanced SMTP & Email API”) now owns just the on/off
+  switch + the all-connections-failed alert email; delivery config lives on the Email page.
+
 ## [6.63.0] — 2026-07-01
 
 ### Changed — Pro catalog

@@ -202,6 +202,180 @@
     });
   }
 
+  // -------------------------------------------------- Email Connections
+  function connRequest(action, data) {
+    var body = new FormData();
+    body.append('action', action);
+    body.append('nonce', cfg.connNonce || '');
+    Object.keys(data || {}).forEach(function (k) {
+      if (k === 'fields' && data[k] && typeof data[k] === 'object') {
+        Object.keys(data[k]).forEach(function (fk) { body.append('fields[' + fk + ']', data[k][fk]); });
+      } else if (k === 'ids' && Array.isArray(data[k])) {
+        data[k].forEach(function (v) { body.append('ids[]', v); });
+      } else {
+        body.append(k, data[k]);
+      }
+    });
+    return fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' }).then(function (r) { return r.json(); });
+  }
+
+  function connBuildField(f, value, hasSecret) {
+    var wrap = document.createElement('div');
+    wrap.className = 'wpa-field';
+    var id = 'wpa-cf-' + f.key;
+
+    if (f.type === 'toggle') {
+      var lab = document.createElement('label');
+      lab.className = 'wpa-toggle';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.className = 'wpa-toggle__input'; cb.setAttribute('role', 'switch');
+      cb.checked = (value != null) ? (value == 1 || value === true || value === '1') : (f.default == 1);
+      cb.dataset.key = f.key;
+      lab.appendChild(cb);
+      var track = document.createElement('span'); track.className = 'wpa-toggle__track';
+      track.innerHTML = '<span class="wpa-toggle__thumb"></span>'; lab.appendChild(track);
+      var tl = document.createElement('span'); tl.className = 'wpa-toggle__label'; tl.textContent = f.label; lab.appendChild(tl);
+      wrap.appendChild(lab);
+      if (f.help) { var th = document.createElement('p'); th.className = 'wpa-field__help'; th.textContent = f.help; wrap.appendChild(th); }
+      return wrap;
+    }
+
+    var label = document.createElement('label');
+    label.className = 'wpa-field__label'; label.setAttribute('for', id);
+    label.textContent = f.label + (f.required ? ' *' : '');
+    wrap.appendChild(label);
+
+    var el;
+    if (f.type === 'select') {
+      el = document.createElement('select');
+      el.className = 'wpa-input'; el.setAttribute('data-wpa-select', '');
+      var opts = f.options || {};
+      var cur = (value != null && value !== '') ? String(value) : String(f.default != null ? f.default : '');
+      Object.keys(opts).forEach(function (k) {
+        var o = document.createElement('option'); o.value = k; o.textContent = opts[k];
+        if (String(k) === cur) { o.selected = true; }
+        el.appendChild(o);
+      });
+    } else {
+      el = document.createElement('input');
+      el.className = 'wpa-input';
+      el.type = f.type === 'password' ? 'password' : (f.type === 'email' ? 'email' : (f.type === 'number' ? 'number' : 'text'));
+      if (f.type === 'password') {
+        el.value = '';
+        el.autocomplete = 'new-password';
+        if (hasSecret) { el.placeholder = '••••••  (leave blank to keep current)'; }
+      } else {
+        el.value = (value != null && value !== '') ? value : (f.default != null ? f.default : '');
+      }
+      if (f.placeholder && !el.placeholder) { el.placeholder = f.placeholder; }
+    }
+    el.id = id; el.dataset.key = f.key;
+    wrap.appendChild(el);
+    if (f.help) { var h = document.createElement('p'); h.className = 'wpa-field__help'; h.textContent = f.help; wrap.appendChild(h); }
+    return wrap;
+  }
+
+  function bindEmailConnections() {
+    var data = window.wpArzoConn;
+    if (!data) { return; }
+    var picker = document.getElementById('wpa-conn-picker');
+    var drawer = document.getElementById('wpa-conn-drawer');
+    var form = document.getElementById('wpa-conn-form');
+    if (!picker || !drawer || !form) { return; }
+
+    var editing = { id: '', provider: '' };
+
+    function openPicker() { picker.hidden = false; }
+    function closeAll() { picker.hidden = true; drawer.hidden = true; }
+    function connById(id) { return (data.connections || []).find(function (c) { return c.id === id; }); }
+
+    function openDrawer(provider, conn) {
+      var schema = (data.providers || {})[provider];
+      if (!schema) { return; }
+      editing.id = conn ? conn.id : '';
+      editing.provider = provider;
+      document.getElementById('wpa-conn-drawer-title').textContent = (conn ? 'Edit ' : 'Add ') + schema.label;
+      form.innerHTML = '';
+      schema.fields.forEach(function (f) {
+        var val = conn ? conn[f.key] : null;
+        var hasSecret = conn ? !!conn['_has_' + f.key] : false;
+        form.appendChild(connBuildField(f, val, hasSecret));
+      });
+      if (window.wpArzo && wpArzo.initSelects) { wpArzo.initSelects(form); }
+      picker.hidden = true;
+      drawer.hidden = false;
+    }
+
+    function collect() {
+      var out = {};
+      form.querySelectorAll('[data-key]').forEach(function (el) {
+        var k = el.dataset.key;
+        if (el.type === 'checkbox') { out[k] = el.checked ? '1' : '0'; }
+        else { out[k] = el.value; }
+      });
+      return out;
+    }
+
+    var addBtn = document.getElementById('wpa-conn-add');
+    var addEmpty = document.getElementById('wpa-conn-add-empty');
+    if (addBtn) { addBtn.addEventListener('click', openPicker); }
+    if (addEmpty) { addEmpty.addEventListener('click', openPicker); }
+
+    picker.querySelectorAll('.wpa-provider-card').forEach(function (card) {
+      card.addEventListener('click', function () { openDrawer(card.getAttribute('data-provider'), null); });
+    });
+
+    document.querySelectorAll('[data-conn-close]').forEach(function (el) {
+      el.addEventListener('click', closeAll);
+    });
+    var backBtn = document.querySelector('[data-conn-back]');
+    if (backBtn) { backBtn.addEventListener('click', function () { drawer.hidden = true; openPicker(); }); }
+
+    var saveBtn = document.getElementById('wpa-conn-save');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var fields = collect();
+        if (!fields.title || !fields.title.trim()) { alert('Give the connection a name.'); return; }
+        saveBtn.disabled = true;
+        connRequest('wp_arzo_conn_save', { provider: editing.provider, id: editing.id, fields: fields }).then(function (res) {
+          saveBtn.disabled = false;
+          if (res && res.success) { location.reload(); }
+          else { alert((res && res.data && res.data.message) || 'Could not save the connection.'); }
+        }).catch(function () { saveBtn.disabled = false; alert('Request failed.'); });
+      });
+    }
+
+    document.querySelectorAll('.wpa-conn-edit').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var conn = connById(btn.getAttribute('data-id'));
+        if (conn) { openDrawer(conn.provider, conn); }
+      });
+    });
+    document.querySelectorAll('.wpa-conn-delete').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (!confirm('Delete this connection?')) { return; }
+        connRequest('wp_arzo_conn_delete', { id: btn.getAttribute('data-id') }).then(function () { location.reload(); });
+      });
+    });
+    document.querySelectorAll('.wpa-conn-primary').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        connRequest('wp_arzo_conn_primary', { id: btn.getAttribute('data-id') }).then(function () { location.reload(); });
+      });
+    });
+    document.querySelectorAll('.wpa-conn-test').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var to = prompt('Send a test email to:', cfg.adminEmail || '');
+        if (!to) { return; }
+        btn.disabled = true;
+        var label = btn.innerHTML; btn.textContent = 'Sending…';
+        connRequest('wp_arzo_conn_test', { id: btn.getAttribute('data-id'), to: to }).then(function (res) {
+          btn.disabled = false; btn.innerHTML = label;
+          alert(res && res.success ? 'Test email sent — check the inbox.' : ((res && res.data && res.data.message) || 'Test failed.'));
+        }).catch(function () { btn.disabled = false; btn.innerHTML = label; alert('Request failed.'); });
+      });
+    });
+  }
+
   function bindCategoryFilter() {
     var items = document.querySelectorAll('.wpa-cat-filter');
     if (!items.length) return;
@@ -733,7 +907,7 @@
     }
   }
 
-  function init() { bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSmtpPresets(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
+  function init() { bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSmtpPresets(); bindEmailConnections(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
