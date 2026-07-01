@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.73.0] — 2026-07-02
+
+### Added — advertise Google Drive off-site backups (Pro)
+
+- The locked Pro catalog now lists **Off-site Backups: Google Drive** (Ops/Backup), matching
+  the new Pro module (OAuth connect + automatic snapshot upload + retention + a remote-file
+  manager).
+- **Convention:** list/table pages that paginate, search, or filter should now use
+  **AJAX (fetch → JSON, update in place)** rather than `?paged=` GET reloads — documented in
+  CLAUDE.md and the feature-module skill.
+
 ## [6.72.1] — 2026-07-02
 
 ### Fixed — Activity Log noise
