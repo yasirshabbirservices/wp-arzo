@@ -17,7 +17,7 @@ shared hosting, VPS, cloud, and enterprise WordPress setups. Everything is
 **WP Arzo Pro** add‑on lives in a separate private repo and registers extra modules into
 the same dashboard.
 
-- **Current version:** 6.64.0 (see [CHANGELOG.md](CHANGELOG.md))
+- **Current version:** 6.65.0 (see [CHANGELOG.md](CHANGELOG.md))
 - **Requires:** WordPress ≥ 5.0, PHP ≥ 7.2
 - **Architecture & conventions for contributors / AI agents:** [CLAUDE.md](CLAUDE.md)
 - **Design system:** [.claude/design.md](.claude/design.md)
@@ -26,15 +26,17 @@ the same dashboard.
 
 The native **WP Arzo** admin menu is the modern surface: a grouped grid of ~45 free
 feature modules you enable/disable with modern toggles, each with schema‑driven settings.
-A **left sidebar** carries the page navigation (Dashboard, Backups, Email Log, Snippets,
-Media Cleanup, Activity Log, Advanced Tools) and a live **category filter** that scopes the
-feature grid — so the dashboard scales as more features land.
+A **left sidebar** carries the page navigation (Dashboard, Email, Email Log, Backups,
+Snippets, Media Cleanup, Activity Log, Login Security, Advanced Tools) and a live **category
+filter** that scopes the feature grid — so the dashboard scales as more features land.
 A **Setup Wizard** (first run, and always under *WP Arzo → Setup Wizard*) applies curated
 presets in one click — **Essentials, Velocity, Fortress, Creator, Growth, Command Center,
 The Works** — which only *enable* features (never disable what you've set). Pro modules are
 shown as locked **PRO** cards so you can see the full suite even on the free plan.
 
-Highlights of the free core: SMTP + email log, Activity Log, Code Snippets, local
+Highlights of the free core: a **multi-provider email connections manager** (SMTP + Gmail/
+Outlook/SES/SendGrid/Brevo/Mailgun/Postmark… with primary + fallback) and email log, a
+**syntax-highlighting Code Snippets editor**, Activity Log, local
 backups + scheduled snapshots, auto WebP, SVG upload, custom login page, dozens of
 performance/security/admin tweaks, per‑tool toggles for the console, Media Cleanup,
 **REST API Authentication** (issuable API keys + Basic Auth), a **Role Manager**
