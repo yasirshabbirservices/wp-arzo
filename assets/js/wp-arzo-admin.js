@@ -50,10 +50,17 @@
               var gear = card.querySelector('.wpa-feature-card__settings');
               if (gear) gear.classList.toggle('is-hidden', !enabled);
             }
-            toast(enabled ? 'Feature enabled' : 'Feature disabled', 'success');
-            // This feature owns a dedicated admin page — reload so the menu/tabs
-            // reflect the new visibility.
-            if (res.data && res.data.ownsPage) { reload(700); }
+            var title = (res.data && res.data.title) || 'Feature';
+            var manage = res.data && res.data.manageUrl;
+            if (enabled && manage) {
+              // Tell the user WHERE to configure the feature they just turned on.
+              toast(title + ' enabled — set it up next', 'success', 7000, { label: 'Configure →', href: manage });
+            } else {
+              toast(enabled ? title + ' enabled' : title + ' disabled', 'success');
+            }
+            // This feature adds an admin page/menu — reload so the menu reflects it, but
+            // give the "Configure →" toast time to be read/clicked first.
+            if (res.data && res.data.ownsPage) { reload(enabled && manage ? 4000 : 700); }
           })
           .catch(function () {
             input.disabled = false;

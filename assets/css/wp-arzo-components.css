@@ -408,6 +408,12 @@
   pointer-events: auto;
   animation: wpa-toast-in var(--arzo-transition) ease;
 }
+.wpa-toast__action {
+  margin-left: auto; padding-left: var(--arzo-space-3);
+  color: var(--arzo-accent); font-weight: 700; white-space: nowrap;
+  text-decoration: none; border-bottom: 1px solid transparent;
+}
+.wpa-toast__action:hover, .wpa-toast__action:focus-visible { border-bottom-color: currentColor; }
 .wpa-toast--success { border-left-color: var(--arzo-accent); }
 .wpa-toast--success .wpa-icon { color: var(--arzo-accent); }
 .wpa-toast--error { border-left-color: var(--arzo-error); }
