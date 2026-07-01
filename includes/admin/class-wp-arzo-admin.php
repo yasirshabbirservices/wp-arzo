@@ -152,10 +152,7 @@ class WP_Arzo_Admin
             add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'), 35);
         }
         if ($this->page_visible(self::PAGE_EMAIL)) {
-            add_submenu_page(self::PAGE, 'Email', 'Email', 'manage_options', self::PAGE_EMAIL, array($this, 'render_email_connections'), 44);
-        }
-        if ($this->page_visible(self::PAGE_EMAIL_LOG)) {
-            add_submenu_page(self::PAGE, 'Email Log', 'Email Log', 'manage_options', self::PAGE_EMAIL_LOG, array($this, 'render_email_log'), 45);
+            add_submenu_page(self::PAGE, 'Email', 'Email', 'manage_options', self::PAGE_EMAIL, array($this, 'render_email'), 44);
         }
         if ($this->page_visible(self::PAGE_BACKUPS)) {
             add_submenu_page(self::PAGE, 'Backups', 'Backups', 'manage_options', self::PAGE_BACKUPS, array($this, 'render_backups'), 50);
@@ -201,7 +198,6 @@ class WP_Arzo_Admin
             self::PAGE_MEDIA        => 35,
             'wp-arzo-redirects'     => 40,  // Pro
             self::PAGE_EMAIL        => 44,
-            self::PAGE_EMAIL_LOG    => 45,
             self::PAGE_BACKUPS      => 50,
             'wp-arzo-cron'          => 55,  // Pro
             self::PAGE_ACTIVITY     => 60,
@@ -231,14 +227,13 @@ class WP_Arzo_Admin
     {
         return array(
             self::PAGE_BACKUPS   => array('auto_snapshots', 'scheduled_backups'),
-            self::PAGE_EMAIL_LOG => array('email_log'),
+            self::PAGE_EMAIL     => array('smtp', 'email_log'),
             self::PAGE_SNIPPETS  => array('code_snippets'),
             self::PAGE_ACTIVITY  => array('activity_log'),
             self::PAGE_MEDIA     => array('media_cleanup'),
             self::PAGE_REST_AUTH => array('rest_api_auth'),
             self::PAGE_ROLES     => array('role_manager'),
             self::PAGE_LOGIN_SECURITY => array('limit_login'),
-            self::PAGE_EMAIL     => array('smtp'),
             // PAGE_CONFIG is intentionally NOT mapped — Config Import/Export is always available.
         );
     }
@@ -1126,12 +1121,8 @@ class WP_Arzo_Admin
 
     /* --------------------------------------------------------- Email Log */
 
-    public function render_email_log()
+    private function render_email_log_body()
     {
-        if (!current_user_can('manage_options')) {
-            wp_die('You do not have sufficient permissions to access this page.');
-        }
-
         $enabled = $this->registry()->is_enabled('email_log');
         $log = get_option('wp_arzo_email_log', array());
         if (!is_array($log)) {
@@ -1146,9 +1137,6 @@ class WP_Arzo_Admin
         $sent_count = count($log) - $failed_count;
         $email_nonce = wp_create_nonce(self::NONCE_EMAIL);
         ?>
-        <div class="wrap wpa-admin">
-            <?php $this->render_brand_bar(); ?>
-            <?php $this->render_shell_open('email'); ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Email Log</h1>
@@ -1204,8 +1192,6 @@ class WP_Arzo_Admin
                     </tbody>
                 </table>
             </div>
-            <?php $this->render_shell_close(); ?>
-        </div>
         <?php
     }
 
@@ -1225,14 +1211,90 @@ class WP_Arzo_Admin
         return class_exists('WP_Arzo_Email_Connections') ? WP_Arzo_Email_Connections::instance() : null;
     }
 
-    public function render_email_connections()
+    /**
+     * The unified Email page — one menu, SureMail-style tabs (Connections / Logs /
+     * Settings). Each tab body is rendered inline so all email tooling lives in one place.
+     */
+    public function render_email()
     {
         if (!current_user_can('manage_options')) {
             wp_die('You do not have sufficient permissions to access this page.');
         }
+        $tab  = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'connections';
+        $tabs = array(
+            'connections' => array('label' => 'Connections', 'icon' => 'mail'),
+            'logs'        => array('label' => 'Logs', 'icon' => 'list'),
+            'settings'    => array('label' => 'Settings', 'icon' => 'settings'),
+        );
+        if (!isset($tabs[$tab])) {
+            $tab = 'connections';
+        }
+        $base = admin_url('admin.php?page=' . self::PAGE_EMAIL);
+
+        echo '<div class="wrap wpa-admin">';
+        $this->render_brand_bar();
+        $this->render_shell_open('email');
+
+        echo '<nav class="wpa-tabs" aria-label="Email tools">';
+        foreach ($tabs as $key => $t) {
+            printf(
+                '<a class="wpa-tab%s" href="%s">%s<span>%s</span></a>',
+                $key === $tab ? ' is-active' : '',
+                esc_url(add_query_arg('tab', $key, $base)),
+                wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')),
+                esc_html($t['label'])
+            );
+        }
+        echo '</nav>';
+
+        if ($tab === 'logs') {
+            $this->render_email_log_body();
+        } elseif ($tab === 'settings') {
+            $this->render_email_settings_body();
+        } else {
+            $this->render_connections_body();
+        }
+
+        $this->render_shell_close();
+        echo '</div>';
+    }
+
+    private function render_email_settings_body()
+    {
+        $feature = $this->registry()->get('smtp');
+        if (!$feature) {
+            echo '<p>Email delivery feature unavailable.</p>';
+            return;
+        }
+        $saved  = $this->maybe_save_settings($feature);
+        $schema = $feature->settings_schema();
+        ?>
+        <div class="wpa-admin__bar">
+            <div>
+                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('settings', array('class' => 'wpa-icon')); ?> Email settings</h1>
+                <p class="wpa-admin__subtitle">Delivery is configured under <strong>Connections</strong>; these are the failure alerts.</p>
+            </div>
+        </div>
+        <?php if ($saved) : ?>
+            <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Settings saved.</div>
+        <?php endif; ?>
+        <form method="post" class="wpa-card">
+            <?php wp_nonce_field(self::NONCE_SETTINGS, 'wp_arzo_settings_nonce'); ?>
+            <?php foreach ($schema as $field) {
+                $this->render_field($feature, $field);
+            } ?>
+            <div style="margin-top:20px;">
+                <button type="submit" name="wp_arzo_save_settings" class="wpa-btn wpa-btn--primary"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save settings</button>
+            </div>
+        </form>
+        <?php
+    }
+
+    private function render_connections_body()
+    {
         $engine = $this->connections();
         if (!$engine) {
-            echo '<div class="wrap wpa-admin"><p>Email engine unavailable.</p></div>';
+            echo '<p>Email engine unavailable.</p>';
             return;
         }
         $enabled     = $this->registry()->is_enabled('smtp');
@@ -1260,13 +1322,9 @@ class WP_Arzo_Admin
             $conn_js[] = $c;
         }
         ?>
-        <div class="wrap wpa-admin">
-            <?php $this->render_brand_bar(); ?>
-            <?php $this->render_shell_open('email'); ?>
-
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Email</h1>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Connections</h1>
                     <p class="wpa-admin__subtitle"><strong><?php echo count($connections); ?></strong> connection(s)<?php echo $enabled ? '' : ' · the “Email Delivery” feature is OFF, so nothing is routed (enable it on the dashboard)'; ?></p>
                 </div>
                 <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-add"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add connection</button>
@@ -1352,8 +1410,6 @@ class WP_Arzo_Admin
             </div>
 
             <script>window.wpArzoConn = <?php echo wp_json_encode(array('providers' => $schemas, 'connections' => $conn_js)); ?>;</script>
-            <?php $this->render_shell_close(); ?>
-        </div>
         <?php
     }
 
