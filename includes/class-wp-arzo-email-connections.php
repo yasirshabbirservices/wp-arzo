@@ -13,9 +13,12 @@
  *   - the connections store (option `wp_arzo_smtp_connections`),
  *   - CRUD + reorder + set-primary + delete,
  *   - a standalone test-send (independent of wp_mail) per connection,
- *   - the live send path: it configures the PRIMARY connection for wp_mail, with a
- *     single-step fallback to the next connection on failure (the full N-step
- *     fallback chain lands in a later phase — see the Fallback engine).
+ *   - the live send path: a single `pre_wp_mail` orchestrator that walks the full
+ *     ordered connection chain (primary → fallbacks) across MIXED transports —
+ *     SMTP and API — trying each until one delivers, then records which connection
+ *     sent the message. Because the whole chain is driven from `pre_wp_mail` (never
+ *     the lossy `wp_mail_failed` retry path), wp_mail returns the true delivery
+ *     result to the caller and API + SMTP failures are unified into one retry loop.
  *
  * The management UI lives on the dashboard "Email" page (class-wp-arzo-admin.php);
  * the `smtp` feature (class-features-email.php) enables this engine when on.
@@ -34,10 +37,10 @@ class WP_Arzo_Email_Connections
     /** @var WP_Arzo_Email_Connections|null */
     private static $instance = null;
 
-    /** Index into the fallback order of the connection currently being sent. */
-    private $active = 0;
-    /** Re-entrancy guard while a fallback retry / notification is in flight. */
+    /** Re-entrancy guard while the chain is being walked. */
     private $busy = false;
+    /** Details of the connection that delivered the most recent message. */
+    private $last_delivery = null;
 
     public static function instance()
     {
@@ -389,196 +392,403 @@ class WP_Arzo_Email_Connections
         if (empty($store['order'])) {
             return; // No connections — leave WordPress's default transport alone.
         }
-
-        add_action('phpmailer_init', array($this, 'configure_active'));
-        add_filter('pre_wp_mail', array($this, 'maybe_send_api'), 10, 2);
-        add_action('wp_mail_failed', array($this, 'on_failed'));
-
-        // Always attach the from filters; they no-op unless the ACTIVE connection has
-        // force_from + a from address, so the correct from is used on fallback too.
-        add_filter('wp_mail_from', array($this, 'filter_from'), 99);
-        add_filter('wp_mail_from_name', array($this, 'filter_from_name'), 99);
+        // One orchestrator owns the whole send: it walks the ordered chain across
+        // mixed SMTP/API transports and returns the true delivery result. We never
+        // hook wp_mail_failed for retry (that path cannot correct wp_mail's return).
+        add_filter('pre_wp_mail', array($this, 'send'), 10, 2);
     }
 
-    private function active_conn()
+    /** The most recent delivery record: ['id','title','attempts'] or null. */
+    public function last_delivery()
     {
-        $store = $this->store();
-        if (!isset($store['order'][$this->active])) {
-            return null;
-        }
-        return $store['connections'][$store['order'][$this->active]];
-    }
-
-    public function filter_from($email)
-    {
-        $c = $this->active_conn();
-        return ($c && !empty($c['force_from']) && !empty($c['from_email'])) ? $c['from_email'] : $email;
-    }
-    public function filter_from_name($name)
-    {
-        $c = $this->active_conn();
-        return ($c && !empty($c['force_from']) && !empty($c['from_name'])) ? $c['from_name'] : $name;
-    }
-
-    /** phpmailer_init: configure SMTP for the active connection. */
-    public function configure_active($phpmailer)
-    {
-        $c = $this->active_conn();
-        if (!$c || $this->transport_of($c) !== 'smtp') {
-            return;
-        }
-        $s = $this->effective_smtp($c);
-        if ($s['host'] === '') {
-            return;
-        }
-        $phpmailer->isSMTP();
-        $phpmailer->Host = $s['host'];
-        $phpmailer->Port = $s['port'];
-        if ($s['encryption'] === 'ssl' || $s['encryption'] === 'tls') {
-            $phpmailer->SMTPSecure = $s['encryption'];
-        } else {
-            $phpmailer->SMTPSecure  = '';
-            $phpmailer->SMTPAutoTLS = false;
-        }
-        if ($s['auth']) {
-            $phpmailer->SMTPAuth = true;
-            $phpmailer->Username = $s['username'];
-            $phpmailer->Password = $s['password'];
-        } else {
-            $phpmailer->SMTPAuth = false;
-        }
-    }
-
-    /** pre_wp_mail: when the active connection is an API provider, send via API. */
-    public function maybe_send_api($short, $atts)
-    {
-        $c = $this->active_conn();
-        if (!$c || $this->transport_of($c) !== 'api') {
-            return $short;
-        }
-        if (!empty($atts['attachments'])) {
-            return $short; // Let the default transport handle attachments.
-        }
-        $ok = $this->send_via_api($c, $atts);
-        if ($ok) {
-            return true;
-        }
-        // API send failed: try one fallback connection.
-        return $this->fallback($atts) ? true : false;
-    }
-
-    /** wp_mail_failed (SMTP path): try one fallback connection. */
-    public function on_failed($error)
-    {
-        if ($this->busy || !is_wp_error($error)) {
-            return;
-        }
-        $data = $error->get_error_data();
-        if (!is_array($data) || empty($data['to'])) {
-            return;
-        }
-        if (!$this->fallback($data)) {
-            do_action('wp_arzo_email_all_failed', $data, $error);
-        }
+        return $this->last_delivery;
     }
 
     /**
-     * Advance to the next connection and re-send once. Single-step for now; the
-     * full N-step chain is added by the Fallback engine phase.
+     * pre_wp_mail orchestrator: attempt each connection in order until one delivers.
+     *
+     * @param null|bool $short Short-circuit value from earlier filters.
+     * @param array     $atts  wp_mail() arguments (already run through the `wp_mail` filter).
+     * @return bool|null true delivered, false all failed, null to defer to WP (nothing attempted).
      */
-    private function fallback($atts)
+    public function send($short, $atts)
     {
-        $store = $this->store();
-        if ($this->active + 1 >= count($store['order'])) {
-            return false; // No further connection to try.
+        if (null !== $short) {
+            return $short; // Another plugin already handled it.
         }
-        $this->active++;
+        if ($this->busy) {
+            return $short; // Never re-enter our own chain.
+        }
+        $store = $this->store();
+        if (empty($store['order'])) {
+            return $short;
+        }
+
         $this->busy = true;
-        $ok = wp_mail(
-            isset($atts['to']) ? $atts['to'] : array(),
-            isset($atts['subject']) ? $atts['subject'] : '',
-            isset($atts['message']) ? $atts['message'] : '',
-            isset($atts['headers']) ? $atts['headers'] : '',
-            isset($atts['attachments']) ? $atts['attachments'] : array()
-        );
+        $msg     = $this->parse_atts($atts);
+        $has_att = !empty($msg['attachments']);
+
+        $attempts     = array();
+        $attempted    = 0;
+        $delivered_id = null;
+        foreach ($store['order'] as $id) {
+            $conn      = $store['connections'][$id];
+            $transport = $this->transport_of($conn);
+            $title     = $this->title_of($conn);
+
+            // API providers can't carry attachments — skip (don't count as an attempt)
+            // so a later SMTP connection can deliver, or WP's native transport can.
+            if ($transport === 'api' && $has_att) {
+                $attempts[] = array('id' => $id, 'title' => $title, 'transport' => $transport, 'ok' => false, 'skipped' => true, 'error' => 'Skipped — API providers cannot send attachments.');
+                continue;
+            }
+
+            $res = ($transport === 'api') ? $this->deliver_api($conn, $msg) : $this->deliver_smtp($conn, $msg);
+            $attempted++;
+            $attempts[] = array('id' => $id, 'title' => $title, 'transport' => $transport, 'ok' => $res['ok'], 'error' => $res['error']);
+            if ($res['ok']) {
+                $delivered_id = $id;
+                break;
+            }
+        }
         $this->busy = false;
-        $this->active = 0;
-        return (bool) $ok;
+
+        if ($delivered_id !== null) {
+            $delivered_title = $this->title_of($store['connections'][$delivered_id]);
+            $this->last_delivery = array('id' => $delivered_id, 'title' => $delivered_title, 'attempts' => $attempts);
+            do_action('wp_arzo_email_delivered', $delivered_id, $delivered_title, $atts, $attempts);
+            do_action('wp_mail_succeeded', array(
+                'to'          => $msg['to'],
+                'subject'     => $msg['subject'],
+                'message'     => $msg['message'],
+                'headers'     => isset($atts['headers']) ? $atts['headers'] : '',
+                'attachments' => $msg['attachments'],
+            ));
+            return true;
+        }
+
+        if ($attempted === 0) {
+            // Every connection was skipped (all API + this message has attachments):
+            // defer to WordPress's native transport rather than silently dropping it.
+            return $short;
+        }
+
+        // All attempted connections failed.
+        $data = array(
+            'to'          => $msg['to'],
+            'subject'     => $msg['subject'],
+            'message'     => $msg['message'],
+            'headers'     => isset($atts['headers']) ? $atts['headers'] : '',
+            'attachments' => $msg['attachments'],
+            'attempts'    => $attempts,
+        );
+        $last_error = '';
+        foreach (array_reverse($attempts) as $a) {
+            if (empty($a['skipped'])) {
+                $last_error = $a['error'];
+                break;
+            }
+        }
+        $error = new WP_Error('wp_arzo_email_all_failed', $last_error !== '' ? $last_error : 'All email connections failed.', $data);
+        // Flip the log entry to failed first, then notify (notification churns entries).
+        do_action('wp_mail_failed', $error);
+        do_action('wp_arzo_email_all_failed', $data, $error, $attempts);
+        return false;
     }
 
-    /* ------------------------------------------------------- API transports */
-
-    /** Deliver $atts through a connection's provider API. Returns bool. */
-    private function send_via_api($conn, $atts)
+    private function title_of($conn)
     {
-        $provider = isset($conn['provider']) ? $conn['provider'] : '';
-        $key = trim((string) (isset($conn['api_key']) ? $conn['api_key'] : ''));
-        if ($key === '') {
-            return false;
+        if (isset($conn['title']) && $conn['title'] !== '') {
+            return $conn['title'];
         }
+        return isset($conn['provider']) ? $conn['provider'] : 'connection';
+    }
 
+    /**
+     * Normalize wp_mail() arguments into a structured message, parsing headers the
+     * same way WordPress core's wp_mail() does (From / Cc / Bcc / Reply-To /
+     * Content-Type / charset / boundary / custom headers).
+     *
+     * @return array
+     */
+    private function parse_atts($atts)
+    {
         $to = isset($atts['to']) ? $atts['to'] : array();
         if (!is_array($to)) {
             $to = explode(',', $to);
         }
-        $to = array_filter(array_map('trim', $to));
-        if (empty($to)) {
-            return false;
-        }
-
         $subject = isset($atts['subject']) ? (string) $atts['subject'] : '';
         $message = isset($atts['message']) ? (string) $atts['message'] : '';
-        $parsed  = $this->parse_headers(isset($atts['headers']) ? $atts['headers'] : '');
+        $headers = isset($atts['headers']) ? $atts['headers'] : '';
+        $attachments = isset($atts['attachments']) ? $atts['attachments'] : array();
+        if (!is_array($attachments)) {
+            $attachments = array_filter(explode("\n", str_replace("\r\n", "\n", (string) $attachments)));
+        }
 
-        $from_email = trim((string) (isset($conn['from_email']) ? $conn['from_email'] : '')) ?: $parsed['from_email'];
-        if ($from_email === '') {
-            $from_email = apply_filters('wp_mail_from', get_option('admin_email'));
-        }
-        $from_name = trim((string) (isset($conn['from_name']) ? $conn['from_name'] : '')) ?: $parsed['from_name'];
-        if ($from_name === '') {
-            $from_name = apply_filters('wp_mail_from_name', get_bloginfo('name'));
-        }
-        $html = ($parsed['content_type'] === 'text/html');
+        $cc = array();
+        $bcc = array();
+        $reply_to = array();
+        $from_email = '';
+        $from_name = '';
+        $content_type = '';
+        $charset = '';
+        $boundary = '';
+        $custom = array();
 
-        switch ($provider) {
-            case 'sendgrid':
-                return $this->via_sendgrid($key, $to, $subject, $message, $html, $from_email, $from_name);
-            case 'brevo':
-                return $this->via_brevo($key, $to, $subject, $message, $html, $from_email, $from_name);
-            case 'mailgun':
-                return $this->via_mailgun($conn, $key, $to, $subject, $message, $html, $from_email, $from_name);
-            case 'postmark':
-                return $this->via_postmark($key, $to, $subject, $message, $html, $from_email, $from_name);
-        }
-        return false;
-    }
-
-    private function parse_headers($headers)
-    {
-        $out = array('content_type' => 'text/plain', 'from_email' => '', 'from_name' => '');
-        if (!is_array($headers)) {
-            $headers = explode("\n", str_replace("\r\n", "\n", (string) $headers));
-        }
-        foreach ($headers as $h) {
-            $h = trim((string) $h);
-            if ($h === '' || strpos($h, ':') === false) {
-                continue;
-            }
-            list($k, $v) = explode(':', $h, 2);
-            $k = strtolower(trim($k));
-            $v = trim($v);
-            if ($k === 'content-type' && stripos($v, 'text/html') !== false) {
-                $out['content_type'] = 'text/html';
-            } elseif ($k === 'from') {
-                if (preg_match('/(.*)<(.+)>/', $v, $m)) {
-                    $out['from_name']  = trim($m[1], ' "');
-                    $out['from_email'] = trim($m[2]);
-                } else {
-                    $out['from_email'] = $v;
+        if (!empty($headers)) {
+            $tempheaders = is_array($headers) ? $headers : explode("\n", str_replace("\r\n", "\n", (string) $headers));
+            foreach ((array) $tempheaders as $header) {
+                $header = (string) $header;
+                if (strpos($header, ':') === false) {
+                    if (stripos($header, 'boundary=') !== false) {
+                        $parts    = preg_split('/boundary=/i', trim($header));
+                        $boundary = trim(str_replace(array("'", '"'), '', $parts[1]));
+                    }
+                    continue;
+                }
+                list($name, $content) = explode(':', trim($header), 2);
+                $name    = trim($name);
+                $content = trim($content);
+                switch (strtolower($name)) {
+                    case 'from':
+                        $bracket = strpos($content, '<');
+                        if ($bracket !== false) {
+                            if ($bracket > 0) {
+                                $from_name = trim(str_replace('"', '', substr($content, 0, $bracket)));
+                            }
+                            $from_email = trim(str_replace('>', '', substr($content, $bracket + 1)));
+                        } elseif (trim($content) !== '') {
+                            $from_email = trim($content);
+                        }
+                        break;
+                    case 'content-type':
+                        if (strpos($content, ';') !== false) {
+                            list($type, $charset_content) = explode(';', $content, 2);
+                            $content_type = trim($type);
+                            if (stripos($charset_content, 'charset=') !== false) {
+                                $charset = trim(str_replace(array('charset=', '"'), '', $charset_content));
+                            } elseif (stripos($charset_content, 'boundary=') !== false) {
+                                $boundary = trim(str_replace(array('BOUNDARY=', 'boundary=', '"'), '', $charset_content));
+                                $charset  = '';
+                            }
+                        } elseif (trim($content) !== '') {
+                            $content_type = trim($content);
+                        }
+                        break;
+                    case 'cc':
+                        $cc = array_merge($cc, explode(',', $content));
+                        break;
+                    case 'bcc':
+                        $bcc = array_merge($bcc, explode(',', $content));
+                        break;
+                    case 'reply-to':
+                        $reply_to = array_merge($reply_to, explode(',', $content));
+                        break;
+                    default:
+                        $custom[trim($name)] = trim($content);
+                        break;
                 }
             }
         }
-        return $out;
+        if ($content_type === '') {
+            $content_type = 'text/plain';
+        }
+        if ($charset === '') {
+            $charset = get_bloginfo('charset');
+        }
+
+        return compact('to', 'cc', 'bcc', 'reply_to', 'from_email', 'from_name', 'subject', 'message', 'content_type', 'charset', 'boundary', 'custom', 'attachments');
+    }
+
+    /**
+     * Resolve the effective From for a connection: force_from wins, else the
+     * message's own From, else the connection's From, else WordPress's default.
+     *
+     * @return array{0:string,1:string} [email, name]
+     */
+    private function resolve_from($conn, $msg)
+    {
+        $force  = !empty($conn['force_from']);
+        $cEmail = trim((string) (isset($conn['from_email']) ? $conn['from_email'] : ''));
+        $cName  = trim((string) (isset($conn['from_name']) ? $conn['from_name'] : ''));
+
+        if ($force && $cEmail !== '') {
+            $email = $cEmail;
+        } elseif ($msg['from_email'] !== '') {
+            $email = $msg['from_email'];
+        } elseif ($cEmail !== '') {
+            $email = $cEmail;
+        } else {
+            $email = $this->default_from_email();
+        }
+
+        if ($force && $cName !== '') {
+            $name = $cName;
+        } elseif ($msg['from_name'] !== '') {
+            $name = $msg['from_name'];
+        } elseif ($cName !== '') {
+            $name = $cName;
+        } else {
+            $name = apply_filters('wp_mail_from_name', 'WordPress');
+        }
+        return array($email, $name);
+    }
+
+    private function default_from_email()
+    {
+        $sitename = strtolower((string) wp_parse_url(network_home_url(), PHP_URL_HOST));
+        if (strpos($sitename, 'www.') === 0) {
+            $sitename = substr($sitename, 4);
+        }
+        $from = $sitename !== '' ? 'wordpress@' . $sitename : (string) get_option('admin_email');
+        return apply_filters('wp_mail_from', $from);
+    }
+
+    /* ---------------------------------------------------------- Transports */
+
+    /**
+     * Deliver a parsed message through a connection's SMTP transport by building a
+     * throwaway PHPMailer (so a failed attempt never disturbs the next connection).
+     *
+     * @return array{ok:bool,error:string}
+     */
+    private function deliver_smtp($conn, $msg)
+    {
+        $s = $this->effective_smtp($conn);
+        if ($s['host'] === '') {
+            return array('ok' => false, 'error' => 'No SMTP host configured.');
+        }
+        if (!class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+            require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+            require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
+            require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+        }
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host = $s['host'];
+            $mail->Port = $s['port'];
+            if ($s['encryption'] === 'ssl' || $s['encryption'] === 'tls') {
+                $mail->SMTPSecure = $s['encryption'];
+            } else {
+                $mail->SMTPSecure  = '';
+                $mail->SMTPAutoTLS = false;
+            }
+            if ($s['auth']) {
+                $mail->SMTPAuth = true;
+                $mail->Username = $s['username'];
+                $mail->Password = $s['password'];
+            } else {
+                $mail->SMTPAuth = false;
+            }
+
+            list($from_email, $from_name) = $this->resolve_from($conn, $msg);
+            $mail->setFrom($from_email, $from_name, false);
+
+            $addr_methods = array('to' => 'addAddress', 'cc' => 'addCc', 'bcc' => 'addBcc', 'reply_to' => 'addReplyTo');
+            foreach ($addr_methods as $key => $method) {
+                foreach ((array) $msg[$key] as $address) {
+                    $address = trim((string) $address);
+                    if ($address === '') {
+                        continue;
+                    }
+                    $recipient_name = '';
+                    if (preg_match('/(.*)<(.+)>/', $address, $m) && count($m) === 3) {
+                        $recipient_name = trim($m[1]);
+                        $address        = trim($m[2]);
+                    }
+                    $mail->{$method}($address, $recipient_name);
+                }
+            }
+
+            $mail->Subject = $msg['subject'];
+            $mail->Body    = $msg['message'];
+
+            $content_type = apply_filters('wp_mail_content_type', $msg['content_type']);
+            if ($content_type === 'text/html') {
+                $mail->isHTML(true);
+            }
+            $mail->ContentType = $content_type;
+            $mail->CharSet     = apply_filters('wp_mail_charset', $msg['charset']);
+
+            foreach ($msg['custom'] as $name => $content) {
+                if (strtolower($name) === 'mime-version') {
+                    continue;
+                }
+                $mail->addCustomHeader(sprintf('%1$s: %2$s', $name, $content));
+            }
+            if ($msg['boundary'] !== '') {
+                $mail->addCustomHeader(sprintf('Content-Type: %s; boundary="%s"', $content_type, $msg['boundary']));
+            }
+            foreach ((array) $msg['attachments'] as $filename => $attachment) {
+                $attachment = (string) $attachment;
+                if ($attachment === '') {
+                    continue;
+                }
+                $mail->addAttachment($attachment, is_string($filename) ? $filename : '');
+            }
+
+            // Let other plugins tweak the message (DKIM, etc.), like core does.
+            do_action_ref_array('phpmailer_init', array(&$mail));
+            $mail->send();
+            return array('ok' => true, 'error' => '');
+        } catch (\Throwable $e) {
+            $err = (isset($mail->ErrorInfo) && $mail->ErrorInfo) ? $mail->ErrorInfo : $e->getMessage();
+            return array('ok' => false, 'error' => $err);
+        }
+    }
+
+    /**
+     * Deliver a parsed message through a connection's provider API.
+     *
+     * @return array{ok:bool,error:string}
+     */
+    private function deliver_api($conn, $msg)
+    {
+        $provider = isset($conn['provider']) ? $conn['provider'] : '';
+        $key      = trim((string) (isset($conn['api_key']) ? $conn['api_key'] : ''));
+        if ($key === '') {
+            return array('ok' => false, 'error' => 'Missing API key.');
+        }
+
+        $to = array();
+        foreach ((array) $msg['to'] as $address) {
+            $address = trim((string) $address);
+            if ($address === '') {
+                continue;
+            }
+            if (preg_match('/(.*)<(.+)>/', $address, $m) && count($m) === 3) {
+                $address = trim($m[2]);
+            }
+            $to[] = $address;
+        }
+        if (empty($to)) {
+            return array('ok' => false, 'error' => 'No recipient address.');
+        }
+
+        list($from_email, $from_name) = $this->resolve_from($conn, $msg);
+        $subject = $msg['subject'];
+        $message = $msg['message'];
+        $html    = (apply_filters('wp_mail_content_type', $msg['content_type']) === 'text/html');
+
+        $ok = false;
+        switch ($provider) {
+            case 'sendgrid':
+                $ok = $this->via_sendgrid($key, $to, $subject, $message, $html, $from_email, $from_name);
+                break;
+            case 'brevo':
+                $ok = $this->via_brevo($key, $to, $subject, $message, $html, $from_email, $from_name);
+                break;
+            case 'mailgun':
+                $ok = $this->via_mailgun($conn, $key, $to, $subject, $message, $html, $from_email, $from_name);
+                break;
+            case 'postmark':
+                $ok = $this->via_postmark($key, $to, $subject, $message, $html, $from_email, $from_name);
+                break;
+            default:
+                return array('ok' => false, 'error' => 'Unsupported API provider.');
+        }
+        return array('ok' => $ok, 'error' => $ok ? '' : 'The provider API rejected the message.');
     }
 
     private function api_ok($resp)
@@ -684,59 +894,34 @@ class WP_Arzo_Email_Connections
         }
 
         $site    = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
-        $subject = sprintf('SureMail-style test from %s', $site);
-        $message = sprintf("This is a test email sent from %s via the \"%s\" connection.\n\nIf you received this, the connection works.", $site, isset($conn['title']) ? $conn['title'] : $conn['provider']);
-        $atts    = array(
-            'to'          => array($to),
-            'subject'     => $subject,
-            'message'     => $message,
-            'headers'     => 'From: ' . (($conn['from_name'] ?? '') ? $conn['from_name'] . ' ' : '') . '<' . (($conn['from_email'] ?? '') ?: get_option('admin_email')) . ">\n",
-            'attachments' => array(),
+        $subject = sprintf('Test email from %s', $site);
+        $message = sprintf("This is a test email sent from %s via the \"%s\" connection.\n\nIf you received this, the connection works.", $site, $this->title_of($conn));
+
+        // Route the test through the same deliver path as live mail, so a passing
+        // test genuinely exercises the connection the chain would use.
+        $msg = array(
+            'to'           => array($to),
+            'cc'           => array(),
+            'bcc'          => array(),
+            'reply_to'     => array(),
+            'from_email'   => '',
+            'from_name'    => '',
+            'subject'      => $subject,
+            'message'      => $message,
+            'content_type' => 'text/plain',
+            'charset'      => get_bloginfo('charset'),
+            'boundary'     => '',
+            'custom'       => array(),
+            'attachments'  => array(),
         );
 
-        if ($this->transport_of($conn) === 'api') {
-            return $this->send_via_api($conn, $atts) ? true : new WP_Error('send', 'The provider API rejected the test message. Check the API key and details.');
-        }
-        return $this->test_smtp($conn, $to, $subject, $message);
-    }
-
-    /** Build a throwaway PHPMailer for an SMTP connection and send the test. */
-    private function test_smtp($conn, $to, $subject, $message)
-    {
-        if (!class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
-            require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
-            require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
-            require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
-        }
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $s = $this->effective_smtp($conn);
-        try {
-            $mail->isSMTP();
-            $mail->Host = $s['host'];
-            $mail->Port = $s['port'];
-            if ($s['encryption'] === 'ssl' || $s['encryption'] === 'tls') {
-                $mail->SMTPSecure = $s['encryption'];
-            } else {
-                $mail->SMTPSecure  = '';
-                $mail->SMTPAutoTLS = false;
-            }
-            if ($s['auth']) {
-                $mail->SMTPAuth = true;
-                $mail->Username = $s['username'];
-                $mail->Password = $s['password'];
-            }
-            $from_email = (isset($conn['from_email']) && $conn['from_email']) ? $conn['from_email'] : get_option('admin_email');
-            $from_name  = isset($conn['from_name']) ? $conn['from_name'] : '';
-            $mail->setFrom($from_email, $from_name);
-            $mail->addAddress($to);
-            $mail->Subject = $subject;
-            $mail->Body    = $message;
-            $mail->send();
+        $is_api = ($this->transport_of($conn) === 'api');
+        $res    = $is_api ? $this->deliver_api($conn, $msg) : $this->deliver_smtp($conn, $msg);
+        if ($res['ok']) {
             return true;
-        } catch (\Throwable $e) {
-            $err = $mail->ErrorInfo ? $mail->ErrorInfo : $e->getMessage();
-            return new WP_Error('smtp', 'SMTP test failed: ' . $err);
         }
+        $prefix = $is_api ? 'API test failed: ' : 'SMTP test failed: ';
+        return new WP_Error('send', $prefix . ($res['error'] !== '' ? $res['error'] : 'the connection could not send the test message.'));
     }
 
     /* ---------------------------------------------------------- Migration */

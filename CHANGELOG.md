@@ -4,6 +4,29 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.67.0] — 2026-07-02
+
+### Changed — Email: real N-step fallback engine across mixed SMTP + API
+
+- The live send path is rebuilt into a single `pre_wp_mail` **orchestrator** that owns the
+  whole delivery: it parses the message once (From/Cc/Bcc/Reply-To/Content-Type/charset/
+  boundary/custom headers/attachments, faithfully to WP core) and then walks the **full
+  ordered connection chain** — primary → every fallback — trying each until one delivers.
+- **Unified SMTP + API retry.** Previously an API failure (via `pre_wp_mail`) and an SMTP
+  failure (via `wp_mail_failed`) were separate single-step paths, so a mixed chain like
+  `[SendGrid, SMTP, SMTP]` could not walk past the first fallback. Now a message failing on
+  any transport transparently retries on the next connection regardless of its transport.
+- **Correct return value.** Because the chain is driven entirely from `pre_wp_mail` (never
+  the lossy `wp_mail_failed` retry), `wp_mail()` now returns the true delivery result — a
+  message that a fallback rescued reports success to the caller.
+- **Records which connection delivered.** The engine remembers the delivering connection and
+  fires `wp_arzo_email_delivered`; the **Email Log** stamps each entry with that connection.
+- **Attachments** are routed to SMTP connections (API providers, which can't carry them, are
+  skipped); if every connection is API-only for an attachment message, delivery defers to
+  WordPress's native transport rather than being dropped.
+- Per-connection **Test email** now runs through the same deliver path, so a passing test
+  genuinely exercises the connection the live chain would use.
+
 ## [6.66.0] — 2026-07-01
 
 ### Changed — Email: one unified hub with tabs (SureMail-style)
