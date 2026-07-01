@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.82.0] — 2026-07-02
+
+### Changed — menu order by use, Setup Wizard menu removed
+
+- The WP Arzo submenu is reordered by how often each page is actually used: **Dashboard**,
+  then monitor &amp; operate (**Activity Log, Email, Backups, Notifications**), then content
+  (**Content Types, Custom Fields, Media Cleanup**), then security &amp; access (**Login
+  Security, Two-Factor, Roles, REST API Auth**), then developer (**Snippets, Redirects,
+  Cron**), with **Import / Export** and the **Advanced Tools** console last. Ordering is
+  centralized in one rank map (Pro pages included), so it stays deterministic.
+- The **Setup Wizard** no longer occupies a permanent menu slot — it's a one-time flow already
+  reachable from the Dashboard's "Setup Wizard" button (and the first-run redirect). The page
+  is still routable at the same URL; only the redundant menu entry is gone.
+
 ## [6.81.0] — 2026-07-02
 
 ### Added — advertise Notifications (Pro)

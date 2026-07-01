@@ -10,7 +10,8 @@
  * module without an active license) is skipped and reported.
  *
  * The wizard is shown automatically once after activation (first run) and is
- * always reachable from WP Arzo → Setup Wizard.
+ * always reachable from the Dashboard's "Setup Wizard" button (hidden page —
+ * no permanent menu entry).
  *
  * @package WP_Arzo
  */
@@ -64,14 +65,17 @@ class WP_Arzo_Setup_Wizard
 
     public function menu()
     {
+        // Registered as a HIDDEN page (empty parent slug): still routable via
+        // admin.php?page=wp-arzo-setup, but no menu entry — the Dashboard's
+        // "Setup Wizard" button and the first-run redirect are the entry points,
+        // so a permanent submenu item was redundant.
         add_submenu_page(
-            'wp-arzo',
+            '',
             'Setup Wizard',
             'Setup Wizard',
             'manage_options',
             self::PAGE,
-            array($this, 'render'),
-            98
+            array($this, 'render')
         );
         // No "Leads" admin page — wizard opt-ins are collected silently (stored + emailed to
         // the developer via record_lead()); site owners don't need a Leads screen.

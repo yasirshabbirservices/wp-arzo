@@ -199,23 +199,33 @@ class WP_Arzo_Admin
         if (empty($submenu[self::PAGE]) || !is_array($submenu[self::PAGE])) {
             return;
         }
+        // UX-driven order (single source of truth — Pro position args are overridden here):
+        // Dashboard first, then the daily "monitor & operate" surfaces, then content
+        // modeling, then security & access, then developer tools, with catch-all tools
+        // (Import/Export, the Advanced Tools console) last. Unranked slugs land at 80.
         $rank = array(
-            self::PAGE              => 0,   // Dashboard
-            'wp-arzo-content-types' => 20,  // Pro
-            'wp-arzo-custom-fields' => 22,  // Pro
-            self::PAGE_SNIPPETS     => 30,
-            self::PAGE_MEDIA        => 35,
-            'wp-arzo-redirects'     => 40,  // Pro
-            self::PAGE_EMAIL        => 44,
-            self::PAGE_BACKUPS      => 50,
-            'wp-arzo-cron'          => 55,  // Pro
-            self::PAGE_ACTIVITY     => 60,
-            self::PAGE_REST_AUTH    => 65,
-            self::PAGE_ROLES        => 70,
-            self::PAGE_LOGIN_SECURITY => 72,
-            self::PAGE_CONFIG       => 85,
-            'wp-arzo-tool'          => 95,
-            'wp-arzo-setup'         => 98,  // Setup Wizard
+            self::PAGE                => 0,  // Dashboard (hub)
+            // Monitor & operate (checked most often)
+            self::PAGE_ACTIVITY       => 10, // Activity Log — "what's happening"
+            self::PAGE_EMAIL          => 12,
+            self::PAGE_BACKUPS        => 14,
+            'wp-arzo-notifications'   => 16, // Pro
+            // Content & media
+            'wp-arzo-content-types'   => 30, // Pro
+            'wp-arzo-custom-fields'   => 32, // Pro
+            self::PAGE_MEDIA          => 34,
+            // Security & access
+            self::PAGE_LOGIN_SECURITY => 50,
+            'wp-arzo-two-factor'      => 52, // Pro
+            self::PAGE_ROLES          => 54,
+            self::PAGE_REST_AUTH      => 56,
+            // Developer
+            self::PAGE_SNIPPETS       => 70,
+            'wp-arzo-redirects'       => 72, // Pro
+            'wp-arzo-cron'            => 74, // Pro
+            // Tools (bottom)
+            self::PAGE_CONFIG         => 90, // Import / Export
+            'wp-arzo-tool'            => 95, // Advanced Tools console (opens standalone)
         );
         usort($submenu[self::PAGE], function ($a, $b) use ($rank) {
             // $item[2] is the menu slug.
