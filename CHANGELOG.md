@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.54.0] — 2026-07-01
+
+### Changed — Email delivery unified into one FREE feature
+- **Advanced SMTP and API Email Providers are now a single free feature** ("Advanced SMTP &
+  Email API"). A **Delivery method** selector chooses SMTP server (with the existing backup
+  connection + failover + failure alerts) or a **provider API** (SendGrid / Brevo / Mailgun);
+  `show_if` reveals only the relevant fields. The provider-API sending engine moved from the
+  Pro add-on into the free core — **API email is now free** and the Pro `email_api` module is
+  removed. (Re-select your provider + key under *WP Arzo → the SMTP feature settings* if you
+  had the old Pro API-email configured.)
+
 ## [6.53.0] — 2026-07-01
 
 ### Added — Two-Factor: QR-code enrollment

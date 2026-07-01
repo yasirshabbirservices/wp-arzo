@@ -109,7 +109,6 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'cron_manager', 'title' => 'Cron Manager', 'group' => 'ops', 'icon' => 'clock', 'description' => 'View, run, and delete WP-Cron events and inspect schedules.'),
 
         // Email
-        array('id' => 'email_api', 'title' => 'API Email Providers', 'group' => 'email', 'icon' => 'mail', 'description' => 'Send email through a provider API (SendGrid, Brevo, Mailgun) for the best deliverability.'),
 
         // Backup & Restore
         array('id' => 'backup_ftp', 'title' => 'Off-site Backups: FTP', 'group' => 'backup', 'icon' => 'upload', 'description' => 'Automatically upload each new database snapshot (zipped) to an FTP server.'),
