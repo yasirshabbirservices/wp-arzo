@@ -30,9 +30,10 @@
     info: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/>'
   };
 
-  wpArzo.toast = function (message, type, duration) {
+  wpArzo.toast = function (message, type, duration, action) {
     type = type || 'success';
-    duration = duration || 3200;
+    // An actionable toast (with a link) lingers longer so it can be clicked.
+    duration = duration || (action && action.href ? 7000 : 3200);
     var region = ensureToastRegion();
     var toast = document.createElement('div');
     toast.className = 'wpa-toast wpa-toast--' + type;
@@ -42,6 +43,13 @@
       'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       icon + '</svg><span></span>';
     toast.querySelector('span').textContent = message;
+    if (action && action.href) {
+      var link = document.createElement('a');
+      link.href = action.href;
+      link.textContent = action.label || 'Open →';
+      link.className = 'wpa-toast__action';
+      toast.appendChild(link);
+    }
     region.appendChild(toast);
     setTimeout(function () {
       toast.style.transition = 'opacity .2s, transform .2s';

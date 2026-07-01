@@ -666,11 +666,49 @@ class WP_Arzo_Admin
         <?php
     }
 
+    /**
+     * Where a feature is configured after you enable it — its dedicated page or
+     * Settings tab. Filterable (`wp_arzo_feature_manage_urls`) so Pro adds its own.
+     * Returns '' if the feature has no dedicated destination (callers then fall back
+     * to the schema-settings screen when the feature has settings).
+     *
+     * @return string
+     */
+    public function feature_manage_url($id)
+    {
+        $s = admin_url('admin.php?page=');
+        $map = array(
+            'smtp'              => $s . self::PAGE_EMAIL,
+            'email_log'         => $s . self::PAGE_EMAIL . '&tab=logs',
+            'code_snippets'     => $s . self::PAGE_SNIPPETS,
+            'media_cleanup'     => $s . self::PAGE_MEDIA,
+            'activity_log'      => $s . self::PAGE_ACTIVITY,
+            'limit_login'       => $s . self::PAGE_SETTINGS . '&tab=login_security',
+            'role_manager'      => $s . self::PAGE_SETTINGS . '&tab=roles',
+            'rest_api_auth'     => $s . self::PAGE_SETTINGS . '&tab=rest_auth',
+            'auto_snapshots'    => $s . self::PAGE_BACKUPS,
+            'scheduled_backups' => $s . self::PAGE_BACKUPS,
+        );
+        $map = apply_filters('wp_arzo_feature_manage_urls', $map);
+        return isset($map[$id]) ? $map[$id] : '';
+    }
+
+    /** Resolve the best "Configure" URL for a feature (dedicated page → schema settings → ''). */
+    private function feature_config_url(WP_Arzo_Feature $feature)
+    {
+        $url = $this->feature_manage_url($feature->id());
+        if ($url === '' && $feature->has_settings()) {
+            $url = add_query_arg(array('page' => self::PAGE, 'view' => 'settings', 'feature' => $feature->id()), admin_url('admin.php'));
+        }
+        return $url;
+    }
+
     private function render_feature_card(WP_Arzo_Feature $feature)
     {
         $id        = $feature->id();
         $enabled   = $feature->is_enabled();
         $is_pro    = $feature->tier() === 'pro';
+        $manage    = $this->feature_config_url($feature);
         /** Pro addon can hook this to lock features behind a license. */
         $available = apply_filters('wp_arzo_feature_is_available', true, $feature);
         $search    = strtolower($feature->title() . ' ' . $feature->description());
@@ -691,11 +729,11 @@ class WP_Arzo_Admin
                 <?php endif; ?>
             </div>
             <div class="wpa-feature-card__actions">
-                <?php if ($feature->has_settings()) : ?>
-                    <a class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-feature-card__settings<?php echo $enabled ? '' : ' is-hidden'; ?>"
-                        href="<?php echo esc_url(add_query_arg(array('page' => self::PAGE, 'view' => 'settings', 'feature' => $id), admin_url('admin.php'))); ?>"
-                        aria-label="<?php echo esc_attr($feature->title() . ' settings'); ?>">
-                        <?php echo wp_arzo_icon('settings', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                <?php if ($manage !== '') : ?>
+                    <a class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-feature-card__settings<?php echo $enabled ? '' : ' is-hidden'; ?>"
+                        href="<?php echo esc_url($manage); ?>"
+                        aria-label="<?php echo esc_attr('Configure ' . $feature->title()); ?>">
+                        <?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configure
                     </a>
                 <?php endif; ?>
                 <?php if ($available) : ?>
@@ -950,8 +988,10 @@ class WP_Arzo_Admin
 
         wp_send_json_success(array(
             'feature'     => $id,
+            'title'       => $feature->title(),
             'enabled'     => $enabled,
             'hasSettings' => $feature->has_settings(),
+            'manageUrl'   => $this->feature_config_url($feature),
             'ownsPage'    => $this->feature_owns_page($id),
         ));
     }

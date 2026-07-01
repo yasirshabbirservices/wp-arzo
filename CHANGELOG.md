@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.85.0] — 2026-07-02
+
+### Added — "Configure →" discoverability after enabling a feature
+
+- Turning a feature on now tells you **where to set it up**. Every configurable feature card
+  shows a clear **Configure** link (to its page or Settings tab) while enabled, and enabling one
+  pops an actionable toast — "{Feature} enabled — set it up next · **Configure →**" — that deep-
+  links to the right destination. Previously only schema-settings features had a (cryptic gear)
+  affordance, so page/tab-configured features (2FA, Email, Backups, Roles, Notifications, …) gave
+  no hint where to go.
+- Destinations come from a filterable `wp_arzo_feature_manage_urls` map (Pro adds its own), and
+  the toast component now supports an optional action link.
+
 ## [6.84.0] — 2026-07-02
 
 ### Changed — one Settings hub, fewer menus, prominent search
