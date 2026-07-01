@@ -74,6 +74,12 @@ class WP_Arzo_Email_Connections
         );
 
         return array(
+            // Brevo first + "Recommended": a reliable free-tier API provider that avoids
+            // SMTP port/auth headaches — the easiest good default for most sites.
+            'brevo' => array(
+                'label' => 'Brevo (Sendinblue)', 'icon' => 'bolt', 'transport' => 'api', 'badge' => 'Recommended',
+                'fields' => array(array('key' => 'api_key', 'type' => 'password', 'label' => 'API key', 'required' => true)),
+            ),
             'smtp' => array(
                 'label' => 'Custom SMTP', 'icon' => 'mail', 'transport' => 'smtp', 'badge' => 'Any host',
                 'fields' => array_merge(array(
@@ -133,10 +139,6 @@ class WP_Arzo_Email_Connections
             // API-transport providers.
             'sendgrid' => array(
                 'label' => 'SendGrid', 'icon' => 'bolt', 'transport' => 'api',
-                'fields' => array(array('key' => 'api_key', 'type' => 'password', 'label' => 'API key', 'required' => true)),
-            ),
-            'brevo' => array(
-                'label' => 'Brevo (Sendinblue)', 'icon' => 'bolt', 'transport' => 'api',
                 'fields' => array(array('key' => 'api_key', 'type' => 'password', 'label' => 'API key', 'required' => true)),
             ),
             'mailgun' => array(
