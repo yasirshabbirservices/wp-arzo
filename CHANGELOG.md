@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.81.0] — 2026-07-02
+
+### Added — advertise Notifications (Pro)
+
+- The locked Pro catalog now lists **Notifications** (Ops) — push site events (security,
+  backups, email failures, system changes) to Slack, Discord, **n8n (cloud or self-hosted)**,
+  or any generic webhook, with per-channel event selection.
+
 ## [6.80.0] — 2026-07-02
 
 ### Added — targeted Import / Export
