@@ -19,6 +19,9 @@ class WP_Arzo_Admin
     /** @var WP_Arzo_Admin|null */
     private static $instance = null;
 
+    /** @var bool Whether the current shell rendered its rail (dashboard only). */
+    private $shell_has_rail = false;
+
     const PAGE = 'wp-arzo';
     const PAGE_BACKUPS = 'wp-arzo-backups';
     const PAGE_EMAIL_LOG = 'wp-arzo-email-log';
@@ -384,17 +387,23 @@ class WP_Arzo_Admin
      */
     private function render_shell_open($current, $categories = array(), $total = 0)
     {
-        $has_rail = !empty($categories);
-        echo '<div class="wpa-shell' . ($has_rail ? '' : ' wpa-shell--full') . '">';
-        if ($has_rail) {
-            $this->render_sidenav($current, $categories, $total);
+        // Feature pages are "clean" — only the feature's own content, no brand header
+        // and no shell/sidebar. The shell (with its category rail) renders ONLY on the
+        // dashboard hub, which is the sole caller that passes categories.
+        $this->shell_has_rail = !empty($categories);
+        if (!$this->shell_has_rail) {
+            return;
         }
+        echo '<div class="wpa-shell">';
+        $this->render_sidenav($current, $categories, $total);
         echo '<div class="wpa-shell__main">';
     }
 
     private function render_shell_close()
     {
-        echo '</div></div>';
+        if (!empty($this->shell_has_rail)) {
+            echo '</div></div>';
+        }
     }
 
     /**
@@ -705,7 +714,6 @@ class WP_Arzo_Admin
     {
         $saved = $this->maybe_save_settings($feature);
         $schema = $feature->settings_schema();
-        $this->render_brand_bar();
         $this->render_shell_open('dashboard');
         ?>
         <div class="wpa-admin__bar">
@@ -1007,7 +1015,6 @@ class WP_Arzo_Admin
         $total     = size_format($manager->total_size());
         ?>
         <div class="wrap wpa-admin">
-            <?php $this->render_brand_bar(); ?>
             <?php $this->render_shell_open('backups'); ?>
             <div class="wpa-admin__bar">
                 <div>
@@ -1334,7 +1341,6 @@ class WP_Arzo_Admin
         $base = admin_url('admin.php?page=' . self::PAGE_EMAIL);
 
         echo '<div class="wrap wpa-admin">';
-        $this->render_brand_bar();
         $this->render_shell_open('email');
 
         echo '<nav class="wpa-tabs" aria-label="Email tools">';
@@ -1657,7 +1663,6 @@ class WP_Arzo_Admin
         $now      = time();
         ?>
         <div class="wrap wpa-admin">
-            <?php $this->render_brand_bar(); ?>
             <?php $this->render_shell_open('login_security'); ?>
             <div class="wpa-admin__bar">
                 <div>
@@ -1779,7 +1784,6 @@ class WP_Arzo_Admin
         $base  = admin_url('admin.php?page=' . self::PAGE_ACTIVITY);
         ?>
         <div class="wrap wpa-admin">
-            <?php $this->render_brand_bar(); ?>
             <?php $this->render_shell_open('activity'); ?>
             <div class="wpa-admin__bar">
                 <div>
@@ -1926,7 +1930,6 @@ class WP_Arzo_Admin
         $base   = admin_url('admin.php?page=' . self::PAGE_SNIPPETS);
 
         echo '<div class="wrap wpa-admin">';
-        $this->render_brand_bar();
         $this->render_shell_open('snippets');
         ?>
         <div class="wpa-admin__bar">
@@ -2081,7 +2084,6 @@ class WP_Arzo_Admin
         $total = class_exists('WP_Arzo_Media_Cleanup') ? WP_Arzo_Media_Cleanup::instance()->count_attachments() : 0;
         ?>
         <div class="wrap wpa-admin">
-            <?php $this->render_brand_bar(); ?>
             <?php $this->render_shell_open('media'); ?>
             <div class="wpa-admin__bar">
                 <div>
@@ -2213,7 +2215,6 @@ class WP_Arzo_Admin
         $example = home_url('/wp-json/wp/v2/posts');
         ?>
         <div class="wrap wpa-admin">
-            <?php $this->render_brand_bar(); ?>
             <?php $this->render_shell_open('rest_auth'); ?>
             <div class="wpa-admin__bar">
                 <div>
@@ -2337,7 +2338,6 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         }
         $slug = isset($_GET['role']) ? sanitize_key(wp_unslash($_GET['role'])) : '';
         echo '<div class="wrap wpa-admin">';
-        $this->render_brand_bar();
         $this->render_shell_open('roles');
         if ($slug !== '' && get_role($slug)) {
             $this->render_role_editor($slug);
@@ -2524,7 +2524,6 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         $nonce = wp_create_nonce(self::NONCE_CONFIG);
         ?>
         <div class="wrap wpa-admin">
-            <?php $this->render_brand_bar(); ?>
             <?php $this->render_shell_open('config'); ?>
             <div class="wpa-admin__bar">
                 <div>
