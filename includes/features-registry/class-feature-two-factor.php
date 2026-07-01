@@ -184,6 +184,34 @@ class WP_Arzo_Feature_Two_Factor extends WP_Arzo_Feature
         return self::consume_recovery($user_id, $code);
     }
 
+    /* --------------------------------------------------------- QR helpers */
+
+    /** Lazily load the bundled offline QR library. */
+    private static function ensure_qr()
+    {
+        if (!class_exists('WP_Arzo_QR') && defined('WP_ARZO_PLUGIN_DIR')) {
+            $file = WP_ARZO_PLUGIN_DIR . 'includes/lib/class-wp-arzo-qr.php';
+            if (is_readable($file)) {
+                require_once $file;
+            }
+        }
+        return class_exists('WP_Arzo_QR');
+    }
+
+    /** QR markup for an otpauth URI: a PNG <img> (GD) or an HTML-table fallback, or ''. */
+    public static function qr_markup($otpauth_uri, $px = 180)
+    {
+        if (!self::ensure_qr()) {
+            return '';
+        }
+        $data = WP_Arzo_QR::data_uri($otpauth_uri, 5, 4);
+        if ($data !== '') {
+            return '<img src="' . esc_attr($data) . '" width="' . (int) $px . '" height="' . (int) $px . '" alt="Two-factor QR code" style="display:block;background:#fff;padding:8px;border-radius:8px;image-rendering:pixelated;">';
+        }
+        // GD unavailable — render the QR as an HTML table on a white tile.
+        return '<div style="display:inline-block;background:#fff;padding:8px;border-radius:8px;line-height:0;">' . WP_Arzo_QR::html_table($otpauth_uri, '4px') . '</div>';
+    }
+
     /* ------------------------------------------------------------ profile */
 
     public function profile_section($user)
@@ -215,9 +243,12 @@ class WP_Arzo_Feature_Two_Factor extends WP_Arzo_Feature
                 update_user_meta($user->ID, self::M_PENDING, $pending);
             }
             $uri = self::otpauth_uri($pending, $user->user_login);
-            echo '<p>Scan this in an authenticator app (Google Authenticator, Authy, 1Password…), then enter a 6-digit code to turn it on.</p>';
-            echo '<p>Setup key: <code style="user-select:all;">' . esc_html($pending) . '</code></p>';
-            echo '<p style="font-size:12px;word-break:break-all;">otpauth URI: <code>' . esc_html($uri) . '</code></p>';
+            echo '<p>Scan this QR code in an authenticator app (Google Authenticator, Authy, 1Password…), then enter a 6-digit code to turn it on.</p>';
+            $qr = self::qr_markup($uri, 180);
+            if ($qr) {
+                echo '<p style="margin:10px 0;">' . $qr . '</p>';
+            }
+            echo '<p>Can&rsquo;t scan? Enter this key manually: <code style="user-select:all;font-size:14px;">' . esc_html($pending) . '</code></p>';
             echo '<input type="text" name="wp_arzo_2fa_activate_code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" class="regular-text" style="max-width:160px;"> ';
             echo '<span class="description">Enter a code, then Update Profile to activate.</span>';
         }
