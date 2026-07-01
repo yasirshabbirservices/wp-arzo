@@ -76,6 +76,14 @@ class WP_Arzo_Activity_Log
             $log = array_slice($log, 0, $this->retention);
         }
         update_option(self::OPT, $log, false);
+
+        /**
+         * Fires after an activity entry is recorded. Extension point for the Pro
+         * Advanced Audit Log, which mirrors each event into a durable DB table.
+         *
+         * @param array $entry { t, u, ul, a, o, ip }
+         */
+        do_action('wp_arzo_activity_recorded', $entry);
     }
 
     private function ip()

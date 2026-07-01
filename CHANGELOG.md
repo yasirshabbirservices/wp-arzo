@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.70.0] — 2026-07-02
+
+### Added — `wp_arzo_activity_recorded` extension hook
+
+- The Activity Log engine now fires `do_action('wp_arzo_activity_recorded', $entry)` after
+  every recorded event. This is the extension point the new Pro **Advanced Audit Log** uses
+  to mirror events into a durable, searchable database table (retention, filters, CSV export).
+- Advertised the Pro **Advanced Audit Log** in the locked Pro catalog (Ops & Monitoring).
+
 ## [6.69.0] — 2026-07-02
 
 ### Added — Email onboarding wizard (first-run)
