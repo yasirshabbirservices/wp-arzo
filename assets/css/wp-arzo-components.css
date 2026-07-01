@@ -306,6 +306,46 @@
   color: var(--arzo-text-primary);
 }
 
+/* ===================== Collapse / accordion section ================== */
+/* Progressive-disclosure section: a header you click to expand/collapse a body.
+   Used to group long builder forms (General / Advanced / …) — see wp-arzo-components.js. */
+.wpa-collapse {
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius);
+  background: var(--arzo-bg-panel);
+  overflow: hidden;
+}
+.wpa-collapse + .wpa-collapse { margin-top: var(--arzo-space-3); }
+.wpa-collapse__head {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  width: 100%;
+  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--arzo-text-strong);
+  font-size: var(--arzo-fs-md);
+  font-weight: 700;
+  text-align: left;
+}
+.wpa-collapse__head:hover { background: var(--arzo-bg-hover); }
+.wpa-collapse__head:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
+.wpa-collapse__chevron {
+  margin-left: auto;
+  color: var(--arzo-text-secondary);
+  transition: transform var(--arzo-transition);
+}
+.wpa-collapse.is-open .wpa-collapse__chevron { transform: rotate(90deg); }
+.wpa-collapse__count {
+  color: var(--arzo-text-secondary);
+  font-weight: 600;
+  font-size: var(--arzo-fs-sm);
+}
+.wpa-collapse__body { padding: 4px 16px 18px; border-top: 1px solid var(--arzo-border); }
+.wpa-collapse:not(.is-open) .wpa-collapse__body { display: none; }
+
 /* ============================ Card ==================================== */
 .wpa-card {
   background: var(--arzo-bg-panel);

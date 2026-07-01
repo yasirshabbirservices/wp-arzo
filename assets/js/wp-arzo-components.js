@@ -176,8 +176,26 @@
     (root || document).querySelectorAll('select[data-wpa-select]').forEach(buildSelect);
   };
 
+  // ------------------------------------------------------- Collapse/accordion
+  // <div class="wpa-collapse is-open"><button class="wpa-collapse__head">…</button>
+  //   <div class="wpa-collapse__body">…</div></div>  — click the head to toggle.
+  wpArzo.initCollapses = function (root) {
+    (root || document).querySelectorAll('.wpa-collapse__head').forEach(function (head) {
+      if (head.dataset.wpaCollapseBound) { return; }
+      head.dataset.wpaCollapseBound = '1';
+      var box = head.closest('.wpa-collapse');
+      head.setAttribute('aria-expanded', box && box.classList.contains('is-open') ? 'true' : 'false');
+      head.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (!box) { return; }
+        var open = box.classList.toggle('is-open');
+        head.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    });
+  };
+
   // -------------------------------------------------------------- Boot
-  function init() { wpArzo.initSelects(document); }
+  function init() { wpArzo.initSelects(document); wpArzo.initCollapses(document); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
