@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.80.0] — 2026-07-02
+
+### Added — targeted Import / Export
+
+- **Snippets** — export all snippets to a portable JSON file and import them back (imported
+  snippets are added **disabled** so you can review before enabling). Buttons on the Snippets page.
+- **Email Log** — **Export CSV** (time, to, subject, connection, status, error).
+- **Activity Log** — **Export CSV** (time, user, action, details, IP) on the free log view.
+- **Config Import/Export** now also carries your **Email connections** (the multi-provider store),
+  so a config export/import moves your SMTP/API providers with everything else.
+
 ## [6.79.0] — 2026-07-02
 
 ### Changed — one Activity Log page (Pro upgrades it in place)
