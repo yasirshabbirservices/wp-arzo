@@ -22,6 +22,9 @@ class WP_Arzo_Admin
     /** @var bool Whether the current shell rendered its rail (dashboard only). */
     private $shell_has_rail = false;
 
+    /** @var bool True while a page is being rendered inside the Settings hub (skip its own .wrap). */
+    private $rendering_tab = false;
+
     const PAGE = 'wp-arzo';
     const PAGE_BACKUPS = 'wp-arzo-backups';
     const PAGE_EMAIL_LOG = 'wp-arzo-email-log';
@@ -33,6 +36,7 @@ class WP_Arzo_Admin
     const PAGE_CONFIG = 'wp-arzo-config';
     const PAGE_LOGIN_SECURITY = 'wp-arzo-login-security';
     const PAGE_EMAIL = 'wp-arzo-email';
+    const PAGE_SETTINGS = 'wp-arzo-settings';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
@@ -169,18 +173,11 @@ class WP_Arzo_Admin
         if ($this->page_visible(self::PAGE_ACTIVITY)) {
             add_submenu_page(self::PAGE, 'Activity Log', 'Activity Log', 'manage_options', self::PAGE_ACTIVITY, array($this, 'render_activity_log'), 60);
         }
-        if ($this->page_visible(self::PAGE_REST_AUTH)) {
-            add_submenu_page(self::PAGE, 'REST API Auth', 'REST API Auth', 'manage_options', self::PAGE_REST_AUTH, array($this, 'render_rest_auth'), 65);
-        }
-        if ($this->page_visible(self::PAGE_ROLES)) {
-            add_submenu_page(self::PAGE, 'Roles', 'Roles', 'manage_options', self::PAGE_ROLES, array($this, 'render_roles'), 70);
-        }
-        if ($this->page_visible(self::PAGE_LOGIN_SECURITY)) {
-            add_submenu_page(self::PAGE, 'Login Security', 'Login Security', 'manage_options', self::PAGE_LOGIN_SECURITY, array($this, 'render_login_security'), 72);
-        }
-        if ($this->page_visible(self::PAGE_CONFIG)) {
-            add_submenu_page(self::PAGE, 'Import / Export', 'Import / Export', 'manage_options', self::PAGE_CONFIG, array($this, 'render_config_io'), 85);
-        }
+
+        // One consolidated Settings hub — Login Security / Roles / REST API Auth / Import-Export
+        // (free) plus Two-Factor / Notifications / AI-MCP (Pro, via the wp_arzo_settings_tabs
+        // filter) live as TABS here instead of a menu each.
+        add_submenu_page(self::PAGE, 'Settings', 'Settings', 'manage_options', self::PAGE_SETTINGS, array($this, 'render_settings_hub'), 80);
 
         // The standalone power-console (DB / Files / Emergency) opens in a new tab.
         if (function_exists('wp_arzo_redirect_page')) {
@@ -209,23 +206,17 @@ class WP_Arzo_Admin
             self::PAGE_ACTIVITY       => 10, // Activity Log — "what's happening"
             self::PAGE_EMAIL          => 12,
             self::PAGE_BACKUPS        => 14,
-            'wp-arzo-notifications'   => 16, // Pro
             // Content & media
             'wp-arzo-content-types'   => 30, // Pro
             'wp-arzo-custom-fields'   => 32, // Pro
             self::PAGE_MEDIA          => 34,
-            // Security & access
-            self::PAGE_LOGIN_SECURITY => 50,
-            'wp-arzo-two-factor'      => 52, // Pro
-            self::PAGE_ROLES          => 54,
-            self::PAGE_REST_AUTH      => 56,
             // Developer
             self::PAGE_SNIPPETS       => 70,
             'wp-arzo-redirects'       => 72, // Pro
             'wp-arzo-cron'            => 74, // Pro
-            'wp-arzo-mcp'             => 76, // Pro (AI / MCP Server)
+            // Consolidated Settings hub (Security / Access / Integrations / Data as tabs) — near the bottom
+            self::PAGE_SETTINGS       => 80,
             // Tools (bottom)
-            self::PAGE_CONFIG         => 90, // Import / Export
             'wp-arzo-tool'            => 95, // Advanced Tools console (opens standalone)
         );
         usort($submenu[self::PAGE], function ($a, $b) use ($rank) {
@@ -484,18 +475,18 @@ class WP_Arzo_Admin
                 <div class="wpa-fm-progress__meta"><strong><?php echo (int) $enabled; ?></strong> of <?php echo (int) $total; ?> features active · <?php echo (int) $wpa_pct; ?>%</div>
             </div>
             <div class="wpa-fm-hero__actions">
-                <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . WP_Arzo_Setup_Wizard::PAGE)); ?>">
+                <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url(admin_url('admin.php?page=' . WP_Arzo_Setup_Wizard::PAGE)); ?>">
                     <?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Setup Wizard
                 </a>
-                <div class="wpa-admin__search">
-                    <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?>
-                    <input type="search" id="wpa-feature-search" placeholder="Search features…" aria-label="Search features">
-                </div>
             </div>
         </div>
 
         <div class="wpa-layout">
             <div class="wpa-main">
+                <div class="wpa-fm-searchbar" role="search">
+                    <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon')); ?>
+                    <input type="search" id="wpa-feature-search" placeholder="Search all features…" aria-label="Search features">
+                </div>
                 <div id="wpa-feature-grid">
                     <?php foreach ($grouped as $group_key => $features) :
                         // Master toggle reflects the AVAILABLE (non-locked) features only.
@@ -1828,6 +1819,79 @@ class WP_Arzo_Admin
         wp_send_json_success(array('message' => 'Test email sent — check the inbox.'));
     }
 
+    /* --------------------------------------------------------- Settings hub */
+
+    /**
+     * Tab registry for the consolidated Settings hub. Free tabs are added here (each
+     * gated by its feature); Pro modules register theirs via `wp_arzo_settings_tabs`.
+     * Each entry: ['label','icon','order','cb' => callable that renders the tab body].
+     */
+    private function settings_tabs()
+    {
+        $tabs = array();
+        if ($this->page_visible(self::PAGE_LOGIN_SECURITY)) {
+            $tabs['login_security'] = array('label' => 'Login Security', 'icon' => 'lock', 'order' => 20, 'cb' => array($this, 'render_login_security'));
+        }
+        if ($this->page_visible(self::PAGE_ROLES)) {
+            $tabs['roles'] = array('label' => 'Roles', 'icon' => 'users', 'order' => 30, 'cb' => array($this, 'render_roles'));
+        }
+        if ($this->page_visible(self::PAGE_REST_AUTH)) {
+            $tabs['rest_auth'] = array('label' => 'REST API Auth', 'icon' => 'key', 'order' => 32, 'cb' => array($this, 'render_rest_auth'));
+        }
+        $tabs['config_io'] = array('label' => 'Import / Export', 'icon' => 'download', 'order' => 90, 'cb' => array($this, 'render_config_io'));
+
+        $tabs = apply_filters('wp_arzo_settings_tabs', $tabs);
+        if (!is_array($tabs)) {
+            $tabs = array();
+        }
+        uasort($tabs, function ($a, $b) {
+            return (isset($a['order']) ? $a['order'] : 50) <=> (isset($b['order']) ? $b['order'] : 50);
+        });
+        return $tabs;
+    }
+
+    /** The Settings hub page — a tabbed shell that renders each folded page as a tab. */
+    public function render_settings_hub()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $tabs = $this->settings_tabs();
+        if (empty($tabs)) {
+            echo '<div class="wrap wpa-admin"><p>No settings available.</p></div>';
+            return;
+        }
+        $keys = array_keys($tabs);
+        $tab  = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : $keys[0];
+        if (!isset($tabs[$tab])) {
+            $tab = $keys[0];
+        }
+        $base = admin_url('admin.php?page=' . self::PAGE_SETTINGS);
+
+        echo '<div class="wrap wpa-admin">';
+        echo '<nav class="wpa-tabs" role="tablist" aria-label="Settings">';
+        foreach ($tabs as $key => $t) {
+            printf(
+                '<a class="wpa-tab%s" role="tab" aria-selected="%s" id="wpa-set-tab-%s" href="%s">%s<span>%s</span></a>',
+                $key === $tab ? ' is-active' : '',
+                $key === $tab ? 'true' : 'false',
+                esc_attr($key),
+                esc_url(add_query_arg('tab', $key, $base)),
+                wp_arzo_icon(isset($t['icon']) ? $t['icon'] : 'settings', array('class' => 'wpa-icon wpa-icon--sm')),
+                esc_html(isset($t['label']) ? $t['label'] : $key)
+            );
+        }
+        echo '</nav>';
+
+        echo '<div role="tabpanel" aria-labelledby="wpa-set-tab-' . esc_attr($tab) . '">';
+        $this->rendering_tab = true;
+        if (isset($tabs[$tab]['cb']) && is_callable($tabs[$tab]['cb'])) {
+            call_user_func($tabs[$tab]['cb']);
+        }
+        $this->rendering_tab = false;
+        echo '</div></div>';
+    }
+
     /* --------------------------------------------------- Login Security */
 
     public function render_login_security()
@@ -1840,7 +1904,7 @@ class WP_Arzo_Admin
         $lockouts = class_exists('WP_Arzo_Feature_Limit_Login') ? WP_Arzo_Feature_Limit_Login::active_lockouts() : array();
         $now      = time();
         ?>
-        <div class="wrap wpa-admin">
+        <?php if (!$this->rendering_tab) : ?><div class="wrap wpa-admin"><?php endif; ?>
             <?php $this->render_shell_open('login_security'); ?>
             <div class="wpa-admin__bar">
                 <div>
@@ -1888,7 +1952,7 @@ class WP_Arzo_Admin
             </div>
             <p class="wpa-field__help" style="margin-top:14px;">Set the attempt threshold, lockout duration, trusted-IP allowlist and lockout alerts in the <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE)); ?>">Limit Login Attempts settings</a> on the dashboard.</p>
             <?php $this->render_shell_close(); ?>
-        </div>
+        <?php if (!$this->rendering_tab) : ?></div><?php endif; ?>
         <?php
     }
 
@@ -2425,7 +2489,7 @@ class WP_Arzo_Admin
         $nonce   = wp_create_nonce(self::NONCE_REST);
         $example = home_url('/wp-json/wp/v2/posts');
         ?>
-        <div class="wrap wpa-admin">
+        <?php if (!$this->rendering_tab) : ?><div class="wrap wpa-admin"><?php endif; ?>
             <?php $this->render_shell_open('rest_auth'); ?>
             <div class="wpa-admin__bar">
                 <div>
@@ -2499,7 +2563,7 @@ curl -H "X-API-Key: arzo_…" <?php echo esc_html($example); ?>
 curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
             </div>
             <?php $this->render_shell_close(); ?>
-        </div>
+        <?php if (!$this->rendering_tab) : ?></div><?php endif; ?>
         <?php
     }
 
@@ -2548,7 +2612,9 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
             wp_die('You do not have sufficient permissions to access this page.');
         }
         $slug = isset($_GET['role']) ? sanitize_key(wp_unslash($_GET['role'])) : '';
-        echo '<div class="wrap wpa-admin">';
+        if (!$this->rendering_tab) {
+            echo '<div class="wrap wpa-admin">';
+        }
         $this->render_shell_open('roles');
         if ($slug !== '' && get_role($slug)) {
             $this->render_role_editor($slug);
@@ -2556,7 +2622,9 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
             $this->render_roles_list();
         }
         $this->render_shell_close();
-        echo '</div>';
+        if (!$this->rendering_tab) {
+            echo '</div>';
+        }
     }
 
     private function render_roles_list()
@@ -2600,7 +2668,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                 <thead><tr><th>Role</th><th>Slug</th><th>Users</th><th>Capabilities</th><th></th></tr></thead>
                 <tbody>
                     <?php foreach ($roles as $r) :
-                        $edit = admin_url('admin.php?page=' . self::PAGE_ROLES . '&role=' . $r['slug']); ?>
+                        $edit = admin_url('admin.php?page=' . self::PAGE_SETTINGS . '&tab=roles&role=' . $r['slug']); ?>
                         <tr data-role="<?php echo esc_attr($r['slug']); ?>">
                             <td><strong><?php echo esc_html($r['name']); ?></strong>
                                 <?php echo $r['is_builtin'] ? '<span class="wpa-badge wpa-badge--neutral">built-in</span>' : '<span class="wpa-badge wpa-badge--info">custom</span>'; ?>
@@ -2634,7 +2702,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         ?>
         <div class="wpa-admin__bar">
             <div>
-                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_ROLES)); ?>"><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> All roles</a>
+                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_SETTINGS . '&tab=roles')); ?>"><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> All roles</a>
                 <h1 class="wpa-admin__title" style="margin-top:10px;"><?php echo wp_arzo_icon('users', array('class' => 'wpa-icon')); ?> <?php echo esc_html($name); ?> <code style="font-size:13px;"><?php echo esc_html($slug); ?></code></h1>
             </div>
             <button type="button" id="wpa-role-save" class="wpa-btn wpa-btn--primary" data-slug="<?php echo esc_attr($slug); ?>" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save capabilities</button>
@@ -2734,7 +2802,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         }
         $nonce = wp_create_nonce(self::NONCE_CONFIG);
         ?>
-        <div class="wrap wpa-admin">
+        <?php if (!$this->rendering_tab) : ?><div class="wrap wpa-admin"><?php endif; ?>
             <?php $this->render_shell_open('config'); ?>
             <div class="wpa-admin__bar">
                 <div>
@@ -2765,7 +2833,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                 </aside>
             </div>
             <?php $this->render_shell_close(); ?>
-        </div>
+        <?php if (!$this->rendering_tab) : ?></div><?php endif; ?>
         <?php
     }
 
