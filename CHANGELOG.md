@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.68.0] — 2026-07-02
+
+### Added — Email Logs upgrade (detail drawer, filters, deliverability)
+
+- The **Logs** tab gets a proper inspector: a **deliverability bar** (delivered %),
+  a **per-connection breakdown** (which connection sent/failed how many — surfacing the
+  connection each message was delivered by, recorded since v6.67), and a new **Connection**
+  column in the table.
+- **Search + status filter** toolbar — filter the log live by recipient / subject /
+  connection and by Sent / Failed, with an empty-state when nothing matches.
+- **Row-click detail drawer** (reuses `.wpa-drawer`) showing the full email — status, time,
+  To, Subject, Connection, error, headers and body — with **Resend** moved into the drawer.
+  Details load on demand via a new `wp_arzo_email_log_detail` AJAX endpoint (capability +
+  nonce gated), so the page stays light. Rows are keyboard-accessible (Enter/Space, Esc).
+
 ## [6.67.0] — 2026-07-02
 
 ### Changed — Email: real N-step fallback engine across mixed SMTP + API
