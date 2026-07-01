@@ -233,7 +233,7 @@ class WP_Arzo_Admin
             self::PAGE_BACKUPS   => array('auto_snapshots', 'scheduled_backups', 'backup_ftp', 'backup_gdrive', 'backup_pcloud'),
             self::PAGE_EMAIL     => array('smtp', 'email_log'),
             self::PAGE_SNIPPETS  => array('code_snippets'),
-            self::PAGE_ACTIVITY  => array('activity_log'),
+            self::PAGE_ACTIVITY  => array('activity_log', 'audit_log'),
             self::PAGE_MEDIA     => array('media_cleanup'),
             self::PAGE_REST_AUTH => array('rest_api_auth'),
             self::PAGE_ROLES     => array('role_manager'),
@@ -1805,7 +1805,19 @@ class WP_Arzo_Admin
         if (!current_user_can('manage_options')) {
             wp_die('You do not have sufficient permissions to access this page.');
         }
+        echo '<div class="wrap wpa-admin">';
+        // The Pro Advanced Audit Log upgrades THIS page in place — durable DB storage,
+        // advanced filters, CSV export, AJAX pagination. When it's not active, the free
+        // capped-option log renders instead. (One page — no separate "Audit Log" menu.)
+        if (apply_filters('wp_arzo_activity_log_render', false) !== true) {
+            $this->render_activity_log_basic();
+        }
+        echo '</div>';
+    }
 
+    /** The free (capped-option) Activity Log body. */
+    private function render_activity_log_basic()
+    {
         $enabled = $this->registry()->is_enabled('activity_log');
         $log = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::instance()->get_log() : array();
         $filter = isset($_GET['action_filter']) ? sanitize_key(wp_unslash($_GET['action_filter'])) : '';
@@ -1825,8 +1837,6 @@ class WP_Arzo_Admin
         $nonce = wp_create_nonce(self::NONCE_ACTIVITY);
         $base  = admin_url('admin.php?page=' . self::PAGE_ACTIVITY);
         ?>
-        <div class="wrap wpa-admin">
-            <?php $this->render_shell_open('activity'); ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?> Activity Log</h1>
@@ -1883,8 +1893,6 @@ class WP_Arzo_Admin
                     </tbody>
                 </table>
             </div>
-            <?php $this->render_shell_close(); ?>
-        </div>
         <?php
     }
 

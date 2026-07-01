@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.79.0] — 2026-07-02
+
+### Changed — one Activity Log page (Pro upgrades it in place)
+
+- The **Activity Log** page is now the single audit surface. When the Pro **Advanced Audit
+  Log** is active it upgrades this page in place (durable DB storage, advanced filters, CSV
+  export, AJAX pagination) via the new `wp_arzo_activity_log_render` filter — no more a
+  separate "Audit Log" menu item. Without Pro, the free capped-option log renders as before.
+- The Activity Log page also unlocks when the Pro audit feature is enabled.
+
 ## [6.78.0] — 2026-07-02
 
 ### Changed — one Backups page with tabs (WPvivid-style)
