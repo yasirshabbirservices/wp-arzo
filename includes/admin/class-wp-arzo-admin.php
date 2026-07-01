@@ -379,12 +379,6 @@ class WP_Arzo_Admin
     {
         echo '<aside class="wpa-sidenav" aria-label="WP Arzo navigation">';
 
-        // Collapse toggle (icon-only rail ⇄ full). State persisted in localStorage by JS.
-        echo '<div class="wpa-sidenav__bar">'
-            . '<button type="button" class="wpa-sidenav__collapse" id="wpa-rail-toggle" aria-label="Collapse navigation" aria-pressed="false" title="Collapse / expand">'
-            . wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm'))
-            . '</button></div>';
-
         // The rail is purely a feature-grid filter now — page-owning features (Backups,
         // Roles, Content Types, …) live in the native WP-admin menu under "WP Arzo".
         if (!empty($categories)) {
@@ -735,7 +729,28 @@ class WP_Arzo_Admin
         $name  = 'wpa_field_' . esc_attr($key);
         $fid   = 'wpa-field-' . esc_attr($key);
 
-        echo '<div class="wpa-field">';
+        // Conditional visibility: show this field only when the controlling field(s) hold a
+        // matching value. `show_if` is a single condition array('field'=>k,'value'=>v|[v,…])
+        // or a list of such conditions (ALL must match). Toggled live in JS
+        // (bindSettingsConditionals); a hidden field still submits, so toggling preserves it.
+        $showif = '';
+        if (!empty($field['show_if']) && is_array($field['show_if'])) {
+            $conds = isset($field['show_if']['field']) ? array($field['show_if']) : $field['show_if'];
+            $norm  = array();
+            foreach ($conds as $c) {
+                if (is_array($c) && !empty($c['field'])) {
+                    $norm[] = array(
+                        'field' => $c['field'],
+                        'value' => array_map('strval', (array) (isset($c['value']) ? $c['value'] : array())),
+                    );
+                }
+            }
+            if ($norm) {
+                $showif = ' data-wpa-showif="' . esc_attr(wp_json_encode($norm)) . '"';
+            }
+        }
+
+        echo '<div class="wpa-field"' . $showif . '>';
         if ($type !== 'toggle') {
             echo '<label class="wpa-field__label" for="' . $fid . '">' . esc_html($label) . '</label>';
         }

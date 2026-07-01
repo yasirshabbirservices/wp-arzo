@@ -44,6 +44,11 @@ class WP_Arzo_Feature_SMTP extends WP_Arzo_Feature
     public function settings_schema()
     {
         $enc = array('none' => 'None', 'ssl' => 'SSL', 'tls' => 'TLS');
+        // Reveal credential / backup / notify fields only when their controlling toggle is on
+        // (core `show_if` support) — keeps this long form focused on what's relevant.
+        $if_auth        = array('field' => 'auth', 'value' => '1');
+        $if_backup      = array('field' => 'backup_enabled', 'value' => '1');
+        $if_backup_auth = array('field' => 'backup_auth', 'value' => '1');
         return array(
             array('key' => 'from_name', 'type' => 'text', 'label' => 'From name'),
             array('key' => 'from_email', 'type' => 'email', 'label' => 'From email'),
@@ -53,20 +58,20 @@ class WP_Arzo_Feature_SMTP extends WP_Arzo_Feature
             array('key' => 'port', 'type' => 'number', 'label' => 'Primary port', 'default' => 587),
             array('key' => 'encryption', 'type' => 'select', 'label' => 'Primary encryption', 'default' => 'tls', 'options' => $enc),
             array('key' => 'auth', 'type' => 'toggle', 'label' => 'Primary uses authentication', 'default' => 1),
-            array('key' => 'username', 'type' => 'text', 'label' => 'Primary username'),
-            array('key' => 'password', 'type' => 'password', 'label' => 'Primary password'),
+            array('key' => 'username', 'type' => 'text', 'label' => 'Primary username', 'show_if' => $if_auth),
+            array('key' => 'password', 'type' => 'password', 'label' => 'Primary password', 'show_if' => $if_auth),
 
             array('key' => 'backup_enabled', 'type' => 'toggle', 'label' => 'Enable backup connection (failover)', 'default' => 0, 'help' => 'If the primary connection fails, the email is retried through the backup.'),
-            array('key' => 'backup_host', 'type' => 'text', 'label' => 'Backup SMTP host'),
-            array('key' => 'backup_port', 'type' => 'number', 'label' => 'Backup port', 'default' => 587),
-            array('key' => 'backup_encryption', 'type' => 'select', 'label' => 'Backup encryption', 'default' => 'tls', 'options' => $enc),
-            array('key' => 'backup_auth', 'type' => 'toggle', 'label' => 'Backup uses authentication', 'default' => 1),
-            array('key' => 'backup_username', 'type' => 'text', 'label' => 'Backup username'),
-            array('key' => 'backup_password', 'type' => 'password', 'label' => 'Backup password'),
+            array('key' => 'backup_host', 'type' => 'text', 'label' => 'Backup SMTP host', 'show_if' => $if_backup),
+            array('key' => 'backup_port', 'type' => 'number', 'label' => 'Backup port', 'default' => 587, 'show_if' => $if_backup),
+            array('key' => 'backup_encryption', 'type' => 'select', 'label' => 'Backup encryption', 'default' => 'tls', 'options' => $enc, 'show_if' => $if_backup),
+            array('key' => 'backup_auth', 'type' => 'toggle', 'label' => 'Backup uses authentication', 'default' => 1, 'show_if' => $if_backup),
+            array('key' => 'backup_username', 'type' => 'text', 'label' => 'Backup username', 'show_if' => array($if_backup, $if_backup_auth)),
+            array('key' => 'backup_password', 'type' => 'password', 'label' => 'Backup password', 'show_if' => array($if_backup, $if_backup_auth)),
 
-            array('key' => 'auto_retry', 'type' => 'toggle', 'label' => 'Auto-retry via backup on failure', 'default' => 1),
+            array('key' => 'auto_retry', 'type' => 'toggle', 'label' => 'Auto-retry via backup on failure', 'default' => 1, 'show_if' => $if_backup),
             array('key' => 'notify_enabled', 'type' => 'toggle', 'label' => 'Email me when a message fails', 'default' => 0),
-            array('key' => 'notify_email', 'type' => 'email', 'label' => 'Failure notification address', 'help' => 'Defaults to the site admin email.'),
+            array('key' => 'notify_email', 'type' => 'email', 'label' => 'Failure notification address', 'help' => 'Defaults to the site admin email.', 'show_if' => array('field' => 'notify_enabled', 'value' => '1')),
 
             array('key' => 'test_email', 'type' => 'test_email', 'label' => 'Send a test email'),
         );
