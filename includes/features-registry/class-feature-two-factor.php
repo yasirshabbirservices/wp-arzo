@@ -47,6 +47,26 @@ class WP_Arzo_Feature_Two_Factor extends WP_Arzo_Feature
         return 'lock';
     }
 
+    public function settings_schema()
+    {
+        $roles = array();
+        if (function_exists('wp_roles')) {
+            foreach (wp_roles()->get_names() as $slug => $name) {
+                $roles[$slug] = function_exists('translate_user_role') ? translate_user_role($name) : $name;
+            }
+        }
+        return array(
+            array(
+                'key'     => 'enforce_roles',
+                'type'    => 'multiselect',
+                'label'   => 'Require 2FA for these roles',
+                'default' => array(),
+                'options' => $roles,
+                'help'    => 'Users in the selected roles must set up two-factor from their profile before they can use the rest of wp-admin. Lockout recovery: define WP_ARZO_2FA_DISABLE in wp-config.php, or clear the user\'s 2FA with the WP Arzo emergency tool.',
+            ),
+        );
+    }
+
     public function boot()
     {
         add_action('show_user_profile', array($this, 'profile_section'));
@@ -57,6 +77,41 @@ class WP_Arzo_Feature_Two_Factor extends WP_Arzo_Feature
         // Login challenge (the proven "log out, re-challenge, re-set cookie" pattern).
         add_action('wp_login', array($this, 'after_login'), 10, 2);
         add_action('login_form_wp_arzo_2fa', array($this, 'validate_challenge'));
+
+        // Policy: require enrolled 2FA for selected roles before using wp-admin.
+        add_action('admin_init', array($this, 'enforce_policy'));
+    }
+
+    /**
+     * If the current user's role requires 2FA and they haven't enrolled, hold them on
+     * the profile screen (where they set it up) until they do. The profile + the WP Arzo
+     * pages stay reachable so the policy can always be changed / 2FA set up.
+     */
+    public function enforce_policy()
+    {
+        if (self::bypassed() || wp_doing_ajax()) {
+            return;
+        }
+        $roles = (array) $this->get_setting('enforce_roles', array());
+        if (empty($roles)) {
+            return;
+        }
+        $user = wp_get_current_user();
+        if (!$user || !$user->ID || self::user_enabled($user->ID)) {
+            return;
+        }
+        if (!array_intersect($roles, (array) $user->roles)) {
+            return; // this user's role isn't enforced
+        }
+        global $pagenow;
+        if (in_array($pagenow, array('profile.php', 'user-edit.php'), true)) {
+            return; // allow the setup screen
+        }
+        if (isset($_GET['page']) && strpos((string) $_GET['page'], 'wp-arzo') === 0) {
+            return; // allow WP Arzo pages (so an admin can change the policy)
+        }
+        wp_safe_redirect(add_query_arg('wp_arzo_2fa_required', '1', admin_url('profile.php')));
+        exit;
     }
 
     private static function bypassed()
@@ -223,6 +278,10 @@ class WP_Arzo_Feature_Two_Factor extends WP_Arzo_Feature
         $pending = get_user_meta($user->ID, self::M_PENDING, true);
         wp_nonce_field('wp_arzo_2fa_profile', 'wp_arzo_2fa_nonce');
         echo '<h2>' . esc_html('Two-Factor Authentication (WP Arzo)') . '</h2>';
+
+        if (!empty($_GET['wp_arzo_2fa_required']) && !$enabled) {
+            echo '<div class="notice notice-error" style="padding:12px;"><p><strong>Your account requires two-factor authentication.</strong> Set it up below to continue using the dashboard.</p></div>';
+        }
 
         // Show freshly generated recovery codes exactly once.
         $fresh = get_transient('wp_arzo_2fa_codes_' . $user->ID);

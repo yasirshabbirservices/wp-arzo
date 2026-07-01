@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.55.0] — 2026-07-01
+
+### Added — Two-Factor: role-enforcement policy (+ `multiselect` field type)
+- 2FA now has a **settings screen** with **"Require 2FA for these roles"** (a multi-select of
+  roles). Users in an enforced role who haven't enrolled are held on their profile (where 2FA
+  is set up) until they do — the profile and WP Arzo pages stay reachable, and
+  `WP_ARZO_2FA_DISABLE` / the emergency tool remain the lockout escape. Verified: enforce →
+  redirect → set up or revert.
+- New reusable **`multiselect`** settings field type (renders `.wpa-check` chips, saves an
+  array) in the core settings renderer — also used by the Pro Admin Branding controls.
+
 ## [6.54.0] — 2026-07-01
 
 ### Changed — Email delivery unified into one FREE feature
