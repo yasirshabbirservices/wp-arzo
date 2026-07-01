@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.62.0] — 2026-07-01
+
+### Added — SMTP provider presets (auto-fill)
+- The Advanced SMTP method gains a **Provider preset** selector — pick Gmail, Microsoft 365,
+  Yahoo, Zoho, iCloud, Fastmail, Amazon SES, SendGrid, Mailgun, Brevo, Postmark or Mailjet and
+  the **host, port and encryption auto-fill** instantly (choose “Custom” to type them yourself).
+  Powered by a new reusable `wpArzo.setSelectValue()` helper that also refreshes the custom
+  select UI.
+
 ## [6.61.0] — 2026-07-01
 
 ### Added — Login Security page: active-lockouts dashboard

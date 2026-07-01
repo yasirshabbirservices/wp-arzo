@@ -176,6 +176,28 @@
     (root || document).querySelectorAll('select[data-wpa-select]').forEach(buildSelect);
   };
 
+  // Programmatically set an (optionally enhanced) <select>'s value and refresh the
+  // custom listbox UI + fire a change event. Returns true if the value existed.
+  wpArzo.setSelectValue = function (nativeSelect, value) {
+    if (!nativeSelect) return false;
+    nativeSelect.value = value;
+    if (nativeSelect.value !== value) return false; // no such option
+    var wrap = nativeSelect.closest('.wpa-select');
+    if (wrap) {
+      var lbl = wrap.querySelector('.wpa-select__value');
+      var opt = nativeSelect.options[nativeSelect.selectedIndex];
+      if (lbl && opt) lbl.textContent = opt.textContent;
+      var menu = wrap.querySelector('.wpa-select__menu');
+      if (menu) {
+        Array.prototype.forEach.call(menu.children, function (li) {
+          li.setAttribute('aria-selected', li.getAttribute('data-value') === value ? 'true' : 'false');
+        });
+      }
+    }
+    nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  };
+
   // ------------------------------------------------------- Collapse/accordion
   // <div class="wpa-collapse is-open"><button class="wpa-collapse__head">…</button>
   //   <div class="wpa-collapse__body">…</div></div>  — click the head to toggle.

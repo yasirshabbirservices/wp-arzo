@@ -71,6 +71,21 @@ class WP_Arzo_Feature_SMTP extends WP_Arzo_Feature
             array('key' => 'mailgun_region', 'type' => 'select', 'label' => 'Mailgun region', 'default' => 'us', 'options' => array('us' => 'US', 'eu' => 'EU'), 'show_if' => $if_mailgun),
 
             // SMTP (shown only for the SMTP method)
+            array('key' => 'provider', 'type' => 'select', 'label' => 'Provider preset', 'default' => 'custom', 'options' => array(
+                'custom'        => 'Custom / other',
+                'gmail'         => 'Gmail / Google Workspace',
+                'office365'     => 'Outlook / Microsoft 365',
+                'yahoo'         => 'Yahoo Mail',
+                'zoho'          => 'Zoho Mail',
+                'icloud'        => 'iCloud Mail',
+                'fastmail'      => 'Fastmail',
+                'ses'           => 'Amazon SES (us-east-1)',
+                'sendgrid_smtp' => 'SendGrid (SMTP)',
+                'mailgun_smtp'  => 'Mailgun (SMTP)',
+                'brevo_smtp'    => 'Brevo (SMTP)',
+                'postmark'      => 'Postmark',
+                'mailjet'       => 'Mailjet',
+            ), 'help' => 'Pick your email provider to auto-fill the host, port and encryption below. Choose “Custom” to type them yourself.', 'show_if' => $if_smtp),
             array('key' => 'host', 'type' => 'text', 'label' => 'Primary SMTP host', 'help' => 'e.g. smtp.yourhost.com', 'show_if' => $if_smtp),
             array('key' => 'port', 'type' => 'number', 'label' => 'Primary port', 'default' => 587, 'show_if' => $if_smtp),
             array('key' => 'encryption', 'type' => 'select', 'label' => 'Primary encryption', 'default' => 'tls', 'options' => $enc, 'show_if' => $if_smtp),

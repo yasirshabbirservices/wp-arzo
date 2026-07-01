@@ -168,6 +168,40 @@
     apply();
   }
 
+  // SMTP provider presets: pick a provider → auto-fill host / port / encryption.
+  var SMTP_PRESETS = {
+    gmail:         { host: 'smtp.gmail.com',            port: '587', encryption: 'tls' },
+    office365:     { host: 'smtp.office365.com',        port: '587', encryption: 'tls' },
+    yahoo:         { host: 'smtp.mail.yahoo.com',       port: '465', encryption: 'ssl' },
+    zoho:          { host: 'smtp.zoho.com',             port: '587', encryption: 'tls' },
+    icloud:        { host: 'smtp.mail.me.com',          port: '587', encryption: 'tls' },
+    fastmail:      { host: 'smtp.fastmail.com',         port: '465', encryption: 'ssl' },
+    ses:           { host: 'email-smtp.us-east-1.amazonaws.com', port: '587', encryption: 'tls' },
+    sendgrid_smtp: { host: 'smtp.sendgrid.net',         port: '587', encryption: 'tls' },
+    mailgun_smtp:  { host: 'smtp.mailgun.org',          port: '587', encryption: 'tls' },
+    brevo_smtp:    { host: 'smtp-relay.brevo.com',      port: '587', encryption: 'tls' },
+    postmark:      { host: 'smtp.postmarkapp.com',      port: '587', encryption: 'tls' },
+    mailjet:       { host: 'in-v3.mailjet.com',         port: '587', encryption: 'tls' }
+  };
+  function bindSmtpPresets() {
+    var providerSel = document.querySelector('[name="wpa_field_provider"]');
+    if (!providerSel) return;
+    providerSel.addEventListener('change', function () {
+      var preset = SMTP_PRESETS[providerSel.value];
+      if (!preset) return; // "custom" or unknown — leave fields untouched
+      var host = document.querySelector('[name="wpa_field_host"]');
+      var port = document.querySelector('[name="wpa_field_port"]');
+      var enc  = document.querySelector('[name="wpa_field_encryption"]');
+      if (host) host.value = preset.host;
+      if (port) port.value = preset.port;
+      if (enc && window.wpArzo && wpArzo.setSelectValue) {
+        wpArzo.setSelectValue(enc, preset.encryption);
+      } else if (enc) {
+        enc.value = preset.encryption;
+      }
+    });
+  }
+
   function bindCategoryFilter() {
     var items = document.querySelectorAll('.wpa-cat-filter');
     if (!items.length) return;
@@ -699,7 +733,7 @@
     }
   }
 
-  function init() { bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
+  function init() { bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSmtpPresets(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
