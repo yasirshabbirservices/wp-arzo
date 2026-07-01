@@ -115,7 +115,10 @@ h3 {
 .nav a {
   padding: 12px 20px;
   background: var(--background-light);
-  color: var(--secondary-text);
+  /* !important: the broad `.container a` accent-link override (kills wp-admin blue) is more
+     specific than these tab rules and would otherwise turn every tab green — including the
+     active tab's text, which then sits green-on-green (invisible). Tabs own their colors. */
+  color: var(--secondary-text) !important;
   text-decoration: none;
   border-radius: 8px 8px 0 0;
   font-weight: 500;
@@ -128,20 +131,21 @@ h3 {
 
 .nav a:hover {
   background: #3a3a3a;
-  color: var(--accent-color);
+  color: var(--accent-color) !important;
   transform: translateY(-2px);
 }
 
-.nav a.active {
+.nav a.active,
+.nav a.active:hover {
   background: var(--accent-color);
-  color: var(--background-dark);
+  color: var(--background-dark) !important;
   border-color: var(--accent-color);
+  font-weight: 600;
   z-index: 1;
 }
 
 .nav a.active:hover {
   background: #0ea66b;
-  color: var(--background-dark);
   transform: none;
 }
 

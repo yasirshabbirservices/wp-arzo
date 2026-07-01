@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.51.0] — 2026-07-01
+
+### Fixed
+- **Advanced Tools console: unreadable active tab.** The broad `.container a` accent-link
+  override was hijacking the nav tabs — the active tab rendered green text on its green
+  fill (invisible) and inactive tabs were all green. Tabs now own their colors (active =
+  dark text on accent; inactive = muted, accent on hover).
+
+### Changed — Emergency Recovery page matches the dashboard
+- The Emergency Recovery header is now the **exact same brand bar** as the dashboard/console
+  (logo + "WP Arzo" + "by Yasir Shabbir" + version + GitHub) — **removed** the "Recovery
+  Mode" badge and the header Logout button.
+- The emergency version now **reads from the main plugin header** (no more hard-coded `2.4`),
+  so it always matches the installed version even when WP is down.
+
 ## [6.50.0] — 2026-07-01
 
 ### Added — Conditional settings fields (`show_if`)

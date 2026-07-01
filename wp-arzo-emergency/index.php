@@ -28,7 +28,19 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 header("Referrer-Policy: no-referrer");
 
 // Define constants
-define('WP_ARZO_EMERGENCY_VERSION', '2.4');
+// Read the real plugin version from the main plugin header so the emergency page always
+// matches the installed version (works standalone — reads the file directly, no WP needed).
+if (!defined('WP_ARZO_EMERGENCY_VERSION')) {
+    $arzo_ver  = '';
+    $arzo_main = __DIR__ . '/../wp-arzo.php';
+    if (is_readable($arzo_main)) {
+        $arzo_head = file_get_contents($arzo_main, false, null, 0, 2048);
+        if ($arzo_head !== false && preg_match('/Version:\s*([0-9][0-9A-Za-z.\-]*)/i', $arzo_head, $m)) {
+            $arzo_ver = $m[1];
+        }
+    }
+    define('WP_ARZO_EMERGENCY_VERSION', $arzo_ver !== '' ? $arzo_ver : '2.4');
+}
 define('WP_ARZO_EMERGENCY_DIR', __DIR__);
 define('WP_ARZO_CONFIG_FILE', dirname(__DIR__) . '/arzo-safe.php');
 define('WP_CONTENT_DIR', dirname(dirname(dirname(__DIR__))) . '/wp-content');
@@ -876,49 +888,29 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             color: #999;
         }
 
-        /* Recovery-mode pill in the brand bar (accent fill, dark text per brand rules). */
-        .badge-recovery {
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 8px;
-            padding: 2px 9px;
-            border-radius: var(--radius-pill, 999px);
-            background: var(--accent-color);
-            color: var(--background-dark);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-        }
-
-        /* Branding Header */
-        .developer-info {
+        /* Brand bar — matches the WP Arzo dashboard/console exactly (ported to the
+           emergency page's local variables since the plugin token sheet isn't loaded here). */
+        .wpa-brandbar {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 12px 18px;
             background: var(--background-medium);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 10px 15px;
             margin-bottom: 20px;
-            font-size: 13px;
         }
-
-        .developer-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .developer-logo img {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-        }
-
-        .developer-logo a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
+        .wpa-brandbar__id { display: flex; align-items: center; gap: 12px; }
+        .wpa-brandbar__logo { width: 38px; height: 38px; border-radius: 8px; object-fit: contain; background: var(--background-light); padding: 4px; }
+        .wpa-brandbar__name { font-size: 16px; font-weight: 700; color: var(--primary-text); line-height: 1.1; }
+        .wpa-brandbar__email { font-size: 13px; color: var(--secondary-text); text-decoration: none; }
+        .wpa-brandbar__email:hover { color: var(--accent-color); }
+        .wpa-brandbar__meta { display: flex; align-items: center; gap: 16px; }
+        .wpa-brandbar__ver { color: var(--accent-color); font-weight: 700; font-size: 13px; }
+        .wpa-brandbar__gh { display: inline-flex; align-items: center; gap: 5px; color: var(--primary-text); text-decoration: none; font-size: 13px; }
+        .wpa-brandbar__gh:hover { color: var(--accent-color); }
 
         /* Pagination */
         .pagination-container {
@@ -1142,30 +1134,25 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         </div>
     <?php else: ?>
         <div class="container">
-            <!-- Branding Header (matches the dashboard/console brand bar) -->
-            <div class="developer-info">
-                <div class="developer-logo">
-                    <img src="<?php echo get_asset_url('wp-arzo-glyph.svg'); ?>" alt="WP Arzo">
+            <!-- Brand bar — identical to the WP Arzo dashboard/console. -->
+            <div class="wpa-brandbar">
+                <div class="wpa-brandbar__id">
+                    <img class="wpa-brandbar__logo" src="<?php echo get_asset_url('wp-arzo-icon.svg'); ?>" alt="WP Arzo">
                     <div>
-                        <div><strong>WP Arzo</strong> <span class="badge-recovery">Recovery Mode</span></div>
-                        <a href="https://yasirshabbir.com" target="_blank" rel="noopener">by Yasir Shabbir</a>
+                        <div class="wpa-brandbar__name">WP Arzo</div>
+                        <a class="wpa-brandbar__email" href="https://yasirshabbir.com" target="_blank" rel="noopener">by Yasir Shabbir</a>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <span style="color:var(--accent-color);">v<?php echo WP_ARZO_EMERGENCY_VERSION; ?></span>
-                    <a href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank"
-                        style="text-decoration:none; color:var(--primary-text); display:flex; align-items:center; gap:5px;">
-                        <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+                <div class="wpa-brandbar__meta">
+                    <span class="wpa-brandbar__ver">v<?php echo WP_ARZO_EMERGENCY_VERSION; ?></span>
+                    <a class="wpa-brandbar__gh" href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank" rel="noopener">
+                        <svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor">
                             <path
                                 d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
                             </path>
                         </svg>
                         GitHub
                     </a>
-                    <?php if ($is_authenticated): ?>
-                        <form method="post" style="margin:0;"><input type="hidden" name="action" value="logout"><button
-                                type="submit" class="btn btn-danger btn-sm">Logout</button></form>
-                    <?php endif; ?>
                 </div>
             </div>
 
