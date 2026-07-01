@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.61.0] — 2026-07-01
+
+### Added — Login Security page: active-lockouts dashboard
+- New **WP Arzo → Login Security** admin page (shown while “Limit Login Attempts” is enabled)
+  lists every **currently locked-out IP** — with the attempted username, when it was locked,
+  and the time remaining — and lets you **Unlock** any one or **Unlock all** with a click.
+  Backed by a self-healing lockout registry (the lock transient stays the source of truth).
+
 ## [6.60.0] — 2026-07-01
 
 ### Added — Limit Login Attempts: trusted-IP allowlist + lockout alerts
