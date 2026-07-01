@@ -122,7 +122,7 @@ class WP_Arzo_Feature_Clean_Admin_Bar extends WP_Arzo_Feature
     }
     public function description()
     {
-        return 'Remove clutter from the toolbar (WordPress logo, comments, updates, “New”).';
+        return 'Clean up the admin toolbar — hide the WordPress logo, site menu, comments, updates, “New”, Customize, search, the Help tab, and the “Howdy,” greeting.';
     }
     public function group()
     {
@@ -136,27 +136,62 @@ class WP_Arzo_Feature_Clean_Admin_Bar extends WP_Arzo_Feature
     {
         return array(
             array('key' => 'remove_logo', 'type' => 'toggle', 'label' => 'Remove WordPress logo', 'default' => 1),
+            array('key' => 'remove_site_menu', 'type' => 'toggle', 'label' => 'Remove site name / Visit Site', 'default' => 0),
             array('key' => 'remove_comments', 'type' => 'toggle', 'label' => 'Remove comments', 'default' => 0),
             array('key' => 'remove_updates', 'type' => 'toggle', 'label' => 'Remove updates', 'default' => 0),
             array('key' => 'remove_new', 'type' => 'toggle', 'label' => 'Remove “New” menu', 'default' => 0),
+            array('key' => 'remove_customize', 'type' => 'toggle', 'label' => 'Remove Customize', 'default' => 0),
+            array('key' => 'remove_search', 'type' => 'toggle', 'label' => 'Remove search', 'default' => 0),
+            array('key' => 'remove_help', 'type' => 'toggle', 'label' => 'Remove Help tab', 'default' => 0),
+            array('key' => 'remove_howdy', 'type' => 'toggle', 'label' => 'Remove “Howdy,” greeting', 'default' => 0),
         );
     }
     public function boot()
     {
-        add_action('admin_bar_menu', function ($bar) {
-            if ($this->get_setting('remove_logo', 1)) {
-                $bar->remove_node('wp-logo');
+        add_action('admin_bar_menu', array($this, 'clean_toolbar'), 999);
+        if ($this->get_setting('remove_help', 0)) {
+            add_action('admin_head', array($this, 'remove_help_tabs'), 99);
+        }
+        // "Howdy, %s" is a translated string — strip it at the gettext layer (reliable),
+        // scoped to admin requests only.
+        if (is_admin() && $this->get_setting('remove_howdy', 0)) {
+            add_filter('gettext', array($this, 'strip_howdy'), 10, 2);
+        }
+    }
+
+    public function clean_toolbar($bar)
+    {
+        if (!is_object($bar) || !method_exists($bar, 'remove_node')) {
+            return;
+        }
+        $map = array(
+            'remove_logo'      => 'wp-logo',
+            'remove_site_menu' => 'site-name',
+            'remove_comments'  => 'comments',
+            'remove_updates'   => 'updates',
+            'remove_new'       => 'new-content',
+            'remove_customize' => 'customize',
+            'remove_search'    => 'search',
+        );
+        foreach ($map as $setting => $node) {
+            $default = ($setting === 'remove_logo') ? 1 : 0;
+            if ($this->get_setting($setting, $default)) {
+                $bar->remove_node($node);
             }
-            if ($this->get_setting('remove_comments', 0)) {
-                $bar->remove_node('comments');
-            }
-            if ($this->get_setting('remove_updates', 0)) {
-                $bar->remove_node('updates');
-            }
-            if ($this->get_setting('remove_new', 0)) {
-                $bar->remove_node('new-content');
-            }
-        }, 999);
+        }
+    }
+
+    public function remove_help_tabs()
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if ($screen && method_exists($screen, 'remove_help_tabs')) {
+            $screen->remove_help_tabs();
+        }
+    }
+
+    public function strip_howdy($translation, $text)
+    {
+        return ($text === 'Howdy, %s') ? '%s' : $translation;
     }
 }
 
