@@ -192,8 +192,20 @@ class WP_Arzo_Activity_Log
         $this->record('media_deleted', 'Deleted media: ' . get_the_title($post_id));
     }
 
+    /** Internal taxonomies that aren't meaningful audit events (theme/template plumbing). */
+    private function ignored_taxonomy($taxonomy)
+    {
+        return in_array($taxonomy, array(
+            'wp_theme', 'wp_template_part_area', 'wp_pattern_category',
+            'nav_menu', 'link_category', 'post_format',
+        ), true);
+    }
+
     public function on_term_created($term_id, $tt_id, $taxonomy)
     {
+        if ($this->ignored_taxonomy($taxonomy)) {
+            return;
+        }
         $term = get_term($term_id, $taxonomy);
         $name = ($term && !is_wp_error($term)) ? $term->name : '#' . $term_id;
         $this->record('term_created', $taxonomy . ' created: ' . $name);
@@ -201,6 +213,9 @@ class WP_Arzo_Activity_Log
 
     public function on_term_deleted($term, $tt_id, $taxonomy, $deleted_term)
     {
+        if ($this->ignored_taxonomy($taxonomy)) {
+            return;
+        }
         $name = (is_object($deleted_term) && isset($deleted_term->name)) ? $deleted_term->name : '#' . $term;
         $this->record('term_deleted', $taxonomy . ' deleted: ' . $name);
     }
@@ -236,7 +251,7 @@ class WP_Arzo_Activity_Log
 
     public function on_post_transition($new_status, $old_status, $post)
     {
-        if (!$post instanceof WP_Post || in_array($post->post_type, array('revision', 'nav_menu_item'), true)) {
+        if (!$post instanceof WP_Post || $this->ignored_post_type($post->post_type)) {
             return;
         }
         if ($new_status === $old_status) {

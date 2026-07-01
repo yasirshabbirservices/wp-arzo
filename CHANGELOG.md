@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.72.1] — 2026-07-02
+
+### Fixed — Activity Log noise
+
+- Skip internal post types in status-transition logging (e.g. `wp_global_styles`,
+  `wp_template*`) and internal taxonomies in term logging (e.g. `wp_theme`, `nav_menu`,
+  `post_format`), so block-editor/theme plumbing no longer shows up as "Published" or
+  "Term created" entries.
+
 ## [6.72.0] — 2026-07-02
 
 ### Changed — Activity Log now tracks all site activity (not just plugin activity)
