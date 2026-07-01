@@ -54,9 +54,10 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
     /** Build the export payload from the current WP Arzo state. */
     public static function export_payload()
     {
-        $features = get_option(WP_Arzo_Feature_Registry::OPT_FEATURES, array());
-        $settings = get_option(WP_Arzo_Feature_Registry::OPT_SETTINGS, array());
-        $snippets = class_exists('WP_Arzo_Snippets') ? WP_Arzo_Snippets::instance()->get_all() : array();
+        $features    = get_option(WP_Arzo_Feature_Registry::OPT_FEATURES, array());
+        $settings    = get_option(WP_Arzo_Feature_Registry::OPT_SETTINGS, array());
+        $snippets    = class_exists('WP_Arzo_Snippets') ? WP_Arzo_Snippets::instance()->get_all() : array();
+        $connections = get_option('wp_arzo_smtp_connections', array());
 
         return array(
             'schema'         => self::SCHEMA,
@@ -66,6 +67,7 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
             'features'       => is_array($features) ? $features : array(),
             'settings'       => is_array($settings) ? $settings : array(),
             'snippets'       => is_array($snippets) ? array_values($snippets) : array(),
+            'connections'    => is_array($connections) ? $connections : array(),
         );
     }
 
@@ -116,7 +118,11 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
             }
         }
 
-        return array('features' => $features, 'settings' => $settings, 'snippets' => $snippets);
+        // Email connections (the SureMail-style store) — kept as-is; the engine
+        // re-reads/normalizes it (and only sends via enabled connections).
+        $connections = (!empty($data['connections']) && is_array($data['connections'])) ? $data['connections'] : array();
+
+        return array('features' => $features, 'settings' => $settings, 'snippets' => $snippets, 'connections' => $connections);
     }
 
     /**
@@ -146,11 +152,19 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
             }
         }
 
+        $connections = 0;
+        if (!empty($clean['connections']) && is_array($clean['connections'])) {
+            update_option('wp_arzo_smtp_connections', $clean['connections'], false);
+            $connections = isset($clean['connections']['connections']) && is_array($clean['connections']['connections'])
+                ? count($clean['connections']['connections']) : 0;
+        }
+
         return array(
-            'features' => count($clean['features']),
-            'settings' => count($clean['settings']),
-            'snippets' => $imported,
-            'snapshot' => $snapshot,
+            'features'    => count($clean['features']),
+            'settings'    => count($clean['settings']),
+            'snippets'    => $imported,
+            'connections' => $connections,
+            'snapshot'    => $snapshot,
         );
     }
 }

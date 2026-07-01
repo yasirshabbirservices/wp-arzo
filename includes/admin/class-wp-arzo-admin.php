@@ -72,6 +72,11 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
         add_action('wp_ajax_wp_arzo_backup_delete', array($this, 'ajax_backup_delete'));
         add_action('wp_ajax_wp_arzo_email_log_clear', array($this, 'ajax_email_log_clear'));
+        // Import / Export (file downloads/uploads → admin-post.php).
+        add_action('admin_post_wp_arzo_email_log_export', array($this, 'handle_email_log_export'));
+        add_action('admin_post_wp_arzo_activity_export', array($this, 'handle_activity_export'));
+        add_action('admin_post_wp_arzo_snippets_export', array($this, 'handle_snippets_export'));
+        add_action('admin_post_wp_arzo_snippets_import', array($this, 'handle_snippets_import'));
         add_action('wp_ajax_wp_arzo_email_log_detail', array($this, 'ajax_email_log_detail'));
         add_action('wp_ajax_wp_arzo_activate_license', array($this, 'ajax_activate_license'));
         add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
@@ -1200,9 +1205,14 @@ class WP_Arzo_Admin
                     </p>
                 </div>
                 <?php if (!empty($log)) : ?>
-                    <button type="button" id="wpa-email-clear" class="wpa-btn wpa-btn--ghost" data-nonce="<?php echo esc_attr($email_nonce); ?>">
-                        <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
-                    </button>
+                    <div style="display:flex;gap:8px;">
+                        <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_email_log_export'), self::NONCE_EMAIL)); ?>">
+                            <?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
+                        </a>
+                        <button type="button" id="wpa-email-clear" class="wpa-btn wpa-btn--ghost" data-nonce="<?php echo esc_attr($email_nonce); ?>">
+                            <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
+                        </button>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -1311,6 +1321,121 @@ class WP_Arzo_Admin
         }
         update_option('wp_arzo_email_log', array(), false);
         wp_send_json_success(array('message' => 'Email log cleared.'));
+    }
+
+    /* ------------------------------------------- Import / Export handlers */
+
+    /** Open a CSV download stream (capability-checked). @return resource */
+    private function stream_csv($filename)
+    {
+        nocache_headers();
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+        return fopen('php://output', 'w');
+    }
+
+    /** Export the email log as CSV. */
+    public function handle_email_log_export()
+    {
+        if (!current_user_can('manage_options') || !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), self::NONCE_EMAIL)) {
+            wp_die('Security check failed', '', array('response' => 403));
+        }
+        $log = get_option('wp_arzo_email_log', array());
+        $out = $this->stream_csv('wp-arzo-email-log-' . gmdate('Ymd-His') . '.csv');
+        fputcsv($out, array('Time (UTC)', 'To', 'Subject', 'Connection', 'Status', 'Error'));
+        foreach ((array) $log as $r) {
+            fputcsv($out, array(
+                gmdate('Y-m-d H:i:s', (int) ($r['time'] ?? 0)),
+                $r['to'] ?? '', $r['subject'] ?? '', $r['connection'] ?? '',
+                $r['status'] ?? 'sent', $r['error'] ?? '',
+            ));
+        }
+        fclose($out);
+        exit;
+    }
+
+    /** Export the (free) activity log as CSV. */
+    public function handle_activity_export()
+    {
+        if (!current_user_can('manage_options') || !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), self::NONCE_ACTIVITY)) {
+            wp_die('Security check failed', '', array('response' => 403));
+        }
+        $log = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::instance()->get_log() : array();
+        $out = $this->stream_csv('wp-arzo-activity-log-' . gmdate('Ymd-His') . '.csv');
+        fputcsv($out, array('Time (UTC)', 'User', 'Action', 'Details', 'IP'));
+        foreach ((array) $log as $r) {
+            $meta = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::action_meta($r['a'] ?? '') : array($r['a'] ?? '');
+            fputcsv($out, array(
+                gmdate('Y-m-d H:i:s', (int) ($r['t'] ?? 0)),
+                $r['ul'] ?? '', $meta[0], $r['o'] ?? '', $r['ip'] ?? '',
+            ));
+        }
+        fclose($out);
+        exit;
+    }
+
+    /** Export all snippets as a portable JSON file. */
+    public function handle_snippets_export()
+    {
+        if (!current_user_can('manage_options') || !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), self::NONCE_SNIPPETS)) {
+            wp_die('Security check failed', '', array('response' => 403));
+        }
+        $snips  = class_exists('WP_Arzo_Snippets') ? WP_Arzo_Snippets::instance()->get_all() : array();
+        $export = array();
+        foreach ((array) $snips as $s) {
+            $export[] = array(
+                'title'       => $s['title'] ?? '',
+                'description' => $s['description'] ?? '',
+                'type'        => $s['type'] ?? 'php',
+                'scope'       => $s['scope'] ?? 'everywhere',
+                'priority'    => (int) ($s['priority'] ?? 10),
+                'code'        => $s['code'] ?? '',
+                'active'      => (int) ($s['active'] ?? 0),
+            );
+        }
+        nocache_headers();
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Disposition: attachment; filename=wp-arzo-snippets-' . gmdate('Ymd-His') . '.json');
+        echo wp_json_encode(array('plugin' => 'wp-arzo', 'type' => 'snippets', 'version' => WP_ARZO_VERSION, 'snippets' => $export), JSON_PRETTY_PRINT);
+        exit;
+    }
+
+    /** Import snippets from an uploaded JSON file (added inactive for safety). */
+    public function handle_snippets_import()
+    {
+        if (!current_user_can('manage_options') || !check_admin_referer('wp_arzo_snippets_import')) {
+            wp_die('Security check failed', '', array('response' => 403));
+        }
+        $redirect = admin_url('admin.php?page=' . self::PAGE_SNIPPETS);
+        if (empty($_FILES['snippets_file']['tmp_name']) || !is_uploaded_file($_FILES['snippets_file']['tmp_name'])) {
+            wp_safe_redirect(add_query_arg('import', 'nofile', $redirect));
+            exit;
+        }
+        $data    = json_decode((string) file_get_contents($_FILES['snippets_file']['tmp_name']), true);
+        $manager = class_exists('WP_Arzo_Snippets') ? WP_Arzo_Snippets::instance() : null;
+        if (!$manager || !is_array($data) || empty($data['snippets']) || !is_array($data['snippets'])) {
+            wp_safe_redirect(add_query_arg('import', 'bad', $redirect));
+            exit;
+        }
+        $count = 0;
+        foreach ($data['snippets'] as $s) {
+            if (!is_array($s) || !isset($s['code'])) {
+                continue;
+            }
+            $manager->save(array(
+                'id'          => '',
+                'title'       => isset($s['title']) ? $s['title'] : 'Imported snippet',
+                'description' => isset($s['description']) ? $s['description'] : '',
+                'type'        => isset($s['type']) ? $s['type'] : 'php',
+                'scope'       => isset($s['scope']) ? $s['scope'] : 'everywhere',
+                'priority'    => isset($s['priority']) ? (int) $s['priority'] : 10,
+                'code'        => $s['code'],
+                'active'      => 0, // imported disabled — review before enabling
+            ));
+            $count++;
+        }
+        wp_safe_redirect(add_query_arg(array('import' => 'ok', 'n' => $count), $redirect));
+        exit;
     }
 
     /** Return one logged email (for the Logs-tab detail drawer). */
@@ -1859,6 +1984,9 @@ class WP_Arzo_Admin
                         </form>
                     <?php endif; ?>
                     <?php if (!empty($log)) : ?>
+                        <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_activity_export'), self::NONCE_ACTIVITY)); ?>">
+                            <?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
+                        </a>
                         <button type="button" id="wpa-activity-clear" class="wpa-btn wpa-btn--ghost" data-nonce="<?php echo esc_attr($nonce); ?>">
                             <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
                         </button>
@@ -1987,11 +2115,33 @@ class WP_Arzo_Admin
                 <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon')); ?> Code Snippets</h1>
                 <p class="wpa-admin__subtitle"><strong><?php echo count($snippets); ?></strong> snippet(s)<?php echo $enabled ? '' : ' · the “Code Snippets” feature is OFF, so nothing runs (enable it on the dashboard)'; ?></p>
             </div>
-            <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url($base); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> New snippet</a>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <?php if (!empty($snippets)) : ?>
+                    <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_snippets_export'), self::NONCE_SNIPPETS)); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</a>
+                <?php endif; ?>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data" style="margin:0;display:inline-flex;gap:6px;align-items:center;">
+                    <input type="hidden" name="action" value="wp_arzo_snippets_import">
+                    <?php wp_nonce_field('wp_arzo_snippets_import'); ?>
+                    <input type="file" name="snippets_file" accept="application/json,.json" required style="max-width:170px;color:var(--arzo-text-muted);font-size:12px;">
+                    <button type="submit" class="wpa-btn wpa-btn--ghost"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</button>
+                </form>
+                <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url($base); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> New snippet</a>
+            </div>
         </div>
         <?php if ($saved) : ?>
             <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Snippet saved.</div>
         <?php endif; ?>
+        <?php
+        if (isset($_GET['import'])) {
+            $imp = sanitize_key(wp_unslash($_GET['import']));
+            if ($imp === 'ok') {
+                $n = isset($_GET['n']) ? (int) $_GET['n'] : 0;
+                echo '<div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;">' . wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')) . ' Imported ' . $n . ' snippet(s) — added disabled; review and enable them.</div>';
+            } else {
+                echo '<div class="wpa-toast wpa-toast--error" style="position:static;margin-bottom:16px;display:inline-flex;">' . wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')) . ' ' . ($imp === 'nofile' ? 'No file selected.' : 'That file isn’t a valid WP Arzo snippets export.') . '</div>';
+            }
+        }
+        ?>
 
         <div class="wpa-code-app">
             <!-- Editor -->
@@ -2636,10 +2786,11 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         $s = WP_Arzo_Feature_Config_IO::apply($clean);
         wp_send_json_success(array(
             'message' => sprintf(
-                'Imported %d feature toggle(s), %d setting group(s), %d snippet(s).%s',
+                'Imported %d feature toggle(s), %d setting group(s), %d snippet(s), %d email connection(s).%s',
                 $s['features'],
                 $s['settings'],
                 $s['snippets'],
+                isset($s['connections']) ? $s['connections'] : 0,
                 $s['snapshot'] ? ' A safety snapshot was taken.' : ''
             ),
         ));
