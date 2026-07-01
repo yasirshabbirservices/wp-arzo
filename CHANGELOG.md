@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.52.0] — 2026-07-01
+
+### Added — `.wpa-collapse` accordion component
+- New reusable **collapse/accordion** component (`.wpa-collapse` + `wpArzo.initCollapses`)
+  for progressive-disclosure sections in long forms (click a header to expand/collapse,
+  chevron rotates, keyboard + `aria-expanded`). Used by the Pro Content Types builder to
+  hide "Advanced options" behind a collapse.
+
 ## [6.51.0] — 2026-07-01
 
 ### Fixed
