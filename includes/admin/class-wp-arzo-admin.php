@@ -797,6 +797,16 @@ class WP_Arzo_Admin
                 echo '<span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>';
                 echo '<span class="wpa-toggle__label">' . esc_html($label) . '</span></label>';
                 break;
+            case 'multiselect':
+                $options = isset($field['options']) && is_array($field['options']) ? $field['options'] : array();
+                $sel = is_array($value) ? array_map('strval', $value) : array();
+                echo '<div class="wpa-checks">';
+                foreach ($options as $oval => $olabel) {
+                    $ck = in_array((string) $oval, $sel, true) ? ' checked' : '';
+                    echo '<label class="wpa-check"><input type="checkbox" name="' . $name . '[]" value="' . esc_attr($oval) . '"' . $ck . '> ' . esc_html($olabel) . '</label>';
+                }
+                echo '</div>';
+                break;
             case 'text':
             default:
                 echo '<input class="wpa-input" type="text" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
@@ -857,6 +867,11 @@ class WP_Arzo_Admin
                 case 'select':
                     $options = isset($field['options']) && is_array($field['options']) ? array_keys($field['options']) : array();
                     $clean[$key] = in_array($raw, $options, true) ? $raw : (isset($field['default']) ? $field['default'] : '');
+                    break;
+                case 'multiselect':
+                    $options = isset($field['options']) && is_array($field['options']) ? array_map('strval', array_keys($field['options'])) : array();
+                    $vals = is_array($raw) ? array_map('strval', $raw) : array();
+                    $clean[$key] = array_values(array_intersect($vals, $options));
                     break;
                 default:
                     $clean[$key] = sanitize_text_field((string) $raw);
