@@ -4,6 +4,13 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.75.0] — 2026-07-02
+
+### Added — advertise Two-Factor Authentication (Pro)
+
+- The locked Pro catalog now lists **Two-Factor Authentication** (Security) — authenticator-app
+  TOTP second factor with recovery codes, strictly opt-in per user.
+
 ## [6.74.0] — 2026-07-02
 
 ### Added — advertise pCloud off-site backups (Pro)

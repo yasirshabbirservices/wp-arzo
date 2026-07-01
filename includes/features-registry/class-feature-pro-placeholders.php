@@ -105,6 +105,9 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'admin_branding', 'title' => 'Admin Branding & Dashboard', 'group' => 'branding', 'icon' => 'sparkles', 'description' => 'White-label wp-admin: accent color, custom footer, and a branded Custom Dashboard with ready-made welcome-panel presets.'),
         array('id' => 'text_replacement', 'title' => 'Text Replacement (White-label)', 'group' => 'branding', 'icon' => 'edit', 'description' => 'Rebrand wp-admin — replace any text (e.g. “WordPress” → your brand) across menus, toolbar and labels.'),
 
+        // Security
+        array('id' => 'two_factor', 'title' => 'Two-Factor Authentication', 'group' => 'security', 'icon' => 'lock', 'description' => 'Add an authenticator-app second factor (TOTP) to login, with one-time recovery codes and an admin reset. Strictly opt-in per user.'),
+
         // Ops & Monitoring
         array('id' => 'redirects', 'title' => 'Redirects & 404 Monitor', 'group' => 'ops', 'icon' => 'external', 'description' => 'Create URL redirects (exact or regex, 301/302/307) and monitor 404s.'),
         array('id' => 'cron_manager', 'title' => 'Cron Manager', 'group' => 'ops', 'icon' => 'clock', 'description' => 'View, run, and delete WP-Cron events and inspect schedules.'),
