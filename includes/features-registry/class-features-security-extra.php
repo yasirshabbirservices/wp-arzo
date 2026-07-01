@@ -188,12 +188,87 @@ class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
         return array(
             array('key' => 'max_attempts', 'type' => 'number', 'label' => 'Max failed attempts', 'default' => 5),
             array('key' => 'lockout_minutes', 'type' => 'number', 'label' => 'Lockout (minutes)', 'default' => 15),
+            array(
+                'key'     => 'trusted_ips',
+                'type'    => 'textarea',
+                'label'   => 'Trusted IP allowlist',
+                'default' => '',
+                'help'    => 'One IP or CIDR range per line (e.g. 203.0.113.10 or 203.0.113.0/24). These addresses are never counted or locked out — add your own office/VPN IP so you can’t lock yourself out.',
+            ),
+            array(
+                'key'     => 'alert_enabled',
+                'type'    => 'toggle',
+                'label'   => 'Email me when an IP is locked out',
+                'default' => 0,
+            ),
+            array(
+                'key'     => 'alert_email',
+                'type'    => 'email',
+                'label'   => 'Alert recipient',
+                'default' => get_option('admin_email'),
+                'help'    => 'Where lockout alerts are sent.',
+                'show_if' => array('field' => 'alert_enabled', 'value' => 1),
+            ),
         );
     }
 
     private function ip()
     {
         return isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : 'unknown';
+    }
+
+    /** Whether the current request IP is on the trusted allowlist. */
+    private function is_trusted()
+    {
+        $ip = filter_var($this->ip(), FILTER_VALIDATE_IP);
+        if (!$ip) {
+            return false;
+        }
+        foreach (preg_split('/\r\n|\r|\n/', (string) $this->get_setting('trusted_ips', '')) as $line) {
+            $entry = trim($line);
+            if ($entry === '') {
+                continue;
+            }
+            if (strpos($entry, '/') !== false) {
+                if (self::ip_in_cidr($ip, $entry)) {
+                    return true;
+                }
+            } elseif ($entry === $ip) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Pure: is an IPv4/IPv6 address inside a CIDR range? Returns false on malformed input.
+     */
+    public static function ip_in_cidr($ip, $cidr)
+    {
+        if (strpos($cidr, '/') === false) {
+            return $ip === $cidr;
+        }
+        list($subnet, $bits) = explode('/', $cidr, 2);
+        $bits = (int) $bits;
+        $ip_bin     = @inet_pton($ip);
+        $subnet_bin = @inet_pton(trim($subnet));
+        if ($ip_bin === false || $subnet_bin === false || strlen($ip_bin) !== strlen($subnet_bin)) {
+            return false; // address family mismatch or invalid
+        }
+        $max = strlen($ip_bin) * 8;
+        if ($bits < 0 || $bits > $max) {
+            return false;
+        }
+        $bytes = intdiv($bits, 8);
+        $rem   = $bits % 8;
+        if ($bytes > 0 && strncmp($ip_bin, $subnet_bin, $bytes) !== 0) {
+            return false;
+        }
+        if ($rem === 0) {
+            return true;
+        }
+        $mask = chr(0xff << (8 - $rem) & 0xff);
+        return (ord($ip_bin[$bytes]) & ord($mask)) === (ord($subnet_bin[$bytes]) & ord($mask));
     }
     private function key($prefix = '')
     {
@@ -213,6 +288,9 @@ class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
 
     public function check_lockout($user)
     {
+        if ($this->is_trusted()) {
+            return $user;
+        }
         if (get_transient($this->key('lock_'))) {
             return new WP_Error(
                 'wp_arzo_locked_out',
@@ -224,6 +302,10 @@ class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
 
     public function record_failure($username)
     {
+        // Trusted addresses are never counted or locked.
+        if ($this->is_trusted()) {
+            return;
+        }
         // Don't count attempts while already locked.
         if (get_transient($this->key('lock_'))) {
             return;
@@ -235,9 +317,36 @@ class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
         if ($count >= $max) {
             set_transient($this->key('lock_'), 1, $minutes * MINUTE_IN_SECONDS);
             delete_transient($this->key());
+            $this->maybe_alert($username, $minutes);
         } else {
             set_transient($this->key(), $count, $minutes * MINUTE_IN_SECONDS);
         }
+    }
+
+    /** Email the admin about a fresh lockout, if the alert is enabled. */
+    private function maybe_alert($username, $minutes)
+    {
+        if (!(int) $this->get_setting('alert_enabled', 0)) {
+            return;
+        }
+        $to = sanitize_email((string) $this->get_setting('alert_email', get_option('admin_email')));
+        if (!is_email($to)) {
+            return;
+        }
+        $site = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+        $ip   = $this->ip();
+        $subject = sprintf('[%s] Login lockout: %s', $site, $ip);
+        $lines = array(
+            sprintf('An IP address has been locked out of %s after too many failed login attempts.', $site),
+            '',
+            'IP address: ' . $ip,
+            'Attempted username: ' . ($username !== '' ? $username : '(unknown)'),
+            'Locked for: ' . $minutes . ' minute(s)',
+            'Time (UTC): ' . gmdate('Y-m-d H:i:s'),
+            '',
+            'If this was you, add your IP to the trusted allowlist in WP Arzo → Limit Login Attempts.',
+        );
+        wp_mail($to, $subject, implode("\n", $lines));
     }
 
     public function clear($user_login, $user)

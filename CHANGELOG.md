@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.60.0] — 2026-07-01
+
+### Added — Limit Login Attempts: trusted-IP allowlist + lockout alerts
+- **Trusted IP allowlist**: list your own IPs or CIDR ranges (e.g. `203.0.113.0/24`) that are
+  never counted or locked out — so a strict lockout policy can’t lock *you* out. Full IPv4 &
+  IPv6 CIDR matching.
+- **Lockout alert email** (opt-in): get an email — to a recipient you choose (defaults to the
+  admin) — whenever an IP is locked out, with the IP, attempted username, duration and time.
+
 ## [6.59.0] — 2026-07-01
 
 ### Added — Snippets: load-order priority
