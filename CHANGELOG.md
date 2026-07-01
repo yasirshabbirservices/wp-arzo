@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.86.0] — 2026-07-02
+
+### Added — Command palette (Ctrl/⌘-K) jumps to any WP Arzo destination
+
+- WP Arzo now feeds its pages, Settings tabs and console tools into **WordPress's own command
+  palette** — the one already behind the admin-bar **Ctrl/⌘-K** node (`core/commands`, WP 6.3+).
+  Hit the shortcut from **anywhere in wp-admin** and jump straight to Email, Backups, Activity
+  Log, Snippets, Media Cleanup, Settings (and each Settings tab: Login Security, Roles, REST API
+  Auth, Two-Factor, Notifications, AI-MCP…), the Setup Wizard, or any enabled standalone console
+  tool (Site Info, Users, Database, Files, Debug, Site Modes, Extra Options, Temporary Logins).
+- Deliberately **not** a competing overlay — we register into the palette the user already knows,
+  so WP Arzo shows up alongside core commands with its own dashicons. Entries are gated: only
+  destinations reachable right now appear (disabled features/console tools are omitted).
+- Extensible via the `wp_arzo_command_palette_items` filter — the Pro add-on registers its own
+  pages (Content Types, Custom Fields, Redirects, Cron), each shown only while enabled.
+- New asset `assets/js/wp-arzo-command-palette.js` (deps: `wp-commands`, `wp-data`, `wp-element`,
+  `wp-dom-ready`); enqueued admin-wide for `manage_options` users.
+
 ## [6.85.0] — 2026-07-02
 
 ### Added — "Configure →" discoverability after enabling a feature

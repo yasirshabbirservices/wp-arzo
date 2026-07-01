@@ -68,6 +68,10 @@ class WP_Arzo_Admin
         // unreliable across differing hook priorities, so we sort the final array ourselves.
         add_action('admin_menu', array($this, 'order_submenu'), 999);
         add_action('admin_enqueue_scripts', array($this, 'enqueue'));
+        // Command palette: feed WP Arzo destinations into WordPress's native Ctrl/⌘-K
+        // palette (core/commands). Enqueued site-wide in admin (not just our pages) so the
+        // shortcut jumps to any WP Arzo feature from anywhere in wp-admin.
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_command_palette'));
         add_action('admin_head', array($this, 'menu_icon_style'));
         add_filter('admin_body_class', array($this, 'admin_body_class'));
         add_action('wp_ajax_wp_arzo_toggle_feature', array($this, 'ajax_toggle_feature'));
@@ -331,6 +335,145 @@ class WP_Arzo_Admin
         return function_exists('wp_arzo_get_asset_url')
             ? wp_arzo_get_asset_url($rel)
             : WP_ARZO_PLUGIN_URL . $rel;
+    }
+
+    /* -------------------------------------------------- Command palette */
+
+    /**
+     * Enqueue the command-palette bridge on every admin screen for admins.
+     *
+     * Rather than build a competing Ctrl-K overlay, we register WP Arzo's pages,
+     * settings tabs and console tools into WordPress's own command palette
+     * (`core/commands`, the store behind the admin-bar ⌘K node since WP 6.3). The
+     * script depends on `wp-commands`/`wp-data`, so WP guarantees the store is loaded.
+     *
+     * @param string $hook Current admin page hook (unused — palette is global).
+     */
+    public function enqueue_command_palette($hook)
+    {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        // The commands store only exists on screens where the palette is available.
+        // Since WP 6.3 `wp-commands` is a registered handle admin-wide; guard anyway so
+        // older cores just skip the feature instead of erroring.
+        if (!wp_script_is('wp-commands', 'registered')) {
+            return;
+        }
+        $rel = 'assets/js/wp-arzo-command-palette.js';
+        if (!file_exists(WP_ARZO_PLUGIN_DIR . $rel)) {
+            return;
+        }
+        wp_enqueue_script(
+            'wp-arzo-command-palette',
+            $this->asset_url($rel),
+            array('wp-commands', 'wp-data', 'wp-element', 'wp-dom-ready'),
+            null,
+            true
+        );
+        wp_localize_script('wp-arzo-command-palette', 'wpArzoCommands', array(
+            'group'    => __('WP Arzo', 'wp-arzo'),
+            'commands' => $this->command_palette_items(),
+        ));
+    }
+
+    /**
+     * Build the WP Arzo command list for the palette: feature pages, Settings tabs
+     * and (enabled) standalone console tools. Only destinations the current user can
+     * actually reach right now are included, so the palette never dead-ends.
+     *
+     * @return array<int,array<string,mixed>> Each: id,label,icon(dashicon),url,newTab.
+     */
+    private function command_palette_items()
+    {
+        $base  = admin_url('admin.php?page=');
+        $items = array();
+
+        // --- Feature pages (verbs a user searches for) -------------------
+        $pages = array(
+            array('id' => 'dashboard', 'label' => __('Dashboard', 'wp-arzo'),     'icon' => 'screenoptions',     'slug' => self::PAGE,          'always' => true),
+            array('id' => 'activity',  'label' => __('Activity Log', 'wp-arzo'),  'icon' => 'list-view',         'slug' => self::PAGE_ACTIVITY),
+            array('id' => 'email',     'label' => __('Email', 'wp-arzo'),         'icon' => 'email',             'slug' => self::PAGE_EMAIL),
+            array('id' => 'backups',   'label' => __('Backups', 'wp-arzo'),       'icon' => 'database-export',   'slug' => self::PAGE_BACKUPS),
+            array('id' => 'media',     'label' => __('Media Cleanup', 'wp-arzo'), 'icon' => 'format-gallery',    'slug' => self::PAGE_MEDIA),
+            array('id' => 'snippets',  'label' => __('Snippets', 'wp-arzo'),      'icon' => 'editor-code',       'slug' => self::PAGE_SNIPPETS),
+            array('id' => 'settings',  'label' => __('Settings', 'wp-arzo'),      'icon' => 'admin-settings',    'slug' => self::PAGE_SETTINGS, 'always' => true),
+        );
+        foreach ($pages as $p) {
+            if (empty($p['always']) && !$this->page_visible($p['slug'])) {
+                continue;
+            }
+            $items[] = array(
+                'id'    => 'page-' . $p['id'],
+                'label' => $p['label'],
+                'icon'  => $p['icon'],
+                'url'   => $base . $p['slug'],
+            );
+        }
+
+        // --- Setup wizard -----------------------------------------------
+        $items[] = array(
+            'id'    => 'setup-wizard',
+            'label' => __('Setup Wizard', 'wp-arzo'),
+            'icon'  => 'admin-generic',
+            'url'   => $base . 'wp-arzo-setup',
+        );
+
+        // --- Settings hub tabs (deep links) ------------------------------
+        $settings_base = $base . self::PAGE_SETTINGS;
+        foreach ($this->settings_tabs() as $key => $tab) {
+            $items[] = array(
+                'id'    => 'settings-' . $key,
+                'label' => sprintf(
+                    /* translators: %s: settings sub-tab name. */
+                    __('Settings: %s', 'wp-arzo'),
+                    isset($tab['label']) ? $tab['label'] : $key
+                ),
+                'icon'  => 'admin-settings',
+                'url'   => add_query_arg('tab', $key, $settings_base),
+            );
+        }
+
+        // --- Standalone console tools (only the enabled ones) ------------
+        $console = array(
+            'info'          => array('label' => __('Site Info', 'wp-arzo'),        'icon' => 'info'),
+            'users'         => array('label' => __('Users', 'wp-arzo'),            'icon' => 'admin-users'),
+            'database'      => array('label' => __('Database', 'wp-arzo'),         'icon' => 'database'),
+            'files'         => array('label' => __('File Manager', 'wp-arzo'),     'icon' => 'media-default'),
+            'plugins'       => array('label' => __('Plugins', 'wp-arzo'),          'icon' => 'admin-plugins'),
+            'themes'        => array('label' => __('Themes', 'wp-arzo'),           'icon' => 'admin-appearance'),
+            'debug'         => array('label' => __('Debug', 'wp-arzo'),            'icon' => 'buddicons-replies'),
+            'site_modes'    => array('label' => __('Site Modes', 'wp-arzo'),       'icon' => 'shield'),
+            'extra_options' => array('label' => __('Extra Options', 'wp-arzo'),    'icon' => 'admin-tools'),
+            'login'         => array('label' => __('Temporary Logins', 'wp-arzo'), 'icon' => 'admin-network'),
+        );
+        $console_available = function_exists('wp_arzo_console_tool_enabled');
+        foreach ($console as $tab => $meta) {
+            if ($tab !== 'info' && $console_available && !wp_arzo_console_tool_enabled($tab)) {
+                continue;
+            }
+            $items[] = array(
+                'id'     => 'console-' . $tab,
+                'label'  => sprintf(
+                    /* translators: %s: console tool name. */
+                    __('Console: %s', 'wp-arzo'),
+                    $meta['label']
+                ),
+                'icon'   => $meta['icon'],
+                'url'    => admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=' . $tab),
+                'newTab' => true,
+            );
+        }
+
+        /**
+         * Filter the WP Arzo command-palette entries (Pro adds its pages here).
+         *
+         * @param array               $items Command descriptors.
+         * @param WP_Arzo_Admin        $admin The admin instance.
+         */
+        $items = apply_filters('wp_arzo_command_palette_items', $items, $this);
+
+        return array_values(array_filter((array) $items));
     }
 
     /* ------------------------------------------------------------ Render */
