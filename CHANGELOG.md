@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.56.0] — 2026-07-01
+
+### Changed — Clean Up Admin Bar is now the single, complete toolbar-cleanup owner
+- Expanded **Clean Up Admin Bar** from 4 to **9 toggles**: WordPress logo, **site name / Visit
+  Site**, comments, updates, “New”, **Customize**, **search**, the **Help tab**, and the
+  **“Howdy,” greeting** — studied against White Label CMS + Branda and made more complete than
+  both. Verified live.
+- This consolidates all toolbar/greeting cleanup here (free), so nothing is duplicated across
+  features — the Pro Admin Branding feature drops its overlapping toolbar controls (see Pro
+  v1.18.0). Toolbar cleanup + “Howdy” removal are now **free**.
+
 ## [6.55.0] — 2026-07-01
 
 ### Added — Two-Factor: role-enforcement policy (+ `multiselect` field type)
