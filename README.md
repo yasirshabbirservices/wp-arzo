@@ -17,7 +17,7 @@ shared hosting, VPS, cloud, and enterprise WordPress setups. Everything is
 **WP Arzo Pro** add‑on lives in a separate private repo and registers extra modules into
 the same dashboard.
 
-- **Current version:** 6.65.0 (see [CHANGELOG.md](CHANGELOG.md))
+- **Current version:** 6.66.0 (see [CHANGELOG.md](CHANGELOG.md))
 - **Requires:** WordPress ≥ 5.0, PHP ≥ 7.2
 - **Architecture & conventions for contributors / AI agents:** [CLAUDE.md](CLAUDE.md)
 - **Design system:** [.claude/design.md](.claude/design.md)
@@ -26,9 +26,10 @@ the same dashboard.
 
 The native **WP Arzo** admin menu is the modern surface: a grouped grid of ~45 free
 feature modules you enable/disable with modern toggles, each with schema‑driven settings.
-A **left sidebar** carries the page navigation (Dashboard, Email, Email Log, Backups,
-Snippets, Media Cleanup, Activity Log, Login Security, Advanced Tools) and a live **category
-filter** that scopes the feature grid — so the dashboard scales as more features land.
+A **left sidebar** carries the page navigation (Dashboard, Email, Backups, Snippets, Media
+Cleanup, Activity Log, Login Security, Advanced Tools) and a live **category filter** that
+scopes the feature grid — so the dashboard scales as more features land. The **Email** page
+is a single SureMail-style hub with **Connections / Logs / Settings** tabs.
 A **Setup Wizard** (first run, and always under *WP Arzo → Setup Wizard*) applies curated
 presets in one click — **Essentials, Velocity, Fortress, Creator, Growth, Command Center,
 The Works** — which only *enable* features (never disable what you've set). Pro modules are

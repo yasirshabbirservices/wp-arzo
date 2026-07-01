@@ -502,3 +502,22 @@
 @keyframes wpa-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wpa-pop-in { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes wpa-slide-in { from { transform: translateX(24px); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
+
+/* ------------------------------------------------------------- Tabs
+   In-page tab navigation (e.g. the unified Email page: Connections / Logs / Settings). */
+.wpa-tabs {
+  display: flex; gap: var(--arzo-space-1);
+  border-bottom: 1px solid var(--arzo-border);
+  margin-bottom: var(--arzo-space-4);
+}
+.wpa-tab {
+  display: inline-flex; align-items: center; gap: var(--arzo-space-2);
+  padding: var(--arzo-space-3) var(--arzo-space-4);
+  color: var(--arzo-text-secondary); text-decoration: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  font-weight: 600; font-size: var(--arzo-fs-md);
+  transition: color var(--arzo-transition) ease, border-color var(--arzo-transition) ease;
+}
+.wpa-tab:hover { color: var(--arzo-text-primary); }
+.wpa-tab.is-active { color: var(--arzo-accent); border-bottom-color: var(--arzo-accent); }
+.wpa-tab .wpa-icon { color: currentColor; }

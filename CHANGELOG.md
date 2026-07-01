@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.66.0] — 2026-07-01
+
+### Changed — Email: one unified hub with tabs (SureMail-style)
+- The separate **Email** and **Email Log** submenus are merged into a **single Email page**
+  with in-page tabs: **Connections** (the provider-card manager), **Logs** (the email log +
+  resend/clear), and **Settings** (failure-alert). One menu item, all email tooling in one
+  place — matching SureMail’s layout, in the WP Arzo design system. New reusable `.wpa-tabs`
+  component + `list` icon.
+
 ## [6.65.0] — 2026-07-01
 
 ### Changed — Snippets: Advanced-Scripts-style editor app
