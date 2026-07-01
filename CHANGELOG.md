@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.53.0] — 2026-07-01
+
+### Added — Two-Factor: QR-code enrollment
+- 2FA enrollment now shows a **scannable QR code** for the authenticator secret (with the
+  manual key as a fallback), instead of only a raw `otpauth://` string. The QR is generated
+  **offline** by a bundled generator — **no external service** is contacted (privacy).
+- New `includes/lib/class-wp-arzo-qr.php` — a small wrapper (`WP_Arzo_QR::data_uri()` /
+  `html_table()`) around the MIT-licensed "QRCode for PHP" library by Kazuhiko Arase
+  (bundled, class-prefixed; GD PNG with an HTML-table fallback when GD is unavailable).
+- First step of the 2FA overhaul; a dedicated settings screen + role-enforcement policy
+  follow.
+
 ## [6.52.0] — 2026-07-01
 
 ### Added — `.wpa-collapse` accordion component
