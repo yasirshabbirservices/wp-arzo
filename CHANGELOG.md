@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.59.0] — 2026-07-01
+
+### Added — Snippets: load-order priority
+- Each snippet now has a **Priority** (1–9999, default 10). PHP snippets run in ascending
+  priority order; CSS/JS/HTML snippets use it as their `wp_head`/`wp_footer`/`admin_*` hook
+  priority — so you can control which snippet loads first when order matters. Shown as a new
+  column in the Snippets list and editable in the snippet form. Existing snippets default to 10.
+
 ## [6.58.0] — 2026-07-01
 
 ### Added — Temporary Logins: branded email invites + last-IP tracking
