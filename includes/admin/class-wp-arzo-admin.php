@@ -28,6 +28,7 @@ class WP_Arzo_Admin
     const PAGE_REST_AUTH = 'wp-arzo-rest-auth';
     const PAGE_ROLES = 'wp-arzo-roles';
     const PAGE_CONFIG = 'wp-arzo-config';
+    const PAGE_LOGIN_SECURITY = 'wp-arzo-login-security';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
@@ -40,6 +41,7 @@ class WP_Arzo_Admin
     const NONCE_REST = 'wp_arzo_rest_auth';
     const NONCE_ROLES = 'wp_arzo_roles';
     const NONCE_CONFIG = 'wp_arzo_config';
+    const NONCE_LOGIN_SECURITY = 'wp_arzo_login_security';
 
     public static function instance()
     {
@@ -157,6 +159,9 @@ class WP_Arzo_Admin
         if ($this->page_visible(self::PAGE_ROLES)) {
             add_submenu_page(self::PAGE, 'Roles', 'Roles', 'manage_options', self::PAGE_ROLES, array($this, 'render_roles'), 70);
         }
+        if ($this->page_visible(self::PAGE_LOGIN_SECURITY)) {
+            add_submenu_page(self::PAGE, 'Login Security', 'Login Security', 'manage_options', self::PAGE_LOGIN_SECURITY, array($this, 'render_login_security'), 72);
+        }
         if ($this->page_visible(self::PAGE_CONFIG)) {
             add_submenu_page(self::PAGE, 'Import / Export', 'Import / Export', 'manage_options', self::PAGE_CONFIG, array($this, 'render_config_io'), 85);
         }
@@ -191,6 +196,7 @@ class WP_Arzo_Admin
             self::PAGE_ACTIVITY     => 60,
             self::PAGE_REST_AUTH    => 65,
             self::PAGE_ROLES        => 70,
+            self::PAGE_LOGIN_SECURITY => 72,
             self::PAGE_CONFIG       => 85,
             'wp-arzo-tool'          => 95,
             'wp-arzo-setup'         => 98,  // Setup Wizard
@@ -220,6 +226,7 @@ class WP_Arzo_Admin
             self::PAGE_MEDIA     => array('media_cleanup'),
             self::PAGE_REST_AUTH => array('rest_api_auth'),
             self::PAGE_ROLES     => array('role_manager'),
+            self::PAGE_LOGIN_SECURITY => array('limit_login'),
             // PAGE_CONFIG is intentionally NOT mapped — Config Import/Export is always available.
         );
     }
@@ -1185,6 +1192,113 @@ class WP_Arzo_Admin
         }
         update_option('wp_arzo_email_log', array(), false);
         wp_send_json_success(array('message' => 'Email log cleared.'));
+    }
+
+    /* --------------------------------------------------- Login Security */
+
+    public function render_login_security()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $notice   = $this->maybe_handle_lockout_action();
+        $enabled  = $this->registry()->is_enabled('limit_login');
+        $lockouts = class_exists('WP_Arzo_Feature_Limit_Login') ? WP_Arzo_Feature_Limit_Login::active_lockouts() : array();
+        $now      = time();
+        ?>
+        <div class="wrap wpa-admin">
+            <?php $this->render_brand_bar(); ?>
+            <?php $this->render_shell_open('login_security'); ?>
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?> Login Security</h1>
+                    <p class="wpa-admin__subtitle"><strong><?php echo count($lockouts); ?></strong> active lockout(s)<?php echo $enabled ? '' : ' · “Limit Login Attempts” is OFF (enable it on the dashboard)'; ?></p>
+                </div>
+                <?php if (!empty($lockouts)) : ?>
+                    <form method="post" onsubmit="return confirm('Lift all active lockouts?');">
+                        <?php wp_nonce_field(self::NONCE_LOGIN_SECURITY, 'wp_arzo_ls_nonce'); ?>
+                        <input type="hidden" name="ls_action" value="clear_all">
+                        <button type="submit" class="wpa-btn wpa-btn--ghost"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock all</button>
+                    </form>
+                <?php endif; ?>
+            </div>
+            <?php if ($notice) : ?>
+                <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($notice); ?></div>
+            <?php endif; ?>
+
+            <div class="wpa-card" style="padding:0;overflow:hidden;">
+                <table class="wpa-backup-table">
+                    <thead><tr><th>IP address</th><th>Attempted user</th><th>Locked at (UTC)</th><th>Unlocks in</th><th></th></tr></thead>
+                    <tbody>
+                        <?php if (empty($lockouts)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="5">No active lockouts.</td></tr>
+                        <?php else : foreach ($lockouts as $l) :
+                            $remaining = max(0, (int) $l['until'] - $now);
+                            ?>
+                            <tr>
+                                <td><code><?php echo esc_html($l['ip']); ?></code></td>
+                                <td><?php echo $l['user'] !== '' ? esc_html($l['user']) : '<span style="color:var(--arzo-text-muted)">—</span>'; ?></td>
+                                <td><?php echo esc_html($l['time']); ?></td>
+                                <td><?php echo esc_html($this->ls_human_duration($remaining)); ?></td>
+                                <td class="wpa-backup-actions">
+                                    <form method="post" style="display:inline;">
+                                        <?php wp_nonce_field(self::NONCE_LOGIN_SECURITY, 'wp_arzo_ls_nonce'); ?>
+                                        <input type="hidden" name="ls_action" value="unlock">
+                                        <input type="hidden" name="hash" value="<?php echo esc_attr($l['hash']); ?>">
+                                        <button type="submit" class="wpa-btn wpa-btn--ghost wpa-btn--sm"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            <p class="wpa-field__help" style="margin-top:14px;">Set the attempt threshold, lockout duration, trusted-IP allowlist and lockout alerts in the <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE)); ?>">Limit Login Attempts settings</a> on the dashboard.</p>
+            <?php $this->render_shell_close(); ?>
+        </div>
+        <?php
+    }
+
+    /** Handle the unlock / unlock-all POST from the Login Security page. */
+    private function maybe_handle_lockout_action()
+    {
+        if (!isset($_POST['ls_action'])) {
+            return '';
+        }
+        if (!current_user_can('manage_options') || !isset($_POST['wp_arzo_ls_nonce']) ||
+            !wp_verify_nonce(wp_unslash($_POST['wp_arzo_ls_nonce']), self::NONCE_LOGIN_SECURITY)) {
+            wp_die('Security check failed.');
+        }
+        if (!class_exists('WP_Arzo_Feature_Limit_Login')) {
+            return '';
+        }
+        $action = sanitize_key(wp_unslash($_POST['ls_action']));
+        if ($action === 'unlock') {
+            WP_Arzo_Feature_Limit_Login::unlock(isset($_POST['hash']) ? wp_unslash($_POST['hash']) : '');
+            return 'Lockout lifted.';
+        }
+        if ($action === 'clear_all') {
+            WP_Arzo_Feature_Limit_Login::clear_all_lockouts();
+            return 'All lockouts lifted.';
+        }
+        return '';
+    }
+
+    /** Format a remaining-seconds count as a compact human string. */
+    private function ls_human_duration($seconds)
+    {
+        $seconds = (int) $seconds;
+        if ($seconds <= 0) {
+            return 'expiring…';
+        }
+        $m = intdiv($seconds, 60);
+        $s = $seconds % 60;
+        if ($m >= 60) {
+            $h = intdiv($m, 60);
+            $m = $m % 60;
+            return $h . 'h ' . $m . 'm';
+        }
+        return $m > 0 ? ($m . 'm ' . $s . 's') : ($s . 's');
     }
 
     /* ----------------------------------------------------- Activity Log */

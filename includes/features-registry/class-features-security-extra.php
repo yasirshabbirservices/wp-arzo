@@ -163,6 +163,9 @@ class WP_Arzo_Feature_Custom_Login_URL extends WP_Arzo_Feature
  */
 class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
 {
+    /** Registry of currently-locked IPs (for the admin dashboard). */
+    const REGISTRY_OPTION = 'wp_arzo_ll_lockouts';
+
     public function id()
     {
         return 'limit_login';
@@ -207,7 +210,7 @@ class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
                 'label'   => 'Alert recipient',
                 'default' => get_option('admin_email'),
                 'help'    => 'Where lockout alerts are sent.',
-                'show_if' => array('field' => 'alert_enabled', 'value' => 1),
+                'show_if' => array('field' => 'alert_enabled', 'value' => '1'),
             ),
         );
     }
@@ -317,10 +320,92 @@ class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
         if ($count >= $max) {
             set_transient($this->key('lock_'), 1, $minutes * MINUTE_IN_SECONDS);
             delete_transient($this->key());
+            self::register_lockout($this->ip(), $username, $minutes);
             $this->maybe_alert($username, $minutes);
         } else {
             set_transient($this->key(), $count, $minutes * MINUTE_IN_SECONDS);
         }
+    }
+
+    /* ------------------------------------------------- lockout registry */
+
+    /** Record a fresh lockout so the admin dashboard can list/unlock it. */
+    private static function register_lockout($ip, $user, $minutes)
+    {
+        $reg = get_option(self::REGISTRY_OPTION, array());
+        if (!is_array($reg)) {
+            $reg = array();
+        }
+        $reg[md5((string) $ip)] = array(
+            'ip'    => (string) $ip,
+            'user'  => (string) $user,
+            'until' => time() + $minutes * MINUTE_IN_SECONDS,
+            'time'  => gmdate('Y-m-d H:i:s'),
+        );
+        update_option(self::REGISTRY_OPTION, $reg, false);
+    }
+
+    /**
+     * Currently-active lockouts, pruning any whose transient has expired. The
+     * lock transient is the source of truth, so this self-heals the registry.
+     *
+     * @return array<int,array> rows with hash, ip, user, until, time
+     */
+    public static function active_lockouts()
+    {
+        $reg = get_option(self::REGISTRY_OPTION, array());
+        if (!is_array($reg)) {
+            return array();
+        }
+        $out = array();
+        $changed = false;
+        foreach ($reg as $hash => $row) {
+            if (get_transient('wp_arzo_ll_lock_' . $hash)) {
+                $row['hash'] = $hash;
+                $out[] = $row;
+            } else {
+                unset($reg[$hash]);
+                $changed = true;
+            }
+        }
+        if ($changed) {
+            update_option(self::REGISTRY_OPTION, $reg, false);
+        }
+        usort($out, function ($a, $b) {
+            return (isset($b['until']) ? (int) $b['until'] : 0) <=> (isset($a['until']) ? (int) $a['until'] : 0);
+        });
+        return $out;
+    }
+
+    /** Lift a single lockout by its registry hash. */
+    public static function unlock($hash)
+    {
+        $hash = preg_replace('/[^a-f0-9]/', '', (string) $hash);
+        if ($hash === '') {
+            return false;
+        }
+        delete_transient('wp_arzo_ll_lock_' . $hash);
+        delete_transient('wp_arzo_ll_' . $hash);
+        $reg = get_option(self::REGISTRY_OPTION, array());
+        if (is_array($reg) && isset($reg[$hash])) {
+            unset($reg[$hash]);
+            update_option(self::REGISTRY_OPTION, $reg, false);
+        }
+        return true;
+    }
+
+    /** Lift every active lockout. */
+    public static function clear_all_lockouts()
+    {
+        $reg = get_option(self::REGISTRY_OPTION, array());
+        if (is_array($reg)) {
+            foreach (array_keys($reg) as $hash) {
+                delete_transient('wp_arzo_ll_lock_' . $hash);
+                delete_transient('wp_arzo_ll_' . $hash);
+            }
+        }
+        delete_option(self::REGISTRY_OPTION);
+        return true;
     }
 
     /** Email the admin about a fresh lockout, if the alert is enabled. */
@@ -353,5 +438,11 @@ class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
     {
         delete_transient($this->key());
         delete_transient($this->key('lock_'));
+        $reg = get_option(self::REGISTRY_OPTION, array());
+        $hash = md5($this->ip());
+        if (is_array($reg) && isset($reg[$hash])) {
+            unset($reg[$hash]);
+            update_option(self::REGISTRY_OPTION, $reg, false);
+        }
     }
 }
