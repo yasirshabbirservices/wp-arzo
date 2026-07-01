@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.71.0] — 2026-07-02
+
+### Changed — Clean feature pages (no brand header or sidebar)
+
+- Every feature-owned admin page (Email, Snippets, Backups, Media Cleanup, Activity Log,
+  Login Security, REST API Auth, Roles, Import/Export, and per-feature Settings) now renders
+  **only its own content** — the WP Arzo brand header and the left sidebar are gone from these
+  pages, matching the Audit Log / Redirects layout. Navigate between pages via WordPress's own
+  submenu. Only the main **Dashboard** hub keeps the brand header + the category-filter rail.
+- `render_shell_open()`/`render_shell_close()` now no-op unless passed categories (dashboard
+  only), so feature pages are a plain `.wrap.wpa-admin`. This is now a documented convention
+  for all new feature pages.
+
 ## [6.70.0] — 2026-07-02
 
 ### Added — `wp_arzo_activity_recorded` extension hook
