@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.58.0] — 2026-07-01
+
+### Added — Temporary Logins: branded email invites + last-IP tracking
+- **Email invite**: the console's Temporary Logins tab now sends a proper branded `wp_mail`
+  invitation (site name, role, one-tap login link, expiry, optional personal note) instead of
+  just opening a `mailto:` draft. Capability + nonce gated; refuses to email a disabled,
+  expired or exhausted link.
+- **Last-IP column**: each successful sign-in now records the client IP, shown alongside the
+  login count and last-login time so you can see where a link was used from.
+
 ## [6.57.0] — 2026-07-01
 
 ### Changed — Pro catalog

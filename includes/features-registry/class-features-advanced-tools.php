@@ -169,6 +169,7 @@ function wp_arzo_console_tool_for_request($tab, $op)
         'tl_create'                 => 'login',
         'tl_delete'                 => 'login',
         'tl_toggle'                 => 'login',
+        'tl_invite'                 => 'login',
     );
     return isset($op_map[$op]) ? $op_map[$op] : '';
 }
