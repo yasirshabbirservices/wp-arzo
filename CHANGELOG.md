@@ -4,6 +4,12 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.57.0] — 2026-07-01
+
+### Changed — Pro catalog
+- Advertise the new Pro **Text Replacement (White-label)** module (locked PRO card for free
+  users) and tidy the Admin Branding placeholder description (toolbar/CSS moved to free).
+
 ## [6.56.0] — 2026-07-01
 
 ### Changed — Clean Up Admin Bar is now the single, complete toolbar-cleanup owner
