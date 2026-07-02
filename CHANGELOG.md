@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.95.0] — 2026-07-02
+
+### Fixed — Overlay readability: drawers above the admin bar, token headings, real checkboxes
+
+- **Drawers and modals no longer hide behind the WP admin bar** — the overlay z-index
+  tokens now sit above wp-admin's bar (`--arzo-z-modal: 100000`, toast above that).
+  Applies to every overlay: the Backups compare drawer, Email connection drawer, Cron
+  event/URL-job drawers, provider picker modal, toasts.
+- **Readable text in every overlay**: wp-admin's near-black heading/text colors leaked
+  into anything we hadn't explicitly colored (drawer titles, section headings) —
+  unreadable on dark panels. `.wpa-admin` headings and the modal/drawer panels now force
+  design-token colors in both themes.
+- **Token-styled checkboxes and radios everywhere**: native checkboxes rendered as
+  near-invisible dark squares. All checkboxes/radios on WP Arzo surfaces (pages, modals,
+  drawers) are now custom-drawn from tokens — accent check/dot, visible border, focus
+  ring, smooth transitions (the on/off switches keep their own component styling).
+
 ## [6.94.0] — 2026-07-02
 
 ### Added — Automatic file restore (completes the file-snapshot loop)

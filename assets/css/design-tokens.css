@@ -109,10 +109,12 @@
     --arzo-focus-ring: 0 0 0 3px var(--arzo-accent-ring);
 
     /* ---- Z-index ------------------------------------------------------- */
+    /* Overlays (modal/drawer/toast) MUST beat wp-admin's admin bar (z 99999)
+       or they render underneath it — hence the 100k tier. */
     --arzo-z-dropdown: 1000;
     --arzo-z-sticky: 1100;
-    --arzo-z-modal: 1300;
-    --arzo-z-toast: 1400;
+    --arzo-z-modal: 100000;
+    --arzo-z-toast: 100200;
 
     /* ================================================================== */
     /* Legacy aliases — keep existing feature markup working. Do not extend. */

@@ -310,6 +310,86 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 }
 .wpa-check:hover { border-color: var(--arzo-border-strong); color: var(--arzo-text-primary); }
 .wpa-check input[type="checkbox"] { accent-color: var(--arzo-accent); margin: 0; }
+
+/* ---- Token-styled native controls (checkbox / radio) -----------------
+   Native checkboxes render as near-invisible dark squares on our surfaces
+   (and wp-admin restyles them with its own palette). Every checkbox/radio
+   inside a WP Arzo surface gets the token treatment — custom square/circle,
+   accent check, focus ring, smooth transitions. The dashboard's on/off
+   switches (.wpa-toggle__input) keep their own component styling. */
+.wpa-admin input[type="checkbox"]:not(.wpa-toggle__input),
+.wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input),
+.wpa-drawer__panel input[type="checkbox"]:not(.wpa-toggle__input) {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px; flex-shrink: 0;
+  margin: 0;
+  background: var(--arzo-bg-input);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-sm);
+  box-shadow: none;
+  display: inline-grid; place-content: center;
+  cursor: pointer;
+  transition: background var(--arzo-transition), border-color var(--arzo-transition);
+}
+.wpa-admin input[type="checkbox"]:not(.wpa-toggle__input)::before,
+.wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input)::before,
+.wpa-drawer__panel input[type="checkbox"]:not(.wpa-toggle__input)::before {
+  content: "";
+  width: 10px; height: 10px;
+  transform: scale(0);
+  transition: transform var(--arzo-transition-fast) ease;
+  clip-path: polygon(14% 44%, 0 62%, 42% 100%, 100% 18%, 82% 2%, 40% 66%);
+  background: var(--arzo-text-on-accent);
+}
+.wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):checked,
+.wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input):checked,
+.wpa-drawer__panel input[type="checkbox"]:not(.wpa-toggle__input):checked {
+  background: var(--arzo-accent);
+  border-color: var(--arzo-accent);
+}
+.wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):checked::before,
+.wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input):checked::before,
+.wpa-drawer__panel input[type="checkbox"]:not(.wpa-toggle__input):checked::before {
+  transform: scale(1);
+}
+.wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):focus-visible,
+.wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input):focus-visible,
+.wpa-drawer__panel input[type="checkbox"]:not(.wpa-toggle__input):focus-visible,
+.wpa-admin input[type="radio"]:focus-visible {
+  outline: none;
+  box-shadow: var(--arzo-focus-ring);
+}
+.wpa-admin input[type="radio"],
+.wpa-modal__panel input[type="radio"],
+.wpa-drawer__panel input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px; flex-shrink: 0;
+  margin: 0;
+  background: var(--arzo-bg-input);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: 50%;
+  box-shadow: none;
+  display: inline-grid; place-content: center;
+  cursor: pointer;
+  transition: border-color var(--arzo-transition);
+}
+.wpa-admin input[type="radio"]::before,
+.wpa-modal__panel input[type="radio"]::before,
+.wpa-drawer__panel input[type="radio"]::before {
+  content: "";
+  width: 8px; height: 8px; border-radius: 50%;
+  transform: scale(0);
+  transition: transform var(--arzo-transition-fast) ease;
+  background: var(--arzo-accent);
+}
+.wpa-admin input[type="radio"]:checked,
+.wpa-modal__panel input[type="radio"]:checked,
+.wpa-drawer__panel input[type="radio"]:checked { border-color: var(--arzo-accent); }
+.wpa-admin input[type="radio"]:checked::before,
+.wpa-modal__panel input[type="radio"]:checked::before,
+.wpa-drawer__panel input[type="radio"]:checked::before { transform: scale(1); }
 .wpa-check:has(input:checked) {
   border-color: var(--arzo-accent);
   background: var(--arzo-accent-soft);
@@ -467,7 +547,17 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
   border-bottom: 1px solid var(--arzo-border);
 }
 .wpa-modal__head h2,
-.wpa-drawer__head h2 { margin: 0; font-size: var(--arzo-fs-lg); }
+.wpa-drawer__head h2 { margin: 0; font-size: var(--arzo-fs-lg); color: var(--arzo-text-strong); }
+
+/* wp-admin's global heading/text colors (near-black) leak into anything we
+   don't explicitly color — invisible on our dark surfaces. Force tokens on
+   every heading and on overlay panel text, so drawers/modals are always
+   readable in both themes. */
+.wpa-admin h1, .wpa-admin h2, .wpa-admin h3, .wpa-admin h4, .wpa-admin h5, .wpa-admin h6 {
+  color: var(--arzo-text-strong);
+}
+.wpa-modal__panel,
+.wpa-drawer__panel { color: var(--arzo-text-primary); }
 
 /* Provider picker grid */
 .wpa-provider-grid {
