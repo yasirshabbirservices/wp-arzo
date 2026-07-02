@@ -781,3 +781,64 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
   .wpa-code-app { grid-template-columns: 1fr; }
   .wpa-code-app__list { position: static; }
 }
+
+/* ---------------------------------------------- Snippet conditional logic
+   The "Smart Conditional Logic" builder inside the snippet editor form. */
+.wpa-cond {
+  grid-column: 1 / -1;
+  margin-top: var(--arzo-space-4);
+  padding-top: var(--arzo-space-4);
+  border-top: 1px solid var(--arzo-border);
+}
+.wpa-cond__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--arzo-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--arzo-space-3);
+}
+.wpa-cond__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  font-weight: 700;
+  font-size: var(--arzo-fs-md);
+  color: var(--arzo-text-strong);
+}
+.wpa-cond__title .wpa-icon { color: var(--arzo-accent); }
+.wpa-cond__mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  font-size: var(--arzo-fs-sm);
+  color: var(--arzo-text-secondary);
+}
+.wpa-cond__mode select { width: auto; padding-block: 6px; }
+.wpa-cond__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--arzo-space-2);
+  margin-bottom: var(--arzo-space-3);
+}
+.wpa-cond__row {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  flex-wrap: wrap;
+}
+.wpa-cond__row .wpa-cond__type { flex: 0 0 auto; min-width: 130px; width: auto; }
+.wpa-cond__row .wpa-cond__op { flex: 0 0 auto; min-width: 96px; width: auto; }
+.wpa-cond__val {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+.wpa-cond__val select,
+.wpa-cond__val input { width: 100%; }
+.wpa-cond__val .wpa-cond__dt,
+.wpa-cond__val .wpa-cond__dt2 { flex: 1 1 0; min-width: 0; }
+.wpa-cond__sep { color: var(--arzo-text-secondary); font-size: var(--arzo-fs-sm); flex: 0 0 auto; }
+.wpa-cond__row .wpa-btn--icon { flex: 0 0 auto; margin-left: auto; }

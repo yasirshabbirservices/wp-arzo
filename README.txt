@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.102.3
+Stable tag: 6.103.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.103.0 =
+* New (free): Code Snippets — Smart Conditional Logic. Gate a snippet to run only where you want
+  (match all/any of: user login, user role, post type, page type, URL path, device, date/time
+  schedule). No rules = runs everywhere. (Enrichment #3.)
 
 = 6.102.3 =
 * Changed: the console Files tab (elFinder file manager) is now fully dark — darkened the light
