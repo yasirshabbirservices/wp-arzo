@@ -258,9 +258,12 @@ td {
 }
 
 th {
-  background: var(--border-color);
-  color: var(--accent-color);
+  background: var(--arzo-bg-elev);
+  color: var(--arzo-text-muted);
   font-weight: 600;
+  font-size: var(--arzo-fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 tr:hover {
@@ -268,8 +271,8 @@ tr:hover {
 }
 
 .success {
-  color: #4caf50;
-  background: #1b5e20;
+  color: var(--arzo-success);
+  background: var(--arzo-success-soft);
   padding: 10px;
   border-radius: var(--radius-global);
   margin: 10px 0;
@@ -321,20 +324,30 @@ tr:hover {
 }
 
 .btn {
-  padding: 12px 20px;
-  background: var(--accent-color);
-  color: var(--background-dark);
-  border: none;
-  border-radius: var(--radius-global);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--arzo-space-2);
+  padding: 10px 18px;
+  background: var(--arzo-accent);
+  color: var(--arzo-text-on-accent);
+  border: 1px solid transparent;
+  border-radius: var(--arzo-radius);
   cursor: pointer;
-  font-family: "Lato", sans-serif;
-  font-weight: 500;
-  transition: background 0.3s ease;
+  font-family: var(--arzo-font);
+  font-size: var(--arzo-fs-md);
+  font-weight: 600;
+  transition: background var(--arzo-transition) ease, box-shadow var(--arzo-transition) ease, transform var(--arzo-transition-fast) ease;
 }
 
 .btn:hover {
-  background: #0ea66b;
-  color: var(--primary-text);
+  background: var(--arzo-accent-hover);
+  color: var(--arzo-white);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--arzo-focus-ring);
 }
 
 .btn:active {
@@ -372,7 +385,7 @@ tr:hover {
 .file-list::-webkit-scrollbar-thumb:hover,
 .scrollable-table-container::-webkit-scrollbar-thumb:hover,
 .scrollable-select::-webkit-scrollbar-thumb:hover {
-  background: #0ea66b;
+  background: var(--arzo-accent-hover);
 }
 
 .scrollable-select {
@@ -451,6 +464,11 @@ tr:hover {
 .pagination-controls button:disabled:hover {
   background: var(--background-light);
   color: var(--primary-text);
+}
+
+.pagination-controls button:focus-visible {
+  outline: none;
+  box-shadow: var(--arzo-focus-ring);
 }
 
 a {
@@ -720,8 +738,8 @@ a {
 }
 
 .lightbox-actions .btn-primary:hover {
-  background: #0ea66b !important;
-  border-color: #0ea66b !important;
+  background: var(--arzo-accent-hover) !important;
+  border-color: var(--arzo-accent-hover) !important;
   color: var(--primary-text) !important;
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(14, 166, 107, 0.3) !important;
@@ -736,7 +754,7 @@ a {
 .lightbox-actions .btn-secondary:hover {
   background: var(--border-color) !important;
   color: var(--primary-text) !important;
-  border-color: #0ea66b !important;
+  border-color: var(--arzo-accent-hover) !important;
   transform: translateY(-2px) !important;
 }
 
