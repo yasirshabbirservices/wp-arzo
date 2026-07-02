@@ -135,6 +135,32 @@ class WP_Arzo_Email_Connections
                     array('key' => 'password', 'type' => 'password', 'label' => 'Secret key', 'required' => true),
                 ),
             ),
+            'smtp2go' => array(
+                'label' => 'SMTP2GO', 'icon' => 'bolt', 'transport' => 'smtp',
+                'preset' => array('host' => 'mail.smtp2go.com', 'port' => 587, 'encryption' => 'tls', 'auth' => 1),
+                'fields' => $smtp_auth_fields,
+            ),
+            'sparkpost' => array(
+                'label' => 'SparkPost (SMTP)', 'icon' => 'bolt', 'transport' => 'smtp',
+                'preset' => array('host' => 'smtp.sparkpostmail.com', 'port' => 587, 'encryption' => 'tls', 'auth' => 1),
+                'fields' => array(
+                    array('key' => 'username', 'type' => 'text', 'label' => 'Username', 'required' => true, 'default' => 'SMTP_Injection', 'help' => 'For SparkPost this is always “SMTP_Injection”.'),
+                    array('key' => 'password', 'type' => 'password', 'label' => 'API key', 'required' => true),
+                ),
+            ),
+            'mailersend' => array(
+                'label' => 'MailerSend (SMTP)', 'icon' => 'bolt', 'transport' => 'smtp',
+                'preset' => array('host' => 'smtp.mailersend.net', 'port' => 587, 'encryption' => 'tls', 'auth' => 1),
+                'fields' => $smtp_auth_fields,
+            ),
+            'elasticemail' => array(
+                'label' => 'Elastic Email (SMTP)', 'icon' => 'bolt', 'transport' => 'smtp',
+                'preset' => array('host' => 'smtp.elasticemail.com', 'port' => 2525, 'encryption' => 'tls', 'auth' => 1),
+                'fields' => array(
+                    array('key' => 'username', 'type' => 'text', 'label' => 'Username (your email)', 'required' => true),
+                    array('key' => 'password', 'type' => 'password', 'label' => 'API key', 'required' => true),
+                ),
+            ),
 
             // API-transport providers.
             'sendgrid' => array(
@@ -428,31 +454,11 @@ class WP_Arzo_Email_Connections
 
         $this->busy = true;
         $msg     = $this->parse_atts($atts);
-        $has_att = !empty($msg['attachments']);
 
-        $attempts     = array();
-        $attempted    = 0;
-        $delivered_id = null;
-        foreach ($store['order'] as $id) {
-            $conn      = $store['connections'][$id];
-            $transport = $this->transport_of($conn);
-            $title     = $this->title_of($conn);
-
-            // API providers can't carry attachments — skip (don't count as an attempt)
-            // so a later SMTP connection can deliver, or WP's native transport can.
-            if ($transport === 'api' && $has_att) {
-                $attempts[] = array('id' => $id, 'title' => $title, 'transport' => $transport, 'ok' => false, 'skipped' => true, 'error' => 'Skipped — API providers cannot send attachments.');
-                continue;
-            }
-
-            $res = ($transport === 'api') ? $this->deliver_api($conn, $msg) : $this->deliver_smtp($conn, $msg);
-            $attempted++;
-            $attempts[] = array('id' => $id, 'title' => $title, 'transport' => $transport, 'ok' => $res['ok'], 'error' => $res['error']);
-            if ($res['ok']) {
-                $delivered_id = $id;
-                break;
-            }
-        }
+        $walk         = $this->walk_connections($store, $msg);
+        $attempts     = $walk['attempts'];
+        $attempted    = $walk['attempted'];
+        $delivered_id = $walk['delivered_id'];
         $this->busy = false;
 
         if ($delivered_id !== null) {
@@ -496,6 +502,74 @@ class WP_Arzo_Email_Connections
         do_action('wp_mail_failed', $error);
         do_action('wp_arzo_email_all_failed', $data, $error, $attempts);
         return false;
+    }
+
+    /**
+     * Walk the ordered connections attempting delivery until one succeeds.
+     * Shared by the live send() path and the retry-queue worker.
+     *
+     * @return array{delivered_id:?string, attempts:array[], attempted:int}
+     */
+    private function walk_connections($store, $msg)
+    {
+        $has_att      = !empty($msg['attachments']);
+        $attempts     = array();
+        $attempted    = 0;
+        $delivered_id = null;
+        foreach ($store['order'] as $id) {
+            if (!isset($store['connections'][$id])) {
+                continue;
+            }
+            $conn      = $store['connections'][$id];
+            $transport = $this->transport_of($conn);
+            $title     = $this->title_of($conn);
+
+            // API providers can't carry attachments — skip (don't count as an attempt)
+            // so a later SMTP connection can deliver, or WP's native transport can.
+            if ($transport === 'api' && $has_att) {
+                $attempts[] = array('id' => $id, 'title' => $title, 'transport' => $transport, 'ok' => false, 'skipped' => true, 'error' => 'Skipped — API providers cannot send attachments.');
+                continue;
+            }
+
+            $res = ($transport === 'api') ? $this->deliver_api($conn, $msg) : $this->deliver_smtp($conn, $msg);
+            $attempted++;
+            $attempts[] = array('id' => $id, 'title' => $title, 'transport' => $transport, 'ok' => $res['ok'], 'error' => $res['error']);
+            if ($res['ok']) {
+                $delivered_id = $id;
+                break;
+            }
+        }
+        return array('delivered_id' => $delivered_id, 'attempts' => $attempts, 'attempted' => $attempted);
+    }
+
+    /**
+     * Re-attempt delivery of a queued message (used by the retry queue). Parses the
+     * stored wp_mail atts and walks the connection chain WITHOUT re-queuing.
+     *
+     * @param array $atts to / subject / message / headers / attachments.
+     * @return array{ok:bool, attempts:array[], delivered_id:?string, title:string}
+     */
+    public function retry_deliver($atts)
+    {
+        if ($this->busy) {
+            return array('ok' => false, 'attempts' => array(), 'delivered_id' => null, 'title' => '');
+        }
+        $store = $this->store();
+        if (empty($store['order'])) {
+            return array('ok' => false, 'attempts' => array(), 'delivered_id' => null, 'title' => '');
+        }
+        $this->busy = true;
+        $msg  = $this->parse_atts($atts);
+        $walk = $this->walk_connections($store, $msg);
+        $this->busy = false;
+
+        $ok    = ($walk['delivered_id'] !== null);
+        $title = $ok ? $this->title_of($store['connections'][$walk['delivered_id']]) : '';
+        if ($ok) {
+            $this->last_delivery = array('id' => $walk['delivered_id'], 'title' => $title, 'attempts' => $walk['attempts']);
+            do_action('wp_arzo_email_delivered', $walk['delivered_id'], $title, $atts, $walk['attempts']);
+        }
+        return array('ok' => $ok, 'attempts' => $walk['attempts'], 'delivered_id' => $walk['delivered_id'], 'title' => $title);
     }
 
     private function title_of($conn)
