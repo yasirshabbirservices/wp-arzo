@@ -399,7 +399,7 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
   width: 5px; height: 9px;
   border: solid var(--arzo-text-on-accent);
   border-width: 0 2px 2px 0;
-  transform: translateY(-1px) rotate(45deg) scale(0);
+  transform: translate(0.5px, -1px) rotate(45deg) scale(0);
   transition: transform var(--arzo-transition-fast) ease;
 }
 .wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):checked,
@@ -411,7 +411,7 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 .wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):checked::before,
 .wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input):checked::before,
 .wpa-drawer__panel input[type="checkbox"]:not(.wpa-toggle__input):checked::before {
-  transform: translateY(-1px) rotate(45deg) scale(1);
+  transform: translate(0.5px, -1px) rotate(45deg) scale(1);
 }
 .wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):focus-visible,
 .wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input):focus-visible,

@@ -102,7 +102,7 @@ function handleQuickLogin()
                 </div>
                 <div class="form-group" style="margin:0;">
                     <label>Role</label>
-                    <select id="tl-role" class="form-control">
+                    <select id="tl-role" class="wpa-select__native" data-wpa-select>
                         <?php foreach ($roles as $slug => $r) {
                             $sel = ($slug === 'administrator') ? ' selected' : '';
                             echo '<option value="' . esc_attr($slug) . '"' . $sel . '>' . esc_html($r['name']) . '</option>';
@@ -111,7 +111,7 @@ function handleQuickLogin()
                 </div>
                 <div class="form-group" style="margin:0;">
                     <label>Expires</label>
-                    <select id="tl-expiry" class="form-control">
+                    <select id="tl-expiry" class="wpa-select__native" data-wpa-select>
                         <option value="1hour">In 1 hour</option>
                         <option value="6hours">In 6 hours</option>
                         <option value="1day" selected>In 1 day</option>
@@ -133,7 +133,7 @@ function handleQuickLogin()
                     <input type="text" id="tl-redirect" class="form-control" placeholder="<?php echo esc_attr(admin_url()); ?>">
                 </div>
             </div>
-            <button type="button" class="btn" id="tl-create" style="margin-top:14px;">Generate login link</button>
+            <button type="button" class="btn" id="tl-create" style="margin-top:14px;"><i class="fas fa-link"></i> Generate login link</button>
             <div id="tl-result" style="display:none; margin-top:14px; padding:12px; background:var(--background-medium); border:1px solid var(--accent-color); border-radius:var(--radius-global);">
                 <strong style="color:var(--accent-color);">Login link ready</strong>
                 <div style="display:flex; gap:8px; margin-top:8px;">
