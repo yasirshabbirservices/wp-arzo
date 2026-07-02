@@ -2230,7 +2230,7 @@ class WP_Arzo_Admin
                     <form method="post" onsubmit="return confirm('Lift all active lockouts?');">
                         <?php wp_nonce_field(self::NONCE_LOGIN_SECURITY, 'wp_arzo_ls_nonce'); ?>
                         <input type="hidden" name="ls_action" value="clear_all">
-                        <button type="submit" class="wpa-btn wpa-btn--ghost"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock all</button>
+                        <button type="submit" class="wpa-btn wpa-btn--ghost"><?php echo wp_arzo_icon('unlock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock all</button>
                     </form>
                 <?php endif; ?>
             </div>
@@ -2257,7 +2257,7 @@ class WP_Arzo_Admin
                                         <?php wp_nonce_field(self::NONCE_LOGIN_SECURITY, 'wp_arzo_ls_nonce'); ?>
                                         <input type="hidden" name="ls_action" value="unlock">
                                         <input type="hidden" name="hash" value="<?php echo esc_attr($l['hash']); ?>">
-                                        <button type="submit" class="wpa-btn wpa-btn--ghost wpa-btn--sm"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</button>
+                                        <button type="submit" class="wpa-btn wpa-btn--ghost wpa-btn--sm"><?php echo wp_arzo_icon('unlock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</button>
                                     </form>
                                 </td>
                             </tr>

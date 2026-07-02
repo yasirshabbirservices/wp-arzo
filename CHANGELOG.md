@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.102.2] — 2026-07-03
+
+### Changed
+
+- **Full semantic-color audit of both plugins** (via the new `/color-audit` command) — result:
+  every control's color already matched its intent (Pro: zero mismatches). One fix on the free
+  side: the **Unlock / Unlock all** lockout buttons wore a misleading `trash` glyph (they *unblock*
+  users, they don't delete) — new **`unlock`** icon added and applied.
+- **Command registry** added under `.claude/commands/` (gitignored): `/enrich-feature`,
+  `/consistency-pass`, `/color-audit`, `/handoff-docs` — reusable trigger phrases documented so any
+  session recognizes them (see CLAUDE.md).
+
 ## [6.102.1] — 2026-07-03
 
 ### Added
