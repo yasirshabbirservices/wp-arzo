@@ -345,7 +345,7 @@ function get_pagination_html($total_items, $items_per_page, $current_page, $base
 
     if ($start_page > 1) {
         $html .= "<button onclick=\"location.href='$base_url&tab=$tab&p=1'\">1</button>";
-        if ($start_page > 2) $html .= '<span style="color:#999; padding:5px;">...</span>';
+        if ($start_page > 2) $html .= '<span style="color:var(--muted-text); padding:5px;">...</span>';
     }
 
     for ($i = $start_page; $i <= $end_page; $i++) {
@@ -354,7 +354,7 @@ function get_pagination_html($total_items, $items_per_page, $current_page, $base
     }
 
     if ($end_page < $total_pages) {
-        if ($end_page < $total_pages - 1) $html .= '<span style="color:#999; padding:5px;">...</span>';
+        if ($end_page < $total_pages - 1) $html .= '<span style="color:var(--muted-text); padding:5px;">...</span>';
         $html .= "<button onclick=\"location.href='$base_url&tab=$tab&p=$total_pages'\">$total_pages</button>";
     }
 
@@ -682,8 +682,8 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             --background-light: #2a2a2a;
             --border-color: #333333;
             --border-light: #444444;
-            --danger-color: #dc3545;
-            --success-color: #28a745;
+            --danger-color: #ff4d4f;
+            --success-color: #16e791;
             --radius-global: 8px;
             --radius-sm: 4px;
             --radius-pill: 999px;
@@ -750,7 +750,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .nav button:hover {
-            background: #3A3A3A;
+            background: var(--background-light);
             color: var(--accent-color);
         }
 
@@ -781,13 +781,13 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         .alert-success {
             background: rgba(40, 167, 69, 0.2);
             border: 1px solid var(--success-color);
-            color: #81c784;
+            color: var(--success-color);
         }
 
         .alert-error {
             background: rgba(220, 53, 69, 0.2);
             border: 1px solid var(--danger-color);
-            color: #e57373;
+            color: var(--danger-color);
         }
 
         table {
@@ -827,8 +827,8 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .btn:hover {
-            background: #0ea66b;
-            color: #fff;
+            background: var(--accent-hover);
+            color: var(--primary-text);
         }
 
         .btn-danger {
@@ -837,7 +837,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .btn-danger:hover {
-            background: #c82333;
+            background: var(--danger-color);
         }
 
         .btn-sm {
@@ -852,7 +852,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         .form-group label {
             display: block;
             margin-bottom: 5px;
-            color: #E0E0E0;
+            color: var(--secondary-text);
         }
 
         .form-control {
@@ -860,7 +860,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             padding: 10px;
             background: var(--background-light);
             border: 1px solid var(--border-color);
-            color: #fff;
+            color: var(--primary-text);
             border-radius: var(--radius-global);
             box-sizing: border-box;
         }
@@ -885,7 +885,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 
         .badge-inactive {
             background: rgba(108, 117, 125, 0.2);
-            color: #999;
+            color: var(--muted-text);
         }
 
         /* Brand bar — matches the WP Arzo dashboard/console exactly (ported to the
@@ -923,7 +923,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .pagination-info {
-            color: #999;
+            color: var(--muted-text);
             font-size: 13px;
         }
 
@@ -980,7 +980,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #444;
+            background-color: var(--border-light);
             transition: .4s;
             border-radius: 18px;
         }
@@ -1084,11 +1084,11 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         .login-card .footer-links {
             margin-top: 20px;
             font-size: 12px;
-            color: #666;
+            color: var(--muted-text);
         }
 
         .login-card .footer-links a {
-            color: #888;
+            color: var(--muted-text);
             text-decoration: none;
         }
 
@@ -1124,7 +1124,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     <input type="hidden" name="action" value="<?php echo $setup_mode ? 'setup' : 'login'; ?>">
                     <div style="text-align: left; margin-bottom: 5px;">
                         <label
-                            style="font-size: 12px; color: #999; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;"><?php echo $setup_mode ? 'Create Password' : 'Password'; ?></label>
+                            style="font-size: 12px; color: var(--muted-text); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;"><?php echo $setup_mode ? 'Create Password' : 'Password'; ?></label>
                     </div>
                     <input type="password" name="<?php echo $setup_mode ? 'new_password' : 'password'; ?>"
                         class="form-control" placeholder="Enter your password" required autofocus>
@@ -1269,7 +1269,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                         <form method="post" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="upload_plugin">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                            <input type="file" name="zip_file" required accept=".zip" style="color:#fff;">
+                            <input type="file" name="zip_file" required accept=".zip" style="color:var(--primary-text);">
                             <div style="margin-top:10px; display:flex; align-items:center;">
                                 <label class="switch">
                                     <input type="checkbox" name="activate_now" value="1">
@@ -1341,7 +1341,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                         <form method="post" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="upload_theme">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                            <input type="file" name="zip_file" required accept=".zip" style="color:#fff;">
+                            <input type="file" name="zip_file" required accept=".zip" style="color:var(--primary-text);">
                             <div style="margin-top:10px; display:flex; align-items:center;">
                                 <label class="switch">
                                     <input type="checkbox" name="activate_now" value="1">

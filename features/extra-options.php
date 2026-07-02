@@ -349,9 +349,9 @@ function handleExtraOptions()
         <h1>Extra Options</h1>
 
         <div
-            style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333; margin-bottom: 20px;">
+            style="background: var(--arzo-bg-hover); padding: 20px; border-radius: var(--radius-global); border: 1px solid var(--arzo-border); margin-bottom: 20px;">
             <h3>PHP Limits Configuration</h3>
-            <p style="color: #999; margin-bottom: 20px;">Modify PHP limits by updating configuration files. Choose which
+            <p style="color: var(--arzo-text-secondary); margin-bottom: 20px;">Modify PHP limits by updating configuration files. Choose which
                 file to update based on your server setup.</p>
 
             <style>
@@ -439,10 +439,10 @@ function handleExtraOptions()
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" name="update_php_limits" class="btn" style="flex: 1;">Update Limits</button>
                     <button type="submit" name="reset_php_limits" class="btn"
-                        style="background-color: transparent; border: 1px solid var(--arzo-border-strong); color: #999; flex:1;"
+                        style="background-color: transparent; border: 1px solid var(--arzo-border-strong); color: var(--arzo-text-secondary); flex:1;"
                         onclick="return confirm('Are you sure you want to reset to default PHP limits?');"
-                        onmouseover="this.style.borderColor='#fff'; this.style.color='#fff';"
-                        onmouseout="this.style.borderColor='#444'; this.style.color='#999';">
+                        onmouseover="this.style.borderColor='var(--arzo-border-strong)'; this.style.color='var(--arzo-text-strong)';"
+                        onmouseout="this.style.borderColor='var(--arzo-border)'; this.style.color='var(--arzo-text-secondary)';">
                         Reset to Defaults
                     </button>
                 </div>
@@ -451,7 +451,7 @@ function handleExtraOptions()
 
         <?php if (file_exists(WP_CONTENT_DIR . '/debug.log')): ?>
             <div
-                style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333; margin-top: 20px; position: relative;">
+                style="background: var(--arzo-bg-hover); padding: 20px; border-radius: var(--radius-global); border: 1px solid var(--arzo-border); margin-top: 20px; position: relative;">
                 <h3>PHP Limits Update Log</h3>
                 <div style="position: absolute; top: 20px; right: 20px;">
                     <i class="fas fa-copy" onclick="copyDebugLog()"
@@ -460,7 +460,7 @@ function handleExtraOptions()
                         title="Clear debug log"></i>
                 </div>
                 <div id="debug-log-content"
-                    style="background: #1a1a1a; padding: 15px; border-radius: var(--radius-global); max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
+                    style="background: var(--arzo-bg-input); padding: 15px; border-radius: var(--radius-global); max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
                     <?php
                     $log_content = file_get_contents(WP_CONTENT_DIR . '/debug.log');
                     $log_lines = explode("\n", $log_content);
@@ -477,27 +477,27 @@ function handleExtraOptions()
                     $recent_lines = array_slice($php_limits_lines, -50);
 
                     if (empty($recent_lines)) {
-                        echo '<div style="color: #999;">No PHP limits update logs found.</div>';
+                        echo '<div style="color: var(--arzo-text-secondary);">No PHP limits update logs found.</div>';
                     } else {
                         foreach ($recent_lines as $line) {
                             if (empty(trim($line)))
                                 continue;
 
                             $line = htmlspecialchars($line);
-                            $color = '#fff'; // default white
+                            $color = 'var(--arzo-text-strong)';
                             $border_left = 'none';
 
                             // Detect log type and apply colors
                             if (stripos($line, 'update requested') !== false) {
-                                $color = '#17a2b8'; // blue
-                                $border_left = '3px solid #17a2b8';
+                                $color = 'var(--arzo-info)';
+                                $border_left = '3px solid var(--arzo-info)';
                             } elseif (stripos($line, 'update result') !== false) {
                                 if (stripos($line, 'Failed') !== false || stripos($line, 'not writable') !== false) {
-                                    $color = '#dc3545'; // red
-                                    $border_left = '3px solid #dc3545';
+                                    $color = 'var(--arzo-error)'; // red
+                                    $border_left = '3px solid var(--arzo-error)';
                                 } else {
-                                    $color = '#28a745'; // green
-                                    $border_left = '3px solid #28a745';
+                                    $color = 'var(--arzo-success)'; // green
+                                    $border_left = '3px solid var(--arzo-success)';
                                 }
                             }
 
@@ -506,7 +506,7 @@ function handleExtraOptions()
                     }
                     ?>
                 </div>
-                <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                <p style="margin-top: 10px; font-size: 12px; color: var(--arzo-text-secondary);">
                     Showing PHP limits related log entries. Full log:
                     <?php echo WP_CONTENT_DIR . '/debug.log'; ?>
                 </p>

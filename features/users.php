@@ -145,7 +145,7 @@ window.open("' . admin_url() . '", "_blank");
 
         <h3>Existing Users</h3>
         <div
-            style="background: #2A2A2A; padding: 15px; border-radius: var(--radius-global); border-left: 4px solid var(--accent-color); margin-bottom: 20px;">
+            style="background: var(--arzo-bg-hover); padding: 15px; border-radius: var(--radius-global); border-left: 4px solid var(--accent-color); margin-bottom: 20px;">
             <?php
             $current_user = wp_get_current_user();
             if ($current_user->ID) {
@@ -242,7 +242,7 @@ window.open("' . admin_url() . '", "_blank");
                         html += `<td>${user.username}${user.is_current ? ' <i class="fas fa-user" style="color: var(--accent-color);" title="Current User"></i>' : ''}</td>`;
                         html += `<td>${user.email}</td>`;
                         html += `<td>${user.roles}</td>`;
-                        html += `<td>${user.is_current ? '<span style="color: var(--accent-color); font-weight: bold;">Logged In</span>' : '<span style="color: #999;">Offline</span>'}</td>`;
+                        html += `<td>${user.is_current ? '<span style="color: var(--accent-color); font-weight: bold;">Logged In</span>' : '<span style="color: var(--arzo-text-secondary);">Offline</span>'}</td>`;
                         html += '<td style="white-space: nowrap;">';
 
                         // Quick Login Button
@@ -268,7 +268,7 @@ window.open("' . admin_url() . '", "_blank");
                             html += `</form>`;
                         } else {
                             html +=
-                                `<span style="color: #666; font-size: 12px;">Cannot delete current user</span>`;
+                                `<span style="color: var(--arzo-text-muted); font-size: 12px;">Cannot delete current user</span>`;
                         }
 
                         html += '</td>';

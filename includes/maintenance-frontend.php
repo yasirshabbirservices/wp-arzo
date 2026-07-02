@@ -87,9 +87,9 @@ function wp_arzo_maintenance_display_mode()
 
     // Color schemes for different modes
     $color_schemes = [
-        'maintenance' => ['primary' => '#ff9800', 'bg' => '#1a1a1a', 'text' => '#ffffff'],
-        'coming_soon' => ['primary' => '#4CAF50', 'bg' => '#1a1a1a', 'text' => '#ffffff'],
-        'payment_request' => ['primary' => '#dc3545', 'bg' => '#1a1a1a', 'text' => '#ffffff']
+        'maintenance' => ['primary' => '#faad14', 'bg' => '#121212', 'text' => '#ffffff'],
+        'coming_soon' => ['primary' => '#16e791', 'bg' => '#121212', 'text' => '#ffffff'],
+        'payment_request' => ['primary' => '#ff4d4f', 'bg' => '#121212', 'text' => '#ffffff']
     ];
 
     $colors = $color_schemes[$active_mode];
@@ -106,6 +106,24 @@ function wp_arzo_maintenance_display_mode()
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+
+            /* Dashboard token palette (embedded: this page must stay self-contained). */
+            :root {
+                --arzo-bg-dark: #121212;
+                --arzo-bg-panel: #1e1e1e;
+                --arzo-bg-elev: #242424;
+                --arzo-bg-hover: var(--arzo-bg-hover);
+                --arzo-border: #333333;
+                --arzo-border-strong: #444444;
+                --arzo-text-strong: #ffffff;
+                --arzo-text-primary: var(--arzo-text-primary);
+                --arzo-text-secondary: #999999;
+                --arzo-accent: #16e791;
+                --arzo-warning: #faad14;
+                --arzo-error: #ff4d4f;
+                --arzo-success: #16e791;
+            }
+
 
             * {
                 margin: 0;
@@ -132,7 +150,7 @@ function wp_arzo_maintenance_display_mode()
                 max-width: 600px;
                 padding: 40px;
                 text-align: center;
-                background: #2a2a2a;
+                background: var(--arzo-bg-hover);
                 border-radius: 10px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                 margin: 20px;
@@ -158,15 +176,15 @@ function wp_arzo_maintenance_display_mode()
             .maintenance-message {
                 font-size: 1.2rem;
                 margin-bottom: 30px;
-                color: #e0e0e0;
+                color: var(--arzo-text-primary);
             }
 
             .social-contacts {
-                background: #1a1a1a;
+                background: var(--arzo-bg-panel);
                 padding: 30px;
                 border-radius: 8px;
                 margin-top: 30px;
-                border: 1px solid #333;
+                border: 1px solid var(--arzo-border);
             }
 
             .social-contacts h3 {
@@ -192,7 +210,7 @@ function wp_arzo_maintenance_display_mode()
                 background:
                     <?php echo $colors['primary']; ?>
                 ;
-                color: #fff;
+                color: var(--arzo-text-strong);
                 border-radius: 50%;
                 text-decoration: none;
                 font-size: 24px;
@@ -208,9 +226,9 @@ function wp_arzo_maintenance_display_mode()
             .site-info {
                 margin-top: 40px;
                 padding-top: 20px;
-                border-top: 1px solid #333;
+                border-top: 1px solid var(--arzo-border);
                 font-size: 14px;
-                color: #999;
+                color: var(--arzo-text-secondary);
             }
 
             <?php echo wp_strip_all_tags($custom_css); ?>
