@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.103.1] — 2026-07-03
+
+### Changed
+
+- **Conditional-logic builder UI polish**: the match-mode is now a **segmented all/any pill**;
+  each rule is a bordered **chip** with a leading **IF / AND / OR** connective that updates live
+  with the mode; the selects are branded (custom chevron, token hover/focus) and the delete is a
+  right-aligned soft-red icon — the whole thing now reads like a sentence.
+
 ## [6.103.0] — 2026-07-03
 
 ### Added — Code Snippets: Smart Conditional Logic (enrichment #3)

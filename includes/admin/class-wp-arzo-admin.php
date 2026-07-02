@@ -2629,13 +2629,16 @@ class WP_Arzo_Admin
                 <div class="wpa-cond" id="wpa-cond">
                     <div class="wpa-cond__head">
                         <div class="wpa-cond__title"><?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Smart Conditional Logic</div>
-                        <label class="wpa-cond__mode">Run when
-                            <select class="wpa-input" name="snippet_cond_mode" id="wpa-cond-mode">
-                                <option value="all" <?php selected($cond_mode, 'all'); ?>>all</option>
-                                <option value="any" <?php selected($cond_mode, 'any'); ?>>any</option>
-                            </select>
-                            of these match:
-                        </label>
+                        <div class="wpa-cond__mode" role="radiogroup" aria-label="Match mode">
+                            <span>Run when</span>
+                            <span class="wpa-seg">
+                                <input type="radio" name="snippet_cond_mode" id="wpa-cm-all" value="all" <?php checked($cond_mode, 'all'); ?>>
+                                <label for="wpa-cm-all">all</label>
+                                <input type="radio" name="snippet_cond_mode" id="wpa-cm-any" value="any" <?php checked($cond_mode, 'any'); ?>>
+                                <label for="wpa-cm-any">any</label>
+                            </span>
+                            <span>of the rules match</span>
+                        </div>
                     </div>
                     <div class="wpa-cond__rows" id="wpa-cond-rows"></div>
                     <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-cond-add"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add rule</button>
@@ -2693,6 +2696,7 @@ class WP_Arzo_Admin
                             cond = cond || {};
                             var type = SCHEMA[cond.type] ? cond.type : TYPES[0];
                             var row = el('div', 'wpa-cond__row'); row._pre = cond;
+                            row.appendChild(el('span', 'wpa-cond__conn'));
                             var t = el('select', 'wpa-input wpa-cond__type'); var tmap = {}; TYPES.forEach(function (k) { tmap[k] = SCHEMA[k].label; }); fill(t, tmap, type); row.appendChild(t);
                             row.appendChild(el('select', 'wpa-input wpa-cond__op'));
                             row.appendChild(el('span', 'wpa-cond__val'));
@@ -2703,12 +2707,23 @@ class WP_Arzo_Admin
                             rm.addEventListener('click', function () { row.remove(); refresh(); });
                             return row;
                         }
-                        function refresh() { emptyEl.style.display = rowsEl.children.length ? 'none' : ''; }
+                        function modeWord() { var a = document.getElementById('wpa-cm-any'); return (a && a.checked) ? 'or' : 'and'; }
+                        function updateConnectives() {
+                            var word = modeWord();
+                            Array.prototype.forEach.call(rowsEl.children, function (row, i) {
+                                var c = row.querySelector('.wpa-cond__conn');
+                                if (c) { c.textContent = (i === 0) ? 'If' : word; }
+                            });
+                        }
+                        function refresh() { emptyEl.style.display = rowsEl.children.length ? 'none' : ''; updateConnectives(); }
                         function addRow(cond) { rowsEl.appendChild(makeRow(cond)); refresh(); }
 
                         (INITIAL || []).forEach(addRow);
                         refresh();
                         addBtn.addEventListener('click', function () { addRow(); });
+                        Array.prototype.forEach.call(document.querySelectorAll('input[name="snippet_cond_mode"]'), function (r) {
+                            r.addEventListener('change', updateConnectives);
+                        });
 
                         form.addEventListener('submit', function () {
                             var out = [];
