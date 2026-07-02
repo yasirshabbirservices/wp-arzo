@@ -260,6 +260,7 @@ if ($action === 'wp_arzo_standalone') {
 </head>
 
 <body>
+    <a class="wpa-skip-link" href="#wpa-console-main"><?php esc_html_e('Skip to content', 'wp-arzo'); ?></a>
     <div class="container">
         <?php // Shared brand bar — identical to the dashboard header (see render_brand_bar()). ?>
         <div class="wpa-brandbar">
@@ -278,32 +279,35 @@ if ($action === 'wp_arzo_standalone') {
             </div>
         </div>
 
-        <div class="nav">
+        <nav class="wpa-tabs" aria-label="<?php esc_attr_e('Console tools', 'wp-arzo'); ?>">
             <?php
             // Console nav: Site Info is always present (the home); every other tool
-            // appears only while its dashboard toggle is enabled.
+            // appears only while its dashboard toggle is enabled. Shares the dashboard's
+            // segmented .wpa-tabs component (components.css is loaded above).
             $wp_arzo_nav_items = array(
-                'info'          => 'Site Info',
-                'users'         => 'Users',
-                'database'      => 'Database',
-                'files'         => 'Files',
-                'plugins'       => 'Plugins',
-                'themes'        => 'Themes',
-                'debug'         => 'Debug',
-                'site_modes'    => 'Site Modes',
-                'extra_options' => 'Extra Options',
-                'login'         => 'Temporary Logins',
+                'info'          => array('Site Info', 'info'),
+                'users'         => array('Users', 'users'),
+                'database'      => array('Database', 'database'),
+                'files'         => array('Files', 'folder'),
+                'plugins'       => array('Plugins', 'plugin'),
+                'themes'        => array('Themes', 'theme'),
+                'debug'         => array('Debug', 'bug'),
+                'site_modes'    => array('Site Modes', 'tools'),
+                'extra_options' => array('Extra Options', 'sliders'),
+                'login'         => array('Temporary Logins', 'key'),
             );
-            foreach ($wp_arzo_nav_items as $wp_arzo_nav_tab => $wp_arzo_nav_label) {
+            foreach ($wp_arzo_nav_items as $wp_arzo_nav_tab => $wp_arzo_nav_item) {
                 if ($wp_arzo_nav_tab !== 'info' && function_exists('wp_arzo_console_tool_enabled') && !wp_arzo_console_tool_enabled($wp_arzo_nav_tab)) {
                     continue;
                 }
-                $wp_arzo_nav_active = ($action === $wp_arzo_nav_tab || ($wp_arzo_nav_tab === 'site_modes' && $action === 'maintenance')) ? ' class="active"' : '';
+                $wp_arzo_nav_is_active = ($action === $wp_arzo_nav_tab || ($wp_arzo_nav_tab === 'site_modes' && $action === 'maintenance'));
                 $wp_arzo_nav_url = admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=' . $wp_arzo_nav_tab);
-                echo '<a href="' . esc_url($wp_arzo_nav_url) . '"' . $wp_arzo_nav_active . '>' . esc_html($wp_arzo_nav_label) . '</a>';
+                $wp_arzo_nav_icon = function_exists('wp_arzo_icon') ? wp_arzo_icon($wp_arzo_nav_item[1], array('class' => 'wpa-icon wpa-icon--sm')) : '';
+                echo '<a class="wpa-tab' . ($wp_arzo_nav_is_active ? ' is-active' : '') . '" href="' . esc_url($wp_arzo_nav_url) . '"' . ($wp_arzo_nav_is_active ? ' aria-current="page"' : '') . '>' . $wp_arzo_nav_icon . '<span>' . esc_html($wp_arzo_nav_item[0]) . '</span></a>';
             }
             ?>
-        </div>
+        </nav>
+        <main id="wpa-console-main">
 
         <?php
         // Display login messages

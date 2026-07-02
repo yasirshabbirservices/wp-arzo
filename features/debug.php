@@ -172,7 +172,7 @@ function handleDebug()
 
 ?>
     <div class="content">
-        <h2>WordPress Debug Settings</h2>
+        <h1>WordPress Debug Settings</h1>
 
         <?php if (!file_exists($wp_config_path)): ?>
             <div class="error">

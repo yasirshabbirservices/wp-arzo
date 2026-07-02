@@ -138,7 +138,7 @@ window.open("' . admin_url() . '", "_blank");
 ?>
     <div class="content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2>User Management</h2>
+            <h1>User Management</h1>
             <button type="button" onclick="showCreateUserLightbox()" class="btn btn-primary"><i
                     class="fas fa-user-plus"></i> Create New User</button>
         </div>

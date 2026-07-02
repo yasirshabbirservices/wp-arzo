@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.97.0] — 2026-07-02
+
+### Changed — Advanced Tools console: Phase A modernization (consistency + accessibility)
+
+- **The console nav is now the same modern segmented tablist as the dashboard**
+  (`.wpa-tabs` with icons on every tool tab, hover/pressed/focus-visible/selected states,
+  `aria-current="page"`), replacing the legacy boxy folder tabs and their hardcoded hover
+  colors. Wrapped in a proper `<nav>` landmark.
+- **Accessibility retrofit**: a skip-to-content link (visible on keyboard focus), a
+  `<main>` landmark around the tool content, and a real **`<h1>` on every tab** (the File
+  Manager gets a screen-reader h1 + labelled region). The PHP-limits form controls are
+  now properly label-associated (`for`/`id` on all five fields).
+- **Visual consistency**: the solid green gradient card headers (Site Info cards,
+  lightbox, quick-login) are now subtle elevated panels with accent icons, matching the
+  dashboard's card language; the console progress fill and Extra Options form styles moved
+  off hardcoded hex onto design tokens.
+
 ## [6.96.0] — 2026-07-02
 
 ### Added — Progress component system + alignment polish

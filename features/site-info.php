@@ -186,7 +186,7 @@ function showSiteInfo()
 </style>
 
 <div class="content">
-    <h2>Site Information</h2>
+    <h1>Site Information</h1>
 
     <div class="site-info-grid">
         <!-- WordPress Information -->

@@ -193,7 +193,7 @@ function showPlugins()
 
     ?>
     <div class="content">
-        <h2>Plugin Management</h2>
+        <h1>Plugin Management</h1>
         <?php echo $message; ?>
 
         <!-- Upload Form -->

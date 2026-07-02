@@ -171,7 +171,7 @@ function showThemes()
 
     ?>
     <div class="content">
-        <h2>Theme Management</h2>
+        <h1>Theme Management</h1>
         <?php echo $message; ?>
 
         <!-- Upload Form -->

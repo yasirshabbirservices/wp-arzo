@@ -67,7 +67,7 @@ function handleDatabase()
         ?>
         <div class="content">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-                <h2 style="margin:0; border:none; padding:0;">Database Manager <span style="font-size:12px; color:var(--muted-text); font-weight:400;">powered by AdminNeo</span></h2>
+                <h1 style="margin:0; border:none; padding:0;">Database Manager <span style="font-size:12px; color:var(--muted-text); font-weight:400;">powered by AdminNeo</span></h1>
                 <a class="btn btn-sm" href="<?php echo esc_url($wp_arzo_db_src); ?>" target="_blank" rel="noopener">Open full screen</a>
             </div>
             <iframe id="wpa-adminneo-frame" title="AdminNeo database manager" src="<?php echo esc_url($wp_arzo_db_src); ?>"
@@ -119,7 +119,7 @@ function handleDatabase()
 
     ?>
     <div class="content">
-        <h2>Database Access</h2>
+        <h1>Database Access</h1>
 
         <h3>Execute Query</h3>
         <form method="post">
