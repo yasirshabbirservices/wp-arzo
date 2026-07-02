@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.101.1] — 2026-07-03
+
+### Fixed
+
+- **`hidden` now hides `wpa-` components.** A class-set `display` (e.g. `.wpa-btn { display:
+  inline-flex }`) overrides the UA `[hidden] { display:none }`, so any button/tab/badge toggled
+  via the `hidden` attribute stayed visible. Added `.wpa-btn[hidden], .wpa-tab[hidden],
+  .wpa-badge[hidden] { display:none !important }`. This makes the Pro **Advanced Audit** filter
+  **Reset** button (v1.41.0) actually hide when no filter is active, and fixes the pattern globally.
+
 ## [6.101.0] — 2026-07-03
 
 ### Added — Surface Consistency Bar (standing directive + trigger phrase)
