@@ -26,6 +26,7 @@ class WP_Arzo_Activity_Log
 
     private static $instance = null;
     private $retention = 300;
+    private $protect_important = true; // keep Critical/High past the entry limit.
 
     // Failed-login burst detection (brute-force anomaly alert).
     private $anomaly = false;
@@ -44,6 +45,43 @@ class WP_Arzo_Activity_Log
     {
         $n = (int) $n;
         $this->retention = max(20, min(self::MAX, $n));
+    }
+
+    /** Toggle severity-aware retention (keep Critical/High beyond the entry limit). */
+    public function set_protect_important($on)
+    {
+        $this->protect_important = (bool) $on;
+    }
+
+    /**
+     * Trim the log to the retention limit. With protection ON, the newest
+     * `retention` entries are always kept AND older Critical/High entries are
+     * retained too (up to the hard MAX ceiling) — routine events drop first.
+     */
+    private function trim($log)
+    {
+        if (!is_array($log)) {
+            return array();
+        }
+        $keep = $this->retention;
+        if (count($log) <= $keep) {
+            return count($log) > self::MAX ? array_slice($log, 0, self::MAX) : $log;
+        }
+        $kept = array_slice($log, 0, $keep);
+        if ($this->protect_important) {
+            $room = self::MAX - count($kept);
+            foreach (array_slice($log, $keep) as $e) {
+                if ($room <= 0) {
+                    break;
+                }
+                $sev = self::action_severity(isset($e['a']) ? $e['a'] : '');
+                if ($sev === 'critical' || $sev === 'high') {
+                    $kept[] = $e;
+                    $room--;
+                }
+            }
+        }
+        return $kept;
     }
 
     /** Configure failed-login burst detection. */
@@ -168,9 +206,7 @@ class WP_Arzo_Activity_Log
         }
         $log = $this->get_log();
         array_unshift($log, $entry);
-        if (count($log) > $this->retention) {
-            $log = array_slice($log, 0, $this->retention);
-        }
+        $log = $this->trim($log);
         update_option(self::OPT, $log, false);
 
         /**
@@ -484,24 +520,36 @@ class WP_Arzo_Activity_Log
         );
     }
 
+    /** Action keys grouped by severity (single source of truth for the maps). */
+    private static function severity_groups()
+    {
+        return array(
+            'critical' => array('security_alert', 'user_deleted', 'plugin_deleted', 'theme_deleted'),
+            'high'     => array('login_failed', 'role_changed', 'user_created', 'password_reset', 'option_changed', 'plugin_activated', 'plugin_deactivated', 'core_updated', 'session_terminated'),
+            'medium'   => array('post_deleted', 'post_trashed', 'media_deleted', 'comment_spam', 'comment_deleted', 'theme_switched', 'plugin_installed', 'plugin_updated', 'theme_installed', 'theme_updated', 'term_deleted', 'menu_updated', 'export'),
+        );
+    }
+
     /** Map an action key to its severity key (critical|high|medium|low). */
     public static function action_severity($action)
     {
         static $map = null;
         if ($map === null) {
             $map = array();
-            $groups = array(
-                'critical' => array('security_alert', 'user_deleted', 'plugin_deleted', 'theme_deleted'),
-                'high'     => array('login_failed', 'role_changed', 'user_created', 'password_reset', 'option_changed', 'plugin_activated', 'plugin_deactivated', 'core_updated', 'session_terminated'),
-                'medium'   => array('post_deleted', 'post_trashed', 'media_deleted', 'comment_spam', 'comment_deleted', 'theme_switched', 'plugin_installed', 'plugin_updated', 'theme_installed', 'theme_updated', 'term_deleted', 'menu_updated', 'export'),
-            );
-            foreach ($groups as $sev => $keys) {
+            foreach (self::severity_groups() as $sev => $keys) {
                 foreach ($keys as $k) {
                     $map[$k] = $sev;
                 }
             }
         }
         return isset($map[$action]) ? $map[$action] : 'low';
+    }
+
+    /** Action keys graded High or Critical — the "important" set for severity-aware retention. */
+    public static function important_actions()
+    {
+        $g = self::severity_groups();
+        return array_values(array_unique(array_merge($g['critical'], $g['high'])));
     }
 
     /** severity meta ([label, tone, icon, rank]) for an action key. */
@@ -767,6 +815,7 @@ class WP_Arzo_Feature_Activity_Log extends WP_Arzo_Feature
             array('key' => 'anomaly_threshold', 'type' => 'number', 'label' => 'Alert after N failed sign-ins', 'help' => 'How many failed logins within the window trigger the alert (3–1000).', 'default' => 10, 'min' => 3, 'max' => 1000),
             array('key' => 'anomaly_window', 'type' => 'number', 'label' => 'Within (minutes)', 'help' => 'The rolling window the failed sign-ins are counted over (1–1440).', 'default' => 15, 'min' => 1, 'max' => 1440),
             array('key' => 'retention', 'type' => 'number', 'label' => 'Entries to keep', 'help' => 'Oldest entries are dropped past this many (20–1000).', 'default' => 300, 'min' => 20, 'max' => 1000),
+            array('key' => 'protect_important', 'type' => 'toggle', 'label' => 'Keep important events longer', 'help' => 'Retain Critical & High-severity events beyond the limit above (up to a 1000-entry ceiling) — only routine events are dropped at the limit.', 'default' => true),
         );
     }
 
@@ -774,6 +823,7 @@ class WP_Arzo_Feature_Activity_Log extends WP_Arzo_Feature
     {
         $engine = WP_Arzo_Activity_Log::instance();
         $engine->set_retention($this->get_setting('retention', 300));
+        $engine->set_protect_important($this->get_setting('protect_important', true));
         $engine->set_anomaly(
             $this->get_setting('anomaly_alerts', true),
             $this->get_setting('anomaly_threshold', 10),
