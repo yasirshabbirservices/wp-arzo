@@ -51,6 +51,17 @@
     --arzo-info-soft: rgba(27, 201, 182, 0.15);
     --arzo-neutral: #6c757d;
     --arzo-neutral-soft: rgba(108, 117, 125, 0.2);
+    /* Pure white primitive — toggle thumbs, text on error fills. */
+    --arzo-white: #ffffff;
+
+    /* ---- Code syntax (CodeMirror, dark editor) ------------------------- */
+    --arzo-code-keyword: #c792ea;
+    --arzo-code-string: #c3e88d;
+    --arzo-code-number: #f78c6c;
+    --arzo-code-property: #82aaff;
+    --arzo-code-tag: #f07178;
+    --arzo-code-attr: #ffcb6b;
+    --arzo-code-operator: #89ddff;
 
     /* ---- Radius scale -------------------------------------------------- */
     --arzo-radius-sm: 4px;
