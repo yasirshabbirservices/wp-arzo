@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.102.0
+Stable tag: 6.102.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.102.1 =
+* Added: pause/play icons in the registry so the Cron Manager pause/resume action uses real SVGs
+  (no more emoji glyphs)
 
 = 6.102.0 =
 * Added: semantic action colors (color = intent) — destructive/delete/clear buttons now read red
