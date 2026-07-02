@@ -280,6 +280,87 @@ class WP_Arzo_Backup_Manager
         return true;
     }
 
+    /* ------------------------------------------------ Import (remote restore) */
+
+    /**
+     * Import a snapshot ZIP (as produced for off-site upload — a flat archive of
+     * manifest.json + data.jsonl[.gz]) back into the local store, then restore it.
+     *
+     * This is the landing point for **remote restore**: the Pro destinations
+     * (Drive / pCloud / FTP) download a remote backup to a temp file and hand it
+     * here. The archive becomes a normal local snapshot (so the user also gets it
+     * back locally) and is then restored through the usual safety-first path.
+     *
+     * @param string $zip_path Absolute path to a downloaded snapshot .zip.
+     * @return true|WP_Error
+     */
+    public function import_and_restore($zip_path)
+    {
+        $id = $this->import_zip($zip_path);
+        if (is_wp_error($id)) {
+            return $id;
+        }
+        return $this->restore($id);
+    }
+
+    /**
+     * Extract a snapshot ZIP into the local backups folder and return its id.
+     *
+     * The archive is trusted to be one of our own snapshots, but we still extract
+     * ONLY our known files by basename — embedded paths are never honored, so a
+     * tampered archive can't write outside the snapshot folder (no zip-slip).
+     *
+     * @param string $zip_path
+     * @return string|WP_Error Snapshot id on success.
+     */
+    public function import_zip($zip_path)
+    {
+        if (!class_exists('ZipArchive')) {
+            return new WP_Error('wp_arzo_backup_zip', 'ZipArchive is not available on this server.');
+        }
+        if (!is_file($zip_path)) {
+            return new WP_Error('wp_arzo_backup_zip', 'The downloaded backup file could not be found.');
+        }
+        $zip = new ZipArchive();
+        if ($zip->open($zip_path) !== true) {
+            return new WP_Error('wp_arzo_backup_zip', 'Could not open the downloaded backup archive.');
+        }
+
+        // Learn the snapshot id from the manifest before writing anything to disk.
+        $manifest_raw = $zip->getFromName('manifest.json');
+        if ($manifest_raw === false) {
+            $zip->close();
+            return new WP_Error('wp_arzo_backup_zip', 'This archive is not a WP Arzo snapshot (no manifest.json).');
+        }
+        $manifest = json_decode((string) $manifest_raw, true);
+        $id = (is_array($manifest) && !empty($manifest['id'])) ? $this->sanitize_id($manifest['id']) : '';
+        if ($id === '') {
+            $zip->close();
+            return new WP_Error('wp_arzo_backup_zip', 'The snapshot manifest is missing or has an invalid id.');
+        }
+
+        $dir = $this->snapshot_dir($id);
+        if (!wp_mkdir_p($dir)) {
+            $zip->close();
+            return new WP_Error('wp_arzo_backup_zip', 'Could not create the local snapshot folder.');
+        }
+
+        // Whitelisted flat entries only — never trust a path inside the archive.
+        foreach (array('manifest.json', 'data.jsonl', 'data.jsonl.gz') as $name) {
+            $contents = $zip->getFromName($name);
+            if ($contents !== false) {
+                file_put_contents($dir . '/' . $name, $contents);
+            }
+        }
+        $zip->close();
+
+        $has_data = file_exists($dir . '/data.jsonl') || file_exists($dir . '/data.jsonl.gz');
+        if (!file_exists($dir . '/manifest.json') || !$has_data) {
+            return new WP_Error('wp_arzo_backup_zip', 'The archive did not contain the expected snapshot files.');
+        }
+        return $id;
+    }
+
     /* ------------------------------------------------------ Delete/prune */
 
     public function delete($id)

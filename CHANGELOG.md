@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.87.0] — 2026-07-02
+
+### Added — Remote restore foundation (import a snapshot ZIP back into the site)
+
+- The backup manager can now **import a snapshot ZIP and restore it** in one step
+  (`import_and_restore()` / `import_zip()`). This is the local half of **remote restore**:
+  the Pro off-site destinations (Google Drive / pCloud / FTP) download a backup and hand the
+  archive here, so a backup that only exists in the cloud can be brought back and restored.
+- The archive becomes a normal **local** snapshot again (you get it back on-disk too) and is
+  restored through the existing safety-first path (a pre-restore safety snapshot is taken).
+- **Zip-slip-safe:** only our known files (`manifest.json`, `data.jsonl[.gz]`) are extracted,
+  by basename — embedded/relative paths in the archive are never honored. The snapshot id is
+  validated before anything is written. Verified end-to-end against a real gzip snapshot.
+
 ## [6.86.0] — 2026-07-02
 
 ### Added — Command palette (Ctrl/⌘-K) jumps to any WP Arzo destination
