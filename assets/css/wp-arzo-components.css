@@ -277,6 +277,15 @@
 .wpa-badge--neutral { background: var(--arzo-neutral-soft); color: var(--arzo-text-secondary); }
 .wpa-badge--accent  { background: var(--arzo-accent-soft);  color: var(--arzo-accent); }
 
+/* ====================== Theme toggle (sun / moon) ===================== */
+/* The button carries both glyphs; the body theme class picks which shows.
+   A little rotation on hover — smooth, token-driven, reduced-motion aware. */
+#wpa-theme-toggle .wpa-icon { transition: transform var(--arzo-transition) ease; }
+#wpa-theme-toggle:hover .wpa-icon { transform: rotate(20deg); }
+.wpa-theme-ico--moon { display: none; }
+body.wpa-theme-light .wpa-theme-ico--moon { display: inline-block; }
+body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
+
 /* ===================== Checkbox chips (multi-select) ================== */
 /* A row of selectable chips for "supports / post types / …" multi-checkboxes —
    replaces ad-hoc inline-styled checkbox lists. The active state lights with the

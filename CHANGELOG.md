@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.92.0] — 2026-07-02
+
+### Added — Light / dark theme toggle (per-user) + accessibility
+
+- **Light theme** for the whole WP Arzo dashboard: a sun/moon toggle in the brand bar (and a
+  "toggle light / dark theme" command in the Ctrl/⌘-K palette) flips instantly and persists
+  per user (`wp_arzo_theme` user meta, server-rendered body class — no flash). Every light
+  value was re-derived for **WCAG AA on light surfaces**: the neon accent (fails on white)
+  becomes a deep green, warning/error/info darken for text use, soft tints/ shadows/ code-
+  syntax colors all re-tuned. `color-scheme` hints keep native controls consistent.
+- New `sun` / `moon` icons; smooth icon rotation on hover (token-driven, reduced-motion
+  aware) per the new **motion directive** (basic smooth animations wherever they make
+  sense — documented in the design system).
+
 ## [6.91.0] — 2026-07-02
 
 ### Changed — Modern tabs + design-token/state sweep

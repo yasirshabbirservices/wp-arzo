@@ -74,6 +74,7 @@ class WP_Arzo_Admin
         add_action('admin_enqueue_scripts', array($this, 'enqueue_command_palette'));
         add_action('admin_head', array($this, 'menu_icon_style'));
         add_filter('admin_body_class', array($this, 'admin_body_class'));
+        add_action('wp_ajax_wp_arzo_set_theme', array($this, 'ajax_set_theme'));
         add_action('wp_ajax_wp_arzo_toggle_feature', array($this, 'ajax_toggle_feature'));
         add_action('wp_ajax_wp_arzo_toggle_group', array($this, 'ajax_toggle_group'));
         add_action('wp_ajax_wp_arzo_backup_create', array($this, 'ajax_backup_create'));
@@ -137,7 +138,30 @@ class WP_Arzo_Admin
         if ($this->is_our_page()) {
             $classes .= ' wp-arzo-screen';
         }
+        // Per-user theme (dark default). Server-rendered so there is no flash;
+        // applied admin-wide so token-driven UI (e.g. palette icons) follows too.
+        if (self::user_theme() === 'light') {
+            $classes .= ' wpa-theme-light';
+        }
         return $classes;
+    }
+
+    /** The current user's WP Arzo theme: 'dark' (default) or 'light'. */
+    public static function user_theme()
+    {
+        $t = get_user_meta(get_current_user_id(), 'wp_arzo_theme', true);
+        return $t === 'light' ? 'light' : 'dark';
+    }
+
+    /** AJAX: persist the user's theme choice. */
+    public function ajax_set_theme()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_TOGGLE, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $theme = (isset($_POST['theme']) && $_POST['theme'] === 'light') ? 'light' : 'dark';
+        update_user_meta(get_current_user_id(), 'wp_arzo_theme', $theme);
+        wp_send_json_success(array('theme' => $theme));
     }
 
     private function menu_icon()
@@ -372,8 +396,11 @@ class WP_Arzo_Admin
             true
         );
         wp_localize_script('wp-arzo-command-palette', 'wpArzoCommands', array(
-            'group'    => __('WP Arzo', 'wp-arzo'),
-            'commands' => $this->command_palette_items(),
+            'group'      => __('WP Arzo', 'wp-arzo'),
+            'commands'   => $this->command_palette_items(),
+            'ajaxUrl'    => admin_url('admin-ajax.php'),
+            'themeNonce' => wp_create_nonce(self::NONCE_TOGGLE),
+            'themeLabel' => __('WP Arzo: toggle light / dark theme', 'wp-arzo'),
         ));
         // Brand-theme our palette entries: design-tokens.css is pure :root variables
         // (safe admin-wide), so the icon rule below can use the accent token instead
@@ -524,6 +551,13 @@ class WP_Arzo_Admin
             </div>
             <div class="wpa-brandbar__meta">
                 <span class="wpa-brandbar__ver">v<?php echo esc_html($ver); ?></span>
+                <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" id="wpa-theme-toggle"
+                    aria-pressed="<?php echo self::user_theme() === 'light' ? 'true' : 'false'; ?>"
+                    aria-label="<?php esc_attr_e('Switch between light and dark theme', 'wp-arzo'); ?>"
+                    title="<?php esc_attr_e('Light / dark theme', 'wp-arzo'); ?>">
+                    <?php echo wp_arzo_icon('sun', array('class' => 'wpa-icon wpa-icon--sm wpa-theme-ico--sun')); ?>
+                    <?php echo wp_arzo_icon('moon', array('class' => 'wpa-icon wpa-icon--sm wpa-theme-ico--moon')); ?>
+                </button>
                 <a class="wpa-brandbar__gh" href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank" rel="noopener">
                     <?php echo wp_arzo_icon('github', array('class' => 'wpa-icon wpa-icon--sm')); ?> GitHub
                 </a>
