@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.88.0] — 2026-07-02
+
+### Added — Support for the Site Health Monitor (Pro)
+
+- New `heartbeat` icon in the icon set and a locked **Site Health Monitor** placeholder card in
+  the Pro showcase. The monitor itself (disk / SSL / updates / PHP / cron / reachability checks
+  with alerts to your Notifications channels) ships in **WP Arzo Pro v1.36.0** — this release is
+  the free-core support (icon + catalog entry) it hooks into.
+
 ## [6.87.0] — 2026-07-02
 
 ### Added — Remote restore foundation (import a snapshot ZIP back into the site)
