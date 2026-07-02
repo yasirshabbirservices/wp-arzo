@@ -148,7 +148,7 @@ class WP_Arzo_Activity_Log
      * @param string $object human description of what was acted on.
      * @param int    $user_id optional explicit actor (defaults to current user).
      */
-    public function record($action, $object = '', $user_id = 0)
+    public function record($action, $object = '', $user_id = 0, $link = null)
     {
         $user = $user_id ? get_userdata($user_id) : wp_get_current_user();
         $entry = array(
@@ -159,6 +159,13 @@ class WP_Arzo_Activity_Log
             'o'  => sanitize_text_field($object),
             'ip' => $this->ip(),
         );
+        // Optional deep-link to the acted-on object (post/user/comment) so the log row
+        // can jump straight to it. Only set for non-destructive events (a deleted object
+        // has nothing to link to). Old entries simply lack lt/li → plain text.
+        if (is_array($link) && !empty($link['type']) && !empty($link['id'])) {
+            $entry['lt'] = sanitize_key($link['type']);
+            $entry['li'] = (int) $link['id'];
+        }
         $log = $this->get_log();
         array_unshift($log, $entry);
         if (count($log) > $this->retention) {
@@ -204,7 +211,7 @@ class WP_Arzo_Activity_Log
     public function on_user_register($user_id)
     {
         $u = get_userdata($user_id);
-        $this->record('user_created', 'New user: ' . ($u ? $u->user_login : '#' . $user_id));
+        $this->record('user_created', 'New user: ' . ($u ? $u->user_login : '#' . $user_id), 0, array('type' => 'user', 'id' => $user_id));
     }
 
     public function on_user_deleted($user_id)
@@ -216,7 +223,7 @@ class WP_Arzo_Activity_Log
     public function on_role_change($user_id, $role, $old_roles = array())
     {
         $u = get_userdata($user_id);
-        $this->record('role_changed', ($u ? $u->user_login : '#' . $user_id) . ' → ' . (string) $role);
+        $this->record('role_changed', ($u ? $u->user_login : '#' . $user_id) . ' → ' . (string) $role, 0, array('type' => 'user', 'id' => $user_id));
     }
 
     public function on_password_reset($user)
@@ -228,7 +235,7 @@ class WP_Arzo_Activity_Log
     public function on_profile_update($user_id)
     {
         $u = get_userdata($user_id);
-        $this->record('profile_updated', 'Updated profile: ' . ($u ? $u->user_login : '#' . $user_id));
+        $this->record('profile_updated', 'Updated profile: ' . ($u ? $u->user_login : '#' . $user_id), 0, array('type' => 'user', 'id' => $user_id));
     }
 
     /** Post types that are internal plumbing — never worth an audit entry. */
@@ -260,7 +267,7 @@ class WP_Arzo_Activity_Log
         if ($post_after->post_status !== $post_before->post_status) {
             return;
         }
-        $this->record('post_updated', $this->post_type_label($post_after) . ' updated: ' . $post_after->post_title);
+        $this->record('post_updated', $this->post_type_label($post_after) . ' updated: ' . $post_after->post_title, 0, array('type' => 'post', 'id' => $post_id));
     }
 
     public function on_post_deleted($post_id)
@@ -274,7 +281,7 @@ class WP_Arzo_Activity_Log
 
     public function on_attachment_added($post_id)
     {
-        $this->record('media_uploaded', 'Uploaded media: ' . get_the_title($post_id));
+        $this->record('media_uploaded', 'Uploaded media: ' . get_the_title($post_id), 0, array('type' => 'post', 'id' => $post_id));
     }
 
     public function on_attachment_deleted($post_id)
@@ -314,7 +321,7 @@ class WP_Arzo_Activity_Log
     {
         $c = get_comment($comment_id);
         $on = $c ? get_the_title($c->comment_post_ID) : '';
-        $this->record('comment_posted', 'Comment' . ($on ? ' on: ' . $on : '') . ($approved === 'spam' ? ' (spam)' : ''));
+        $this->record('comment_posted', 'Comment' . ($on ? ' on: ' . $on : '') . ($approved === 'spam' ? ' (spam)' : ''), 0, array('type' => 'comment', 'id' => $comment_id));
     }
 
     public function on_comment_status($new_status, $old_status, $comment)
@@ -330,7 +337,10 @@ class WP_Arzo_Activity_Log
             'trash'      => array('comment_trashed', 'Comment trashed'),
         );
         if (isset($map[$new_status])) {
-            $this->record($map[$new_status][0], $map[$new_status][1] . ($on ? ' on: ' . $on : ''));
+            $cid  = ($comment && isset($comment->comment_ID)) ? (int) $comment->comment_ID : 0;
+            // A trashed comment can still be opened; spam/approved definitely.
+            $link = $cid ? array('type' => 'comment', 'id' => $cid) : null;
+            $this->record($map[$new_status][0], $map[$new_status][1] . ($on ? ' on: ' . $on : ''), 0, $link);
         }
     }
 
@@ -349,10 +359,11 @@ class WP_Arzo_Activity_Log
         }
         $label = get_post_type_object($post->post_type);
         $label = $label ? $label->labels->singular_name : $post->post_type;
+        $link = array('type' => 'post', 'id' => (int) $post->ID);
         if ($new_status === 'publish') {
-            $this->record('post_published', $label . ' published: ' . $post->post_title);
+            $this->record('post_published', $label . ' published: ' . $post->post_title, 0, $link);
         } elseif ($new_status === 'trash') {
-            $this->record('post_trashed', $label . ' trashed: ' . $post->post_title);
+            $this->record('post_trashed', $label . ' trashed: ' . $post->post_title, 0, $link);
         }
     }
 
@@ -499,6 +510,27 @@ class WP_Arzo_Activity_Log
         $sevs = self::severities();
         $key  = self::action_severity($action);
         return isset($sevs[$key]) ? $sevs[$key] : $sevs['low'];
+    }
+
+    /**
+     * Build an admin edit URL for a logged object reference ({lt,li}), or '' if
+     * none applies / it no longer resolves. Used to deep-link a log row.
+     */
+    public static function object_edit_url($lt, $li)
+    {
+        $li = (int) $li;
+        if (!$li) {
+            return '';
+        }
+        switch ((string) $lt) {
+            case 'post':
+                return function_exists('get_edit_post_link') ? (string) get_edit_post_link($li, 'raw') : '';
+            case 'user':
+                return function_exists('get_edit_user_link') ? (string) get_edit_user_link($li) : '';
+            case 'comment':
+                return function_exists('get_edit_comment_link') ? (string) get_edit_comment_link($li) : '';
+        }
+        return '';
     }
 
     /** Map an action key to a label, badge tone, and icon for the admin table. */
