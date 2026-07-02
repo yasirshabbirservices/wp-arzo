@@ -4,6 +4,28 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.93.0] — 2026-07-02
+
+### Added — File snapshots + snapshot diff view (Backups enrichment, Tier 1)
+
+- **Bounded file snapshots**: the create bar on WP Arzo → Backups gains "Also include files"
+  chips — **Uploads / Plugins / Themes / wp-config + .htaccess**. Chosen components are
+  zipped into the snapshot (streaming, memory-safe; the zip flushes every 500 entries) with
+  a per-file hash manifest. Bounds are explicit, never silent: files over 100 MB and
+  symlinks are skipped **and counted** (a "N skipped" badge shows on the row); our own
+  backup folder is always excluded. Off-site destinations (Pro) upload the files along with
+  the database automatically.
+- **Diff view — compare any two snapshots** (the Git-style differentiator): a **Compare**
+  button opens a drawer where you pick a base and a target; the report shows **options
+  added/removed/changed** (name-level, hash-compared), **per-table row-count deltas** (plus
+  added/removed tables), and **file changes** per component — with exact counts and capped
+  sample lists. Powered by a cheap `db-summary.json` (row counts + option-value hashes,
+  captured while the dump streams) and the file manifest — comparing is instant, no dump
+  parsing. Snapshots made before this version report "diff unavailable" gracefully.
+- Restore stays database-first; the files ZIP is stored inside the snapshot (download/export
+  includes it) — **automatic file restore is the next Backups enrichment**.
+- Diff + manifest logic harnessed (16 checks).
+
 ## [6.92.0] — 2026-07-02
 
 ### Added — Light / dark theme toggle (per-user) + accessibility
