@@ -112,11 +112,11 @@ function wp_arzo_maintenance_display_mode()
                 --arzo-bg-dark: #121212;
                 --arzo-bg-panel: #1e1e1e;
                 --arzo-bg-elev: #242424;
-                --arzo-bg-hover: var(--arzo-bg-hover);
+                --arzo-bg-hover: #2a2a2a;
                 --arzo-border: #333333;
                 --arzo-border-strong: #444444;
                 --arzo-text-strong: #ffffff;
-                --arzo-text-primary: var(--arzo-text-primary);
+                --arzo-text-primary: #e0e0e0;
                 --arzo-text-secondary: #999999;
                 --arzo-accent: #16e791;
                 --arzo-warning: #faad14;
@@ -150,8 +150,9 @@ function wp_arzo_maintenance_display_mode()
                 max-width: 600px;
                 padding: 40px;
                 text-align: center;
-                background: var(--arzo-bg-hover);
-                border-radius: 10px;
+                background: var(--arzo-bg-panel);
+                border: 1px solid var(--arzo-border);
+                border-radius: 14px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                 margin: 20px;
             }
@@ -180,7 +181,7 @@ function wp_arzo_maintenance_display_mode()
             }
 
             .social-contacts {
-                background: var(--arzo-bg-panel);
+                background: var(--arzo-bg-elev);
                 padding: 30px;
                 border-radius: 8px;
                 margin-top: 30px;

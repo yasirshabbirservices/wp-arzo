@@ -175,7 +175,7 @@ function showThemes()
         <?php echo $message; ?>
 
         <!-- Upload Form -->
-        <div style="background:var(--background-light); padding:15px; margin:15px 0; border-radius:3px;">
+        <div style="background:var(--arzo-bg-elev); border:1px solid var(--arzo-border); padding:15px; margin:15px 0; border-radius:var(--arzo-radius-sm);">
             <h4 style="margin-top:0;">Upload Theme (ZIP)</h4>
             <form method="post" enctype="multipart/form-data">
                 <?php wp_nonce_field('theme_upload_action', 'theme_upload_nonce'); ?>

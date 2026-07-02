@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.99.0
+Stable tag: 6.100.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,16 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.100.0 =
+* Changed: Emergency recovery page redesigned to match the dashboard — segmented pill tabs,
+  dark sunken inputs, info-card System Status, elevated panels
+* Changed: Site Modes -> Emergency Mode card rebuilt from a cramped single row into a clean
+  stacked card (header + toggle, description, actions row with the note below)
+* Changed: Console inputs/panels aligned to the dashboard's darker surfaces; Site Info status
+  badges + progress track and the error banner moved onto semantic tokens
+* Fixed: public maintenance page had two self-referential (invalid) CSS variables that broke
+  the card background and message color — now render correctly
 
 = 6.65.0 =
 * Changed (free): Snippets rebuilt into an editor app — a CodeMirror syntax-highlighted

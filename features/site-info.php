@@ -132,24 +132,24 @@ function showSiteInfo()
 }
 
 .status-enabled {
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
+    background: var(--arzo-success-soft);
+    color: var(--arzo-success);
 }
 
 .status-disabled {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: var(--arzo-error-soft);
+    color: var(--arzo-error);
 }
 
 .status-warning {
-    background: rgba(245, 158, 11, 0.2);
-    color: #f59e0b;
+    background: var(--arzo-warning-soft);
+    color: var(--arzo-warning);
 }
 
 .progress-bar {
     width: 100%;
     height: 8px;
-    background: var(--background-light);
+    background: var(--arzo-bg-input);
     border-radius: 4px;
     overflow: hidden;
     margin-top: 8px;

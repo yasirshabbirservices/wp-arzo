@@ -4,6 +4,33 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.100.0] — 2026-07-02
+
+### Changed — Emergency page redesign + console/public surface consistency
+
+- **Emergency recovery page (`wp-arzo-emergency/index.php`) now mirrors the dashboard.**
+  Its self-contained CSS was upgraded: the boxy top tabs become the dashboard's **segmented
+  pill tabs** (accent-soft active state + focus ring), inputs **sink to the dark
+  `--background-input` surface** (matching the feature-manager, not the lighter gray), the
+  System Status readout is rebuilt as **info cards** (Environment / WordPress) like Site Info,
+  table headers adopt the muted-uppercase-on-elevated style, and upload/create panels lift
+  onto `--background-elev` with a border. New self-contained tokens
+  (`--background-input`, `--background-elev`, `--accent-soft`, `--accent-ring`, `--radius-lg`).
+- **Site Modes → Emergency Mode card no longer cramped.** Rebuilt from a single squeezed row
+  into a clean stacked card: header row (icon + title + ACTIVE badge on the left, toggle on
+  the right), full-width description, then an actions row (Copy Link / Copy Direct Link /
+  Reset Password — now `nowrap`, no 3-line wrapping) with the explanatory note below,
+  revealed only when configured. JS updated to toggle the badge/body and rebuild the buttons.
+- **Console "light" surfaces aligned to the dashboard.** Console inputs move off the lighter
+  `--background-light` (#2a2a2a) onto the dashboard's sunken `--arzo-bg-input` (#151515);
+  the Plugins/Themes/Temporary-Logins upload & create panels lift onto `--arzo-bg-elev` with
+  a border; Site Info status badges + progress track and the console error banner move onto
+  semantic tokens; focus rings unified.
+- **Public maintenance page bug fixed.** Two **self-referential (invalid) custom properties**
+  (`--arzo-bg-hover` / `--arzo-text-primary` defined as themselves) were silently breaking the
+  card background and message color — replaced with real values; the card now renders as a
+  proper `--arzo-bg-panel` panel with a bordered `--arzo-bg-elev` contact box.
+
 ## [6.99.0] — 2026-07-02
 
 ### Changed — Console + public pages: complete token consistency (Phase A2 finale)

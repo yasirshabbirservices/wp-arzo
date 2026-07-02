@@ -89,7 +89,7 @@ function handleQuickLogin()
         </p>
 
         <!-- Create -->
-        <div style="background:var(--background-light); padding:18px; border-radius:var(--radius-global); margin:18px 0;">
+        <div style="background:var(--arzo-bg-elev); border:1px solid var(--arzo-border); padding:18px; border-radius:var(--radius-global); margin:18px 0;">
             <h4 style="margin-top:0;">Create a login link</h4>
             <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
                 <div class="form-group" style="margin:0;">

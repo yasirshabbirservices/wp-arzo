@@ -462,64 +462,117 @@ function handleMaintenanceModes()
             display: none;
         }
 
-        /* Emergency Mode Specifics */
+        /* Emergency Mode — full-width card, clean stacked layout (header row,
+           description, then the actions/note only when active). */
         .mode-emergency {
             border-color: var(--arzo-error) !important;
             grid-column: 1 / -1;
             /* Make it full width */
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Top row: icon + title (+ ACTIVE badge) on the left, toggle on the right. */
+        .mode-emergency .emergency-head {
+            display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
+            gap: 16px;
         }
 
         .mode-emergency .card-header {
-            margin-bottom: 5px;
-            flex-shrink: 0;
+            margin-bottom: 0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
+        .emergency-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: var(--arzo-radius-pill);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            background: var(--arzo-error-soft);
+            color: var(--arzo-error);
+        }
+
+        .emergency-badge::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .mode-emergency .emergency-toggle {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+        }
+
         .mode-emergency .mode-desc {
-            margin-bottom: 0;
-            margin-right: auto;
-            max-width: 500px;
+            margin: 0;
+            max-width: 78ch;
             color: var(--arzo-text-secondary);
             font-size: 13px;
         }
 
-        .mode-emergency .controls-container {
+        /* Body: action buttons row + explanatory note, revealed when configured. */
+        .mode-emergency .emergency-body {
             display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-left: auto;
+            flex-direction: column;
+            gap: 12px;
+            padding-top: 14px;
+            border-top: 1px solid var(--arzo-border);
         }
 
         .mode-emergency .active-controls {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .emergency-note {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--arzo-text-secondary);
+            max-width: 82ch;
+        }
+
+        .emergency-note code {
+            background: var(--arzo-bg-input);
+            padding: 1px 6px;
+            border-radius: var(--arzo-radius-sm);
+            font-size: 11px;
+            color: var(--arzo-text-primary);
         }
 
         .btn-action {
-            background: var(--arzo-bg-hover);
+            background: var(--arzo-bg-elev);
             border: 1px solid var(--arzo-border-strong);
-            color: var(--arzo-text-secondary);
-            padding: 8px 12px;
-            border-radius: 4px;
+            color: var(--arzo-text-primary);
+            padding: 8px 14px;
+            border-radius: var(--arzo-radius-sm);
             cursor: pointer;
             font-size: 12px;
-            display: flex;
+            font-weight: 600;
+            white-space: nowrap;
+            display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 7px;
             transition: all 0.2s;
         }
 
         .btn-action:hover {
-            border-color: var(--arzo-text-strong);
-            color: var(--arzo-text-strong);
+            border-color: var(--arzo-accent);
+            color: var(--arzo-accent);
         }
 
         .btn-action.success {
@@ -558,44 +611,18 @@ function handleMaintenanceModes()
 
         .mode-emergency .btn-activate:hover {
             background: var(--arzo-error);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
         }
 
-        .emergency-active-link {
-            display: inline-block;
-            margin-top: 0;
-            padding: 10px;
-            background: rgba(255, 77, 77, 0.1);
-            border: 1px solid var(--arzo-error);
-            border-radius: 4px;
-            color: var(--arzo-error);
-            text-decoration: none;
-            word-break: break-all;
-            font-size: 12px;
-        }
-
-        .emergency-active-link:hover {
-            background: rgba(255, 77, 77, 0.2);
-        }
-
-        /* Responsive adjustments for emergency card */
-        @media (max-width: 900px) {
-            .mode-emergency {
-                flex-direction: column;
+        /* Responsive: let the head wrap and buttons stack on narrow viewports. */
+        @media (max-width: 640px) {
+            .mode-emergency .emergency-head {
                 align-items: flex-start;
-                gap: 15px;
             }
 
-            .mode-emergency .controls-container {
-                width: 100%;
-                justify-content: space-between;
-                margin-left: 0;
-                flex-wrap: wrap;
-            }
-
-            .mode-emergency .active-controls {
-                width: 100%;
-                flex-wrap: wrap;
+            .mode-emergency .active-controls .btn-action {
+                flex: 1 1 auto;
+                justify-content: center;
             }
         }
 
@@ -821,48 +848,37 @@ function handleMaintenanceModes()
 
             <!-- Emergency Mode -->
             <div class="mode-card mode-emergency <?php echo $emergency_configured ? 'active' : ''; ?>" id="card-emergency">
-                <?php if ($emergency_configured): ?>
-                    <div class="status-badge" style="background: var(--arzo-error); color: var(--arzo-text-strong);">ACTIVE</div>
-                <?php endif; ?>
-
-                <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div class="emergency-head">
                     <div class="card-header">
                         <i class="fas fa-ambulance mode-icon"></i>
                         <h3>Emergency Mode</h3>
+                        <span class="emergency-badge" id="emergency-badge"<?php echo $emergency_configured ? '' : ' style="display:none;"'; ?>>ACTIVE</span>
                     </div>
-                    <p class="mode-desc">Standalone recovery script to access your site if WordPress breaks (WSOD, plugin conflicts, etc.).</p>
+                    <label class="switch emergency-toggle">
+                        <input type="checkbox" id="emergency-toggle"
+                            onchange="toggleEmergencyMode(this.checked)"
+                            <?php echo $emergency_configured ? 'checked' : ''; ?>>
+                        <span class="slider round"></span>
+                    </label>
                 </div>
 
-                <div class="controls-container">
-                    <?php if ($emergency_configured): ?>
-                        <div class="active-controls" id="emergency-active-controls">
-                            <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo esc_js(home_url('/wp-arzo/emergency/')); ?>', this)">
-                                <i class="fas fa-link"></i> Copy Link
-                            </button>
-                            <button type="button" class="btn-action" title="Works even when WordPress rewrites are down" onclick="copyToClipboard('<?php echo esc_js(WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/index.php'); ?>', this)">
-                                <i class="fas fa-life-ring"></i> Copy Direct Link
-                            </button>
-                            <button type="button" class="btn-action" onclick="resetEmergencyPassword(this)">
-                                <i class="fas fa-key"></i> Reset Password
-                            </button>
-                        </div>
-                        <p style="grid-column:1/-1; margin:8px 0 0; font-size:12px; color:var(--muted-text);">
-                            <i class="fas fa-life-ring"></i> <strong>Direct Link</strong> is the file URL — bookmark it. It keeps working even when WordPress is fully down (WSOD) and the pretty <code>/wp-arzo/emergency/</code> rewrite can't load.
-                        </p>
-                    <?php else: ?>
-                        <div id="emergency-inactive-controls">
-                            <!-- Placeholder for consistency -->
-                        </div>
-                    <?php endif; ?>
+                <p class="mode-desc">Standalone recovery script to access your site if WordPress breaks (WSOD, plugin conflicts, etc.).</p>
 
-                    <div class="switch-wrapper" style="margin: 0; padding: 0; border: none;">
-                        <label class="switch">
-                            <input type="checkbox" id="emergency-toggle"
-                                onchange="toggleEmergencyMode(this.checked)"
-                                <?php echo $emergency_configured ? 'checked' : ''; ?>>
-                            <span class="slider round"></span>
-                        </label>
+                <div class="emergency-body" id="emergency-body"<?php echo $emergency_configured ? '' : ' style="display:none;"'; ?>>
+                    <div class="active-controls" id="emergency-active-controls">
+                        <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo esc_js(home_url('/wp-arzo/emergency/')); ?>', this)">
+                            <i class="fas fa-link"></i> Copy Link
+                        </button>
+                        <button type="button" class="btn-action" title="Works even when WordPress rewrites are down" onclick="copyToClipboard('<?php echo esc_js(WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/index.php'); ?>', this)">
+                            <i class="fas fa-life-ring"></i> Copy Direct Link
+                        </button>
+                        <button type="button" class="btn-action" onclick="resetEmergencyPassword(this)">
+                            <i class="fas fa-key"></i> Reset Password
+                        </button>
                     </div>
+                    <p class="emergency-note">
+                        <i class="fas fa-life-ring"></i> <strong>Direct Link</strong> is the file URL — bookmark it. It keeps working even when WordPress is fully down (WSOD) and the pretty <code>/wp-arzo/emergency/</code> rewrite can't load.
+                    </p>
                 </div>
             </div>
         </div>
@@ -874,10 +890,24 @@ function handleMaintenanceModes()
     <script>
         const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>&tab=site_modes&nonce=<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>';
         let currentMode = '<?php echo $current_mode; ?>';
+        const emergencyPrettyUrl = '<?php echo esc_js(home_url('/wp-arzo/emergency/')); ?>';
+        const emergencyDirectUrl = '<?php echo esc_js(WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/index.php'); ?>';
+
+        // Build an action button for the emergency card.
+        function makeEmergencyBtn(iconClass, label, onClick) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-action';
+            btn.innerHTML = '<i class="' + iconClass + '"></i> ' + label;
+            btn.onclick = onClick;
+            return btn;
+        }
 
         // --- Emergency Mode Logic ---
         function toggleEmergencyMode(isChecked) {
-            const controlsContainer = document.querySelector('.controls-container');
+            const card = document.getElementById('card-emergency');
+            const badge = document.getElementById('emergency-badge');
+            const body = document.getElementById('emergency-body');
             const activeControls = document.getElementById('emergency-active-controls');
 
             // Show loading state
@@ -897,37 +927,21 @@ function handleMaintenanceModes()
                     .then(data => {
                         if (data.success) {
                             showToast('Emergency Mode Activated');
-                            document.getElementById('card-emergency').classList.add('active');
+                            card.classList.add('active');
+                            badge.style.display = '';
+                            body.style.display = '';
 
-                            // Create persistent buttons dynamically
-                            const btnContainer = document.createElement('div');
-                            btnContainer.className = 'active-controls';
-                            btnContainer.id = 'emergency-active-controls';
-
-                            // Copy Link Button
-                            const btnLink = document.createElement('button');
-                            btnLink.className = 'btn-action';
-                            btnLink.innerHTML = '<i class="fas fa-link"></i> Copy Link';
-                            btnLink.onclick = function() {
-                                copyToClipboard(data.url, this);
-                            };
-
-                            // Copy Password Button
-                            const btnPass = document.createElement('button');
-                            btnPass.className = 'btn-action';
-                            btnPass.innerHTML = '<i class="fas fa-key"></i> Copy Password';
-                            btnPass.onclick = function() {
+                            // Rebuild the action buttons (Copy Link / Direct Link / Password).
+                            activeControls.innerHTML = '';
+                            activeControls.appendChild(makeEmergencyBtn('fas fa-link', 'Copy Link', function() {
+                                copyToClipboard(data.url || emergencyPrettyUrl, this);
+                            }));
+                            activeControls.appendChild(makeEmergencyBtn('fas fa-life-ring', 'Copy Direct Link', function() {
+                                copyToClipboard(emergencyDirectUrl, this);
+                            }));
+                            activeControls.appendChild(makeEmergencyBtn('fas fa-key', 'Copy Password', function() {
                                 copyToClipboard(data.password, this);
-                            };
-
-                            btnContainer.appendChild(btnLink);
-                            btnContainer.appendChild(btnPass);
-
-                            // Replace or Append
-                            const existing = document.getElementById('emergency-active-controls');
-                            if (existing) existing.remove();
-
-                            controlsContainer.insertBefore(btnContainer, controlsContainer.lastElementChild);
+                            }));
                         } else {
                             alert('Error: ' + data.message);
                             toggle.checked = false;
@@ -958,9 +972,9 @@ function handleMaintenanceModes()
                     .then(data => {
                         if (data.success) {
                             showToast('Emergency Mode Deactivated');
-                            document.getElementById('card-emergency').classList.remove('active');
-                            const controls = document.getElementById('emergency-active-controls');
-                            if (controls) controls.remove();
+                            card.classList.remove('active');
+                            badge.style.display = 'none';
+                            body.style.display = 'none';
                         } else {
                             alert('Error: ' + data.message);
                             toggle.checked = true;
