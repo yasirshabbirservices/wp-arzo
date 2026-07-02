@@ -100,6 +100,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_media_scan', array($this, 'ajax_media_scan'));
         add_action('wp_ajax_wp_arzo_media_delete', array($this, 'ajax_media_delete'));
         add_action('wp_ajax_wp_arzo_activity_clear', array($this, 'ajax_activity_clear'));
+        add_action('wp_ajax_wp_arzo_activity_session_kill', array($this, 'ajax_session_kill'));
         add_action('wp_ajax_wp_arzo_rest_key_create', array($this, 'ajax_rest_key_create'));
         add_action('wp_ajax_wp_arzo_rest_key_revoke', array($this, 'ajax_rest_key_revoke'));
         add_action('wp_ajax_wp_arzo_role_save_caps', array($this, 'ajax_role_save_caps'));
@@ -448,6 +449,16 @@ class WP_Arzo_Admin
                 'label' => $p['label'],
                 'icon'  => $p['icon'],
                 'url'   => $base . $p['slug'],
+            );
+        }
+
+        // --- Activity Log → Sessions (deep link) -------------------------
+        if ($this->page_visible(self::PAGE_ACTIVITY)) {
+            $items[] = array(
+                'id'    => 'activity-sessions',
+                'label' => __('Live Sessions', 'wp-arzo'),
+                'icon'  => 'admin-users',
+                'url'   => add_query_arg('tab', 'sessions', $base . self::PAGE_ACTIVITY),
             );
         }
 
@@ -2481,14 +2492,169 @@ class WP_Arzo_Admin
         if (!current_user_can('manage_options')) {
             wp_die('You do not have sufficient permissions to access this page.');
         }
+        $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'events';
+        if (!in_array($tab, array('events', 'sessions'), true)) {
+            $tab = 'events';
+        }
+        $base = admin_url('admin.php?page=' . self::PAGE_ACTIVITY);
+        $active = class_exists('WP_Arzo_Activity_Sessions') ? WP_Arzo_Activity_Sessions::count_active() : 0;
+
         echo '<div class="wrap wpa-admin">';
-        // The Pro Advanced Audit Log upgrades THIS page in place — durable DB storage,
-        // advanced filters, CSV export, AJAX pagination. When it's not active, the free
-        // capped-option log renders instead. (One page — no separate "Audit Log" menu.)
-        if (apply_filters('wp_arzo_activity_log_render', false) !== true) {
-            $this->render_activity_log_basic();
+
+        // Tabbed: Events (the audit trail — free capped view or the Pro DB-backed
+        // Advanced Audit that upgrades it in place) + Sessions (live logged-in users).
+        $tabs = array(
+            'events'   => array('label' => 'Events', 'icon' => 'list'),
+            'sessions' => array('label' => 'Sessions', 'icon' => 'users', 'badge' => $active),
+        );
+        echo '<nav class="wpa-tabs" role="tablist" aria-label="Activity Log">';
+        foreach ($tabs as $key => $t) {
+            $badge = isset($t['badge']) && $t['badge'] > 0
+                ? ' <span class="wpa-badge wpa-badge--accent" style="margin-left:2px;">' . (int) $t['badge'] . '</span>'
+                : '';
+            printf(
+                '<a class="wpa-tab%s" role="tab" aria-selected="%s" href="%s"%s>%s<span>%s</span>%s</a>',
+                $key === $tab ? ' is-active' : '',
+                $key === $tab ? 'true' : 'false',
+                esc_url(add_query_arg('tab', $key, $base)),
+                $key === $tab ? ' aria-current="page"' : '',
+                wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')),
+                esc_html($t['label']),
+                $badge
+            );
+        }
+        echo '</nav>';
+
+        if ($tab === 'sessions') {
+            $this->render_activity_sessions();
+        } else {
+            // The Pro Advanced Audit Log upgrades the Events view in place — durable DB
+            // storage, advanced filters, CSV export, AJAX pagination. When it's not active,
+            // the free capped-option log renders instead. (One page — no separate menu.)
+            if (apply_filters('wp_arzo_activity_log_render', false) !== true) {
+                $this->render_activity_log_basic();
+            }
         }
         echo '</div>';
+    }
+
+    /** Activity Log → Sessions tab: live logged-in users + terminate (force logout). */
+    private function render_activity_sessions()
+    {
+        $sessions = class_exists('WP_Arzo_Activity_Sessions') ? WP_Arzo_Activity_Sessions::all() : array();
+        $users = array();
+        $active = 0;
+        foreach ($sessions as $s) {
+            $users[$s['user_id']] = true;
+            if (empty($s['expired'])) {
+                $active++;
+            }
+        }
+        $nonce = wp_create_nonce(self::NONCE_ACTIVITY);
+        ?>
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('users', array('class' => 'wpa-icon')); ?> Live Sessions</h1>
+                    <p class="wpa-admin__subtitle">
+                        <span class="wpa-badge wpa-badge--info"><?php echo (int) $active; ?> active</span>
+                        across <?php echo (int) count($users); ?> user<?php echo count($users) === 1 ? '' : 's'; ?> · terminate a session to force that device to sign out
+                    </p>
+                </div>
+            </div>
+
+            <div class="wpa-card" style="padding:0;overflow:hidden;">
+                <table class="wpa-backup-table" id="wpa-sessions-table">
+                    <thead>
+                        <tr><th>User</th><th>IP</th><th>Signed in (UTC)</th><th>Expires (UTC)</th><th>Client</th><th style="text-align:right;">Action</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($sessions)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="6">No active login sessions found.</td></tr>
+                        <?php else : foreach ($sessions as $s) :
+                            $client = $this->short_user_agent($s['ua']);
+                            ?>
+                            <tr data-user="<?php echo (int) $s['user_id']; ?>" data-verifier="<?php echo esc_attr($s['verifier']); ?>"<?php echo $s['expired'] ? ' style="opacity:.55;"' : ''; ?>>
+                                <td>
+                                    <?php if (!empty($s['edit'])) : ?><a href="<?php echo esc_url($s['edit']); ?>"><?php endif; ?>
+                                    <strong><?php echo esc_html($s['user_login']); ?></strong>
+                                    <?php if (!empty($s['edit'])) : ?></a><?php endif; ?>
+                                    <?php if ($s['is_current']) : ?> <span class="wpa-badge wpa-badge--success">This device</span><?php endif; ?>
+                                    <?php if ($s['expired']) : ?> <span class="wpa-badge wpa-badge--neutral">Expired</span><?php endif; ?>
+                                    <?php if (!empty($s['roles'])) : ?><br><span style="color:var(--arzo-text-muted);font-size:.8rem;"><?php echo esc_html($s['roles']); ?></span><?php endif; ?>
+                                </td>
+                                <td><code><?php echo esc_html($s['ip']); ?></code></td>
+                                <td style="white-space:nowrap;"><?php echo $s['login'] ? esc_html(gmdate('Y-m-d H:i', $s['login'])) : '—'; ?></td>
+                                <td style="white-space:nowrap;"><?php echo $s['expiration'] ? esc_html(gmdate('Y-m-d H:i', $s['expiration'])) : '—'; ?></td>
+                                <td><span title="<?php echo esc_attr($s['ua']); ?>"><?php echo esc_html($client); ?></span></td>
+                                <td style="text-align:right;">
+                                    <?php if ($s['is_current']) : ?>
+                                        <button type="button" class="wpa-btn wpa-btn--icon" disabled aria-label="Your current session cannot be terminated" title="Your current session"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                    <?php else : ?>
+                                        <button type="button" class="wpa-btn wpa-btn--icon wpa-btn--danger-soft wpa-session-kill" aria-label="Terminate this session" title="Terminate session"><?php echo wp_arzo_icon('x-circle', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <script>
+            (function () {
+                var table = document.getElementById('wpa-sessions-table');
+                if (!table) { return; }
+                var nonce = <?php echo wp_json_encode($nonce); ?>;
+                table.addEventListener('click', function (e) {
+                    var btn = e.target.closest ? e.target.closest('.wpa-session-kill') : null;
+                    if (!btn) { return; }
+                    var tr = btn.closest('tr');
+                    if (!tr || !window.confirm('Terminate this session? That device will be signed out immediately.')) { return; }
+                    btn.disabled = true;
+                    var body = new FormData();
+                    body.append('action', 'wp_arzo_activity_session_kill');
+                    body.append('nonce', nonce);
+                    body.append('user_id', tr.dataset.user);
+                    body.append('verifier', tr.dataset.verifier);
+                    fetch(ajaxurl, { method: 'POST', body: body, credentials: 'same-origin' })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            if (res && res.success) {
+                                tr.parentNode.removeChild(tr);
+                                if (window.wpArzo && wpArzo.toast) { wpArzo.toast(res.data.message || 'Session terminated.', 'success'); }
+                            } else {
+                                btn.disabled = false;
+                                if (window.wpArzo && wpArzo.toast) { wpArzo.toast((res && res.data && res.data.message) || 'Could not terminate.', 'error'); }
+                            }
+                        })
+                        .catch(function () { btn.disabled = false; });
+                });
+            })();
+            </script>
+        <?php
+    }
+
+    /** Condense a raw User-Agent string to a short "Browser · OS" label. */
+    private function short_user_agent($ua)
+    {
+        $ua = (string) $ua;
+        if ($ua === '') {
+            return '—';
+        }
+        $browser = 'Browser';
+        foreach (array('Edg' => 'Edge', 'OPR' => 'Opera', 'Chrome' => 'Chrome', 'Firefox' => 'Firefox', 'Safari' => 'Safari') as $needle => $name) {
+            if (stripos($ua, $needle) !== false) {
+                $browser = $name;
+                break;
+            }
+        }
+        $os = '';
+        foreach (array('Windows' => 'Windows', 'Mac OS' => 'macOS', 'Android' => 'Android', 'iPhone' => 'iOS', 'iPad' => 'iPadOS', 'Linux' => 'Linux') as $needle => $name) {
+            if (stripos($ua, $needle) !== false) {
+                $os = $name;
+                break;
+            }
+        }
+        return $os ? $browser . ' · ' . $os : $browser;
     }
 
     /** The free (capped-option) Activity Log body. */
@@ -2675,6 +2841,34 @@ class WP_Arzo_Admin
             update_option('wp_arzo_activity_log', array(), false);
         }
         wp_send_json_success(array('message' => 'Activity log cleared.'));
+    }
+
+    /** Terminate one live login session (force logout of that device). */
+    public function ajax_session_kill()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_ACTIVITY, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (!class_exists('WP_Arzo_Activity_Sessions')) {
+            wp_send_json_error(array('message' => 'Sessions unavailable.'), 500);
+        }
+        $user_id  = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+        $verifier = isset($_POST['verifier']) ? preg_replace('/[^a-f0-9]/i', '', (string) wp_unslash($_POST['verifier'])) : '';
+        if (!$user_id || $verifier === '') {
+            wp_send_json_error(array('message' => 'Missing session reference.'), 400);
+        }
+        // Never let an admin cut off their own current session from under themselves.
+        if (hash_equals(WP_Arzo_Activity_Sessions::current_verifier(), $verifier)) {
+            wp_send_json_error(array('message' => 'You cannot terminate your own current session.'), 400);
+        }
+        if (!WP_Arzo_Activity_Sessions::terminate($user_id, $verifier)) {
+            wp_send_json_error(array('message' => 'Session not found (it may have already ended).'), 404);
+        }
+        if (class_exists('WP_Arzo_Activity_Log')) {
+            $u = get_userdata($user_id);
+            WP_Arzo_Activity_Log::instance()->record('session_terminated', 'Terminated a session for ' . ($u ? $u->user_login : '#' . $user_id));
+        }
+        wp_send_json_success(array('message' => 'Session terminated.'));
     }
 
     public function ajax_send_test_email()

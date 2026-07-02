@@ -481,7 +481,7 @@ class WP_Arzo_Activity_Log
             $map = array();
             $groups = array(
                 'critical' => array('security_alert', 'user_deleted', 'plugin_deleted', 'theme_deleted'),
-                'high'     => array('login_failed', 'role_changed', 'user_created', 'password_reset', 'option_changed', 'plugin_activated', 'plugin_deactivated', 'core_updated'),
+                'high'     => array('login_failed', 'role_changed', 'user_created', 'password_reset', 'option_changed', 'plugin_activated', 'plugin_deactivated', 'core_updated', 'session_terminated'),
                 'medium'   => array('post_deleted', 'post_trashed', 'media_deleted', 'comment_spam', 'comment_deleted', 'theme_switched', 'plugin_installed', 'plugin_updated', 'theme_installed', 'theme_updated', 'term_deleted', 'menu_updated', 'export'),
             );
             foreach ($groups as $sev => $keys) {
@@ -506,6 +506,7 @@ class WP_Arzo_Activity_Log
     {
         $map = array(
             'security_alert'      => array('Security alert', 'error', 'alert'),
+            'session_terminated'  => array('Session terminated', 'warning', 'lock'),
             'login'               => array('Login', 'success', 'shield'),
             'login_failed'        => array('Failed login', 'error', 'shield'),
             'logout'              => array('Logout', 'neutral', 'shield'),
@@ -544,6 +545,151 @@ class WP_Arzo_Activity_Log
             'feature_toggled'     => array('WP Arzo toggle', 'info', 'settings'),
         );
         return isset($map[$action]) ? $map[$action] : array(ucfirst(str_replace('_', ' ', $action)), 'neutral', 'bolt');
+    }
+}
+
+/* =================================================== Live sessions */
+
+/**
+ * Read + manage live WordPress login sessions (the `session_tokens` user-meta
+ * that core's WP_Session_Tokens writes). Powers the Activity Log → Sessions tab:
+ * see who is signed in right now, from where, and terminate a session (force
+ * logout) — a security tool the free Activity Log competitors gate behind Pro.
+ */
+class WP_Arzo_Activity_Sessions
+{
+    const MAX_USERS = 500; // safety cap on how many session-bearing users we scan.
+
+    /** Replicates WP_User_Meta_Session_Tokens::hash_token so we can match by verifier. */
+    public static function hash_token($token)
+    {
+        $token = (string) $token;
+        return function_exists('hash') ? hash('sha256', $token) : sha1($token);
+    }
+
+    /** Verifier (stored key) of the CURRENT request's session, or '' if none. */
+    public static function current_verifier()
+    {
+        if (!function_exists('wp_get_session_token')) {
+            return '';
+        }
+        $token = wp_get_session_token();
+        return $token ? self::hash_token($token) : '';
+    }
+
+    /**
+     * Flatten raw `session_tokens` meta rows into a per-session list. Pure (no WP
+     * calls beyond maybe_unserialize) so it can be unit-harnessed.
+     *
+     * @param array  $rows              [{user_id, meta_value(serialized)}...]
+     * @param int    $now               reference timestamp for the expired flag.
+     * @param string $current_verifier  verifier of the viewer's own session.
+     * @return array session rows, newest login first.
+     */
+    public static function parse_sessions($rows, $now, $current_verifier)
+    {
+        $out = array();
+        foreach ((array) $rows as $r) {
+            $uid  = (int) (is_array($r) ? ($r['user_id'] ?? 0) : 0);
+            $data = maybe_unserialize(is_array($r) ? ($r['meta_value'] ?? '') : '');
+            if (!is_array($data)) {
+                continue;
+            }
+            foreach ($data as $verifier => $s) {
+                if (!is_array($s)) {
+                    continue;
+                }
+                $exp = isset($s['expiration']) ? (int) $s['expiration'] : 0;
+                $out[] = array(
+                    'user_id'    => $uid,
+                    'verifier'   => (string) $verifier,
+                    'login'      => isset($s['login']) ? (int) $s['login'] : 0,
+                    'expiration' => $exp,
+                    'ip'         => isset($s['ip']) ? (string) $s['ip'] : '',
+                    'ua'         => isset($s['ua']) ? (string) $s['ua'] : '',
+                    'expired'    => ($exp > 0 && $exp < $now),
+                    'is_current' => ($current_verifier !== '' && hash_equals((string) $current_verifier, (string) $verifier)),
+                );
+            }
+        }
+        usort($out, function ($a, $b) {
+            if ($b['login'] === $a['login']) {
+                return strcmp($a['verifier'], $b['verifier']);
+            }
+            return $b['login'] - $a['login'];
+        });
+        return $out;
+    }
+
+    /** All active sessions site-wide, decorated with user info. */
+    public static function all()
+    {
+        global $wpdb;
+        $rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = 'session_tokens' LIMIT %d",
+                self::MAX_USERS
+            ),
+            ARRAY_A
+        );
+        $sessions = self::parse_sessions($rows, time(), self::current_verifier());
+
+        $cache = array();
+        foreach ($sessions as &$s) {
+            $uid = $s['user_id'];
+            if (!isset($cache[$uid])) {
+                $u = get_userdata($uid);
+                // NB: key is 'user_login' (not 'login') — 'login' is the session's
+                // timestamp and must not be clobbered by the array_merge below.
+                $cache[$uid] = array(
+                    'user_login' => $u ? $u->user_login : '#' . $uid,
+                    'display'    => $u ? $u->display_name : '',
+                    'roles'      => $u ? implode(', ', (array) $u->roles) : '',
+                    'edit'       => $u ? get_edit_user_link($uid) : '',
+                );
+            }
+            $s = array_merge($s, $cache[$uid]);
+        }
+        unset($s);
+        return $sessions;
+    }
+
+    /** Count of active (non-expired) sessions — used for the tab badge. */
+    public static function count_active()
+    {
+        $n = 0;
+        foreach (self::all() as $s) {
+            if (empty($s['expired'])) {
+                $n++;
+            }
+        }
+        return $n;
+    }
+
+    /**
+     * Terminate one session by its stored verifier (force logout of that device).
+     * Manipulates the same `session_tokens` meta core uses.
+     *
+     * @return bool true if a session was removed.
+     */
+    public static function terminate($user_id, $verifier)
+    {
+        $user_id  = (int) $user_id;
+        $verifier = (string) $verifier;
+        if (!$user_id || $verifier === '') {
+            return false;
+        }
+        $data = get_user_meta($user_id, 'session_tokens', true);
+        if (!is_array($data) || !isset($data[$verifier])) {
+            return false;
+        }
+        unset($data[$verifier]);
+        if (empty($data)) {
+            delete_user_meta($user_id, 'session_tokens');
+        } else {
+            update_user_meta($user_id, 'session_tokens', $data);
+        }
+        return true;
     }
 }
 
