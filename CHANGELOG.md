@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.108.0] — 2026-07-03
+
+### Added — Activity Log: retention by severity (enrichment #8)
+
+- **Keep important events longer.** A new toggle (on by default) makes the log **severity-aware
+  when trimming**: the newest `Entries to keep` are always retained, *and* older **Critical/High**
+  events are protected beyond that limit (up to the 1000-entry ceiling) — only routine Low/Medium
+  events drop at the cap. Turn it off for a strict newest-N log. Trim logic in
+  `WP_Arzo_Activity_Log::trim()`; severity map refactored to a shared `severity_groups()` +
+  `important_actions()`.
+- **Pro parity.** The Advanced Audit Log's daily prune is now **two-tier**: routine events prune
+  past *Keep routine events for (days)*, while *Keep High &amp; Critical for (days)* (0 = forever,
+  never shorter than the routine window) retains security-relevant history far longer.
+- 13-check harness.
+
 ## [6.107.0] — 2026-07-03
 
 ### Added — Activity Log: per-event object deep-links (enrichment #7)
