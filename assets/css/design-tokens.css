@@ -134,6 +134,60 @@
     --radius-global: var(--arzo-radius-sm);
 }
 
+/* ====================================================================== */
+/* Light theme — per-user toggle (body.wpa-theme-light, server-rendered).  */
+/* Every value re-checked for WCAG AA on light surfaces: the accent/status */
+/* colors darken so text usage passes; soft tints lighten accordingly.     */
+/* ====================================================================== */
+body.wpa-theme-light {
+    color-scheme: light;
+
+    --arzo-bg-dark: #f0f0f1;
+    --arzo-bg-panel: #ffffff;
+    --arzo-bg-elev: #ffffff;
+    --arzo-bg-hover: #eef0f1;
+    --arzo-bg-input: #ffffff;
+
+    --arzo-border: #dcdcde;
+    --arzo-border-strong: #c3c4c7;
+
+    --arzo-text-strong: #1d2327;
+    --arzo-text-primary: #2c3338;
+    --arzo-text-secondary: #50575e;
+    --arzo-text-muted: #787c82;
+
+    /* Neon green fails on white (≈1.5:1) — light mode uses a deep green (AA). */
+    --arzo-accent: #0e8a5f;
+    --arzo-accent-hover: #0b6e4c;
+    --arzo-accent-soft: rgba(14, 138, 95, 0.10);
+    --arzo-accent-ring: rgba(14, 138, 95, 0.35);
+    --arzo-text-on-accent: #ffffff;
+
+    --arzo-success: #0e8a5f;
+    --arzo-success-soft: rgba(14, 138, 95, 0.12);
+    --arzo-warning: #8a5d00;
+    --arzo-warning-soft: rgba(250, 173, 20, 0.18);
+    --arzo-error: #b32d2e;
+    --arzo-error-soft: rgba(214, 54, 56, 0.10);
+    --arzo-info: #0f766e;
+    --arzo-info-soft: rgba(15, 118, 110, 0.10);
+    --arzo-neutral: #646970;
+    --arzo-neutral-soft: rgba(100, 105, 112, 0.12);
+
+    --arzo-shadow-sm: 0 1px 2px rgba(16, 24, 32, 0.06);
+    --arzo-shadow: 0 2px 8px rgba(16, 24, 32, 0.10);
+    --arzo-shadow-lg: 0 10px 30px rgba(16, 24, 32, 0.16);
+
+    /* Code syntax — darker hues for a light editor background. */
+    --arzo-code-keyword: #7c3aed;
+    --arzo-code-string: #15803d;
+    --arzo-code-number: #c2410c;
+    --arzo-code-property: #1d4ed8;
+    --arzo-code-tag: #be123c;
+    --arzo-code-attr: #a16207;
+    --arzo-code-operator: #0e7490;
+}
+
 @media (prefers-reduced-motion: reduce) {
     :root {
         --arzo-transition-fast: 0ms;

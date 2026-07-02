@@ -65,5 +65,30 @@
 				},
 			});
 		});
+
+		// Theme toggle — flips the body class live and persists per user.
+		if (payload.themeNonce && payload.ajaxUrl) {
+			store.registerCommand({
+				name: 'wp-arzo/toggle-theme',
+				label: payload.themeLabel || 'WP Arzo: toggle light / dark theme',
+				searchLabel: (payload.group || 'WP Arzo') + ' theme light dark toggle',
+				icon: dashicon('lightbulb'),
+				callback: function (args) {
+					if (args && typeof args.close === 'function') {
+						args.close();
+					}
+					var light = document.body.classList.toggle('wpa-theme-light');
+					var btn = document.getElementById('wpa-theme-toggle');
+					if (btn) {
+						btn.setAttribute('aria-pressed', light ? 'true' : 'false');
+					}
+					var body = new FormData();
+					body.append('action', 'wp_arzo_set_theme');
+					body.append('nonce', payload.themeNonce);
+					body.append('theme', light ? 'light' : 'dark');
+					window.fetch(payload.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' });
+				},
+			});
+		}
 	});
 })(window.wp);

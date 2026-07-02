@@ -1189,7 +1189,20 @@
     }
   }
 
-  function init() { bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSmtpPresets(); bindEmailConnections(); bindEmailOnboarding(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
+  // Light/dark theme toggle (brand bar). Flips the body class instantly,
+  // persists per-user via AJAX. The sun/moon glyphs swap in CSS.
+  function bindThemeToggle() {
+    var btn = document.getElementById('wpa-theme-toggle');
+    if (!btn) { return; }
+    btn.addEventListener('click', function () {
+      var light = document.body.classList.toggle('wpa-theme-light');
+      btn.setAttribute('aria-pressed', light ? 'true' : 'false');
+      apiPost('wp_arzo_set_theme', { nonce: cfg.nonce, theme: light ? 'light' : 'dark' })
+        .catch(function () { toast('Could not save the theme preference', 'error'); });
+    });
+  }
+
+  function init() { bindThemeToggle(); bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSmtpPresets(); bindEmailConnections(); bindEmailOnboarding(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
