@@ -137,6 +137,11 @@
 .wpa-btn--ghost { --_bg: transparent; --_fg: var(--arzo-text-secondary); border-color: var(--arzo-border); }
 .wpa-btn--ghost:hover { --_fg: var(--arzo-text-primary); background: var(--arzo-bg-hover); filter: none; }
 .wpa-btn--danger { --_bg: var(--arzo-error); --_fg: var(--arzo-white); }
+/* Soft danger — red glyph on a transparent/bordered button that FILLS red on hover.
+   The modern pattern for row-level & secondary destructive actions (delete a row,
+   clear a log, revoke a key): reads red (= caution) without a wall of filled buttons. */
+.wpa-btn--danger-soft { --_bg: transparent; --_fg: var(--arzo-error); border-color: var(--arzo-border); }
+.wpa-btn--danger-soft:hover { --_bg: var(--arzo-error); --_fg: var(--arzo-white); border-color: var(--arzo-error); filter: none; }
 .wpa-btn--sm { padding: 6px 10px; font-size: var(--arzo-fs-sm); }
 .wpa-btn--lg { padding: 13px 22px; font-size: var(--arzo-fs-lg); }
 .wpa-btn--icon { padding: 8px; }

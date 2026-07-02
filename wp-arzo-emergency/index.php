@@ -1648,7 +1648,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                         <form method="post" onsubmit="return confirm('Delete all transients (cached temporary options)?');">
                             <input type="hidden" name="action" value="clear_transients">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                            <button type="submit" class="btn btn-secondary"><?php echo arzo_em_icon('power'); ?> Clear all transients</button>
+                            <button type="submit" class="btn btn-danger"><?php echo arzo_em_icon('power'); ?> Clear all transients</button>
                         </form>
                     </div>
                 </div>

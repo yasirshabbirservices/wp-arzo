@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.101.1
+Stable tag: 6.102.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.102.0 =
+* Added: semantic action colors (color = intent) — destructive/delete/clear buttons now read red
+  across the dashboard, console and Emergency tool; new subtle `.wpa-btn--danger-soft` row style
+* Changed: delete-row / Clear log / Revoke buttons turned red; more console buttons gained icons
 
 = 6.101.1 =
 * Fixed: the `hidden` attribute now correctly hides wpa- buttons/tabs/badges (a class-set display

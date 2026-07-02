@@ -219,7 +219,7 @@ function handleDebug()
                     <?php endforeach; ?>
                 </div>
 
-                <button type="submit" name="update_debug_settings" class="btn" style="margin-top: 15px;">Update Debug
+                <button type="submit" name="update_debug_settings" class="btn" style="margin-top: 15px;"><i class="fas fa-save"></i> Update Debug
                     Settings</button>
             </form>
         <?php endif; ?>
