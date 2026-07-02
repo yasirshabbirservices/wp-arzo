@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.91.0] — 2026-07-02
+
+### Changed — Modern tabs + design-token/state sweep
+
+- **`.wpa-tabs` rebuilt as a modern segmented tablist** — pill tabs on a raised bordered
+  track with the full interaction-state set: hover (surface tint), pressed (subtle push),
+  **focus-visible** (accent ring), selected (accent-soft pill + inset ring + scale-in
+  entrance animation, reduced-motion aware), and disabled. Applies instantly to every
+  tabbed page: Email, Backups, Settings hub, and the Pro Cron Manager. Active tab links now
+  also carry `aria-current="page"`.
+- **Command palette entries themed** — WP Arzo commands in the Ctrl/⌘-K palette now show
+  their icon in the brand accent, driven by `var(--arzo-accent)` (design-tokens.css is
+  enqueued admin-wide alongside the palette bridge; it's pure `:root` variables). The
+  icon's inline styles moved to CSS (`.wpa-cmd-icon`).
+- **Zero-hardcoded-values sweep**: new tokens `--arzo-white` and a `--arzo-code-*` syntax
+  palette; the CodeMirror snippet-editor theme, toggle thumb, and danger-button text now
+  reference tokens instead of raw hex. New `.wpa-badge--accent` modifier.
+
 ## [6.90.0] — 2026-07-02
 
 ### Changed — Advanced Cron Manager placeholder (Pro 1.38.0)

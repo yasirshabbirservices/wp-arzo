@@ -17,7 +17,7 @@ shared hosting, VPS, cloud, and enterprise WordPress setups. Everything is
 **WP Arzo Pro** add‑on lives in a separate private repo and registers extra modules into
 the same dashboard.
 
-- **Current version:** 6.90.0 (see [CHANGELOG.md](CHANGELOG.md))
+- **Current version:** 6.91.0 (see [CHANGELOG.md](CHANGELOG.md))
 - **Requires:** WordPress ≥ 5.0, PHP ≥ 7.2
 - **Architecture & conventions for contributors / AI agents:** [CLAUDE.md](CLAUDE.md)
 - **Design system:** [.claude/design.md](.claude/design.md)

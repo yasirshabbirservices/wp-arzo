@@ -130,7 +130,7 @@
 .wpa-btn--secondary { --_bg: var(--arzo-bg-hover); --_fg: var(--arzo-text-primary); border-color: var(--arzo-border-strong); }
 .wpa-btn--ghost { --_bg: transparent; --_fg: var(--arzo-text-secondary); border-color: var(--arzo-border); }
 .wpa-btn--ghost:hover { --_fg: var(--arzo-text-primary); background: var(--arzo-bg-hover); filter: none; }
-.wpa-btn--danger { --_bg: var(--arzo-error); --_fg: #fff; }
+.wpa-btn--danger { --_bg: var(--arzo-error); --_fg: var(--arzo-white); }
 .wpa-btn--sm { padding: 6px 10px; font-size: var(--arzo-fs-sm); }
 .wpa-btn--lg { padding: 13px 22px; font-size: var(--arzo-fs-lg); }
 .wpa-btn--icon { padding: 8px; }
@@ -172,7 +172,7 @@
   left: 3px;
   width: 18px;
   height: 18px;
-  background: #fff;
+  background: var(--arzo-white);
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   transition: transform var(--arzo-transition);
@@ -275,6 +275,7 @@
 .wpa-badge--warning { background: var(--arzo-warning-soft); color: var(--arzo-warning); }
 .wpa-badge--info    { background: var(--arzo-info-soft);    color: var(--arzo-info); }
 .wpa-badge--neutral { background: var(--arzo-neutral-soft); color: var(--arzo-text-secondary); }
+.wpa-badge--accent  { background: var(--arzo-accent-soft);  color: var(--arzo-accent); }
 
 /* ===================== Checkbox chips (multi-select) ================== */
 /* A row of selectable chips for "supports / post types / …" multi-checkboxes —
@@ -550,20 +551,48 @@
 @keyframes wpa-slide-in { from { transform: translateX(24px); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
 
 /* ------------------------------------------------------------- Tabs
-   In-page tab navigation (e.g. the unified Email page: Connections / Logs / Settings). */
+   In-page tab navigation (Email / Backups / Settings hub / Pro Cron …).
+   Modern segmented tablist: pill tabs on a raised track, full state set
+   (hover / pressed / focus-visible / selected / disabled) — tokens only. */
 .wpa-tabs {
-  display: flex; gap: var(--arzo-space-1);
-  border-bottom: 1px solid var(--arzo-border);
+  display: inline-flex; flex-wrap: wrap; gap: var(--arzo-space-1);
+  padding: var(--arzo-space-1);
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius-lg);
   margin-bottom: var(--arzo-space-4);
+  max-width: 100%;
 }
 .wpa-tab {
+  position: relative;
   display: inline-flex; align-items: center; gap: var(--arzo-space-2);
-  padding: var(--arzo-space-3) var(--arzo-space-4);
+  padding: var(--arzo-space-2) var(--arzo-space-4);
   color: var(--arzo-text-secondary); text-decoration: none;
-  border-bottom: 2px solid transparent; margin-bottom: -1px;
-  font-weight: 600; font-size: var(--arzo-fs-md);
-  transition: color var(--arzo-transition) ease, border-color var(--arzo-transition) ease;
+  border-radius: calc(var(--arzo-radius-lg) - var(--arzo-space-1));
+  font-weight: 600; font-size: var(--arzo-fs-md); line-height: 1.4;
+  transition:
+    color var(--arzo-transition) ease,
+    background-color var(--arzo-transition) ease,
+    box-shadow var(--arzo-transition) ease,
+    transform var(--arzo-transition-fast) ease;
 }
-.wpa-tab:hover { color: var(--arzo-text-primary); }
-.wpa-tab.is-active { color: var(--arzo-accent); border-bottom-color: var(--arzo-accent); }
-.wpa-tab .wpa-icon { color: currentColor; }
+.wpa-tab:hover {
+  color: var(--arzo-text-primary);
+  background: var(--arzo-bg-hover);
+}
+.wpa-tab:active { transform: translateY(1px); }
+.wpa-tab:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); z-index: 1; }
+.wpa-tab.is-active {
+  color: var(--arzo-accent);
+  background: var(--arzo-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--arzo-accent-ring);
+  animation: wpa-tab-in var(--arzo-transition) ease;
+}
+.wpa-tab.is-active:hover { color: var(--arzo-accent); background: var(--arzo-accent-soft); }
+.wpa-tab.is-active:focus-visible { box-shadow: var(--arzo-focus-ring), inset 0 0 0 1px var(--arzo-accent-ring); }
+.wpa-tab[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.wpa-tab .wpa-icon { color: currentColor; flex-shrink: 0; }
+@keyframes wpa-tab-in {
+  from { transform: scale(.94); opacity: .6; }
+  to   { transform: scale(1);   opacity: 1; }
+}

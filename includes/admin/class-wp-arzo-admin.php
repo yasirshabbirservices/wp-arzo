@@ -375,6 +375,14 @@ class WP_Arzo_Admin
             'group'    => __('WP Arzo', 'wp-arzo'),
             'commands' => $this->command_palette_items(),
         ));
+        // Brand-theme our palette entries: design-tokens.css is pure :root variables
+        // (safe admin-wide), so the icon rule below can use the accent token instead
+        // of a hardcoded color. Never restyle core's own palette layout.
+        wp_enqueue_style('wp-arzo-tokens', $this->asset_url('assets/css/design-tokens.css'), array(), null);
+        wp_add_inline_style(
+            'wp-arzo-tokens',
+            '.commands-command-menu .wpa-cmd-icon{font-size:20px;width:20px;height:20px;color:var(--arzo-accent);}'
+        );
     }
 
     /**
@@ -1219,9 +1227,10 @@ class WP_Arzo_Admin
             echo '<nav class="wpa-tabs" aria-label="Backups">';
             foreach ($tabs as $key => $t) {
                 printf(
-                    '<a class="wpa-tab%s" href="%s">%s<span>%s</span></a>',
+                    '<a class="wpa-tab%s" href="%s"%s>%s<span>%s</span></a>',
                     $key === $tab ? ' is-active' : '',
                     esc_url(add_query_arg('tab', $key, $base)),
+                    $key === $tab ? ' aria-current="page"' : '',
                     wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')),
                     esc_html($t['label'])
                 );
@@ -1698,9 +1707,10 @@ class WP_Arzo_Admin
         echo '<nav class="wpa-tabs" aria-label="Email tools">';
         foreach ($tabs as $key => $t) {
             printf(
-                '<a class="wpa-tab%s" href="%s">%s<span>%s</span></a>',
+                '<a class="wpa-tab%s" href="%s"%s>%s<span>%s</span></a>',
                 $key === $tab ? ' is-active' : '',
                 esc_url(add_query_arg('tab', $key, $base)),
+                $key === $tab ? ' aria-current="page"' : '',
                 wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')),
                 esc_html($t['label'])
             );

@@ -31,8 +31,9 @@
 			return undefined;
 		}
 		return createElement('span', {
-			className: 'dashicons dashicons-' + name,
-			style: { fontSize: '20px', width: '20px', height: '20px' },
+			// Sizing + brand-accent color live in CSS (var(--arzo-accent)) — see
+			// enqueue_command_palette(); no inline styles, tokens only.
+			className: 'dashicons dashicons-' + name + ' wpa-cmd-icon',
 			'aria-hidden': 'true',
 		});
 	}

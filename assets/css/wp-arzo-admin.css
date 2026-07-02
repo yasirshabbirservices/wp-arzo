@@ -746,15 +746,15 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
 .wpa-code-app .CodeMirror-selected { background: rgba(255, 255, 255, 0.08); }
 .wpa-code-app .CodeMirror-activeline-background { background: rgba(255, 255, 255, 0.03); }
 .wpa-code-app .cm-comment { color: var(--arzo-text-muted); font-style: italic; }
-.wpa-code-app .cm-keyword, .wpa-code-app .cm-builtin { color: #c792ea; }
-.wpa-code-app .cm-string, .wpa-code-app .cm-string-2 { color: #c3e88d; }
-.wpa-code-app .cm-number, .wpa-code-app .cm-atom { color: #f78c6c; }
+.wpa-code-app .cm-keyword, .wpa-code-app .cm-builtin { color: var(--arzo-code-keyword); }
+.wpa-code-app .cm-string, .wpa-code-app .cm-string-2 { color: var(--arzo-code-string); }
+.wpa-code-app .cm-number, .wpa-code-app .cm-atom { color: var(--arzo-code-number); }
 .wpa-code-app .cm-variable, .wpa-code-app .cm-variable-2 { color: var(--arzo-text-primary); }
-.wpa-code-app .cm-property { color: #82aaff; }
-.wpa-code-app .cm-tag { color: #f07178; }
-.wpa-code-app .cm-attribute { color: #ffcb6b; }
-.wpa-code-app .cm-def { color: #82aaff; }
-.wpa-code-app .cm-operator { color: #89ddff; }
+.wpa-code-app .cm-property { color: var(--arzo-code-property); }
+.wpa-code-app .cm-tag { color: var(--arzo-code-tag); }
+.wpa-code-app .cm-attribute { color: var(--arzo-code-attr); }
+.wpa-code-app .cm-def { color: var(--arzo-code-property); }
+.wpa-code-app .cm-operator { color: var(--arzo-code-operator); }
 
 /* Snippet list sidebar */
 .wpa-code-app__list {
