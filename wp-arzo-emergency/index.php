@@ -43,7 +43,13 @@ if (!defined('WP_ARZO_EMERGENCY_VERSION')) {
 }
 define('WP_ARZO_EMERGENCY_DIR', __DIR__);
 define('WP_ARZO_CONFIG_FILE', dirname(__DIR__) . '/arzo-safe.php');
-define('WP_CONTENT_DIR', dirname(dirname(dirname(__DIR__))) . '/wp-content');
+// This file lives at …/wp-content/plugins/wp-arzo/wp-arzo-emergency/, so three
+// dirname() hops already land on wp-content. (The previous definition appended an
+// extra "/wp-content", pointing at a non-existent wp-content/wp-content — which is
+// why the Plugins/Themes lists came up empty.)
+if (!defined('WP_CONTENT_DIR')) {
+    define('WP_CONTENT_DIR', dirname(dirname(dirname(__DIR__))));
+}
 
 // Start Session
 if (session_status() === PHP_SESSION_NONE) {
@@ -317,6 +323,33 @@ function get_asset_url($path)
     return $base_path;
 }
 
+// Helper: inline SVG icons. The emergency tool can't load the Font Awesome CDN
+// (its own CSP blocks external scripts/styles), so it ships its own tiny set of
+// stroke icons — same visual language as the plugin dashboard, currentColor-driven.
+function arzo_em_icon($name, $size = 16)
+{
+    $paths = [
+        'dashboard' => '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+        'plugin'    => '<path d="M6 3v4M10 3v4M4 7h8v4a4 4 0 0 1-8 0V7Z"/><path d="M8 15v6"/>',
+        'theme'     => '<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10.5" r="1"/><circle cx="15.5" cy="10.5" r="1"/><circle cx="12" cy="15.5" r="1"/>',
+        'users'     => '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3 3 0 0 1 0 6M18 20a6 6 0 0 0-3-5.2"/>',
+        'settings'  => '<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="2" fill="currentColor" stroke="none"/>',
+        'check'     => '<path d="M5 12l5 5L20 7"/>',
+        'power'     => '<path d="M12 3v9"/><path d="M6.5 7a8 8 0 1 0 11 0"/>',
+        'key'       => '<circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M17 4l3 3M15 6l2 2"/>',
+        'upload'    => '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 20h14"/>',
+        'link'      => '<path d="M9 15l6-6"/><path d="M10 6l1-1a4 4 0 0 1 6 6l-1 1M14 18l-1 1a4 4 0 0 1-6-6l1-1"/>',
+        'life-ring' => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M5 5l3.5 3.5M15.5 15.5L19 19M19 5l-3.5 3.5M8.5 15.5L5 19"/>',
+        'left'      => '<path d="M15 5l-7 7 7 7"/>',
+        'right'     => '<path d="M9 5l7 7-7 7"/>',
+        'shield'    => '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z"/>',
+    ];
+    if (!isset($paths[$name])) return '';
+    return '<svg width="' . (int) $size . '" height="' . (int) $size . '" viewBox="0 0 24 24" fill="none" '
+        . 'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+        . 'style="vertical-align:middle;flex-shrink:0;" aria-hidden="true">' . $paths[$name] . '</svg>';
+}
+
 // Helper: Pagination
 function get_pagination_html($total_items, $items_per_page, $current_page, $base_url, $tab)
 {
@@ -337,7 +370,7 @@ function get_pagination_html($total_items, $items_per_page, $current_page, $base
     // Previous Button
     $disabled = ($current_page <= 1) ? 'disabled' : '';
     $prev_link = $disabled ? '#' : $base_url . "&tab=$tab&p=" . ($current_page - 1);
-    $html .= "<button onclick=\"location.href='$prev_link'\" $disabled><i class=\"fas fa-chevron-left\"></i> Previous</button>";
+    $html .= "<button onclick=\"location.href='$prev_link'\" $disabled>" . arzo_em_icon('left', 13) . " Previous</button>";
 
     // Page Numbers
     $start_page = max(1, $current_page - 2);
@@ -361,7 +394,7 @@ function get_pagination_html($total_items, $items_per_page, $current_page, $base
     // Next Button
     $disabled = ($current_page >= $total_pages) ? 'disabled' : '';
     $next_link = $disabled ? '#' : $base_url . "&tab=$tab&p=" . ($current_page + 1);
-    $html .= "<button onclick=\"location.href='$next_link'\" $disabled>Next <i class=\"fas fa-chevron-right\"></i></button>";
+    $html .= "<button onclick=\"location.href='$next_link'\" $disabled>Next " . arzo_em_icon('right', 13) . "</button>";
 
     $html .= '</div></div>';
     return $html;
@@ -749,7 +782,10 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .nav button {
-            padding: 9px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
             background: transparent;
             color: var(--muted-text);
             border: none;
@@ -887,15 +923,20 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .btn {
-            padding: 8px 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 9px 16px;
             background: var(--accent-color);
             color: var(--background-dark);
-            border: none;
-            border-radius: var(--radius-global);
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-weight: 500;
-            transition: 0.3s;
+            font-weight: 600;
+            transition: 0.2s;
             font-size: 13px;
+            font-family: inherit;
         }
 
         .btn:hover {
@@ -903,17 +944,36 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             color: var(--primary-text);
         }
 
+        .btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--accent-ring);
+        }
+
+        /* Secondary / ghost button — for non-primary actions (matches dashboard). */
+        .btn-secondary {
+            background: var(--background-elev);
+            color: var(--primary-text);
+            border-color: var(--border-light);
+        }
+
+        .btn-secondary:hover {
+            background: var(--background-light);
+            color: var(--accent-color);
+        }
+
         .btn-danger {
             background: var(--danger-color);
-            color: white;
+            color: #fff;
         }
 
         .btn-danger:hover {
             background: var(--danger-color);
+            color: #fff;
+            filter: brightness(1.08);
         }
 
         .btn-sm {
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 12px;
         }
 
@@ -1206,7 +1266,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     </div>
                     <input type="password" name="<?php echo $setup_mode ? 'new_password' : 'password'; ?>"
                         class="form-control" placeholder="Enter your password" required autofocus>
-                    <button type="submit" class="btn"><?php echo $setup_mode ? 'Create & Login' : 'Login'; ?></button>
+                    <button type="submit" class="btn"><?php echo arzo_em_icon($setup_mode ? 'check' : 'shield'); ?> <?php echo $setup_mode ? 'Create & Login' : 'Login'; ?></button>
                 </form>
             </div>
         </div>
@@ -1302,19 +1362,23 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                 $display_themes = array_slice($all_themes, $themes_offset, $items_per_page, true);
             ?>
 
-                <div class="nav">
-                    <button onclick="location.href='?tab=dashboard'"
-                        class="<?php echo $current_tab === 'dashboard' ? 'active' : ''; ?>"
-                        id="btn-dashboard">Dashboard</button>
-                    <button onclick="location.href='?tab=plugins'"
-                        class="<?php echo $current_tab === 'plugins' ? 'active' : ''; ?>" id="btn-plugins">Plugins</button>
-                    <button onclick="location.href='?tab=themes'"
-                        class="<?php echo $current_tab === 'themes' ? 'active' : ''; ?>" id="btn-themes">Themes</button>
-                    <button onclick="location.href='?tab=users'" class="<?php echo $current_tab === 'users' ? 'active' : ''; ?>"
-                        id="btn-users">Users</button>
-                    <button onclick="location.href='?tab=core'" class="<?php echo $current_tab === 'core' ? 'active' : ''; ?>"
-                        id="btn-core">Core Settings</button>
-                </div>
+                <nav class="nav" aria-label="Recovery sections">
+                    <?php
+                    $em_tabs = [
+                        'dashboard' => ['Dashboard', 'dashboard'],
+                        'plugins'   => ['Plugins', 'plugin'],
+                        'themes'    => ['Themes', 'theme'],
+                        'users'     => ['Users', 'users'],
+                        'core'      => ['Core Settings', 'settings'],
+                    ];
+                    foreach ($em_tabs as $em_key => $em_meta) {
+                        $em_active = ($current_tab === $em_key);
+                        echo '<button onclick="location.href=\'?tab=' . $em_key . '\'" class="' . ($em_active ? 'active' : '') . '" id="btn-' . $em_key . '"'
+                            . ($em_active ? ' aria-current="page"' : '') . '>'
+                            . arzo_em_icon($em_meta[1]) . '<span>' . htmlspecialchars($em_meta[0]) . '</span></button>';
+                    }
+                    ?>
+                </nav>
 
                 <!-- DASHBOARD -->
                 <div id="dashboard" class="content <?php echo $current_tab === 'dashboard' ? 'active' : ''; ?>">
@@ -1347,7 +1411,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                             onsubmit="return confirm('Deactivate ALL except WP Arzo?');">
                             <input type="hidden" name="action" value="deactivate_all_plugins">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                            <button type="submit" class="btn btn-danger">Bulk Deactivate All</button>
+                            <button type="submit" class="btn btn-danger"><?php echo arzo_em_icon('power'); ?> Bulk Deactivate All</button>
                         </form>
                     </div>
 
@@ -1365,7 +1429,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                                 </label>
                                 <span class="toggle-label">Activate immediately</span>
                             </div>
-                            <button type="submit" class="btn btn-sm" style="margin-top:10px;">Install</button>
+                            <button type="submit" class="btn btn-sm" style="margin-top:10px;"><?php echo arzo_em_icon('upload', 13); ?> Install</button>
                         </form>
                     </div>
 
@@ -1437,7 +1501,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                                 </label>
                                 <span class="toggle-label">Activate immediately</span>
                             </div>
-                            <button type="submit" class="btn btn-sm" style="margin-top:10px;">Install</button>
+                            <button type="submit" class="btn btn-sm" style="margin-top:10px;"><?php echo arzo_em_icon('upload', 13); ?> Install</button>
                         </form>
                     </div>
 
@@ -1495,20 +1559,18 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                 <div id="users" class="content <?php echo $current_tab === 'users' ? 'active' : ''; ?>">
                     <h2>User Management</h2>
 
-                    <div style="background:var(--background-elev); border:1px solid var(--border-color); padding:15px; margin-bottom:20px; border-radius:var(--radius-sm);">
-                        <h4>Create Administrator</h4>
+                    <div style="background:var(--background-elev); border:1px solid var(--border-color); padding:20px; margin-bottom:24px; border-radius:var(--radius-sm);">
+                        <h4 style="margin:0 0 4px;">Create Administrator</h4>
+                        <p style="color:var(--muted-text); font-size:12px; margin:0 0 16px;">Add a fresh administrator account to regain access. The password is re-hashed securely on the first successful login.</p>
                         <form method="post">
                             <input type="hidden" name="action" value="create_admin">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                                <div class="form-group"><label>Username</label><input type="text" name="username"
-                                        class="form-control" required></div>
-                                <div class="form-group"><label>Email</label><input type="email" name="email"
-                                        class="form-control" required></div>
-                                <div class="form-group"><label>Password</label><input type="text" name="password"
-                                        class="form-control" required></div>
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
+                                <div class="form-group" style="margin:0;"><label>Username</label><input type="text" name="username" class="form-control" required autocomplete="off"></div>
+                                <div class="form-group" style="margin:0;"><label>Email</label><input type="email" name="email" class="form-control" required autocomplete="off"></div>
+                                <div class="form-group" style="margin:0;"><label>Password</label><input type="text" name="password" class="form-control" required autocomplete="off"></div>
                             </div>
-                            <button type="submit" class="btn">Create Admin</button>
+                            <button type="submit" class="btn" style="margin-top:16px;"><?php echo arzo_em_icon('users'); ?> Create Admin</button>
                         </form>
                     </div>
 
@@ -1539,7 +1601,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                         <input type="text" name="new_pass" placeholder="New Pass" class="form-control"
                                             style="width:120px; padding:5px;" required>
-                                        <button type="submit" class="btn btn-sm">Reset</button>
+                                        <button type="submit" class="btn btn-sm"><?php echo arzo_em_icon('key', 13); ?> Reset</button>
                                     </form>
                                 </td>
                             </tr>
@@ -1567,7 +1629,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                             <input type="text" name="site_url" value="<?php echo htmlspecialchars($siteurl); ?>"
                                 class="form-control">
                         </div>
-                        <button type="submit" class="btn">Update URLs</button>
+                        <button type="submit" class="btn"><?php echo arzo_em_icon('link'); ?> Update URLs</button>
                     </form>
 
                     <h2 style="margin-top:30px;">Repair &amp; Recovery</h2>
@@ -1576,17 +1638,17 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                         <form method="post" onsubmit="return confirm('Switch the site to a default (Twenty*) theme?');">
                             <input type="hidden" name="action" value="switch_default_theme">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                            <button type="submit" class="btn">Switch to default theme</button>
+                            <button type="submit" class="btn btn-secondary"><?php echo arzo_em_icon('theme'); ?> Switch to default theme</button>
                         </form>
                         <form method="post" onsubmit="return confirm('Restore the default WordPress .htaccess? The current file is backed up first.');">
                             <input type="hidden" name="action" value="restore_htaccess">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                            <button type="submit" class="btn">Restore default .htaccess</button>
+                            <button type="submit" class="btn btn-secondary"><?php echo arzo_em_icon('shield'); ?> Restore default .htaccess</button>
                         </form>
                         <form method="post" onsubmit="return confirm('Delete all transients (cached temporary options)?');">
                             <input type="hidden" name="action" value="clear_transients">
                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                            <button type="submit" class="btn">Clear all transients</button>
+                            <button type="submit" class="btn btn-secondary"><?php echo arzo_em_icon('power'); ?> Clear all transients</button>
                         </form>
                     </div>
                 </div>

@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.100.0
+Stable tag: 6.101.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,15 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.101.0 =
+* Fixed: Emergency tool Plugins & Themes tabs were always empty (WP_CONTENT_DIR resolved one
+  level too deep) — both lists populate again
+* Changed: Emergency tool gains a full inline-SVG icon set across its nav + every button, a
+  rebuilt Create Administrator form, and consistent login/setup styling
+* Changed: Temporary Logins Role/Expires selects use the branded dropdown; Snippets Import/Export
+  moved into a clean modal; more console buttons gained icons; global checkbox glyph re-centered
+* Added: documented a repo-wide "Surface Consistency Bar" (trigger phrase "arzo consistency pass")
 
 = 6.100.0 =
 * Changed: Emergency recovery page redesigned to match the dashboard — segmented pill tabs,

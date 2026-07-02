@@ -4,6 +4,42 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.101.0] — 2026-07-03
+
+### Added — Surface Consistency Bar (standing directive + trigger phrase)
+
+- Documented a repo-wide **Surface Consistency Bar** in CLAUDE.md with the reusable trigger
+  phrase **"arzo consistency pass"** — one line the maintainer can drop in any session to bring
+  any surface (console, emergency tool, public pages, Free/Pro feature page) to exact dashboard
+  parity: same dark tokens (inputs sink to `--arzo-bg-input`, never the lighter gray), same
+  `wpa-` components (segmented `.wpa-tabs`, `.wpa-btn`, `.wpa-select`, `.wpa-modal`/`.wpa-drawer`),
+  real icons on every control (**icon-first / icon-only where sensible**), full interaction
+  states + WCAG 2.2 AA, sensible ordering, and conditional/self-cleaning controls.
+
+### Fixed
+
+- **Emergency tool: Plugins & Themes tabs were always empty.** `WP_CONTENT_DIR` was defined one
+  level too deep (`…/wp-content/wp-content`), so the plugin/theme/upload paths never resolved.
+  Now points at the real `wp-content`; both lists populate again.
+
+### Changed — Emergency tool + console consistency + icons
+
+- **Emergency recovery tool** (`wp-arzo-emergency/index.php`): ships its own inline-SVG icon set
+  (`arzo_em_icon()` — the CSP blocks the FA CDN) and uses it across the **nav tabs and every
+  button** (Bulk Deactivate, Install, Create Admin, Reset, Update URLs, repair actions, login).
+  The **Create Administrator** form is rebuilt into a clean responsive grid with helper text;
+  repair actions become secondary buttons; the login/setup button gains an icon; broken FA
+  pagination chevrons replaced with real SVGs; `.btn` gains inline-flex + `.btn-secondary`.
+- **Temporary Logins**: the Role / Expires **native selects become the branded `.wpa-select`**
+  listbox (via `data-wpa-select`; the console loads `wp-arzo-components.js`), and the Generate
+  button gains an icon.
+- **Snippets header**: the inline "Choose File" clutter is gone — **Import & Export now live in a
+  `.wpa-modal`** opened from a single "Import / Export" button (new `exchange` icon), leaving a
+  clean two-button header.
+- **Extra Options**: Update Limits / Reset to Defaults buttons gain icons (representative of the
+  ongoing console icon sweep).
+- **Global checkbox glyph** re-centered (optical nudge) across every WP Arzo surface.
+
 ## [6.100.0] — 2026-07-02
 
 ### Changed — Emergency page redesign + console/public surface consistency

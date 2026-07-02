@@ -437,13 +437,13 @@ function handleExtraOptions()
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="submit" name="update_php_limits" class="btn" style="flex: 1;">Update Limits</button>
+                    <button type="submit" name="update_php_limits" class="btn" style="flex: 1;"><i class="fas fa-save"></i> Update Limits</button>
                     <button type="submit" name="reset_php_limits" class="btn"
                         style="background-color: transparent; border: 1px solid var(--arzo-border-strong); color: var(--arzo-text-secondary); flex:1;"
                         onclick="return confirm('Are you sure you want to reset to default PHP limits?');"
                         onmouseover="this.style.borderColor='var(--arzo-border-strong)'; this.style.color='var(--arzo-text-strong)';"
                         onmouseout="this.style.borderColor='var(--arzo-border)'; this.style.color='var(--arzo-text-secondary)';">
-                        Reset to Defaults
+                        <i class="fas fa-rotate-left"></i> Reset to Defaults
                     </button>
                 </div>
             </form>

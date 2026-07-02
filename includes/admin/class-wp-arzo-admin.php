@@ -2506,18 +2506,54 @@ class WP_Arzo_Admin
                 <p class="wpa-admin__subtitle"><strong><?php echo count($snippets); ?></strong> snippet(s)<?php echo $enabled ? '' : ' · the “Code Snippets” feature is OFF, so nothing runs (enable it on the dashboard)'; ?></p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-                <?php if (!empty($snippets)) : ?>
-                    <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_snippets_export'), self::NONCE_SNIPPETS)); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</a>
-                <?php endif; ?>
-                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data" style="margin:0;display:inline-flex;gap:6px;align-items:center;">
-                    <input type="hidden" name="action" value="wp_arzo_snippets_import">
-                    <?php wp_nonce_field('wp_arzo_snippets_import'); ?>
-                    <input type="file" name="snippets_file" accept="application/json,.json" required style="max-width:170px;color:var(--arzo-text-muted);font-size:12px;">
-                    <button type="submit" class="wpa-btn wpa-btn--ghost"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</button>
-                </form>
+                <button type="button" class="wpa-btn wpa-btn--ghost" id="wpa-snip-io-open" aria-haspopup="dialog"><?php echo wp_arzo_icon('exchange', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import / Export</button>
                 <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url($base); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> New snippet</a>
             </div>
         </div>
+
+        <?php // Import / Export — consolidated into one modal so the header stays clean. ?>
+        <div class="wpa-modal" id="wpa-snip-io" hidden>
+            <div class="wpa-modal__backdrop" data-snip-close></div>
+            <div class="wpa-modal__panel" role="dialog" aria-modal="true" aria-labelledby="wpa-snip-io-title" style="max-width:520px;">
+                <div class="wpa-modal__head">
+                    <h2 id="wpa-snip-io-title"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import / Export snippets</h2>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-snip-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                </div>
+                <div style="padding:var(--arzo-space-5);display:grid;gap:var(--arzo-space-5);">
+                    <div>
+                        <h3 style="margin:0 0 6px;font-size:var(--arzo-fs-md);color:var(--arzo-text-strong);">Export</h3>
+                        <p style="margin:0 0 12px;font-size:var(--arzo-fs-sm);color:var(--arzo-text-secondary);">Download every snippet as a portable JSON file you can import elsewhere.</p>
+                        <?php if (!empty($snippets)) : ?>
+                            <a class="wpa-btn wpa-btn--secondary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_snippets_export'), self::NONCE_SNIPPETS)); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export <?php echo (int) count($snippets); ?> snippet(s)</a>
+                        <?php else : ?>
+                            <p style="margin:0;font-size:var(--arzo-fs-sm);color:var(--arzo-text-muted);">No snippets to export yet.</p>
+                        <?php endif; ?>
+                    </div>
+                    <div style="border-top:1px solid var(--arzo-border);padding-top:var(--arzo-space-5);">
+                        <h3 style="margin:0 0 6px;font-size:var(--arzo-fs-md);color:var(--arzo-text-strong);">Import</h3>
+                        <p style="margin:0 0 12px;font-size:var(--arzo-fs-sm);color:var(--arzo-text-secondary);">Upload a WP Arzo snippets JSON. Imported snippets are added <strong>disabled</strong> — review, then enable them.</p>
+                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data" style="display:grid;gap:12px;">
+                            <input type="hidden" name="action" value="wp_arzo_snippets_import">
+                            <?php wp_nonce_field('wp_arzo_snippets_import'); ?>
+                            <input type="file" name="snippets_file" accept="application/json,.json" required class="wpa-input" style="padding:8px;">
+                            <div><button type="submit" class="wpa-btn wpa-btn--primary"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import snippets</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                var openBtn = document.getElementById('wpa-snip-io-open'),
+                    modal = document.getElementById('wpa-snip-io');
+                if (!openBtn || !modal) { return; }
+                function show() { modal.hidden = false; }
+                function hide() { modal.hidden = true; }
+                openBtn.addEventListener('click', show);
+                modal.addEventListener('click', function (e) { if (e.target.closest('[data-snip-close]')) { hide(); } });
+                document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) { hide(); } });
+            })();
+        </script>
         <?php if ($saved) : ?>
             <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Snippet saved.</div>
         <?php endif; ?>
