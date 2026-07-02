@@ -4,6 +4,26 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.94.0] — 2026-07-02
+
+### Added — Automatic file restore (completes the file-snapshot loop)
+
+- Restoring a snapshot that contains file components now offers to **restore the files
+  too**: uploads / plugins / themes are extracted back over the live site. Safety-first
+  and explicit:
+  - A **safety snapshot with the same file components** is taken before anything is
+    overwritten — so a file restore is itself undoable.
+  - **Non-destructive**: existing files are overwritten from the archive, files added
+    since the snapshot are left in place.
+  - **Config is never auto-restored** — a wrong `wp-config.php` bricks a site; those
+    entries are counted and reported, apply them manually from the snapshot ZIP.
+  - **Zip-slip safe**: every archive entry passes a strict path mapper (component
+    allowlist, no `..`/`.`/absolute/drive-letter segments — 13-check harness) plus a
+    realpath containment check; files are written beside the target and swapped, never
+    half-written in place.
+- The restore result reports exact counts (restored / failed / config skipped) in the
+  toast and the AJAX payload.
+
 ## [6.93.0] — 2026-07-02
 
 ### Added — File snapshots + snapshot diff view (Backups enrichment, Tier 1)

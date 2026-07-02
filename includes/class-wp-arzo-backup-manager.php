@@ -500,12 +500,21 @@ class WP_Arzo_Backup_Manager
 
     /* ----------------------------------------------------------- Restore */
 
+    /** Result of the file-restore half of the last restore() call (array|null). */
+    public $last_files_result = null;
+
     /**
-     * Restore a snapshot. Takes a safety snapshot of the same scope first.
+     * Restore a snapshot. Takes a safety snapshot of the same scope (and, when
+     * restoring files, the same file components) first.
      *
+     * @param string $id
+     * @param bool   $include_files Also extract the snapshot's file components
+     *                              (uploads/plugins/themes). Config files are NEVER
+     *                              auto-restored. File-restore details land in
+     *                              $this->last_files_result.
      * @return true|WP_Error
      */
-    public function restore($id)
+    public function restore($id, $include_files = false)
     {
         global $wpdb;
 
@@ -514,8 +523,10 @@ class WP_Arzo_Backup_Manager
             return new WP_Error('wp_arzo_backup_missing', 'Snapshot not found.');
         }
 
-        // Safety snapshot before we mutate anything.
-        $this->create($manifest['scope'], 'Auto safety snapshot before restore', 'pre_restore');
+        // Safety snapshot before we mutate anything — same scope, and the same file
+        // components when those are about to be overwritten too.
+        $safety_components = $include_files ? array_values(array_diff((array) ($manifest['components'] ?? array()), array('config'))) : array();
+        $this->create($manifest['scope'], 'Auto safety snapshot before restore', 'pre_restore', $safety_components);
 
         $dir = $this->snapshot_dir($manifest['id']);
         $use_gz = !empty($manifest['gzip']);
@@ -566,7 +577,131 @@ class WP_Arzo_Backup_Manager
             wp_cache_flush();
         }
 
+        $this->last_files_result = null;
+        if ($include_files) {
+            $fr = $this->restore_files($id);
+            $this->last_files_result = is_wp_error($fr) ? array('error' => $fr->get_error_message()) : $fr;
+        }
+
         return true;
+    }
+
+    /**
+     * Pure mapper for a files.zip entry name → component + relative path.
+     * Returns null for anything unsafe or unknown: directory entries, unknown
+     * component prefixes, absolute paths, drive letters, or any '.'/'..' segment.
+     */
+    public static function map_zip_entry($name)
+    {
+        $name = str_replace('\\', '/', (string) $name);
+        if ($name === '' || substr($name, -1) === '/') {
+            return null; // directory entry
+        }
+        if (!preg_match('#^(uploads|plugins|themes|config)/(.+)$#', $name, $m)) {
+            return null;
+        }
+        $rel = $m[2];
+        if (strpos($rel, ':') !== false || $rel[0] === '/') {
+            return null;
+        }
+        foreach (explode('/', $rel) as $seg) {
+            if ($seg === '' || $seg === '.' || $seg === '..') {
+                return null;
+            }
+        }
+        return array('component' => $m[1], 'rel' => $rel);
+    }
+
+    /**
+     * Extract a snapshot's files.zip back over the live site (uploads / plugins /
+     * themes). Non-destructive: files added since the snapshot are left in place.
+     * Config entries are counted but NEVER written (a wrong wp-config bricks the
+     * site — download the snapshot to apply those manually). Zip-slip safe:
+     * every entry passes map_zip_entry() + a realpath containment check.
+     *
+     * @return array{restored:int,failed:int,config_skipped:int}|WP_Error
+     */
+    public function restore_files($id)
+    {
+        $manifest = $this->get_snapshot($id);
+        if (!$manifest) {
+            return new WP_Error('wp_arzo_backup_missing', 'Snapshot not found.');
+        }
+        $zip_path = $this->snapshot_dir($manifest['id']) . '/files.zip';
+        if (!is_file($zip_path)) {
+            return new WP_Error('wp_arzo_restore_nofiles', 'This snapshot has no file archive.');
+        }
+        if (!class_exists('ZipArchive')) {
+            return new WP_Error('wp_arzo_restore_nozip', 'ZipArchive is not available on this server.');
+        }
+        $zip = new ZipArchive();
+        if ($zip->open($zip_path) !== true) {
+            return new WP_Error('wp_arzo_restore_zipopen', 'Could not open the snapshot file archive.');
+        }
+
+        $roots = $this->component_roots();
+        $out   = array('restored' => 0, 'failed' => 0, 'config_skipped' => 0);
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            $map  = self::map_zip_entry($name);
+            if (!$map) {
+                continue;
+            }
+            if ($map['component'] === 'config') {
+                $out['config_skipped']++;
+                continue;
+            }
+            $root = isset($roots[$map['component']]) ? $roots[$map['component']] : '';
+            if ($root === '' || !is_dir($root)) {
+                $out['failed']++;
+                continue;
+            }
+            $target = $root . $map['rel'];
+            if (!wp_mkdir_p(dirname($target))) {
+                $out['failed']++;
+                continue;
+            }
+            // Belt-and-braces containment (segments already validated above).
+            $real_dir  = realpath(dirname($target));
+            $real_root = realpath($root);
+            if (!$real_dir || !$real_root || strpos(str_replace('\\', '/', $real_dir) . '/', str_replace('\\', '/', $real_root) . '/') !== 0) {
+                $out['failed']++;
+                continue;
+            }
+            $in = $zip->getStream($name);
+            if (!$in) {
+                $out['failed']++;
+                continue;
+            }
+            // Write beside, then swap — never leave a half-written live file.
+            $tmp   = $target . '.wpa-tmp';
+            $outfh = @fopen($tmp, 'wb');
+            if (!$outfh) {
+                fclose($in);
+                $out['failed']++;
+                continue;
+            }
+            stream_copy_to_stream($in, $outfh);
+            fclose($in);
+            fclose($outfh);
+            if (!@rename($tmp, $target)) {
+                // Windows can refuse rename-over-existing; fall back to copy.
+                if (!@copy($tmp, $target)) {
+                    @unlink($tmp);
+                    $out['failed']++;
+                    continue;
+                }
+                @unlink($tmp);
+            }
+            $out['restored']++;
+        }
+
+        $zip->close();
+        if (function_exists('wp_cache_flush')) {
+            wp_cache_flush();
+        }
+        return $out;
     }
 
     /* ------------------------------------------------ Import (remote restore) */

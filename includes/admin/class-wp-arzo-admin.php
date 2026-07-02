@@ -1373,7 +1373,7 @@ class WP_Arzo_Admin
     {
         $scope_label = ($s['scope'] === 'full_db') ? 'Full DB' : 'Options';
         ?>
-        <tr data-snapshot="<?php echo esc_attr($s['id']); ?>">
+        <tr data-snapshot="<?php echo esc_attr($s['id']); ?>" data-components="<?php echo esc_attr(implode(',', array_diff((array) ($s['components'] ?? array()), array('config')))); ?>">
             <td>
                 <strong><?php echo esc_html($s['label']); ?></strong>
                 <div class="wpa-backup-meta"><?php echo (int) ($s['row_total'] ?? 0); ?> rows · <?php echo (int) ($s['table_count'] ?? 0); ?> table(s)<?php if (!empty($s['file_count'])) : ?> · <?php echo (int) $s['file_count']; ?> file(s)<?php endif; ?></div>
@@ -1446,11 +1446,26 @@ class WP_Arzo_Admin
     {
         $this->verify_backup_request();
         $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
-        $result = WP_Arzo_Backup_Manager::instance()->restore($id);
+        $include_files = !empty($_POST['include_files']);
+        $manager = WP_Arzo_Backup_Manager::instance();
+        $result  = $manager->restore($id, $include_files);
         if (is_wp_error($result)) {
             wp_send_json_error(array('message' => $result->get_error_message()), 500);
         }
-        wp_send_json_success(array('message' => 'Snapshot restored.'));
+        $msg = 'Snapshot restored.';
+        $fr  = $manager->last_files_result;
+        if (is_array($fr)) {
+            if (!empty($fr['error'])) {
+                $msg .= ' Files: ' . $fr['error'];
+            } else {
+                $msg .= sprintf(' Files: %d restored%s%s.',
+                    (int) $fr['restored'],
+                    !empty($fr['failed']) ? ', ' . (int) $fr['failed'] . ' failed' : '',
+                    !empty($fr['config_skipped']) ? ', config skipped (never auto-restored)' : ''
+                );
+            }
+        }
+        wp_send_json_success(array('message' => $msg, 'files' => $fr));
     }
 
     public function ajax_backup_delete()
