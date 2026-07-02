@@ -286,6 +286,64 @@
 body.wpa-theme-light .wpa-theme-ico--moon { display: inline-block; }
 body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 
+/* ======================= Progress (linear + ring) =====================
+   One progress language everywhere. Pick by context:
+   - .wpa-progress + width%          → determinate (known %)
+   - + .wpa-progress--indeterminate  → unknown-duration operation (shimmer)
+   - .wpa-progress__seg spans        → stacked ratio meter (e.g. sent/failed)
+   - .wpa-ring (--p: 0–100)          → compact single-metric dial
+   Always set role="progressbar" + aria-value* (or aria-label for shimmer). */
+.wpa-progress {
+  height: 8px;
+  background: var(--arzo-bg-input);
+  border-radius: var(--arzo-radius-pill);
+  overflow: hidden;
+  position: relative;
+}
+.wpa-progress--sm { height: 5px; }
+.wpa-progress--lg { height: 12px; }
+.wpa-progress__bar {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--arzo-accent);
+  transition: width var(--arzo-transition-slow) ease;
+  display: flex;
+}
+.wpa-progress__bar--success { background: var(--arzo-success); }
+.wpa-progress__bar--warning { background: var(--arzo-warning); }
+.wpa-progress__bar--error   { background: var(--arzo-error); }
+.wpa-progress__seg { height: 100%; }
+.wpa-progress__label { margin-top: var(--arzo-space-2); color: var(--arzo-text-secondary); font-size: var(--arzo-fs-sm); }
+.wpa-progress--indeterminate .wpa-progress__bar {
+  position: absolute; top: 0; bottom: 0;
+  width: 38%;
+  animation: wpa-progress-slide 1.1s ease-in-out infinite;
+}
+@keyframes wpa-progress-slide {
+  from { left: -40%; }
+  to   { left: 102%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wpa-progress--indeterminate .wpa-progress__bar { animation: none; left: 0; width: 100%; opacity: 0.45; }
+}
+.wpa-ring {
+  --p: 0;
+  width: 48px; height: 48px; flex-shrink: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--arzo-accent) calc(var(--p) * 1%), var(--arzo-bg-input) 0);
+  display: grid; place-content: center;
+  position: relative;
+}
+.wpa-ring::before {
+  content: ""; position: absolute; inset: 5px;
+  border-radius: 50%;
+  background: var(--arzo-bg-panel);
+}
+.wpa-ring__label { position: relative; font-size: var(--arzo-fs-xs); font-weight: 700; color: var(--arzo-text-strong); }
+.wpa-ring--warning { background: conic-gradient(var(--arzo-warning) calc(var(--p) * 1%), var(--arzo-bg-input) 0); }
+.wpa-ring--error   { background: conic-gradient(var(--arzo-error) calc(var(--p) * 1%), var(--arzo-bg-input) 0); }
+
 /* ===================== Checkbox chips (multi-select) ================== */
 /* A row of selectable chips for "supports / post types / …" multi-checkboxes —
    replaces ad-hoc inline-styled checkbox lists. The active state lights with the
@@ -335,12 +393,14 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 .wpa-admin input[type="checkbox"]:not(.wpa-toggle__input)::before,
 .wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input)::before,
 .wpa-drawer__panel input[type="checkbox"]:not(.wpa-toggle__input)::before {
+  /* Border-drawn check, optically centered: the glyph is bottom-heavy, so it
+     gets a 1px lift to LOOK centered (verified at zoom in the browser). */
   content: "";
-  width: 10px; height: 10px;
-  transform: scale(0);
+  width: 5px; height: 9px;
+  border: solid var(--arzo-text-on-accent);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg) scale(0);
   transition: transform var(--arzo-transition-fast) ease;
-  clip-path: polygon(14% 44%, 0 62%, 42% 100%, 100% 18%, 82% 2%, 40% 66%);
-  background: var(--arzo-text-on-accent);
 }
 .wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):checked,
 .wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input):checked,
@@ -351,7 +411,7 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 .wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):checked::before,
 .wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input):checked::before,
 .wpa-drawer__panel input[type="checkbox"]:not(.wpa-toggle__input):checked::before {
-  transform: scale(1);
+  transform: translateY(-1px) rotate(45deg) scale(1);
 }
 .wpa-admin input[type="checkbox"]:not(.wpa-toggle__input):focus-visible,
 .wpa-modal__panel input[type="checkbox"]:not(.wpa-toggle__input):focus-visible,

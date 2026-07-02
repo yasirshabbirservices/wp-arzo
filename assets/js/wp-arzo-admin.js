@@ -529,11 +529,14 @@
       var scope = scopeEl ? scopeEl.value : 'options';
       var components = [];
       document.querySelectorAll('.wpa-backup-component:checked').forEach(function (c) { components.push(c.value); });
+      var prog = document.getElementById('wpa-backup-progress');
       createBtn.disabled = true;
+      if (prog) { prog.removeAttribute('hidden'); }
       toast(components.length ? 'Creating snapshot (files can take a while)…' : 'Creating snapshot…', 'info');
       backupRequest('wp_arzo_backup_create', { scope: scope, components: components })
         .then(function (res) {
           createBtn.disabled = false;
+          if (prog) { prog.setAttribute('hidden', ''); }
           if (res && res.success) {
             var m = res.data && res.data.manifest;
             var extra = (m && m.files_error) ? (' — files: ' + m.files_error) : '';
@@ -541,7 +544,7 @@
             reload(900);
           } else { toast((res && res.data && res.data.message) || 'Backup failed', 'error'); }
         })
-        .catch(function () { createBtn.disabled = false; toast('Request failed', 'error'); });
+        .catch(function () { createBtn.disabled = false; if (prog) { prog.setAttribute('hidden', ''); } toast('Request failed', 'error'); });
     });
 
     // ------------------------------------------------ Snapshot diff drawer

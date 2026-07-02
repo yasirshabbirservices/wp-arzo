@@ -1315,6 +1315,9 @@ class WP_Arzo_Admin
                     <label class="wpa-check"><input type="checkbox" class="wpa-backup-component" value="<?php echo esc_attr($key); ?>"> <?php echo esc_html($label); ?></label>
                 <?php endforeach; ?>
                 <span class="wpa-field__help" style="margin:0;">Files over 100&nbsp;MB are skipped (and counted). File snapshots enable the <strong>diff view</strong> and <strong>file restore</strong> — Restore offers database&nbsp;+&nbsp;files (config is never auto-restored).</span>
+                <div class="wpa-progress wpa-progress--indeterminate" id="wpa-backup-progress" hidden aria-label="<?php esc_attr_e('Creating snapshot', 'wp-arzo'); ?>" style="flex:1 1 100%;">
+                    <div class="wpa-progress__bar"></div>
+                </div>
             </fieldset>
 
             <div class="wpa-card" style="padding:0;overflow:hidden;">
@@ -1535,9 +1538,11 @@ class WP_Arzo_Admin
                             <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--arzo-text-muted);margin-bottom:6px;">
                                 <span>Deliverability</span><span><strong style="color:var(--arzo-text-strong);"><?php echo (int) $pct_sent; ?>%</strong> delivered</span>
                             </div>
-                            <div class="wpa-meter" style="height:10px;border-radius:999px;overflow:hidden;background:var(--arzo-surface-2,rgba(255,255,255,.06));display:flex;">
-                                <span style="width:<?php echo (int) $pct_sent; ?>%;background:var(--arzo-success);"></span>
-                                <span style="width:<?php echo (int) (100 - $pct_sent); ?>%;background:var(--arzo-error);"></span>
+                            <div class="wpa-progress wpa-progress--lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo (int) $pct_sent; ?>" aria-label="<?php esc_attr_e('Deliverability', 'wp-arzo'); ?>">
+                                <div class="wpa-progress__bar" style="width:100%;">
+                                    <span class="wpa-progress__seg" style="width:<?php echo (int) $pct_sent; ?>%;background:var(--arzo-success);"></span>
+                                    <span class="wpa-progress__seg" style="width:<?php echo (int) (100 - $pct_sent); ?>%;background:var(--arzo-error);"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
