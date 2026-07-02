@@ -251,15 +251,15 @@ function handleMaintenanceModes()
         }
 
         .mode-maintenance .mode-icon {
-            color: #ff9800;
+            color: var(--arzo-warning);
         }
 
         .mode-coming-soon .mode-icon {
-            color: #4CAF50;
+            color: var(--arzo-success);
         }
 
         .mode-payment .mode-icon {
-            color: #dc3545;
+            color: var(--arzo-error);
         }
 
         /* Active Icon Override */
@@ -359,7 +359,7 @@ function handleMaintenanceModes()
             width: 100%;
             padding: 12px;
             border: none;
-            border-radius: 4px;
+            border-radius: var(--arzo-radius);
             font-weight: 600;
             cursor: pointer;
             text-transform: uppercase;
@@ -375,41 +375,46 @@ function handleMaintenanceModes()
 
         /* Activate States */
         .btn-activate {
-            color: #fff;
+            color: var(--arzo-white);
         }
 
         .mode-maintenance .btn-activate {
-            background: #ff9800;
+            background: var(--arzo-warning);
+            color: var(--arzo-bg-dark);
         }
 
         .mode-maintenance .btn-activate:hover {
-            background: #f57c00;
-            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+            background: var(--arzo-warning);
+            filter: brightness(0.9);
+            box-shadow: var(--arzo-shadow);
         }
 
         .mode-coming-soon .btn-activate {
-            background: #4CAF50;
+            background: var(--arzo-success);
+            color: var(--arzo-text-on-accent);
         }
 
         .mode-coming-soon .btn-activate:hover {
-            background: #388E3C;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            background: var(--arzo-success);
+            filter: brightness(0.9);
+            box-shadow: var(--arzo-shadow);
         }
 
         .mode-payment .btn-activate {
-            background: #dc3545;
+            background: var(--arzo-error);
         }
 
         .mode-payment .btn-activate:hover {
-            background: #c82333;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+            background: var(--arzo-error);
+            filter: brightness(0.9);
+            box-shadow: var(--arzo-shadow);
         }
 
         /* Deactivate State */
         .btn-deactivate {
             display: none;
             /* Hidden by default */
-            background: #dc3545;
+            background: var(--arzo-error);
             color: #fff;
         }
 
@@ -422,8 +427,9 @@ function handleMaintenanceModes()
         }
 
         .btn-deactivate:hover {
-            background: #c82333;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+            background: var(--arzo-error);
+            filter: brightness(0.9);
+            box-shadow: var(--arzo-shadow);
         }
 
         /* Preview Button */

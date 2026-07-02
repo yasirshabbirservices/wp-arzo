@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.98.0] — 2026-07-02
+
+### Changed — Console Phase A2: full visual consistency with the dashboard
+
+- **Tables**: console table headers move from accent-on-gray to the dashboard's muted
+  uppercase style on an elevated surface.
+- **Buttons**: the console `.btn` adopts the dashboard button language — token radius,
+  icon-friendly inline-flex alignment, accent-hover, pressed push, and a focus-visible
+  ring; pagination buttons gain focus rings too.
+- **Site Modes**: the mode cards' activate buttons, icons and notices move off hardcoded
+  hexes onto semantic tokens (warning/success/error, AA-checked text-on-fill); success
+  notices use token soft tints. The last accent-hover hexes in the console CSS are
+  tokenized. **Zero hardcoded palette values remain in the console styles.**
+
 ## [6.97.1] — 2026-07-02
 
 ### Fixed
