@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.96.0] — 2026-07-02
+
+### Added — Progress component system + alignment polish
+
+- **One progress language for the whole plugin** (`wp-arzo-components.css`): linear
+  `.wpa-progress` (sm/lg sizes, semantic colors), **stacked segments** for ratio meters,
+  an **indeterminate shimmer** for unknown-duration operations (degrades to a static
+  translucent bar under reduced motion), and a **conic-gradient ring dial** (`.wpa-ring`)
+  for compact metrics. All token-driven, all with `role="progressbar"` + ARIA values.
+- Applied first: the Email **deliverability meter** moved off its hardcoded-rgba inline
+  styles onto the stacked component; **Backups shows a live shimmer bar** while a snapshot
+  (especially with files) is being created; Media Cleanup's scan bar now rides the shared
+  component. More surfaces roll out per the enrichment plan.
+- **Checkbox tick optically centered** — the check glyph is bottom-heavy; it's now a
+  border-drawn check with a 1px optical lift, verified at zoom in the browser. Alignment
+  best practices (optical centering, browser-verified) are recorded in the design system.
+
 ## [6.95.1] — 2026-07-02
 
 ### Fixed

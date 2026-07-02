@@ -673,20 +673,9 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
 }
 
 /* ------------------------------------------------------------ Progress bar + media cleanup */
-.wpa-progress {
-  height: 10px;
-  background: var(--arzo-bg-hover);
-  border-radius: var(--arzo-radius-pill);
-  overflow: hidden;
-  margin: var(--arzo-space-4) 0 var(--arzo-space-2);
-}
-.wpa-progress__bar {
-  height: 100%;
-  width: 0;
-  background: var(--arzo-accent);
-  transition: width var(--arzo-transition);
-}
-.wpa-progress__label { color: var(--arzo-text-secondary); font-size: var(--arzo-fs-sm); }
+/* .wpa-progress is now a shared component (wp-arzo-components.css); only the
+   media page's spacing lives here. */
+.wpa-media-progress .wpa-progress { margin: var(--arzo-space-4) 0 var(--arzo-space-2); }
 .wpa-media-filters { display: flex; gap: var(--arzo-space-3); align-items: center; flex-wrap: wrap; }
 .wpa-media-summary { color: var(--arzo-text-secondary); font-size: var(--arzo-fs-sm); }
 .wpa-media-summary strong { color: var(--arzo-accent); }
