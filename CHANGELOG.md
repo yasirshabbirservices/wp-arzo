@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.97.1] — 2026-07-02
+
+### Fixed
+
+- Site Info still showed green-gradient card headers — its page-level `<style>` block was
+  overriding the shared CSS. De-gradiented and tokenized (headers are elevated panels with
+  accent icons; the disk-usage fill is a flat accent bar). Zero gradients remain plugin-wide.
+
 ## [6.97.0] — 2026-07-02
 
 ### Changed — Advanced Tools console: Phase A modernization (consistency + accessibility)
