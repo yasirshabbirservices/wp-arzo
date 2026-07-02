@@ -611,11 +611,17 @@
     document.querySelectorAll('.wpa-backup-restore').forEach(function (btn) {
       btn.addEventListener('click', function () {
         if (!confirm('Restore this snapshot? A safety snapshot of the current state is taken first.')) return;
+        var tr = btn.closest('tr');
+        var comps = (tr && tr.dataset.components) || '';
+        var withFiles = false;
+        if (comps) {
+          withFiles = confirm('This snapshot also contains files (' + comps + ').\n\nRestore the files too? Existing files are overwritten; files added since the snapshot stay; config files are never auto-restored. A safety snapshot of the same components is taken first.\n\nOK = database + files · Cancel = database only');
+        }
         btn.disabled = true;
-        toast('Restoring…', 'info');
-        backupRequest('wp_arzo_backup_restore', { id: btn.dataset.id })
+        toast(withFiles ? 'Restoring database + files…' : 'Restoring…', 'info');
+        backupRequest('wp_arzo_backup_restore', { id: btn.dataset.id, include_files: withFiles ? 1 : 0 })
           .then(function (res) {
-            if (res && res.success) { toast('Snapshot restored', 'success'); reload(900); }
+            if (res && res.success) { toast((res.data && res.data.message) || 'Snapshot restored', 'success', 6000); reload(1400); }
             else { btn.disabled = false; toast((res && res.data && res.data.message) || 'Restore failed', 'error'); }
           })
           .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
