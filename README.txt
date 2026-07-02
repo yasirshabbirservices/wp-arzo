@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.102.1
+Stable tag: 6.102.2
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.102.2 =
+* Changed: full semantic-color audit of both plugins (colors already matched intent); fixed the
+  Unlock/Unlock-all lockout buttons to use a proper unlock icon instead of a misleading trash glyph
 
 = 6.102.1 =
 * Added: pause/play icons in the registry so the Cron Manager pause/resume action uses real SVGs
