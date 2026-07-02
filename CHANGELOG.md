@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.89.0] — 2026-07-02
+
+### Changed — Site Health placeholder now advertises uptime / external monitoring (Pro 1.37.0)
+
+- The locked **Site Health Monitor** showcase card now describes the Pro monitor's new uptime
+  tooling shipped in **WP Arzo Pro v1.37.0**: an outbound **heartbeat ping** (Healthchecks.io-style
+  dead-man switch, `/fail` on critical), a **token-guarded public status endpoint** for external
+  uptime monitors (HTTP 200 while OK/warning, 503 when critical), and **response-time tracking**
+  on the loopback check with a configurable slow-response threshold. No free-core behavior
+  changes — catalog copy only.
+
 ## [6.88.0] — 2026-07-02
 
 ### Added — Support for the Site Health Monitor (Pro)
