@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.103.0] — 2026-07-03
+
+### Added — Code Snippets: Smart Conditional Logic (enrichment #3)
+
+- A snippet can now be **gated by rules** so it only runs where you want (WPCode-style, but free).
+  A **"Smart Conditional Logic"** builder in the editor lets you require **all** or **any** of a set
+  of rules: **User login** (in/out) · **User role** · **Post type** · **Page type** (front/blog/
+  singular/page/archive/search/404) · **URL path** (is / is not / contains / starts with / regex) ·
+  **Device** (desktop/mobile) · **Date & time** schedule (on/after · before · between). No rules =
+  runs everywhere (fully backward-compatible).
+- Engine: `WP_Arzo_Snippets::condition_schema()` drives both the builder and server-side
+  validation (they can't drift); `passes_conditions()` is evaluated at the safe moment —
+  CSS/JS/HTML at output (query ready), PHP at boot, deferring to `wp` only when a page/post-type
+  rule needs the main query. Pure logic harnessed (31 checks).
+- Research: erropix Advanced Scripts `ConditionManager` + WPCode Smart Conditional Logic.
+
 ## [6.102.3] — 2026-07-03
 
 ### Changed — Files (elFinder) dark skin

@@ -2620,6 +2620,115 @@ class WP_Arzo_Admin
                     <textarea id="snp-code" name="snippet_code" spellcheck="false"><?php echo esc_textarea($current['code']); ?></textarea>
                 </div>
                 <p class="wpa-field__help">PHP snippets run as code (the opening &lt;?php tag is optional). A PHP snippet that fatals is auto-disabled so it can’t break your site.</p>
+
+                <?php
+                $cond_schema  = WP_Arzo_Snippets::condition_schema();
+                $cond_current = (isset($current['conditions']) && is_array($current['conditions'])) ? array_values($current['conditions']) : array();
+                $cond_mode    = (isset($current['cond_mode']) && $current['cond_mode'] === 'any') ? 'any' : 'all';
+                ?>
+                <div class="wpa-cond" id="wpa-cond">
+                    <div class="wpa-cond__head">
+                        <div class="wpa-cond__title"><?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Smart Conditional Logic</div>
+                        <label class="wpa-cond__mode">Run when
+                            <select class="wpa-input" name="snippet_cond_mode" id="wpa-cond-mode">
+                                <option value="all" <?php selected($cond_mode, 'all'); ?>>all</option>
+                                <option value="any" <?php selected($cond_mode, 'any'); ?>>any</option>
+                            </select>
+                            of these match:
+                        </label>
+                    </div>
+                    <div class="wpa-cond__rows" id="wpa-cond-rows"></div>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-cond-add"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add rule</button>
+                    <p class="wpa-field__help" id="wpa-cond-empty" style="margin-top:8px;">No rules — this snippet runs everywhere (within its “Run on” scope).</p>
+                    <input type="hidden" name="snippet_conditions" id="wpa-cond-json" value="">
+                </div>
+                <script>
+                    (function () {
+                        var SCHEMA = <?php echo wp_json_encode($cond_schema); ?>;
+                        var INITIAL = <?php echo wp_json_encode($cond_current); ?>;
+                        var RM = <?php echo wp_json_encode(wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm'))); ?>;
+                        var TYPES = Object.keys(SCHEMA);
+                        var rowsEl = document.getElementById('wpa-cond-rows'),
+                            emptyEl = document.getElementById('wpa-cond-empty'),
+                            addBtn = document.getElementById('wpa-cond-add'),
+                            form = document.getElementById('wpa-snippet-form'),
+                            jsonEl = document.getElementById('wpa-cond-json');
+                        if (!rowsEl || !form) { return; }
+
+                        function el(t, c) { var e = document.createElement(t); if (c) { e.className = c; } return e; }
+                        function fill(sel, map, cur) {
+                            sel.innerHTML = '';
+                            Object.keys(map).forEach(function (k) {
+                                var o = el('option'); o.value = k; o.textContent = map[k];
+                                if (k === cur) { o.selected = true; }
+                                sel.appendChild(o);
+                            });
+                        }
+                        function opsFor(row) {
+                            var type = row.querySelector('.wpa-cond__type').value;
+                            fill(row.querySelector('.wpa-cond__op'), SCHEMA[type].ops, row._pre ? row._pre.op : '');
+                        }
+                        function toggleBetween(row) {
+                            if (row.querySelector('.wpa-cond__type').value !== 'schedule') { return; }
+                            var between = row.querySelector('.wpa-cond__op').value === 'between';
+                            var sep = row.querySelector('.wpa-cond__sep'), d2 = row.querySelector('.wpa-cond__dt2');
+                            if (sep) { sep.style.display = between ? '' : 'none'; }
+                            if (d2) { d2.style.display = between ? '' : 'none'; }
+                        }
+                        function valueCell(row) {
+                            var type = row.querySelector('.wpa-cond__type').value, spec = SCHEMA[type], pre = row._pre || {};
+                            var cell = row.querySelector('.wpa-cond__val'); cell.innerHTML = '';
+                            if (spec.values === null) {
+                                var inp = el('input', 'wpa-input'); inp.type = 'text'; inp.placeholder = '/path or pattern'; inp.value = pre.value || ''; cell.appendChild(inp);
+                            } else if (spec.values === 'datetime') {
+                                var d1 = el('input', 'wpa-input wpa-cond__dt'); d1.type = 'datetime-local'; d1.value = pre.value || ''; cell.appendChild(d1);
+                                var sep = el('span', 'wpa-cond__sep'); sep.textContent = 'and'; cell.appendChild(sep);
+                                var d2 = el('input', 'wpa-input wpa-cond__dt2'); d2.type = 'datetime-local'; d2.value = pre.value2 || ''; cell.appendChild(d2);
+                                toggleBetween(row);
+                            } else {
+                                var sel = el('select', 'wpa-input'); fill(sel, spec.values, pre.value); cell.appendChild(sel);
+                            }
+                        }
+                        function makeRow(cond) {
+                            cond = cond || {};
+                            var type = SCHEMA[cond.type] ? cond.type : TYPES[0];
+                            var row = el('div', 'wpa-cond__row'); row._pre = cond;
+                            var t = el('select', 'wpa-input wpa-cond__type'); var tmap = {}; TYPES.forEach(function (k) { tmap[k] = SCHEMA[k].label; }); fill(t, tmap, type); row.appendChild(t);
+                            row.appendChild(el('select', 'wpa-input wpa-cond__op'));
+                            row.appendChild(el('span', 'wpa-cond__val'));
+                            var rm = el('button', 'wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-btn--sm'); rm.type = 'button'; rm.setAttribute('aria-label', 'Remove rule'); rm.setAttribute('title', 'Remove rule'); rm.innerHTML = RM; row.appendChild(rm);
+                            opsFor(row); valueCell(row);
+                            t.addEventListener('change', function () { row._pre = {}; opsFor(row); valueCell(row); });
+                            row.querySelector('.wpa-cond__op').addEventListener('change', function () { toggleBetween(row); });
+                            rm.addEventListener('click', function () { row.remove(); refresh(); });
+                            return row;
+                        }
+                        function refresh() { emptyEl.style.display = rowsEl.children.length ? 'none' : ''; }
+                        function addRow(cond) { rowsEl.appendChild(makeRow(cond)); refresh(); }
+
+                        (INITIAL || []).forEach(addRow);
+                        refresh();
+                        addBtn.addEventListener('click', function () { addRow(); });
+
+                        form.addEventListener('submit', function () {
+                            var out = [];
+                            Array.prototype.forEach.call(rowsEl.children, function (row) {
+                                var type = row.querySelector('.wpa-cond__type').value,
+                                    op = row.querySelector('.wpa-cond__op').value,
+                                    spec = SCHEMA[type], c = { type: type, op: op };
+                                if (spec.values === 'datetime') {
+                                    c.value = (row.querySelector('.wpa-cond__dt') || {}).value || '';
+                                    if (op === 'between') { c.value2 = (row.querySelector('.wpa-cond__dt2') || {}).value || ''; }
+                                } else {
+                                    var vc = row.querySelector('.wpa-cond__val select, .wpa-cond__val input');
+                                    c.value = vc ? vc.value : '';
+                                }
+                                out.push(c);
+                            });
+                            jsonEl.value = JSON.stringify(out);
+                        });
+                    })();
+                </script>
             </form>
 
             <!-- Snippet list -->
@@ -2663,15 +2772,27 @@ class WP_Arzo_Admin
             !wp_verify_nonce(wp_unslash($_POST['wp_arzo_snippet_nonce']), self::NONCE_SNIPPETS)) {
             wp_die('Security check failed.');
         }
+        // Conditional logic arrives as a JSON string from the builder; the engine
+        // validates every rule against its schema in sanitize_conditions().
+        $conditions = array();
+        if (isset($_POST['snippet_conditions'])) {
+            $decoded = json_decode(wp_unslash($_POST['snippet_conditions']), true);
+            if (is_array($decoded)) {
+                $conditions = $decoded;
+            }
+        }
+
         WP_Arzo_Snippets::instance()->save(array(
             'id'          => isset($_POST['snippet_id']) ? sanitize_text_field(wp_unslash($_POST['snippet_id'])) : '',
             'title'       => isset($_POST['snippet_title']) ? wp_unslash($_POST['snippet_title']) : '',
             'description' => isset($_POST['snippet_description']) ? wp_unslash($_POST['snippet_description']) : '',
-            'type'     => isset($_POST['snippet_type']) ? sanitize_key($_POST['snippet_type']) : 'php',
-            'scope'    => isset($_POST['snippet_scope']) ? sanitize_key($_POST['snippet_scope']) : 'everywhere',
-            'priority' => isset($_POST['snippet_priority']) ? (int) $_POST['snippet_priority'] : 10,
-            'code'     => isset($_POST['snippet_code']) ? wp_unslash($_POST['snippet_code']) : '',
-            'active'   => !empty($_POST['snippet_active']),
+            'type'      => isset($_POST['snippet_type']) ? sanitize_key($_POST['snippet_type']) : 'php',
+            'scope'     => isset($_POST['snippet_scope']) ? sanitize_key($_POST['snippet_scope']) : 'everywhere',
+            'priority'  => isset($_POST['snippet_priority']) ? (int) $_POST['snippet_priority'] : 10,
+            'code'      => isset($_POST['snippet_code']) ? wp_unslash($_POST['snippet_code']) : '',
+            'active'    => !empty($_POST['snippet_active']),
+            'cond_mode' => isset($_POST['snippet_cond_mode']) ? sanitize_key($_POST['snippet_cond_mode']) : 'all',
+            'conditions' => $conditions,
         ));
         return true;
     }
