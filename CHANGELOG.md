@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.104.0] — 2026-07-03
+
+### Added — Email suite: retry queue + 4 more providers (enrichment #4)
+
+- **Email retry queue.** When every configured connection fails to send a message, it's now
+  **queued and re-tried automatically** with exponential backoff (5m → 15m → 1h → 6h, up to 4
+  tries) via a 5-minute WP-Cron worker — so transient SMTP/API failures (timeouts, rate limits,
+  brief outages) no longer lose the email. New **Queue** tab on the Email page (with a pending
+  count badge) shows queued/gave-up messages with **Retry now**, **Retry all**, **Delete**, and
+  **Clear**. Engine `includes/class-wp-arzo-email-queue.php` (`WP_Arzo_Email_Queue`); the send
+  path was refactored to share `walk_connections()` + a `retry_deliver()` re-attempt method.
+  Pure queue logic harnessed (22 checks). Cron cleared on deactivate; option removed on uninstall.
+- **4 new SMTP providers** in the connection picker: **SMTP2GO · SparkPost · MailerSend ·
+  Elastic Email** (16 providers total).
+- Research: SureMail / FluentSMTP (queue + provider coverage).
+
 ## [6.103.1] — 2026-07-03
 
 ### Changed

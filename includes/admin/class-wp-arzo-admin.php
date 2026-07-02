@@ -93,6 +93,10 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
         add_action('wp_ajax_wp_arzo_send_test_email', array($this, 'ajax_send_test_email'));
         add_action('wp_ajax_wp_arzo_email_resend', array($this, 'ajax_email_resend'));
+        add_action('wp_ajax_wp_arzo_email_queue_retry', array($this, 'ajax_email_queue_retry'));
+        add_action('wp_ajax_wp_arzo_email_queue_retry_all', array($this, 'ajax_email_queue_retry_all'));
+        add_action('wp_ajax_wp_arzo_email_queue_delete', array($this, 'ajax_email_queue_delete'));
+        add_action('wp_ajax_wp_arzo_email_queue_clear', array($this, 'ajax_email_queue_clear'));
         add_action('wp_ajax_wp_arzo_media_scan', array($this, 'ajax_media_scan'));
         add_action('wp_ajax_wp_arzo_media_delete', array($this, 'ajax_media_delete'));
         add_action('wp_ajax_wp_arzo_activity_clear', array($this, 'ajax_activity_clear'));
@@ -1813,8 +1817,10 @@ class WP_Arzo_Admin
         $has_conn     = $conn ? $conn->count() > 0 : false;
         $default_tab  = $has_conn ? 'logs' : 'connections';
         $tab          = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : $default_tab;
+        $queue_pending = class_exists('WP_Arzo_Email_Queue') ? WP_Arzo_Email_Queue::instance()->pending_count() : 0;
         $tabs = array(
             'logs'        => array('label' => 'Logs', 'icon' => 'list'),
+            'queue'       => array('label' => 'Queue', 'icon' => 'refresh', 'badge' => $queue_pending),
             'connections' => array('label' => 'Connections', 'icon' => 'mail'),
             'settings'    => array('label' => 'Settings', 'icon' => 'settings'),
         );
@@ -1828,19 +1834,25 @@ class WP_Arzo_Admin
 
         echo '<nav class="wpa-tabs" aria-label="Email tools">';
         foreach ($tabs as $key => $t) {
+            $badge = (!empty($t['badge']))
+                ? ' <span class="wpa-badge wpa-badge--accent" style="margin-left:2px;">' . (int) $t['badge'] . '</span>'
+                : '';
             printf(
-                '<a class="wpa-tab%s" href="%s"%s>%s<span>%s</span></a>',
+                '<a class="wpa-tab%s" href="%s"%s>%s<span>%s</span>%s</a>',
                 $key === $tab ? ' is-active' : '',
                 esc_url(add_query_arg('tab', $key, $base)),
                 $key === $tab ? ' aria-current="page"' : '',
                 wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')),
-                esc_html($t['label'])
+                esc_html($t['label']),
+                $badge
             );
         }
         echo '</nav>';
 
         if ($tab === 'logs') {
             $this->render_email_log_body();
+        } elseif ($tab === 'queue') {
+            $this->render_email_queue_body();
         } elseif ($tab === 'settings') {
             $this->render_email_settings_body();
         } else {
@@ -1849,6 +1861,153 @@ class WP_Arzo_Admin
 
         $this->render_shell_close();
         echo '</div>';
+    }
+
+    private function render_email_queue_body()
+    {
+        $queue = class_exists('WP_Arzo_Email_Queue') ? WP_Arzo_Email_Queue::instance() : null;
+        $items = $queue ? $queue->all() : array();
+        $nonce = wp_create_nonce(self::NONCE_EMAIL);
+        // Newest first.
+        usort($items, function ($a, $b) {
+            return strcmp((string) $b['created_gmt'], (string) $a['created_gmt']);
+        });
+        $pending = 0;
+        $failed  = 0;
+        foreach ($items as $i) {
+            if ($i['status'] === 'pending') {
+                $pending++;
+            } else {
+                $failed++;
+            }
+        }
+        ?>
+        <div class="wpa-admin__bar">
+            <div>
+                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon')); ?> Retry Queue</h1>
+                <p class="wpa-admin__subtitle">
+                    <?php if (empty($items)) : ?>
+                        Messages that every connection failed to send are queued here and re-tried automatically (5m → 15m → 1h → 6h, up to 4 tries).
+                    <?php else : ?>
+                        <strong><?php echo (int) $pending; ?></strong> pending · <strong><?php echo (int) $failed; ?></strong> gave up · auto-retries 5m → 15m → 1h → 6h.
+                    <?php endif; ?>
+                </p>
+            </div>
+            <?php if (!empty($items)) : ?>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <?php if ($pending > 0) : ?>
+                        <button type="button" id="wpa-eq-retry-all" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Retry all now</button>
+                    <?php endif; ?>
+                    <button type="button" id="wpa-eq-clear" class="wpa-btn wpa-btn--danger-soft" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear queue</button>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <?php if (empty($items)) : ?>
+            <div class="wpa-card" style="text-align:center;padding:40px;">
+                <?php echo wp_arzo_icon('check-circle', array('class' => 'wpa-icon wpa-icon--xl', 'style' => 'color:var(--arzo-accent)')); ?>
+                <p style="margin:12px 0 0;color:var(--arzo-text-secondary);">The queue is empty — every email has gone out.</p>
+            </div>
+        <?php else : ?>
+            <table class="wpa-table" id="wpa-eq-table" style="width:100%;">
+                <thead><tr>
+                    <th>To</th><th>Subject</th><th>Status</th><th>Tries</th><th>Next attempt (UTC)</th><th>Last error</th><th></th>
+                </tr></thead>
+                <tbody>
+                <?php foreach ($items as $it) :
+                    $is_failed = ($it['status'] !== 'pending'); ?>
+                    <tr data-id="<?php echo esc_attr($it['id']); ?>">
+                        <td><?php echo esc_html($it['to']); ?></td>
+                        <td><?php echo esc_html($it['subject'] !== '' ? $it['subject'] : '(no subject)'); ?></td>
+                        <td><?php echo $is_failed
+                            ? '<span class="wpa-badge wpa-badge--error">gave up</span>'
+                            : '<span class="wpa-badge wpa-badge--warning">pending</span>'; ?></td>
+                        <td><?php echo (int) $it['attempts']; ?> / <?php echo (int) WP_Arzo_Email_Queue::MAX_ATTEMPTS; ?></td>
+                        <td><?php echo $is_failed ? '—' : esc_html($it['next_gmt']); ?></td>
+                        <td style="max-width:280px;"><span style="color:var(--arzo-text-secondary);font-size:var(--arzo-fs-sm);"><?php echo esc_html($it['last_error']); ?></span></td>
+                        <td class="wpa-backup-actions" style="white-space:nowrap;">
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-eq-retry" data-id="<?php echo esc_attr($it['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Retry</button>
+                            <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-btn--sm wpa-eq-del" data-id="<?php echo esc_attr($it['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>" aria-label="Delete from queue"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+        <script>
+            (function () {
+                var ajax = <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>;
+                function post(action, data) {
+                    var body = new FormData();
+                    body.append('action', action);
+                    Object.keys(data).forEach(function (k) { body.append(k, data[k]); });
+                    return fetch(ajax, { method: 'POST', credentials: 'same-origin', body: body }).then(function (r) { return r.json(); });
+                }
+                function toast(m, t) { if (window.wpArzo && window.wpArzo.toast) { window.wpArzo.toast(m, t || 'success'); } }
+                document.querySelectorAll('.wpa-eq-retry').forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        b.disabled = true;
+                        post('wp_arzo_email_queue_retry', { nonce: b.dataset.nonce, id: b.dataset.id }).then(function (res) {
+                            if (res.success && res.data && res.data.delivered) { toast('Delivered ✓'); }
+                            else { toast((res.data && res.data.error) ? ('Still failing: ' + res.data.error) : 'Retry failed', 'error'); }
+                            location.reload();
+                        });
+                    });
+                });
+                document.querySelectorAll('.wpa-eq-del').forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        post('wp_arzo_email_queue_delete', { nonce: b.dataset.nonce, id: b.dataset.id }).then(function () { location.reload(); });
+                    });
+                });
+                var ra = document.getElementById('wpa-eq-retry-all');
+                if (ra) { ra.addEventListener('click', function () { ra.disabled = true; post('wp_arzo_email_queue_retry_all', { nonce: ra.dataset.nonce }).then(function (res) { if (res.success) { toast('Retried: ' + res.data.ok + ' sent, ' + res.data.fail + ' still failing'); } location.reload(); }); }); }
+                var cl = document.getElementById('wpa-eq-clear');
+                if (cl) { cl.addEventListener('click', function () { if (!confirm('Clear the entire retry queue? Queued messages will be discarded.')) { return; } post('wp_arzo_email_queue_clear', { nonce: cl.dataset.nonce }).then(function () { location.reload(); }); }); }
+            })();
+        </script>
+        <?php
+    }
+
+    public function ajax_email_queue_retry()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $id  = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        $res = class_exists('WP_Arzo_Email_Queue') ? WP_Arzo_Email_Queue::instance()->retry($id) : array('ok' => false, 'error' => 'Queue unavailable');
+        wp_send_json_success(array('delivered' => !empty($res['ok']), 'error' => isset($res['error']) ? $res['error'] : ''));
+    }
+
+    public function ajax_email_queue_retry_all()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $res = class_exists('WP_Arzo_Email_Queue') ? WP_Arzo_Email_Queue::instance()->retry_all() : array('ok' => 0, 'fail' => 0);
+        wp_send_json_success($res);
+    }
+
+    public function ajax_email_queue_delete()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+        if (class_exists('WP_Arzo_Email_Queue')) {
+            WP_Arzo_Email_Queue::instance()->delete($id);
+        }
+        wp_send_json_success();
+    }
+
+    public function ajax_email_queue_clear()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        if (class_exists('WP_Arzo_Email_Queue')) {
+            WP_Arzo_Email_Queue::instance()->clear();
+        }
+        wp_send_json_success();
     }
 
     private function render_email_settings_body()

@@ -61,6 +61,11 @@ class WP_Arzo_Feature_SMTP extends WP_Arzo_Feature
         $engine = WP_Arzo_Email_Connections::instance();
         $engine->maybe_migrate_legacy();
         $engine->boot();
+
+        // Retry queue: re-attempts messages that every connection failed to send.
+        if (class_exists('WP_Arzo_Email_Queue')) {
+            WP_Arzo_Email_Queue::instance()->boot();
+        }
     }
 
     /** Notify the admin when a message could not be delivered by any connection. */

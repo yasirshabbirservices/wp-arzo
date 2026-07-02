@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.103.1
+ * Version: 6.104.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.103.1');
+    define('WP_ARZO_VERSION', '6.104.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -289,6 +289,8 @@ function wp_arzo_deactivate()
 
     // Clear scheduled-backup cron so it doesn't linger while deactivated.
     wp_clear_scheduled_hook('wp_arzo_scheduled_backup');
+    // Clear the email retry-queue cron.
+    wp_clear_scheduled_hook('wp_arzo_email_retry');
 
     // Clean up transient‑based access tokens.
     if (function_exists('delete_transient')) {
@@ -343,6 +345,7 @@ function wp_arzo_uninstall()
         'wp_arzo_features',
         'wp_arzo_settings',
         'wp_arzo_email_log',
+        'wp_arzo_email_queue',
         'wp_arzo_snippets',
         'wp_arzo_sched_freq',
         'wp_arzo_activity_log',
@@ -463,6 +466,7 @@ require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-snippets.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-media-cleanup.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-temp-login.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-email-connections.php');
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-email-queue.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-admin.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/admin/class-wp-arzo-setup-wizard.php');
 

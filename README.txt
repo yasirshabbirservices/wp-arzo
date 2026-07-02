@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.103.1
+Stable tag: 6.104.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.104.0 =
+* New (free): Email retry queue — messages that every connection fails to send are queued and
+  auto-retried with backoff (5m/15m/1h/6h, up to 4 tries); new Queue tab with retry/delete/clear
+* New (free): 4 more SMTP providers — SMTP2GO, SparkPost, MailerSend, Elastic Email (16 total)
 
 = 6.103.1 =
 * Changed: conditional-logic builder UI polish — segmented all/any toggle, rule chips with live
