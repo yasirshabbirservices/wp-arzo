@@ -231,10 +231,10 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
             background-color: var(--arzo-bg-dark) !important;
         }
         .elfinder-cwd-view-list .elfinder-cwd-file .elfinder-cwd-filename {
-            color: #ffffff !important;
+            color: var(--arzo-text-strong) !important;
         }
         .elfinder-cwd table td {
-            color: #ffffff !important;
+            color: var(--arzo-text-strong) !important;
         }
         /* Hover on file row */
         .elfinder-cwd-view-list .elfinder-cwd-file:hover {
@@ -295,7 +295,7 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
         }
         .elfinder-button:hover, .elfinder-button.ui-state-hover {
             background: var(--arzo-bg-hover) !important;
-            border-color: #444 !important;
+            border-color: var(--arzo-border-strong) !important;
         }
         /* If toolbar buttons become active/pressed */
         .elfinder-button.ui-state-active {
@@ -364,12 +364,12 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
         .elfinder-dialog input, .elfinder-dialog select, .elfinder-dialog textarea {
             background: var(--arzo-bg-hover) !important;
             color: var(--arzo-text-primary) !important;
-            border: 1px solid #444 !important;
+            border: 1px solid var(--arzo-border-strong) !important;
         }
 
         /* Filter Inputs in File List */
         .elfinder-cwd input, .elfinder-cwd select {
-             color: #000000 !important;
+             color: var(--arzo-text-primary) !important;
         }
         
         /* Scrollbars */
@@ -378,14 +378,84 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: var(--arzo-bg-dark); 
+            background: var(--arzo-bg-dark);
         }
         ::-webkit-scrollbar-thumb {
-            background: #444; 
+            background: var(--arzo-border-strong);
             border-radius: var(--arzo-radius);
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #555; 
+            background: var(--arzo-text-muted);
         }
+
+        /* ============================================================
+           Dark skin v2 — close the remaining light gaps (jQuery-UI base
+           chrome leaks through the material theme) + softer, dashboard-
+           consistent selection. All token-driven.
+           ============================================================ */
+
+        /* List-view COLUMN HEADER (Name / Permissions / Modified / Size / Kind)
+           — was a light jQuery-UI/material bar. The material theme rules are highly
+           specific, so scope to the #elfinder id and clear the gradient image. */
+        #elfinder .elfinder-cwd-thead,
+        #elfinder .elfinder-cwd-thead td,
+        #elfinder .elfinder-cwd-view-list thead td,
+        #elfinder td[class*="elfinder-cwd-view-th"] {
+            background: var(--arzo-bg-elev) !important;
+            background-image: none !important;
+            color: var(--arzo-text-secondary) !important;
+            border-color: var(--arzo-border) !important;
+            font-weight: 600 !important;
+            text-shadow: none !important;
+        }
+        #elfinder td[class*="elfinder-cwd-view-th"]:hover {
+            background: var(--arzo-bg-hover) !important; color: var(--arzo-text-primary) !important;
+        }
+        #elfinder td[class*="elfinder-cwd-view-th"].ui-state-active {
+            background: var(--arzo-bg-hover) !important; color: var(--arzo-accent) !important;
+        }
+
+        /* jQuery-UI bases that still render light (dialog chrome, headers, overlay, tooltips). */
+        .elfinder .ui-widget-header { background: var(--arzo-bg-elev) !important; color: var(--arzo-text-strong) !important; border-color: var(--arzo-border) !important; }
+        .elfinder-dialog .ui-dialog-titlebar,
+        .std42-dialog.ui-dialog .ui-dialog-titlebar { background: var(--arzo-bg-elev) !important; color: var(--arzo-text-strong) !important; border-color: var(--arzo-border) !important; }
+        .ui-widget-overlay { background: var(--arzo-bg-dark) !important; opacity: .6 !important; }
+        body .ui-tooltip, body .ui-tooltip.ui-widget {
+            background: var(--arzo-bg-elev) !important; color: var(--arzo-text-primary) !important;
+            border: 1px solid var(--arzo-border-strong) !important; box-shadow: var(--arzo-shadow) !important;
+        }
+
+        /* Inputs inside the file list (inline rename / filter) + the search box
+           → sunken dark, never black-on-white. */
+        .elfinder-cwd input,
+        .elfinder-cwd select,
+        .elfinder-cwd textarea,
+        .elfinder-toolbar input[type="text"],
+        .elfinder-button-search input,
+        .elfinder-navbar input {
+            background: var(--arzo-bg-input) !important;
+            color: var(--arzo-text-primary) !important;
+            border: 1px solid var(--arzo-border-strong) !important;
+        }
+
+        /* Path / breadcrumb links → brand accent, never browser blue. */
+        .elfinder-statusbar a, .elfinder-path a { color: var(--arzo-accent) !important; text-decoration: none !important; }
+        .elfinder-navbar .elfinder-navbar-root { color: var(--arzo-text-strong) !important; }
+
+        /* Softer selection — accent-soft + ring, matching the dashboard's active-tab
+           look (was a loud fully-filled green). Navbar dirs + file rows. */
+        .elfinder-navbar-dir.ui-selected,
+        .elfinder-navbar-dir.ui-state-active {
+            background: var(--arzo-accent-soft) !important;
+            color: var(--arzo-accent) !important;
+            box-shadow: inset 0 0 0 1px var(--arzo-accent-ring) !important;
+        }
+        .elfinder-cwd-view-list .elfinder-cwd-file.ui-selected,
+        .elfinder-cwd-file.ui-selected {
+            background: var(--arzo-accent-soft) !important;
+            border-color: var(--arzo-accent-ring) !important;
+        }
+        .elfinder-cwd-file.ui-selected .elfinder-cwd-filename,
+        .elfinder-cwd-file.ui-selected td { color: var(--arzo-text-strong) !important; }
     </style>
 </div>

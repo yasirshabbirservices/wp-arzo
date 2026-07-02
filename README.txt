@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.102.2
+Stable tag: 6.102.3
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.102.3 =
+* Changed: the console Files tab (elFinder file manager) is now fully dark — darkened the light
+  list-view column-header bar + dialog/tooltip/input gaps, and softened selection to accent-soft
 
 = 6.102.2 =
 * Changed: full semantic-color audit of both plugins (colors already matched intent); fixed the
