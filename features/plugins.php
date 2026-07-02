@@ -169,12 +169,12 @@ function showPlugins()
                                                 
                                                 $result = activate_plugin($plugin_slug);
                                                 if (is_wp_error($result)) {
-                                                     $message .= ' <span style="color:#ffcccb">Activation failed: ' . $result->get_error_message() . '</span>';
+                                                     $message .= ' <span style="color:var(--arzo-error)">Activation failed: ' . $result->get_error_message() . '</span>';
                                                 } else {
                                                      $message .= ' And activated.';
                                                 }
                                             } else {
-                                                $message .= ' <span style="color:#ffcccb">Could not find plugin file to activate.</span>';
+                                                $message .= ' <span style="color:var(--arzo-error)">Could not find plugin file to activate.</span>';
                                             }
                                         }
                                     }
@@ -202,7 +202,7 @@ function showPlugins()
             <form method="post" enctype="multipart/form-data">
                 <?php wp_nonce_field('plugin_upload_action', 'plugin_upload_nonce'); ?>
                 <input type="hidden" name="upload_plugin_action" value="1">
-                <input type="file" name="plugin_zip" required accept=".zip" style="color:#fff;">
+                <input type="file" name="plugin_zip" required accept=".zip" style="color:var(--arzo-text-strong);">
                 <div style="margin-top:10px; display:flex; align-items:center;">
                     <label class="switch">
                         <input type="checkbox" name="activate_immediately" value="1">

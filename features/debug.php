@@ -189,22 +189,22 @@ function handleDebug()
 
 
         <?php if ($config_writable): ?>
-            <form method="post" style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333;">
+            <form method="post" style="background: var(--arzo-bg-hover); padding: 20px; border-radius: var(--radius-global); border: 1px solid var(--arzo-border);">
                 <?php wp_nonce_field('wp_arzo_debug_settings', 'wp_arzo_debug_nonce'); ?>
                 <h3>Update Debug Settings</h3>
-                <p style="color: #999; margin-bottom: 20px;">Configure WordPress debug settings. Changes will be written to
+                <p style="color: var(--arzo-text-secondary); margin-bottom: 20px;">Configure WordPress debug settings. Changes will be written to
                     wp-config.php.</p>
 
                 <div class="debug-settings-grid"
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px 15px; margin-bottom: 20px;">
                     <?php foreach ($debug_settings as $setting => $info): ?>
                         <div class="form-group"
-                            style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #1a1a1a; border-radius: 5px; border: 1px solid #333;">
+                            style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: var(--arzo-bg-input); border-radius: 5px; border: 1px solid var(--arzo-border);">
                             <div style="flex: 1; min-width: 0;">
                                 <label
-                                    style="display: block; margin-bottom: 3px; font-weight: bold; color: #fff; font-size: 14px;"><?php echo $setting; ?></label>
+                                    style="display: block; margin-bottom: 3px; font-weight: bold; color: var(--arzo-text-strong); font-size: 14px;"><?php echo $setting; ?></label>
                                 <p
-                                    style="font-size: 11px; color: #999; margin: 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis;">
+                                    style="font-size: 11px; color: var(--arzo-text-secondary); margin: 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis;">
                                     <?php echo $info['description']; ?></p>
                             </div>
                             <div style="margin-left: 15px; flex-shrink: 0;">
@@ -224,7 +224,7 @@ function handleDebug()
             </form>
         <?php endif; ?>
 
-        <div style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333; margin-top: 20px;">
+        <div style="background: var(--arzo-bg-hover); padding: 20px; border-radius: var(--radius-global); border: 1px solid var(--arzo-border); margin-top: 20px;">
             <h3>Debug Information</h3>
             <table>
                 <tr>
@@ -323,7 +323,7 @@ function handleDebug()
 
         <?php if (file_exists(WP_CONTENT_DIR . '/debug.log')): ?>
             <div
-                style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333; margin-top: 20px; position: relative;">
+                style="background: var(--arzo-bg-hover); padding: 20px; border-radius: var(--radius-global); border: 1px solid var(--arzo-border); margin-top: 20px; position: relative;">
                 <h3>Recent Debug Log Entries</h3>
                 <div style="position: absolute; top: 20px; right: 20px;">
                     <i class="fas fa-copy" onclick="copyDebugLog()"
@@ -332,7 +332,7 @@ function handleDebug()
                         title="Clear debug log"></i>
                 </div>
                 <div id="debug-log-content"
-                    style="background: #1a1a1a; padding: 15px; border-radius: var(--radius-global); max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
+                    style="background: var(--arzo-bg-input); padding: 15px; border-radius: var(--radius-global); max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
                     <?php
                     $log_content = file_get_contents(WP_CONTENT_DIR . '/debug.log');
                     $log_lines = explode("\n", $log_content);
@@ -342,36 +342,36 @@ function handleDebug()
                         if (empty(trim($line))) continue;
 
                         $line = htmlspecialchars($line);
-                        $color = '#fff'; // default white
+                        $color = 'var(--arzo-text-strong)';
                         $bg_color = 'transparent';
                         $border_left = 'none';
 
                         // Detect log type and apply colors
                         if (stripos($line, 'warning') !== false || stripos($line, 'warn') !== false) {
-                            $color = '#ffc107'; // yellow
-                            $border_left = '3px solid #ffc107';
+                            $color = 'var(--arzo-warning)'; // yellow
+                            $border_left = '3px solid var(--arzo-warning)';
                         } elseif (stripos($line, 'deprecated') !== false) {
-                            $color = '#ff9800'; // orange  
-                            $border_left = '3px solid #ff9800';
+                            $color = 'var(--arzo-warning)'; // orange  
+                            $border_left = '3px solid var(--arzo-warning)';
                         } elseif (stripos($line, 'error') !== false || stripos($line, 'fatal') !== false) {
-                            $color = '#dc3545'; // red
-                            $border_left = '3px solid #dc3545';
+                            $color = 'var(--arzo-error)'; // red
+                            $border_left = '3px solid var(--arzo-error)';
                         } elseif (stripos($line, 'notice') !== false || stripos($line, 'info') !== false) {
-                            $color = '#17a2b8'; // blue
-                            $border_left = '3px solid #17a2b8';
+                            $color = 'var(--arzo-info)';
+                            $border_left = '3px solid var(--arzo-info)';
                         } elseif (stripos($line, 'login') !== false || stripos($line, 'performed') !== false) {
-                            $color = '#28a745'; // green for login/activity messages
-                            $border_left = '3px solid #28a745';
+                            $color = 'var(--arzo-success)'; // green for login/activity messages
+                            $border_left = '3px solid var(--arzo-success)';
                         } elseif (preg_match('/\[\d{4}-\d{2}-\d{2}/', $line)) {
                             // Date/timestamp lines
-                            $color = '#6c757d'; // gray
+                            $color = 'var(--arzo-neutral)';
                         }
 
                         echo '<div style="color: ' . $color . '; margin-bottom: 2px; padding: 2px 8px; border-left: ' . $border_left . '; padding-left: ' . ($border_left !== 'none' ? '12px' : '8px') . ';">' . $line . '</div>';
                     }
                     ?>
                 </div>
-                <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                <p style="margin-top: 10px; font-size: 12px; color: var(--arzo-text-secondary);">
                     Showing last 50 lines. Full log: <?php echo WP_CONTENT_DIR . '/debug.log'; ?>
                 </p>
             </div>

@@ -152,7 +152,7 @@ function showThemes()
                                                  switch_theme($root_folder);
                                                  $message .= ' And activated.';
                                              } else {
-                                                 $message .= ' <span style="color:#ffcccb">Installed, but could not auto-activate (theme folder/stylesheet not found).</span>';
+                                                 $message .= ' <span style="color:var(--arzo-error)">Installed, but could not auto-activate (theme folder/stylesheet not found).</span>';
                                              }
                                          }
                                     }
@@ -180,7 +180,7 @@ function showThemes()
             <form method="post" enctype="multipart/form-data">
                 <?php wp_nonce_field('theme_upload_action', 'theme_upload_nonce'); ?>
                 <input type="hidden" name="upload_theme_action" value="1">
-                <input type="file" name="theme_zip" required accept=".zip" style="color:#fff;">
+                <input type="file" name="theme_zip" required accept=".zip" style="color:var(--arzo-text-strong);">
                 <div style="margin-top:10px; display:flex; align-items:center;">
                     <label class="switch">
                         <input type="checkbox" name="activate_immediately" value="1">

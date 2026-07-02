@@ -71,7 +71,7 @@ function handleDatabase()
                 <a class="btn btn-sm" href="<?php echo esc_url($wp_arzo_db_src); ?>" target="_blank" rel="noopener">Open full screen</a>
             </div>
             <iframe id="wpa-adminneo-frame" title="AdminNeo database manager" src="<?php echo esc_url($wp_arzo_db_src); ?>"
-                style="width:100%; height:80vh; border:1px solid var(--border-color); border-radius:var(--radius-global); background:#fff;"></iframe>
+                style="width:100%; height:80vh; border:1px solid var(--border-color); border-radius:var(--radius-global); background:var(--arzo-white);"></iframe>
         </div>
         <script>
         // Zero-click connect: AdminNeo can't auto-login, but its form connects with the

@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.99.0] — 2026-07-02
+
+### Changed — Console + public pages: complete token consistency (Phase A2 finale)
+
+- **Every console tab is now 100% token-driven** — a property-aware sweep converted all
+  remaining hardcoded colors in Site Modes, Debug, Extra Options, Users, Plugins, Themes,
+  Database and Temporary Logins (text, surfaces, borders, semantic states, even the
+  debug-log severity colors and JS hover handlers) to `--arzo-*` tokens, so readability
+  and contrast match the dashboard everywhere, in both themes.
+- **The PUBLIC pages match the dashboard too**: the maintenance / coming-soon /
+  payment-required page now uses the dashboard's dark palette (embedded token block —
+  the page stays self-contained) with per-mode accents aligned to the semantic tokens
+  (warning / accent / error); the **emergency recovery page**'s palette block was aligned
+  with the current tokens (danger/success values) and its stray hexes swept onto its vars.
+- Zero raw palette values remain in any console tab, the console CSS, the public
+  maintenance pages, or the emergency tool (embedded token definitions excepted — those
+  pages must work standalone).
+
 ## [6.98.0] — 2026-07-02
 
 ### Changed — Console Phase A2: full visual consistency with the dashboard

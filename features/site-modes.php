@@ -153,9 +153,9 @@ function handleMaintenanceModes()
 
         /* Card Styling (Plugin Colors) */
         .mode-card {
-            background: #252525;
+            background: var(--arzo-bg-elev);
             border-radius: 6px;
-            border: 1px solid #333;
+            border: 1px solid var(--arzo-border);
             padding: 25px;
             position: relative;
             transition: all 0.3s ease;
@@ -170,9 +170,9 @@ function handleMaintenanceModes()
 
         /* Active State */
         .mode-card.active {
-            border: 2px solid var(--accent-color, #16e791);
+            border: 2px solid var(--accent-color, var(--arzo-accent));
             box-shadow: 0 0 20px rgba(22, 231, 145, 0.15);
-            background: #252525;
+            background: var(--arzo-bg-elev);
         }
 
         /* Active Badge */
@@ -180,8 +180,8 @@ function handleMaintenanceModes()
             position: absolute;
             top: 20px;
             right: 20px;
-            background: var(--accent-color, #16e791);
-            color: #000;
+            background: var(--accent-color, var(--arzo-accent));
+            color: var(--arzo-text-on-accent);
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 11px;
@@ -202,7 +202,7 @@ function handleMaintenanceModes()
             content: '';
             width: 6px;
             height: 6px;
-            background: #000;
+            background: var(--arzo-bg-dark);
             border-radius: 50%;
             animation: blink 1.5s infinite;
         }
@@ -247,7 +247,7 @@ function handleMaintenanceModes()
             margin: 0;
             font-size: 18px;
             font-weight: 600;
-            color: #fff;
+            color: var(--arzo-text-strong);
         }
 
         .mode-maintenance .mode-icon {
@@ -264,12 +264,12 @@ function handleMaintenanceModes()
 
         /* Active Icon Override */
         .mode-card.active .mode-icon {
-            color: var(--accent-color, #16e791) !important;
+            color: var(--accent-color, var(--arzo-accent)) !important;
         }
 
         /* Description */
         .mode-desc {
-            color: #999;
+            color: var(--arzo-text-secondary);
             font-size: 13px;
             line-height: 1.5;
             margin-bottom: 20px;
@@ -295,11 +295,11 @@ function handleMaintenanceModes()
         .info-alert svg {
             width: 16px;
             height: 16px;
-            fill: var(--accent-color, #16e791);
+            fill: var(--accent-color, var(--arzo-accent));
         }
 
         .info-alert-text {
-            color: var(--accent-color, #16e791);
+            color: var(--accent-color, var(--arzo-accent));
             font-size: 12px;
         }
 
@@ -315,7 +315,7 @@ function handleMaintenanceModes()
 
         .form-group label {
             display: block;
-            color: #ccc;
+            color: var(--arzo-text-secondary);
             font-size: 13px;
             margin-bottom: 5px;
         }
@@ -323,18 +323,18 @@ function handleMaintenanceModes()
         .form-control {
             width: 100%;
             padding: 12px;
-            background: #151515;
+            background: var(--arzo-bg-input);
             /* Standard Dark background */
-            border: 1px solid #444;
+            border: 1px solid var(--arzo-border-strong);
             /* Distinct border */
-            color: #fff;
+            color: var(--arzo-text-strong);
             border-radius: 4px;
             transition: all 0.2s;
         }
 
         .form-control:focus {
-            border-color: var(--accent-color, #16e791);
-            background: #1a1a1a;
+            border-color: var(--accent-color, var(--arzo-accent));
+            background: var(--arzo-bg-input);
             outline: none;
         }
 
@@ -344,14 +344,14 @@ function handleMaintenanceModes()
             align-items: center;
             margin-bottom: 20px;
             padding: 10px 0;
-            border-top: 1px solid #333;
-            border-bottom: 1px solid #333;
+            border-top: 1px solid var(--arzo-border);
+            border-bottom: 1px solid var(--arzo-border);
         }
 
         .switch-label {
             margin-left: 10px;
             font-size: 13px;
-            color: #ccc;
+            color: var(--arzo-text-secondary);
         }
 
         /* Buttons */
@@ -415,7 +415,7 @@ function handleMaintenanceModes()
             display: none;
             /* Hidden by default */
             background: var(--arzo-error);
-            color: #fff;
+            color: var(--arzo-text-strong);
         }
 
         .mode-card.active .btn-deactivate {
@@ -438,8 +438,8 @@ function handleMaintenanceModes()
             width: 100%;
             padding: 10px;
             background: transparent;
-            border: 1px solid #444;
-            color: #999;
+            border: 1px solid var(--arzo-border-strong);
+            color: var(--arzo-text-secondary);
             border-radius: 4px;
             font-size: 12px;
             cursor: pointer;
@@ -452,8 +452,8 @@ function handleMaintenanceModes()
         }
 
         .btn-preview:hover {
-            border-color: #fff;
-            color: #fff;
+            border-color: var(--arzo-text-strong);
+            color: var(--arzo-text-strong);
             background: rgba(255, 255, 255, 0.05);
         }
 
@@ -464,7 +464,7 @@ function handleMaintenanceModes()
 
         /* Emergency Mode Specifics */
         .mode-emergency {
-            border-color: #ff4d4d !important;
+            border-color: var(--arzo-error) !important;
             grid-column: 1 / -1;
             /* Make it full width */
             display: flex;
@@ -486,7 +486,7 @@ function handleMaintenanceModes()
             margin-bottom: 0;
             margin-right: auto;
             max-width: 500px;
-            color: #999;
+            color: var(--arzo-text-secondary);
             font-size: 13px;
         }
 
@@ -504,9 +504,9 @@ function handleMaintenanceModes()
         }
 
         .btn-action {
-            background: #2A2A2A;
-            border: 1px solid #444;
-            color: #ccc;
+            background: var(--arzo-bg-hover);
+            border: 1px solid var(--arzo-border-strong);
+            color: var(--arzo-text-secondary);
             padding: 8px 12px;
             border-radius: 4px;
             cursor: pointer;
@@ -518,13 +518,13 @@ function handleMaintenanceModes()
         }
 
         .btn-action:hover {
-            border-color: #fff;
-            color: #fff;
+            border-color: var(--arzo-text-strong);
+            color: var(--arzo-text-strong);
         }
 
         .btn-action.success {
-            border-color: var(--accent-color, #16e791);
-            color: var(--accent-color, #16e791);
+            border-color: var(--accent-color, var(--arzo-accent));
+            color: var(--accent-color, var(--arzo-accent));
         }
 
         /* Loading Spinner */
@@ -532,7 +532,7 @@ function handleMaintenanceModes()
             width: 16px;
             height: 16px;
             border: 2px solid rgba(255, 255, 255, 0.1);
-            border-top: 2px solid #fff;
+            border-top: 2px solid var(--arzo-white);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             display: inline-block;
@@ -549,15 +549,15 @@ function handleMaintenanceModes()
         }
 
         .mode-emergency .mode-icon {
-            color: #ff4d4d;
+            color: var(--arzo-error);
         }
 
         .mode-emergency .btn-activate {
-            background: #ff4d4d;
+            background: var(--arzo-error);
         }
 
         .mode-emergency .btn-activate:hover {
-            background: #cc0000;
+            background: var(--arzo-error);
             box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
         }
 
@@ -566,9 +566,9 @@ function handleMaintenanceModes()
             margin-top: 0;
             padding: 10px;
             background: rgba(255, 77, 77, 0.1);
-            border: 1px solid #ff4d4d;
+            border: 1px solid var(--arzo-error);
             border-radius: 4px;
-            color: #ff4d4d;
+            color: var(--arzo-error);
             text-decoration: none;
             word-break: break-all;
             font-size: 12px;
@@ -601,10 +601,10 @@ function handleMaintenanceModes()
 
         /* Settings Box */
         .settings-box {
-            background: #252525;
+            background: var(--arzo-bg-elev);
             padding: 25px;
             border-radius: 6px;
-            border: 1px solid #333;
+            border: 1px solid var(--arzo-border);
             margin-bottom: 30px;
         }
 
@@ -612,12 +612,12 @@ function handleMaintenanceModes()
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: #333;
-            color: #fff;
+            background: var(--arzo-bg-hover);
+            color: var(--arzo-text-strong);
             padding: 12px 24px;
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            border-left: 4px solid var(--accent-color, #16e791);
+            border-left: 4px solid var(--accent-color, var(--arzo-accent));
             transform: translateY(100px);
             transition: transform 0.3s ease;
             z-index: 9999;
@@ -630,7 +630,7 @@ function handleMaintenanceModes()
 
     <div class="content maintenance-container">
         <h1>Site Modes</h1>
-        <p style="color: #999; margin-bottom: 30px;">Manage access to your site during maintenance or development.</p>
+        <p style="color: var(--arzo-text-secondary); margin-bottom: 30px;">Manage access to your site during maintenance or development.</p>
 
         <!-- Social Contact Settings -->
         <div class="settings-box">
@@ -822,7 +822,7 @@ function handleMaintenanceModes()
             <!-- Emergency Mode -->
             <div class="mode-card mode-emergency <?php echo $emergency_configured ? 'active' : ''; ?>" id="card-emergency">
                 <?php if ($emergency_configured): ?>
-                    <div class="status-badge" style="background: #ff4d4d; color: #fff;">ACTIVE</div>
+                    <div class="status-badge" style="background: var(--arzo-error); color: var(--arzo-text-strong);">ACTIVE</div>
                 <?php endif; ?>
 
                 <div style="display: flex; flex-direction: column; gap: 5px;">
