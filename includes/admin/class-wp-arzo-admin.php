@@ -1314,7 +1314,7 @@ class WP_Arzo_Admin
                 <?php foreach (array('uploads' => 'Uploads', 'plugins' => 'Plugins', 'themes' => 'Themes', 'config' => 'wp-config + .htaccess') as $key => $label) : ?>
                     <label class="wpa-check"><input type="checkbox" class="wpa-backup-component" value="<?php echo esc_attr($key); ?>"> <?php echo esc_html($label); ?></label>
                 <?php endforeach; ?>
-                <span class="wpa-field__help" style="margin:0;">Files over 100&nbsp;MB are skipped (and counted). File snapshots enable the <strong>diff view</strong>; automatic file restore is coming — the ZIP is stored inside the snapshot.</span>
+                <span class="wpa-field__help" style="margin:0;">Files over 100&nbsp;MB are skipped (and counted). File snapshots enable the <strong>diff view</strong> and <strong>file restore</strong> — Restore offers database&nbsp;+&nbsp;files (config is never auto-restored).</span>
             </fieldset>
 
             <div class="wpa-card" style="padding:0;overflow:hidden;">

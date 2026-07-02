@@ -4,6 +4,13 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.95.1] — 2026-07-02
+
+### Fixed
+
+- Backups: the "Also include files" help text still said file restore was "coming" —
+  it shipped in 6.94.0; the copy now points at Restore's database + files option.
+
 ## [6.95.0] — 2026-07-02
 
 ### Fixed — Overlay readability: drawers above the admin bar, token headings, real checkboxes
