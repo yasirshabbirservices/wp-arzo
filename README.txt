@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.101.0
+Stable tag: 6.101.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.101.1 =
+* Fixed: the `hidden` attribute now correctly hides wpa- buttons/tabs/badges (a class-set display
+  was overriding it) — e.g. the Advanced Audit "Reset" button hides when no filter is active
 
 = 6.101.0 =
 * Fixed: Emergency tool Plugins & Themes tabs were always empty (WP_CONTENT_DIR resolved one

@@ -123,6 +123,12 @@
 .wpa-btn:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
 .wpa-btn[disabled],
 .wpa-btn.is-disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+/* The `hidden` attribute must win over the component's own `display` (a class-set
+   `display` otherwise overrides the UA `[hidden]{display:none}` and the element stays
+   visible). Applies to any wpa- component toggled via the hidden attribute. */
+.wpa-btn[hidden],
+.wpa-tab[hidden],
+.wpa-badge[hidden] { display: none !important; }
 .wpa-btn .wpa-icon { width: 16px; height: 16px; }
 
 .wpa-btn--primary { --_bg: var(--arzo-accent); --_fg: var(--arzo-text-on-accent); }
