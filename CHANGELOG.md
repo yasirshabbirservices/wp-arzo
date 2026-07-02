@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.106.0] — 2026-07-03
+
+### Added — Activity Log: live user sessions + terminate (enrichment #6)
+
+- **Sessions tab.** The Activity Log page is now tabbed (**Events** / **Sessions**). The new
+  Sessions view lists every live WordPress login **site-wide** — user (+ role, edit link), IP,
+  signed-in time, expiry, and a condensed **Client** (browser · OS) — with a live "N active"
+  count badge on the tab. Reads core's `session_tokens` user-meta (no new storage).
+- **Terminate a session (force logout).** Each row has an icon-only **Terminate** action (danger
+  red) that signs that device out immediately via a capability + nonce-gated AJAX endpoint. Your
+  **own current session is protected** (shown as *This device*, terminate disabled, and the server
+  refuses to cut it by verifier match). Expired sessions are dimmed but still clearable.
+- **Interop.** A terminate records a **High**-severity `session_terminated` event → the Activity
+  Log, the Pro **Audit Log**, and the Pro **Notifications** *security* group. A **Live Sessions**
+  deep-link is registered in the command palette.
+- Session parsing/termination logic harnessed (15 checks). No new option (uses core session meta).
+
 ## [6.105.0] — 2026-07-03
 
 ### Added — Activity Log: severity grading, live summary & brute-force alerts (enrichment #5)
