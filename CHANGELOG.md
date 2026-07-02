@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.90.0] — 2026-07-02
+
+### Changed — Advanced Cron Manager placeholder (Pro 1.38.0)
+
+- The locked **Cron Manager** showcase card is now the **Advanced Cron Manager**, matching the
+  rebuilt Pro module: create/edit/run/pause/delete WP-Cron events, scheduled **URL jobs**
+  (webhooks, cache warmers), **custom intervals**, a **timed run log**, and cron **health
+  diagnostics** with a spawn test. No free-core behavior changes — catalog copy only.
+
 ## [6.89.0] — 2026-07-02
 
 ### Changed — Site Health placeholder now advertises uptime / external monitoring (Pro 1.37.0)
