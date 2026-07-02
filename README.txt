@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.103.0
+Stable tag: 6.103.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.103.1 =
+* Changed: conditional-logic builder UI polish — segmented all/any toggle, rule chips with live
+  IF/AND/OR connectives, branded chevron selects, right-aligned soft-red delete
 
 = 6.103.0 =
 * New (free): Code Snippets — Smart Conditional Logic. Gate a snippet to run only where you want
