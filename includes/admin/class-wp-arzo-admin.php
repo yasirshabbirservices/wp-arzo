@@ -78,6 +78,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_toggle_feature', array($this, 'ajax_toggle_feature'));
         add_action('wp_ajax_wp_arzo_toggle_group', array($this, 'ajax_toggle_group'));
         add_action('wp_ajax_wp_arzo_backup_create', array($this, 'ajax_backup_create'));
+        add_action('wp_ajax_wp_arzo_backup_diff', array($this, 'ajax_backup_diff'));
         add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
         add_action('wp_ajax_wp_arzo_backup_delete', array($this, 'ajax_backup_delete'));
         add_action('wp_ajax_wp_arzo_email_log_clear', array($this, 'ajax_email_log_clear'));
@@ -1301,8 +1302,20 @@ class WP_Arzo_Admin
                         data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_BACKUPS)); ?>">
                         <?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Create snapshot
                     </button>
+                    <button type="button" id="wpa-backup-compare" class="wpa-btn wpa-btn--ghost" <?php disabled(count($snapshots) < 2); ?>>
+                        <?php echo wp_arzo_icon('list', array('class' => 'wpa-icon wpa-icon--sm')); ?> Compare
+                    </button>
                 </div>
             </div>
+
+            <fieldset class="wpa-card" style="display:flex;gap:var(--arzo-space-3);flex-wrap:wrap;align-items:center;padding:var(--arzo-space-3) var(--arzo-space-4);margin-bottom:var(--arzo-space-4);">
+                <legend class="screen-reader-text">Include files in the snapshot</legend>
+                <span style="color:var(--arzo-text-secondary);font-weight:600;">Also include files:</span>
+                <?php foreach (array('uploads' => 'Uploads', 'plugins' => 'Plugins', 'themes' => 'Themes', 'config' => 'wp-config + .htaccess') as $key => $label) : ?>
+                    <label class="wpa-check"><input type="checkbox" class="wpa-backup-component" value="<?php echo esc_attr($key); ?>"> <?php echo esc_html($label); ?></label>
+                <?php endforeach; ?>
+                <span class="wpa-field__help" style="margin:0;">Files over 100&nbsp;MB are skipped (and counted). File snapshots enable the <strong>diff view</strong>; automatic file restore is coming — the ZIP is stored inside the snapshot.</span>
+            </fieldset>
 
             <div class="wpa-card" style="padding:0;overflow:hidden;">
                 <table class="wpa-backup-table" id="wpa-backup-table">
@@ -1325,6 +1338,34 @@ class WP_Arzo_Admin
                     </tbody>
                 </table>
             </div>
+
+            <!-- Snapshot diff drawer -->
+            <div class="wpa-drawer" id="wpa-diff-drawer" hidden>
+                <div class="wpa-drawer__backdrop" data-close></div>
+                <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="wpa-diff-title">
+                    <div class="wpa-drawer__head"><h2 id="wpa-diff-title">Compare snapshots</h2><button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button></div>
+                    <div class="wpa-drawer__body">
+                        <div class="wpa-field">
+                            <label class="wpa-field__label" for="wpa-diff-a">Base (older)</label>
+                            <select class="wpa-select" data-wpa-select id="wpa-diff-a" style="width:100%;">
+                                <?php foreach ($snapshots as $s) : ?>
+                                    <option value="<?php echo esc_attr($s['id']); ?>"><?php echo esc_html($s['label'] . ' — ' . ($s['created_gmt'] ?? '')); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="wpa-field">
+                            <label class="wpa-field__label" for="wpa-diff-b">Compare with (newer)</label>
+                            <select class="wpa-select" data-wpa-select id="wpa-diff-b" style="width:100%;">
+                                <?php foreach ($snapshots as $s) : ?>
+                                    <option value="<?php echo esc_attr($s['id']); ?>"><?php echo esc_html($s['label'] . ' — ' . ($s['created_gmt'] ?? '')); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:var(--arzo-space-4);"><button type="button" class="wpa-btn wpa-btn--primary" id="wpa-diff-run"><?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?> Compare</button></div>
+                        <div id="wpa-diff-result" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
         <?php
     }
 
@@ -1335,9 +1376,17 @@ class WP_Arzo_Admin
         <tr data-snapshot="<?php echo esc_attr($s['id']); ?>">
             <td>
                 <strong><?php echo esc_html($s['label']); ?></strong>
-                <div class="wpa-backup-meta"><?php echo (int) ($s['row_total'] ?? 0); ?> rows · <?php echo (int) ($s['table_count'] ?? 0); ?> table(s)</div>
+                <div class="wpa-backup-meta"><?php echo (int) ($s['row_total'] ?? 0); ?> rows · <?php echo (int) ($s['table_count'] ?? 0); ?> table(s)<?php if (!empty($s['file_count'])) : ?> · <?php echo (int) $s['file_count']; ?> file(s)<?php endif; ?></div>
             </td>
-            <td><span class="wpa-badge wpa-badge--neutral"><?php echo esc_html($scope_label); ?></span></td>
+            <td>
+                <span class="wpa-badge wpa-badge--neutral"><?php echo esc_html($scope_label); ?></span>
+                <?php foreach ((array) ($s['components'] ?? array()) as $component) : ?>
+                    <span class="wpa-badge wpa-badge--accent"><?php echo esc_html($component); ?></span>
+                <?php endforeach; ?>
+                <?php if (!empty($s['files_skipped'])) : ?>
+                    <span class="wpa-badge wpa-badge--warning" title="Files over 100 MB are not included"><?php echo (int) $s['files_skipped']; ?> skipped</span>
+                <?php endif; ?>
+            </td>
             <td><?php echo esc_html($s['trigger'] ?? 'manual'); ?></td>
             <td><?php echo esc_html(size_format((int) ($s['bytes'] ?? 0))); ?></td>
             <td><?php echo esc_html($s['created_gmt'] ?? ''); ?></td>
@@ -1367,11 +1416,30 @@ class WP_Arzo_Admin
     {
         $this->verify_backup_request();
         $scope = (isset($_POST['scope']) && $_POST['scope'] === 'full_db') ? 'full_db' : 'options';
-        $result = WP_Arzo_Backup_Manager::instance()->create($scope, '', 'manual');
+        $components = array();
+        foreach ((array) ($_POST['components'] ?? array()) as $c) {
+            $components[] = sanitize_key($c);
+        }
+        $result = WP_Arzo_Backup_Manager::instance()->create($scope, '', 'manual', $components);
         if (is_wp_error($result)) {
             wp_send_json_error(array('message' => $result->get_error_message()), 500);
         }
         wp_send_json_success(array('manifest' => $result));
+    }
+
+    public function ajax_backup_diff()
+    {
+        $this->verify_backup_request();
+        $a = isset($_POST['a']) ? sanitize_text_field(wp_unslash($_POST['a'])) : '';
+        $b = isset($_POST['b']) ? sanitize_text_field(wp_unslash($_POST['b'])) : '';
+        if ($a === '' || $b === '' || $a === $b) {
+            wp_send_json_error(array('message' => 'Pick two different snapshots.'));
+        }
+        $diff = WP_Arzo_Backup_Manager::instance()->diff($a, $b);
+        if (is_wp_error($diff)) {
+            wp_send_json_error(array('message' => $diff->get_error_message()));
+        }
+        wp_send_json_success($diff);
     }
 
     public function ajax_backup_restore()

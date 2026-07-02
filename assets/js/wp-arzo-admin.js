@@ -511,7 +511,11 @@
     var body = new FormData();
     body.append('action', action);
     body.append('nonce', cfg.backupNonce || '');
-    Object.keys(fields || {}).forEach(function (k) { body.append(k, fields[k]); });
+    Object.keys(fields || {}).forEach(function (k) {
+      var v = fields[k];
+      if (Array.isArray(v)) { v.forEach(function (item) { body.append(k + '[]', item); }); }
+      else { body.append(k, v); }
+    });
     return fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
       .then(function (r) { return r.json(); });
   }
@@ -523,16 +527,86 @@
     createBtn.addEventListener('click', function () {
       var scopeEl = document.getElementById('wpa-backup-scope');
       var scope = scopeEl ? scopeEl.value : 'options';
+      var components = [];
+      document.querySelectorAll('.wpa-backup-component:checked').forEach(function (c) { components.push(c.value); });
       createBtn.disabled = true;
-      toast('Creating snapshot…', 'info');
-      backupRequest('wp_arzo_backup_create', { scope: scope })
+      toast(components.length ? 'Creating snapshot (files can take a while)…' : 'Creating snapshot…', 'info');
+      backupRequest('wp_arzo_backup_create', { scope: scope, components: components })
         .then(function (res) {
           createBtn.disabled = false;
-          if (res && res.success) { toast('Snapshot created', 'success'); reload(700); }
-          else { toast((res && res.data && res.data.message) || 'Backup failed', 'error'); }
+          if (res && res.success) {
+            var m = res.data && res.data.manifest;
+            var extra = (m && m.files_error) ? (' — files: ' + m.files_error) : '';
+            toast('Snapshot created' + extra, m && m.files_error ? 'error' : 'success');
+            reload(900);
+          } else { toast((res && res.data && res.data.message) || 'Backup failed', 'error'); }
         })
         .catch(function () { createBtn.disabled = false; toast('Request failed', 'error'); });
     });
+
+    // ------------------------------------------------ Snapshot diff drawer
+    var compareBtn = document.getElementById('wpa-backup-compare');
+    var diffDrawer = document.getElementById('wpa-diff-drawer');
+    if (compareBtn && diffDrawer) {
+      compareBtn.addEventListener('click', function () { diffDrawer.removeAttribute('hidden'); });
+      diffDrawer.querySelectorAll('[data-close]').forEach(function (el) {
+        el.addEventListener('click', function () { diffDrawer.setAttribute('hidden', ''); });
+      });
+      var runBtn = document.getElementById('wpa-diff-run');
+      runBtn.addEventListener('click', function () {
+        var a = document.getElementById('wpa-diff-a').value,
+            b = document.getElementById('wpa-diff-b').value,
+            out = document.getElementById('wpa-diff-result');
+        if (a === b) { out.innerHTML = '<p style="color:var(--arzo-warning);">Pick two different snapshots.</p>'; return; }
+        runBtn.disabled = true;
+        out.innerHTML = '<p style="color:var(--arzo-text-muted);">Comparing…</p>';
+        backupRequest('wp_arzo_backup_diff', { a: a, b: b })
+          .then(function (res) {
+            runBtn.disabled = false;
+            if (!res || !res.success) { out.innerHTML = '<p style="color:var(--arzo-error);">' + esc((res && res.data && res.data.message) || 'Comparison failed.') + '</p>'; return; }
+            out.innerHTML = renderDiff(res.data);
+          })
+          .catch(function () { runBtn.disabled = false; out.innerHTML = '<p style="color:var(--arzo-error);">Request failed.</p>'; });
+      });
+    }
+
+    function diffSection(title, d, noun) {
+      if (!d) return '';
+      var total = d.added_count + d.removed_count + d.changed_count;
+      var html = '<h3 style="margin:16px 0 6px;">' + esc(title) + '</h3>';
+      if (!total) return html + '<p style="color:var(--arzo-text-muted);">No ' + noun + ' changes.</p>';
+      html += '<p><span class="wpa-badge wpa-badge--success">+' + d.added_count + ' added</span> ' +
+              '<span class="wpa-badge wpa-badge--error">−' + d.removed_count + ' removed</span> ' +
+              '<span class="wpa-badge wpa-badge--warning">~' + d.changed_count + ' changed</span></p>';
+      ['added', 'removed', 'changed'].forEach(function (kind) {
+        if (!d[kind].length) return;
+        var more = d[kind + '_count'] - d[kind].length;
+        html += '<details style="margin:4px 0;"><summary style="cursor:pointer;color:var(--arzo-text-secondary);">' + kind + ' (' + d[kind + '_count'] + ')</summary>' +
+                '<ul style="margin:6px 0 6px 18px;font-family:monospace;font-size:.85em;color:var(--arzo-text-muted);">' +
+                d[kind].map(function (k) { return '<li>' + esc(k) + '</li>'; }).join('') +
+                (more > 0 ? '<li>… and ' + more + ' more</li>' : '') + '</ul></details>';
+      });
+      return html;
+    }
+
+    function renderDiff(d) {
+      var html = '<p style="color:var(--arzo-text-muted);">Base: <strong>' + esc(d.a.label) + '</strong> → Compare: <strong>' + esc(d.b.label) + '</strong></p>';
+      (d.notes || []).forEach(function (n) { html += '<p style="color:var(--arzo-warning);">' + esc(n) + '</p>'; });
+      if (d.db) {
+        html += diffSection('Options', d.db.options, 'option');
+        var t = d.db.tables || [];
+        html += '<h3 style="margin:16px 0 6px;">Tables</h3>';
+        if (!t.length) { html += '<p style="color:var(--arzo-text-muted);">No table changes.</p>'; }
+        else {
+          html += '<ul style="margin:6px 0 6px 18px;font-family:monospace;font-size:.85em;">' + t.map(function (r) {
+            var badge = r.change === 'added' ? 'new table' : (r.change === 'removed' ? 'table removed' : ((r.delta > 0 ? '+' : '') + r.delta + ' rows'));
+            return '<li>' + esc(r.table) + ' — ' + esc(badge) + '</li>';
+          }).join('') + '</ul>';
+        }
+      }
+      html += diffSection('Files', d.files, 'file');
+      return html;
+    }
 
     document.querySelectorAll('.wpa-backup-restore').forEach(function (btn) {
       btn.addEventListener('click', function () {
