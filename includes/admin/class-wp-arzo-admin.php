@@ -1397,7 +1397,7 @@ class WP_Arzo_Admin
                 <button type="button" class="wpa-btn wpa-btn--secondary wpa-btn--sm wpa-backup-restore" data-id="<?php echo esc_attr($s['id']); ?>">
                     <?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Restore
                 </button>
-                <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-backup-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snapshot">
+                <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-backup-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snapshot">
                     <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                 </button>
             </td>
@@ -1523,7 +1523,7 @@ class WP_Arzo_Admin
                         <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_email_log_export'), self::NONCE_EMAIL)); ?>">
                             <?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
                         </a>
-                        <button type="button" id="wpa-email-clear" class="wpa-btn wpa-btn--ghost" data-nonce="<?php echo esc_attr($email_nonce); ?>">
+                        <button type="button" id="wpa-email-clear" class="wpa-btn wpa-btn--danger-soft" data-nonce="<?php echo esc_attr($email_nonce); ?>">
                             <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
                         </button>
                     </div>
@@ -2018,7 +2018,7 @@ class WP_Arzo_Admin
                                             <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-primary" data-id="<?php echo esc_attr($c['id']); ?>">Make primary</button>
                                         <?php endif; ?>
                                         <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-edit" data-id="<?php echo esc_attr($c['id']); ?>"><?php echo wp_arzo_icon('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
-                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-conn-delete" data-id="<?php echo esc_attr($c['id']); ?>" aria-label="Delete connection"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                        <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-conn-delete" data-id="<?php echo esc_attr($c['id']); ?>" aria-label="Delete connection"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -2377,7 +2377,7 @@ class WP_Arzo_Admin
                         <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_activity_export'), self::NONCE_ACTIVITY)); ?>">
                             <?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
                         </a>
-                        <button type="button" id="wpa-activity-clear" class="wpa-btn wpa-btn--ghost" data-nonce="<?php echo esc_attr($nonce); ?>">
+                        <button type="button" id="wpa-activity-clear" class="wpa-btn wpa-btn--danger-soft" data-nonce="<?php echo esc_attr($nonce); ?>">
                             <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
                         </button>
                     <?php endif; ?>
@@ -2643,7 +2643,7 @@ class WP_Arzo_Admin
                                 <input type="checkbox" class="wpa-toggle__input wpa-snippet-toggle" role="switch" data-id="<?php echo esc_attr($s['id']); ?>" <?php checked(!empty($s['active'])); ?>>
                                 <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
                             </label>
-                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                            <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                         </div>
                     <?php endforeach; endif; ?>
                 </div>
@@ -2894,7 +2894,7 @@ class WP_Arzo_Admin
                                 <td><?php echo esc_html($k['created_gmt']); ?></td>
                                 <td><?php echo esc_html(!empty($k['last_used_gmt']) ? $k['last_used_gmt'] : '—'); ?></td>
                                 <td class="wpa-backup-actions">
-                                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-rest-revoke" data-id="<?php echo esc_attr($k['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>">
+                                    <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--sm wpa-rest-revoke" data-id="<?php echo esc_attr($k['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>">
                                         <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Revoke
                                     </button>
                                 </td>
@@ -3030,7 +3030,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                             <td class="wpa-backup-actions">
                                 <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($edit); ?>"><?php echo wp_arzo_icon('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?> Edit caps</a>
                                 <?php if (!$r['is_builtin']) : ?>
-                                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-role-delete" data-slug="<?php echo esc_attr($r['slug']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>" aria-label="Delete role"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                    <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-role-delete" data-slug="<?php echo esc_attr($r['slug']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>" aria-label="Delete role"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                                 <?php endif; ?>
                             </td>
                         </tr>

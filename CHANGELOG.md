@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.102.0] — 2026-07-03
+
+### Added — Semantic action colors (color = intent) + continued icon sweep
+
+- New standing rule in the **Surface Consistency Bar** (CLAUDE.md #7): a control's **color
+  matches what it does** — destructive/data-losing = red, primary = accent, neutral (incl.
+  filter reset) = ghost/secondary, cautionary = amber. Applies across both plugins.
+- New **`.wpa-btn--danger-soft`** component: a red-glyph button (transparent/bordered) that
+  **fills red on hover** — the modern pattern for row-level & secondary destructive actions
+  (delete a row, clear a log, revoke a key) without a wall of filled red buttons.
+- **Free dashboard**: delete-snapshot / delete-connection / delete-snippet / delete-role
+  row buttons, and **Clear log** (Email + Activity) and **Revoke** (REST key) now read **red**
+  (`--danger-soft`) instead of neutral ghost.
+- **Emergency tool**: destructive **Clear all transients** now red; the reversible repair
+  actions stay neutral.
+- **Console**: Debug "Update Settings" gains an icon (continuing the console icon sweep).
+
 ## [6.101.1] — 2026-07-03
 
 ### Fixed
