@@ -4,6 +4,13 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.102.1] — 2026-07-03
+
+### Added
+
+- **`pause` + `play` icons** in the icon registry (filled glyphs) — closes the last emoji hold-out:
+  the Pro **Cron Manager** pause/resume row action now uses real SVG icons instead of ⏸/▶.
+
 ## [6.102.0] — 2026-07-03
 
 ### Added — Semantic action colors (color = intent) + continued icon sweep
