@@ -1682,12 +1682,14 @@ class WP_Arzo_Admin
         }
         $log = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::instance()->get_log() : array();
         $out = $this->stream_csv('wp-arzo-activity-log-' . gmdate('Ymd-His') . '.csv');
-        fputcsv($out, array('Time (UTC)', 'User', 'Action', 'Details', 'IP'));
+        fputcsv($out, array('Time (UTC)', 'Severity', 'User', 'Action', 'Details', 'IP'));
         foreach ((array) $log as $r) {
-            $meta = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::action_meta($r['a'] ?? '') : array($r['a'] ?? '');
+            $a    = $r['a'] ?? '';
+            $meta = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::action_meta($a) : array($a);
+            $sev  = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::severity_meta($a)[0] : '';
             fputcsv($out, array(
                 gmdate('Y-m-d H:i:s', (int) ($r['t'] ?? 0)),
-                $r['ul'] ?? '', $meta[0], $r['o'] ?? '', $r['ip'] ?? '',
+                $sev, $r['ul'] ?? '', $meta[0], $r['o'] ?? '', $r['ip'] ?? '',
             ));
         }
         fclose($out);
@@ -2494,82 +2496,171 @@ class WP_Arzo_Admin
     {
         $enabled = $this->registry()->is_enabled('activity_log');
         $log = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::instance()->get_log() : array();
-        $filter = isset($_GET['action_filter']) ? sanitize_key(wp_unslash($_GET['action_filter'])) : '';
+        $stats = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::instance()->stats()
+            : array('total' => count($log), 'last24' => 0, 'failed24' => 0, 'high24' => 0);
 
-        // Collect the action types present, for the filter dropdown.
+        // Action types present, for the event filter dropdown (label-sorted).
         $present = array();
         foreach ($log as $row) {
             $a = isset($row['a']) ? $row['a'] : '';
             if ($a !== '') {
-                $present[$a] = true;
+                $present[$a] = WP_Arzo_Activity_Log::action_meta($a)[0];
             }
         }
-        $rows = $filter ? array_values(array_filter($log, function ($r) use ($filter) {
-            return isset($r['a']) && $r['a'] === $filter;
-        })) : $log;
+        asort($present);
+        $severities = WP_Arzo_Activity_Log::severities();
 
         $nonce = wp_create_nonce(self::NONCE_ACTIVITY);
-        $base  = admin_url('admin.php?page=' . self::PAGE_ACTIVITY);
+
+        // Summary tiles (state-aware: the whole log + the last 24h at a glance).
+        $tiles = array(
+            array('info',    'list',      $stats['total'],    'Total events'),
+            array('info',    'clock',     $stats['last24'],   'Last 24 hours'),
+            array($stats['high24'] ? 'warning' : 'neutral', 'shield', $stats['high24'], 'High/critical · 24h'),
+            array($stats['failed24'] ? 'error' : 'neutral', 'lock',  $stats['failed24'], 'Failed sign-ins · 24h'),
+        );
         ?>
             <div class="wpa-admin__bar">
                 <div>
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?> Activity Log</h1>
                     <p class="wpa-admin__subtitle">
-                        <span class="wpa-badge wpa-badge--info"><?php echo (int) count($log); ?> recorded</span>
+                        <span class="wpa-badge wpa-badge--info"><?php echo (int) $stats['total']; ?> recorded</span>
                         <?php echo $enabled ? '' : ' · logging is OFF (enable “Activity Log” on the dashboard)'; ?>
                     </p>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <?php if (!empty($present)) : ?>
-                        <form method="get" style="margin:0;">
-                            <input type="hidden" name="page" value="<?php echo esc_attr(self::PAGE_ACTIVITY); ?>">
-                            <select name="action_filter" class="wpa-input" onchange="this.form.submit()" style="min-width:170px;">
-                                <option value="">All events</option>
-                                <?php foreach (array_keys($present) as $a) :
-                                    $meta = WP_Arzo_Activity_Log::action_meta($a); ?>
-                                    <option value="<?php echo esc_attr($a); ?>" <?php selected($filter, $a); ?>><?php echo esc_html($meta[0]); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </form>
-                    <?php endif; ?>
-                    <?php if (!empty($log)) : ?>
+                <?php if (!empty($log)) : ?>
+                    <div style="display:flex;gap:8px;align-items:center;">
                         <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_activity_export'), self::NONCE_ACTIVITY)); ?>">
                             <?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
                         </a>
                         <button type="button" id="wpa-activity-clear" class="wpa-btn wpa-btn--danger-soft" data-nonce="<?php echo esc_attr($nonce); ?>">
                             <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
                         </button>
-                    <?php endif; ?>
-                </div>
+                    </div>
+                <?php endif; ?>
             </div>
 
+            <div class="wpa-card" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--arzo-space-4,16px);margin-bottom:var(--arzo-space-4,16px);">
+                <?php foreach ($tiles as $t) : ?>
+                    <div style="display:flex;align-items:center;gap:var(--arzo-space-3,12px);">
+                        <span class="wpa-badge wpa-badge--<?php echo esc_attr($t[0]); ?>" style="width:2.25rem;height:2.25rem;padding:0;justify-content:center;border-radius:var(--arzo-radius,10px);flex:0 0 auto;">
+                            <?php echo wp_arzo_icon($t[1], array('class' => 'wpa-icon')); ?>
+                        </span>
+                        <span style="display:flex;flex-direction:column;line-height:1.2;">
+                            <strong style="font-size:1.4rem;"><?php echo (int) $t[2]; ?></strong>
+                            <span style="color:var(--arzo-text-muted);font-size:.8rem;"><?php echo esc_html($t[3]); ?></span>
+                        </span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if (!empty($log)) : ?>
+            <div class="wpa-card" id="wpa-activity-filters" style="margin-bottom:var(--arzo-space-4,16px);display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--arzo-space-3,12px);align-items:end;">
+                <div class="wpa-field" style="margin:0;">
+                    <label class="wpa-field__label" for="wpa-act-sev">Severity</label>
+                    <select class="wpa-input" id="wpa-act-sev" data-wpa-select>
+                        <option value="">All severities</option>
+                        <?php foreach ($severities as $k => $s) : ?>
+                            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($s[0]); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="wpa-field" style="margin:0;">
+                    <label class="wpa-field__label" for="wpa-act-action">Event</label>
+                    <select class="wpa-input" id="wpa-act-action" data-wpa-select>
+                        <option value="">All events</option>
+                        <?php foreach ($present as $a => $label) : ?>
+                            <option value="<?php echo esc_attr($a); ?>"><?php echo esc_html($label); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="wpa-field" style="margin:0;">
+                    <label class="wpa-field__label" for="wpa-act-q">Search</label>
+                    <input class="wpa-input" type="search" id="wpa-act-q" placeholder="detail, user or IP…" autocomplete="off">
+                </div>
+                <div style="display:flex;gap:var(--arzo-space-2,8px);">
+                    <button type="button" id="wpa-act-reset" class="wpa-btn wpa-btn--ghost wpa-btn--sm" aria-label="Clear all filters" hidden><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')); ?> Reset</button>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <div class="wpa-card" style="padding:0;overflow:hidden;">
-                <table class="wpa-backup-table">
+                <table class="wpa-backup-table" id="wpa-activity-table">
                     <thead>
-                        <tr><th>Time (UTC)</th><th>Event</th><th>Detail</th><th>User</th><th>IP</th></tr>
+                        <tr><th>Time (UTC)</th><th>Severity</th><th>Event</th><th>Detail</th><th>User</th><th>IP</th></tr>
                     </thead>
                     <tbody>
-                        <?php if (empty($rows)) : ?>
-                            <tr class="wpa-backup-empty"><td colspan="5"><?php echo $filter ? 'No events of this type.' : 'No activity recorded yet.'; ?></td></tr>
-                        <?php else : foreach ($rows as $row) :
-                            $meta = WP_Arzo_Activity_Log::action_meta(isset($row['a']) ? $row['a'] : '');
+                        <?php if (empty($log)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="6">No activity recorded yet.</td></tr>
+                        <?php else : foreach ($log as $row) :
+                            $a    = isset($row['a']) ? $row['a'] : '';
+                            $meta = WP_Arzo_Activity_Log::action_meta($a);
+                            $sev  = WP_Arzo_Activity_Log::action_severity($a);
+                            $sm   = $severities[$sev];
+                            $detail = $row['o'] ?? '';
+                            $user   = $row['ul'] ?? '—';
+                            $ip     = $row['ip'] ?? '';
+                            $search = strtolower($detail . ' ' . $user . ' ' . $ip . ' ' . $meta[0]);
                             ?>
-                            <tr>
-                                <td><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['t'] ?? 0))); ?></td>
+                            <tr data-action="<?php echo esc_attr($a); ?>" data-sev="<?php echo esc_attr($sev); ?>" data-search="<?php echo esc_attr($search); ?>">
+                                <td style="white-space:nowrap;"><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['t'] ?? 0))); ?></td>
+                                <td><span class="wpa-badge wpa-badge--<?php echo esc_attr($sm[1]); ?>"><?php echo wp_arzo_icon($sm[2], array('class' => 'wpa-icon')); ?> <?php echo esc_html($sm[0]); ?></span></td>
                                 <td>
                                     <span class="wpa-badge wpa-badge--<?php echo esc_attr($meta[1]); ?>">
                                         <?php echo wp_arzo_icon($meta[2], array('class' => 'wpa-icon')); ?>
                                         <?php echo esc_html($meta[0]); ?>
                                     </span>
                                 </td>
-                                <td><?php echo esc_html($row['o'] ?? ''); ?></td>
-                                <td><?php echo esc_html($row['ul'] ?? '—'); ?></td>
-                                <td><code><?php echo esc_html($row['ip'] ?? ''); ?></code></td>
+                                <td><?php echo esc_html($detail); ?></td>
+                                <td><?php echo esc_html($user); ?></td>
+                                <td><code><?php echo esc_html($ip); ?></code></td>
                             </tr>
                         <?php endforeach; endif; ?>
+                        <tr id="wpa-activity-empty" class="wpa-backup-empty" hidden><td colspan="6">No events match your filter.</td></tr>
                     </tbody>
                 </table>
             </div>
+
+            <?php if (!empty($log)) : ?>
+            <script>
+            (function () {
+                var sev = document.getElementById('wpa-act-sev'),
+                    act = document.getElementById('wpa-act-action'),
+                    q = document.getElementById('wpa-act-q'),
+                    reset = document.getElementById('wpa-act-reset'),
+                    table = document.getElementById('wpa-activity-table'),
+                    empty = document.getElementById('wpa-activity-empty');
+                if (!table) { return; }
+                var rows = Array.prototype.slice.call(table.querySelectorAll('tbody tr[data-action]'));
+                function apply() {
+                    var s = sev ? sev.value : '', a = act ? act.value : '',
+                        text = (q ? q.value : '').trim().toLowerCase(), shown = 0;
+                    rows.forEach(function (tr) {
+                        var ok = (!s || tr.dataset.sev === s) &&
+                                 (!a || tr.dataset.action === a) &&
+                                 (!text || tr.dataset.search.indexOf(text) !== -1);
+                        tr.hidden = !ok;
+                        if (ok) { shown++; }
+                    });
+                    if (empty) { empty.hidden = shown !== 0; }
+                    if (reset) { reset.hidden = !(s || a || text); }
+                }
+                [sev, act].forEach(function (el) { if (el) { el.addEventListener('change', apply); } });
+                if (q) { q.addEventListener('input', apply); }
+                if (reset) {
+                    reset.addEventListener('click', function () {
+                        if (q) { q.value = ''; }
+                        [sev, act].forEach(function (el) {
+                            if (!el) { return; }
+                            el.value = '';
+                            if (window.wpArzo && wpArzo.setSelectValue) { wpArzo.setSelectValue(el, ''); }
+                        });
+                        apply();
+                    });
+                }
+            })();
+            </script>
+            <?php endif; ?>
         <?php
     }
 

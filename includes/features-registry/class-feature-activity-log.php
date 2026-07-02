@@ -21,10 +21,16 @@ if (!defined('ABSPATH')) {
 class WP_Arzo_Activity_Log
 {
     const OPT = 'wp_arzo_activity_log';
+    const FAILWIN_OPT = 'wp_arzo_activity_failwin'; // rolling failed-login window state.
     const MAX = 1000; // hard ceiling regardless of the retention setting.
 
     private static $instance = null;
     private $retention = 300;
+
+    // Failed-login burst detection (brute-force anomaly alert).
+    private $anomaly = false;
+    private $anomaly_threshold = 10;
+    private $anomaly_window = 15; // minutes
 
     public static function instance()
     {
@@ -38,6 +44,89 @@ class WP_Arzo_Activity_Log
     {
         $n = (int) $n;
         $this->retention = max(20, min(self::MAX, $n));
+    }
+
+    /** Configure failed-login burst detection. */
+    public function set_anomaly($enabled, $threshold, $window_min)
+    {
+        $this->anomaly = (bool) $enabled;
+        $this->anomaly_threshold = max(3, min(1000, (int) $threshold));
+        $this->anomaly_window    = max(1, min(1440, (int) $window_min));
+    }
+
+    /**
+     * Track a failed sign-in in a rolling window and, when the burst threshold is
+     * crossed, record a Critical `security_alert` event (which fans out to the Pro
+     * Audit Log + Notifications via wp_arzo_activity_recorded). A cooldown equal to
+     * the window prevents alert spam; the window resets after each alert.
+     */
+    private function maybe_anomaly()
+    {
+        if (!$this->anomaly) {
+            return;
+        }
+        $now = time();
+        $win = $this->anomaly_window * MINUTE_IN_SECONDS;
+
+        $state = get_option(self::FAILWIN_OPT, array());
+        if (!is_array($state)) {
+            $state = array();
+        }
+        $hits       = (isset($state['hits']) && is_array($state['hits'])) ? $state['hits'] : array();
+        $last_alert = isset($state['alert']) ? (int) $state['alert'] : 0;
+
+        $cutoff = $now - $win;
+        $hits[] = $now;
+        $hits = array_values(array_filter($hits, function ($t) use ($cutoff) {
+            return (int) $t >= $cutoff;
+        }));
+
+        $fire = false;
+        if (count($hits) >= $this->anomaly_threshold && ($now - $last_alert) >= $win) {
+            $fire       = true;
+            $last_alert = $now;
+            $hits       = array(); // reset so a single burst fires exactly once.
+        }
+        update_option(self::FAILWIN_OPT, array('hits' => $hits, 'alert' => $last_alert), false);
+
+        if ($fire) {
+            $this->record('security_alert', sprintf(
+                '%d failed sign-ins within %d min — possible brute-force attempt',
+                $this->anomaly_threshold,
+                $this->anomaly_window
+            ));
+        }
+    }
+
+    /**
+     * At-a-glance counters for the Activity Log page header (computed from the
+     * capped log; cheap for the free tier's small dataset).
+     *
+     * @return array{total:int,last24:int,failed24:int,high24:int}
+     */
+    public function stats()
+    {
+        $log = $this->get_log();
+        $day = time() - DAY_IN_SECONDS;
+        $total = count($log);
+        $last24 = 0;
+        $failed24 = 0;
+        $high24 = 0;
+        foreach ($log as $r) {
+            if ((isset($r['t']) ? (int) $r['t'] : 0) < $day) {
+                continue;
+            }
+            $last24++;
+            $a = isset($r['a']) ? $r['a'] : '';
+            if ($a === 'login_failed') {
+                $failed24++;
+            }
+            $sev = self::action_severity($a);
+            if ($sev === 'critical' || $sev === 'high') {
+                $high24++;
+            }
+        }
+        return compact('total', 'last24', 'failed24', 'high24');
     }
 
     /** @return array list of entries, newest first. */
@@ -104,6 +193,7 @@ class WP_Arzo_Activity_Log
     {
         // No actor — store the attempted username in the object field.
         $this->record('login_failed', 'Failed sign-in for "' . (string) $username . '"');
+        $this->maybe_anomaly();
     }
 
     public function on_logout($user_id = 0)
@@ -368,10 +458,54 @@ class WP_Arzo_Activity_Log
 
     /* ------------------------------------------------- display helpers */
 
+    /**
+     * Severity levels, most→least serious. Each: [label, badge tone, icon, rank].
+     * Severity is DERIVED from the action key (see action_severity) so it applies
+     * retroactively to entries logged before this model existed.
+     */
+    public static function severities()
+    {
+        return array(
+            'critical' => array('Critical', 'error',   'alert',  4),
+            'high'     => array('High',     'warning', 'shield', 3),
+            'medium'   => array('Medium',   'info',    'info',   2),
+            'low'      => array('Low',      'neutral', 'dot',    1),
+        );
+    }
+
+    /** Map an action key to its severity key (critical|high|medium|low). */
+    public static function action_severity($action)
+    {
+        static $map = null;
+        if ($map === null) {
+            $map = array();
+            $groups = array(
+                'critical' => array('security_alert', 'user_deleted', 'plugin_deleted', 'theme_deleted'),
+                'high'     => array('login_failed', 'role_changed', 'user_created', 'password_reset', 'option_changed', 'plugin_activated', 'plugin_deactivated', 'core_updated'),
+                'medium'   => array('post_deleted', 'post_trashed', 'media_deleted', 'comment_spam', 'comment_deleted', 'theme_switched', 'plugin_installed', 'plugin_updated', 'theme_installed', 'theme_updated', 'term_deleted', 'menu_updated', 'export'),
+            );
+            foreach ($groups as $sev => $keys) {
+                foreach ($keys as $k) {
+                    $map[$k] = $sev;
+                }
+            }
+        }
+        return isset($map[$action]) ? $map[$action] : 'low';
+    }
+
+    /** severity meta ([label, tone, icon, rank]) for an action key. */
+    public static function severity_meta($action)
+    {
+        $sevs = self::severities();
+        $key  = self::action_severity($action);
+        return isset($sevs[$key]) ? $sevs[$key] : $sevs['low'];
+    }
+
     /** Map an action key to a label, badge tone, and icon for the admin table. */
     public static function action_meta($action)
     {
         $map = array(
+            'security_alert'      => array('Security alert', 'error', 'alert'),
             'login'               => array('Login', 'success', 'shield'),
             'login_failed'        => array('Failed login', 'error', 'shield'),
             'logout'              => array('Logout', 'neutral', 'shield'),
@@ -427,7 +561,7 @@ class WP_Arzo_Feature_Activity_Log extends WP_Arzo_Feature
     }
     public function description()
     {
-        return 'Record a full audit trail of site activity — logins & password resets, user/profile/role changes, content edits & deletes, media, comments, plugin/theme/core installs & updates, and settings changes (view under WP Arzo → Activity Log).';
+        return 'Record a full, severity-graded audit trail of site activity — logins & password resets, user/profile/role changes, content edits & deletes, media, comments, plugin/theme/core installs & updates, and settings changes — with a live summary and brute-force burst alerts (view under WP Arzo → Activity Log).';
     }
     public function group()
     {
@@ -451,6 +585,9 @@ class WP_Arzo_Feature_Activity_Log extends WP_Arzo_Feature
             array('key' => 'log_comments', 'type' => 'toggle', 'label' => 'Log comments', 'help' => 'Comments posted, approved/unapproved, spammed, trashed or deleted.', 'default' => true),
             array('key' => 'log_plugins', 'type' => 'toggle', 'label' => 'Log plugin & theme activity', 'help' => 'Activate/deactivate/delete, theme switch/delete, and install/update of plugins, themes & core.', 'default' => true),
             array('key' => 'log_settings', 'type' => 'toggle', 'label' => 'Log settings & site changes', 'help' => 'Key option/settings changes, menu edits, and site exports.', 'default' => true),
+            array('key' => 'anomaly_alerts', 'type' => 'toggle', 'label' => 'Brute-force alert', 'help' => 'Record a Critical security alert (and fire notifications) when many sign-ins fail in a short window. Requires “Log authentication”.', 'default' => true),
+            array('key' => 'anomaly_threshold', 'type' => 'number', 'label' => 'Alert after N failed sign-ins', 'help' => 'How many failed logins within the window trigger the alert (3–1000).', 'default' => 10, 'min' => 3, 'max' => 1000),
+            array('key' => 'anomaly_window', 'type' => 'number', 'label' => 'Within (minutes)', 'help' => 'The rolling window the failed sign-ins are counted over (1–1440).', 'default' => 15, 'min' => 1, 'max' => 1440),
             array('key' => 'retention', 'type' => 'number', 'label' => 'Entries to keep', 'help' => 'Oldest entries are dropped past this many (20–1000).', 'default' => 300, 'min' => 20, 'max' => 1000),
         );
     }
@@ -459,6 +596,11 @@ class WP_Arzo_Feature_Activity_Log extends WP_Arzo_Feature
     {
         $engine = WP_Arzo_Activity_Log::instance();
         $engine->set_retention($this->get_setting('retention', 300));
+        $engine->set_anomaly(
+            $this->get_setting('anomaly_alerts', true),
+            $this->get_setting('anomaly_threshold', 10),
+            $this->get_setting('anomaly_window', 15)
+        );
 
         if ($this->get_setting('log_auth', true)) {
             add_action('wp_login', array($engine, 'on_login'), 10, 2);
