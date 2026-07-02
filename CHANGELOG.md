@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.102.3] — 2026-07-03
+
+### Changed — Files (elFinder) dark skin
+
+- The console **Files** tab (elFinder file manager) is now fully dark. The last light spot — the
+  list-view **column-header bar** (Name / Permissions / Modified / Size / Kind), a jQuery-UI /
+  material-theme leak — is darkened (scoped to `#elfinder` to beat the theme's specificity, gradient
+  cleared) to the dashboard's muted-header style. Also closed other latent light gaps (dialog
+  titlebars, tooltips, `ui-widget` bases, inline rename/filter + search inputs → sunken dark, path
+  links → accent), tokenized the remaining hardcoded hex, and **softened selection** (navbar + file
+  rows) from a loud filled-green to the dashboard's **accent-soft + ring** active-tab look.
+
 ## [6.102.2] — 2026-07-03
 
 ### Changed
