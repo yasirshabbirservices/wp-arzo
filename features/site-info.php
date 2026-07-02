@@ -76,12 +76,16 @@ function showSiteInfo()
 }
 
 .info-card-header {
-    background: linear-gradient(135deg, var(--accent-color) 0%, #0ea66b 100%);
-    color: var(--dark-text);
+    background: var(--arzo-bg-elev);
+    color: var(--arzo-text-strong);
     padding: 15px 20px;
     font-weight: 600;
     font-size: 16px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--arzo-border);
+}
+
+.info-card-header i {
+    color: var(--arzo-accent);
 }
 
 .info-card-body {
@@ -153,9 +157,9 @@ function showSiteInfo()
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent-color), #0ea66b);
-    border-radius: 4px;
-    transition: width 0.3s ease;
+    background: var(--arzo-accent);
+    border-radius: var(--arzo-radius-sm);
+    transition: width var(--arzo-transition-slow) ease;
 }
 
 .disk-usage {
