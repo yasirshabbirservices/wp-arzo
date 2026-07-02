@@ -4,6 +4,27 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.105.0] — 2026-07-03
+
+### Added — Activity Log: severity grading, live summary & brute-force alerts (enrichment #5)
+
+- **Severity grading.** Every event is now graded **Critical / High / Medium / Low** (derived from
+  the action, so it applies retroactively to already-logged entries) and shown as a coloured
+  badge in a new **Severity** column. A severity **filter** joins the event-type filter and
+  search. Model lives in the engine (`severities()` / `action_severity()` / `severity_meta()`), so
+  the Pro Audit Log reuses it (new Severity column + CSV field there too).
+- **Live summary strip.** The Activity Log page opens with four at-a-glance tiles — **Total
+  events**, **Last 24 hours**, **High/critical · 24h**, **Failed sign-ins · 24h** (state-aware
+  colours) — from a new `stats()` helper.
+- **Brute-force burst alert.** When many sign-ins fail in a short rolling window (defaults:
+  **10 within 15 min**, both configurable), a **Critical `security_alert`** is recorded and fans
+  out through `wp_arzo_activity_recorded` → the Pro **Notifications** *security* group and the Pro
+  **Audit Log**. A per-window cooldown prevents alert spam. New settings: *Brute-force alert*
+  toggle + threshold + window.
+- **Instant client-side filtering.** The severity / event / search controls now filter the table
+  **in place** (no page reload) for the free capped log; CSV export gains a **Severity** column.
+- Engine logic harnessed (19 checks); `wp_arzo_activity_failwin` window state removed on uninstall.
+
 ## [6.104.0] — 2026-07-03
 
 ### Added — Email suite: retry queue + 4 more providers (enrichment #4)
