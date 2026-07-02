@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.107.0] — 2026-07-03
+
+### Added — Activity Log: per-event object deep-links (enrichment #7)
+
+- **Clickable events.** A log entry about a post, page, CPT, media item, user, or comment is now a
+  **link straight to that object's edit screen** (with an external-link icon) — no more hunting for
+  the item the entry refers to. Applies to publish/update/trash, media uploads, user create/role/
+  profile changes, comment moderation, and session terminations (→ the user).
+- **How it works.** `record()` gained an optional object reference `{type,id}` stored as `lt`/`li`
+  on the entry; `WP_Arzo_Activity_Log::object_edit_url()` resolves it to `get_edit_post_link` /
+  `get_edit_user_link` / `get_edit_comment_link` at display time. Only **non-destructive** events
+  link (a permanently-deleted object has nothing to open); entries logged before this release simply
+  render as plain text (fully backward compatible).
+- **Pro parity.** The Advanced Audit Log table gains the same deep-links via two new columns
+  (`link_type`, `link_id`; DB v2 migration) mirrored from the free entry.
+- 11-check harness.
+
 ## [6.106.0] — 2026-07-03
 
 ### Added — Activity Log: live user sessions + terminate (enrichment #6)

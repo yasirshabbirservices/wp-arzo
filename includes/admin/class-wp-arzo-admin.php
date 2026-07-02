@@ -2777,7 +2777,21 @@ class WP_Arzo_Admin
                                         <?php echo esc_html($meta[0]); ?>
                                     </span>
                                 </td>
-                                <td><?php echo esc_html($detail); ?></td>
+                                <td>
+                                    <?php
+                                    $url = WP_Arzo_Activity_Log::object_edit_url($row['lt'] ?? '', $row['li'] ?? 0);
+                                    if ($url) {
+                                        printf(
+                                            '<a href="%s" title="Open this item">%s %s</a>',
+                                            esc_url($url),
+                                            esc_html($detail),
+                                            wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm'))
+                                        );
+                                    } else {
+                                        echo esc_html($detail);
+                                    }
+                                    ?>
+                                </td>
                                 <td><?php echo esc_html($user); ?></td>
                                 <td><code><?php echo esc_html($ip); ?></code></td>
                             </tr>
@@ -2866,7 +2880,7 @@ class WP_Arzo_Admin
         }
         if (class_exists('WP_Arzo_Activity_Log')) {
             $u = get_userdata($user_id);
-            WP_Arzo_Activity_Log::instance()->record('session_terminated', 'Terminated a session for ' . ($u ? $u->user_login : '#' . $user_id));
+            WP_Arzo_Activity_Log::instance()->record('session_terminated', 'Terminated a session for ' . ($u ? $u->user_login : '#' . $user_id), 0, array('type' => 'user', 'id' => $user_id));
         }
         wp_send_json_success(array('message' => 'Session terminated.'));
     }
