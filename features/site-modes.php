@@ -623,7 +623,7 @@ function handleMaintenanceModes()
     </style>
 
     <div class="content maintenance-container">
-        <h2>Site Modes</h2>
+        <h1>Site Modes</h1>
         <p style="color: #999; margin-bottom: 30px;">Manage access to your site during maintenance or development.</p>
 
         <!-- Social Contact Settings -->

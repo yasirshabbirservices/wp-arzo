@@ -144,6 +144,7 @@ if (function_exists('wp_arzo_console_tool_enabled') && !wp_arzo_console_tool_ena
     echo '<div class="content"><h2>Feature Not Found</h2><p>The requested feature "' . esc_html($action) . '" is not available.</p></div>';
 }
 ?>
+</main>
 </div>
 
 <!-- External JavaScript -->

@@ -144,7 +144,8 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
     <script src="<?php echo WP_ARZO_PLUGIN_URL . 'assets/libs/elFinder/js/extras/editors.default.js'; ?>"></script>
 
     <!-- elFinder Container -->
-    <div id="elfinder" style="height: 100%;"></div>
+    <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);border:0;padding:0;margin:-1px;">File Manager</h1>
+    <div id="elfinder" style="height: 100%;" aria-label="File manager"></div>
 
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {

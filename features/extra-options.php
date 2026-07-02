@@ -346,7 +346,7 @@ function handleExtraOptions()
 
 ?>
     <div class="content">
-        <h2>Extra Options</h2>
+        <h1>Extra Options</h1>
 
         <div
             style="background: #2A2A2A; padding: 20px; border-radius: var(--radius-global); border: 1px solid #333333; margin-bottom: 20px;">
@@ -363,9 +363,9 @@ function handleExtraOptions()
                 }
 
                 .php-limits-input {
-                    background: #151515;
-                    border: 1px solid #444;
-                    color: #fff;
+                    background: var(--arzo-bg-input);
+                    border: 1px solid var(--arzo-border-strong);
+                    color: var(--arzo-text-primary);
                     padding: 10px;
                     border-radius: 4px;
                     width: 100%;
@@ -377,16 +377,16 @@ function handleExtraOptions()
                 }
 
                 .form-group label {
-                    color: #ccc;
+                    color: var(--arzo-text-secondary);
                     font-size: 13px;
                     margin-bottom: 5px;
                     display: block;
                 }
 
                 .modern-select {
-                    background: #151515;
-                    border: 1px solid #444;
-                    color: #fff;
+                    background: var(--arzo-bg-input);
+                    border: 1px solid var(--arzo-border-strong);
+                    color: var(--arzo-text-primary);
                     padding: 10px;
                     border-radius: 4px;
                     width: 100%;
@@ -396,8 +396,8 @@ function handleExtraOptions()
             <form method="post">
                 <?php wp_nonce_field('wp_arzo_php_limits', 'wp_arzo_php_nonce'); ?>
                 <div class="form-group" style="margin-bottom: 20px;">
-                    <label>Target Configuration File</label>
-                    <select name="target_file" class="modern-select" data-wpa-select required>
+                    <label for="eo-target">Target Configuration File</label>
+                    <select id="eo-target" name="target_file" class="modern-select" data-wpa-select required>
                         <option value="wp-config" <?php echo $wp_config_writable ? '' : 'disabled'; ?>>wp-config.php
                             <?php echo $wp_config_writable ? '' : '(Not writable)'; ?>
                         </option>
@@ -412,26 +412,26 @@ function handleExtraOptions()
 
                 <div class="php-limits-grid">
                     <div class="form-group">
-                        <label>Memory Limit (e.g. 512M)</label>
-                        <input type="text" name="memory_limit" value="<?php echo $memory_limit; ?>" class="php-limits-input"
+                        <label for="eo-memory">Memory Limit (e.g. 512M)</label>
+                        <input id="eo-memory" type="text" name="memory_limit" value="<?php echo $memory_limit; ?>" class="php-limits-input"
                             required>
                     </div>
 
                     <div class="form-group">
-                        <label>Max Execution Time (seconds)</label>
-                        <input type="number" name="max_execution_time" value="<?php echo $max_execution_time; ?>"
+                        <label for="eo-maxexec">Max Execution Time (seconds)</label>
+                        <input id="eo-maxexec" type="number" name="max_execution_time" value="<?php echo $max_execution_time; ?>"
                             class="php-limits-input" required>
                     </div>
 
                     <div class="form-group">
-                        <label>Upload Max Filesize (e.g. 64M)</label>
-                        <input type="text" name="upload_max_filesize" value="<?php echo $upload_max_filesize; ?>"
+                        <label for="eo-upload">Upload Max Filesize (e.g. 64M)</label>
+                        <input id="eo-upload" type="text" name="upload_max_filesize" value="<?php echo $upload_max_filesize; ?>"
                             class="php-limits-input" required>
                     </div>
 
                     <div class="form-group">
-                        <label>Post Max Size (e.g. 64M)</label>
-                        <input type="text" name="post_max_size" value="<?php echo $post_max_size; ?>"
+                        <label for="eo-postmax">Post Max Size (e.g. 64M)</label>
+                        <input id="eo-postmax" type="text" name="post_max_size" value="<?php echo $post_max_size; ?>"
                             class="php-limits-input" required>
                     </div>
                 </div>
@@ -439,7 +439,7 @@ function handleExtraOptions()
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" name="update_php_limits" class="btn" style="flex: 1;">Update Limits</button>
                     <button type="submit" name="reset_php_limits" class="btn"
-                        style="background-color: transparent; border: 1px solid #444; color: #999; flex:1;"
+                        style="background-color: transparent; border: 1px solid var(--arzo-border-strong); color: #999; flex:1;"
                         onclick="return confirm('Are you sure you want to reset to default PHP limits?');"
                         onmouseover="this.style.borderColor='#fff'; this.style.color='#fff';"
                         onmouseout="this.style.borderColor='#444'; this.style.color='#999';">

@@ -83,7 +83,7 @@ function handleQuickLogin()
     $now     = time();
     ?>
     <div class="content">
-        <h2>Temporary Login Links</h2>
+        <h1>Temporary Login Links</h1>
         <p style="color:var(--muted-text); margin-top:-6px;">
             Create passwordless, time-limited links that sign someone in as a chosen role — perfect for support, clients, or developers. No password sharing, auto-expiring, and revocable any time.
         </p>
