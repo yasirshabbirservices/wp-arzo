@@ -673,18 +673,26 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
            Kept inline so the recovery tool stays fully self-contained. */
         :root {
             --accent-color: #16e791;
+            --accent-soft: rgba(22, 231, 145, 0.12);
+            --accent-ring: rgba(22, 231, 145, 0.45);
             --accent-hover: #0ea66b;
             --primary-text: #ffffff;
             --secondary-text: #e0e0e0;
             --muted-text: #999999;
             --background-dark: #121212;
             --background-medium: #1e1e1e;
+            /* Elevated + sunken surfaces, matching the dashboard token system so the
+               recovery tool looks identical to the plugin (inputs sink, panels lift). */
+            --background-elev: #242424;
+            --background-input: #151515;
             --background-light: #2a2a2a;
             --border-color: #333333;
             --border-light: #444444;
             --danger-color: #ff4d4f;
+            --danger-soft: rgba(255, 77, 79, 0.15);
             --success-color: #16e791;
             --radius-global: 8px;
+            --radius-lg: 14px;
             --radius-sm: 4px;
             --radius-pill: 999px;
         }
@@ -727,37 +735,46 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             font-weight: 400;
         }
 
+        /* Segmented pill tabs — identical language to the plugin dashboard's .wpa-tabs. */
         .nav {
             margin-bottom: 20px;
-            display: flex;
+            display: inline-flex;
             flex-wrap: wrap;
-            gap: 5px;
-            border-bottom: 2px solid var(--border-color);
+            gap: 4px;
+            padding: 4px;
+            background: var(--background-medium);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            max-width: 100%;
         }
 
         .nav button {
-            padding: 12px 20px;
-            background: var(--background-light);
-            color: var(--secondary-text);
-            border: 2px solid var(--border-color);
-            border-bottom: none;
-            border-radius: 8px 8px 0 0;
-            font-weight: 500;
+            padding: 9px 18px;
+            background: transparent;
+            color: var(--muted-text);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             font-family: inherit;
             font-size: 14px;
         }
 
         .nav button:hover {
             background: var(--background-light);
-            color: var(--accent-color);
+            color: var(--primary-text);
         }
 
         .nav button.active {
-            background: var(--accent-color);
-            color: var(--background-dark);
-            border-color: var(--accent-color);
+            background: var(--accent-soft);
+            color: var(--accent-color);
+            box-shadow: inset 0 0 0 1px var(--accent-ring);
+        }
+
+        .nav button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--accent-ring);
         }
 
         .content {
@@ -770,6 +787,58 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 
         .content.active {
             display: block;
+        }
+
+        /* System-status info cards — mirror the plugin's Site Info cards. */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .info-card {
+            background: var(--background-medium);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-global);
+            overflow: hidden;
+        }
+
+        .info-card-header {
+            background: var(--background-elev);
+            color: var(--primary-text);
+            padding: 14px 18px;
+            font-weight: 600;
+            font-size: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-card-body {
+            padding: 4px 18px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--secondary-text);
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--primary-text);
+            font-weight: 600;
+            text-align: right;
+            word-break: break-all;
         }
 
         .alert {
@@ -805,9 +874,12 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         th {
-            background: var(--border-color);
-            color: var(--accent-color);
+            background: var(--background-elev);
+            color: var(--muted-text);
             font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         tr:hover {
@@ -858,11 +930,17 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         .form-control {
             width: 100%;
             padding: 10px;
-            background: var(--background-light);
-            border: 1px solid var(--border-color);
+            background: var(--background-input);
+            border: 1px solid var(--border-light);
             color: var(--primary-text);
-            border-radius: var(--radius-global);
+            border-radius: var(--radius-sm);
             box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--accent-ring);
         }
 
         .flex-between {
@@ -1049,8 +1127,8 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .login-card .form-control {
-            background: var(--background-light);
-            border: 1px solid var(--border-color);
+            background: var(--background-input);
+            border: 1px solid var(--border-light);
             padding: 12px 15px;
             font-size: 15px;
             margin-bottom: 20px;
@@ -1241,12 +1319,22 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                 <!-- DASHBOARD -->
                 <div id="dashboard" class="content <?php echo $current_tab === 'dashboard' ? 'active' : ''; ?>">
                     <h2>System Status</h2>
-                    <div class="site-info-grid">
-                        <div class="form-group"><strong>PHP Version:</strong> <?php echo phpversion(); ?></div>
-                        <div class="form-group"><strong>MySQL Version:</strong> <?php echo $conn->server_info; ?></div>
-                        <div class="form-group"><strong>Active Plugins:</strong> <?php echo count($active_plugins); ?></div>
-                        <div class="form-group"><strong>Active Theme:</strong> <?php echo $active_theme; ?></div>
-                        <div class="form-group"><strong>WP Config:</strong> <?php echo htmlspecialchars($wp_config_path); ?>
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <div class="info-card-header">Environment</div>
+                            <div class="info-card-body">
+                                <div class="info-item"><span class="info-label">PHP Version</span><span class="info-value"><?php echo htmlspecialchars(phpversion()); ?></span></div>
+                                <div class="info-item"><span class="info-label">MySQL Version</span><span class="info-value"><?php echo htmlspecialchars($conn->server_info); ?></span></div>
+                                <div class="info-item"><span class="info-label">Emergency Tool</span><span class="info-value">v<?php echo htmlspecialchars(WP_ARZO_EMERGENCY_VERSION); ?></span></div>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-card-header">WordPress</div>
+                            <div class="info-card-body">
+                                <div class="info-item"><span class="info-label">Active Plugins</span><span class="info-value"><?php echo count($active_plugins); ?></span></div>
+                                <div class="info-item"><span class="info-label">Active Theme</span><span class="info-value"><?php echo htmlspecialchars($active_theme); ?></span></div>
+                                <div class="info-item"><span class="info-label">WP Config</span><span class="info-value"><?php echo htmlspecialchars($wp_config_path); ?></span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1264,7 +1352,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     </div>
 
                     <!-- Upload -->
-                    <div style="background:var(--background-light); padding:15px; margin:15px 0; border-radius:3px;">
+                    <div style="background:var(--background-elev); border:1px solid var(--border-color); padding:15px; margin:15px 0; border-radius:var(--radius-sm);">
                         <h4 style="margin-top:0;">Upload Plugin (ZIP)</h4>
                         <form method="post" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="upload_plugin">
@@ -1336,7 +1424,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                     <h2>Theme Management</h2>
 
                     <!-- Upload -->
-                    <div style="background:var(--background-light); padding:15px; margin:15px 0; border-radius:3px;">
+                    <div style="background:var(--background-elev); border:1px solid var(--border-color); padding:15px; margin:15px 0; border-radius:var(--radius-sm);">
                         <h4 style="margin-top:0;">Upload Theme (ZIP)</h4>
                         <form method="post" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="upload_theme">
@@ -1407,7 +1495,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                 <div id="users" class="content <?php echo $current_tab === 'users' ? 'active' : ''; ?>">
                     <h2>User Management</h2>
 
-                    <div style="background:var(--background-light); padding:15px; margin-bottom:20px; border-radius:3px;">
+                    <div style="background:var(--background-elev); border:1px solid var(--border-color); padding:15px; margin-bottom:20px; border-radius:var(--radius-sm);">
                         <h4>Create Administrator</h4>
                         <form method="post">
                             <input type="hidden" name="action" value="create_admin">
