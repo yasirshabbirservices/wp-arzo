@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.116.0] — 2026-07-03
+
+### Changed — Pro catalog: advertise Content Analytics (Phase 4)
+
+- Added the **Content Analytics** (`analytics_content`) locked-PRO showcase card
+  (author / post-type / category reports with traffic-share %). The feature itself is
+  entirely in WP Arzo Pro (it post-processes the free engine's top-pages data at report
+  time — no free schema change).
+
 ## [6.115.0] — 2026-07-03
 
 ### Added — Analytics pillar: eCommerce revenue store (Phase 4, free half)
