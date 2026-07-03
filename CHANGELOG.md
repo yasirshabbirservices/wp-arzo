@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.132.0] — 2026-07-04
+
+### Changed — Site Health scheduled digest (Pro catalog copy)
+
+- Updated the Pro **Site Health Monitor** showcase card for its scheduled **email digest**
+  (Pro v1.58.0) — daily/weekly/monthly health summary (overall status, uptime %, response time and
+  each check) emailed via your WP Arzo email connections. Catalog description + version bump; the
+  feature ships in the Pro add-on.
+
 ## [6.131.0] — 2026-07-03
 
 ### Added — Email → Stats: per-connection volume & deliverability over time
