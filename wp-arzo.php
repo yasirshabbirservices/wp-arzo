@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.139.0
+ * Version: 6.140.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.139.0');
+    define('WP_ARZO_VERSION', '6.140.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -492,11 +492,15 @@ add_action('plugins_loaded', function () {
     }
 }, 15);
 
-foreach ((array) glob(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/*.php') as $wp_arzo_feature_file) {
-    if ($wp_arzo_feature_file) {
-        require_once($wp_arzo_feature_file);
-    }
-}
+// On-demand feature loading: feature module classes are NO LONGER eagerly required here.
+// The registry autoloader pulls a feature's class file only when it's enabled/booted or
+// its page/settings are opened (see register_lazy() in wp_arzo_bootstrap_features()), so a
+// front-end / cron / REST request parses only the classes for ENABLED features.
+//
+// Two files define bootstrap-time FUNCTIONS (not just feature classes) and so must load
+// eagerly: the console-tools registrar + the Pro-catalog placeholder registrar.
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/class-features-advanced-tools.php');
+require_once(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/class-feature-pro-placeholders.php');
 
 /**
  * Register built-in features, let add-ons (e.g. WP Arzo Pro) register theirs, then
@@ -506,97 +510,114 @@ function wp_arzo_bootstrap_features()
 {
     $registry = WP_Arzo_Feature_Registry::instance();
 
-    // Analytics (built-in, cookieless, first-party) + Google tag insertion (free)
-    $registry->register(new WP_Arzo_Feature_Analytics());
-    $registry->register(new WP_Arzo_Feature_GA4());
-    $registry->register(new WP_Arzo_Feature_GTM());
-    $registry->register(new WP_Arzo_Feature_Google_Ads());
+    $features_dir = WP_ARZO_PLUGIN_DIR . 'includes/features-registry/';
 
-    $registry->register(new WP_Arzo_Feature_Disable_Comments());
-    $registry->register(new WP_Arzo_Feature_Hide_Admin_Bar());
-    $registry->register(new WP_Arzo_Feature_Disable_XMLRPC());
-    $registry->register(new WP_Arzo_Feature_Disable_Dashboard_Widgets());
+    // Lazily register every built-in feature: id => [class, file]. The class file is NOT
+    // loaded here — the registry autoloader pulls it in only when the feature is enabled
+    // (booted) or its page/settings are opened. None of these default to enabled, so no
+    // fourth argument is needed (the console tools below are the only default-on set).
+    // Order is preserved for the dashboard grid (grouped() sorts by group, then by this
+    // registration order within each group).
+    $lazy_features = array(
+        // Analytics (built-in, cookieless, first-party) + Google tag insertion (free)
+        'analytics'                 => array('WP_Arzo_Feature_Analytics', 'class-feature-analytics.php'),
+        'google_analytics_4'        => array('WP_Arzo_Feature_GA4', 'class-feature-google-tags.php'),
+        'google_tag_manager'        => array('WP_Arzo_Feature_GTM', 'class-feature-google-tags.php'),
+        'google_ads'                => array('WP_Arzo_Feature_Google_Ads', 'class-feature-google-tags.php'),
 
-    // Core controls
-    $registry->register(new WP_Arzo_Feature_Disable_Gutenberg());
-    $registry->register(new WP_Arzo_Feature_Disable_Feeds());
-    $registry->register(new WP_Arzo_Feature_Disable_Embeds());
-    $registry->register(new WP_Arzo_Feature_Disable_Updates());
+        'disable_comments'          => array('WP_Arzo_Feature_Disable_Comments', 'class-feature-disable-comments.php'),
+        'hide_admin_bar'            => array('WP_Arzo_Feature_Hide_Admin_Bar', 'class-feature-hide-admin-bar.php'),
+        'disable_xmlrpc'            => array('WP_Arzo_Feature_Disable_XMLRPC', 'class-feature-disable-xmlrpc.php'),
+        'disable_dashboard_widgets' => array('WP_Arzo_Feature_Disable_Dashboard_Widgets', 'class-feature-disable-dashboard-widgets.php'),
 
-    // Content & media
-    $registry->register(new WP_Arzo_Feature_Duplicate_Posts());
-    $registry->register(new WP_Arzo_Feature_Missed_Schedule());
-    $registry->register(new WP_Arzo_Feature_SVG_Upload());
-    $registry->register(new WP_Arzo_Feature_WebP());
-    $registry->register(new WP_Arzo_Feature_Media_Cleanup());
-    // Media Folders is a Pro feature (the Pro add-on registers the full nested manager).
-    // The free tier advertises it as a locked PRO card via wp_arzo_pro_feature_catalog().
-    $registry->register(new WP_Arzo_Feature_Media_Replace());
-    $registry->register(new WP_Arzo_Feature_Image_SEO());
-    $registry->register(new WP_Arzo_Feature_Disable_Archives());
-    $registry->register(new WP_Arzo_Feature_Content_Order());
+        // Core controls
+        'disable_gutenberg'         => array('WP_Arzo_Feature_Disable_Gutenberg', 'class-features-core.php'),
+        'disable_feeds'             => array('WP_Arzo_Feature_Disable_Feeds', 'class-features-core.php'),
+        'disable_embeds'            => array('WP_Arzo_Feature_Disable_Embeds', 'class-features-core.php'),
+        'disable_updates'           => array('WP_Arzo_Feature_Disable_Updates', 'class-features-admin-tweaks.php'),
 
-    // Developer
-    $registry->register(new WP_Arzo_Feature_Snippets());
+        // Content & media (Media Folders is a Pro feature — advertised via the catalog placeholder)
+        'duplicate_posts'           => array('WP_Arzo_Feature_Duplicate_Posts', 'class-features-content.php'),
+        'missed_schedule'           => array('WP_Arzo_Feature_Missed_Schedule', 'class-features-content.php'),
+        'svg_upload'                => array('WP_Arzo_Feature_SVG_Upload', 'class-features-content.php'),
+        'webp_convert'              => array('WP_Arzo_Feature_WebP', 'class-feature-webp.php'),
+        'media_cleanup'             => array('WP_Arzo_Feature_Media_Cleanup', 'class-feature-media-cleanup.php'),
+        'media_replace'             => array('WP_Arzo_Feature_Media_Replace', 'class-feature-media-replace.php'),
+        'image_seo'                 => array('WP_Arzo_Feature_Image_SEO', 'class-feature-image-seo.php'),
+        'disable_archives'          => array('WP_Arzo_Feature_Disable_Archives', 'class-feature-disable-archives.php'),
+        'content_order'             => array('WP_Arzo_Feature_Content_Order', 'class-feature-content-order.php'),
 
-    // Security & Access — audit trail
-    $registry->register(new WP_Arzo_Feature_Activity_Log());
+        // Developer
+        'code_snippets'             => array('WP_Arzo_Feature_Snippets', 'class-feature-snippets.php'),
 
-    // Advanced Tools (standalone console) — per-tool enable/disable toggles.
+        // Security & Access — audit trail
+        'activity_log'              => array('WP_Arzo_Feature_Activity_Log', 'class-feature-activity-log.php'),
+
+        // Admin tweaks
+        'last_login'                => array('WP_Arzo_Feature_Last_Login', 'class-features-admin-tweaks.php'),
+        'custom_code'               => array('WP_Arzo_Feature_Custom_Code', 'class-features-admin-tweaks.php'),
+        'custom_css'                => array('WP_Arzo_Feature_Custom_CSS', 'class-features-admin-tweaks.php'),
+        'login_redirect'            => array('WP_Arzo_Feature_Login_Redirect', 'class-features-admin-tweaks.php'),
+        'custom_body_class'         => array('WP_Arzo_Feature_Custom_Body_Class', 'class-features-cleanup.php'),
+        'clean_admin_bar'           => array('WP_Arzo_Feature_Clean_Admin_Bar', 'class-features-cleanup.php'),
+        'enhance_list_tables'       => array('WP_Arzo_Feature_Enhance_List_Tables', 'class-features-cleanup.php'),
+        'crawl_optimizations'       => array('WP_Arzo_Feature_Crawl_Optimizations', 'class-features-cleanup.php'),
+
+        // Performance / content
+        'disable_emojis'            => array('WP_Arzo_Feature_Disable_Emojis', 'class-features-performance.php'),
+        'heartbeat_control'         => array('WP_Arzo_Feature_Heartbeat_Control', 'class-features-performance.php'),
+        'disable_self_pingbacks'    => array('WP_Arzo_Feature_Disable_Self_Pingbacks', 'class-features-performance.php'),
+        'limit_revisions'           => array('WP_Arzo_Feature_Limit_Revisions', 'class-features-performance.php'),
+
+        // Security
+        'disable_rest_api_guests'   => array('WP_Arzo_Feature_Disable_REST_Guests', 'class-features-security.php'),
+        'disable_file_editor'       => array('WP_Arzo_Feature_Disable_File_Editor', 'class-features-security.php'),
+        'block_user_enumeration'    => array('WP_Arzo_Feature_Block_User_Enumeration', 'class-features-security.php'),
+        'custom_login_url'          => array('WP_Arzo_Feature_Custom_Login_URL', 'class-features-security-extra.php'),
+        'limit_login'               => array('WP_Arzo_Feature_Limit_Login', 'class-features-security-extra.php'),
+        'disable_app_passwords'     => array('WP_Arzo_Feature_Disable_App_Passwords', 'class-features-cleanup.php'),
+        'rest_api_auth'             => array('WP_Arzo_Feature_REST_API_Auth', 'class-feature-rest-api-auth.php'),
+        // Two-Factor Authentication is a PRO feature (see wp-arzo-pro) — advertised as a catalog placeholder.
+
+        // Core controls / admin tooling
+        'role_manager'              => array('WP_Arzo_Feature_Role_Manager', 'class-feature-role-manager.php'),
+
+        // Marketing / SEO
+        'manage_robots_txt'         => array('WP_Arzo_Feature_Manage_Robots_Txt', 'class-features-marketing.php'),
+        'manage_ads_txt'            => array('WP_Arzo_Feature_Manage_Ads_Txt', 'class-features-marketing.php'),
+        'site_verification'         => array('WP_Arzo_Feature_Site_Verification', 'class-features-perf-extra.php'),
+
+        // Performance extras
+        'remove_jquery_migrate'     => array('WP_Arzo_Feature_Remove_JQuery_Migrate', 'class-features-perf-extra.php'),
+        'disable_front_dashicons'   => array('WP_Arzo_Feature_Disable_Front_Dashicons', 'class-features-perf-extra.php'),
+
+        // Email
+        'smtp'                      => array('WP_Arzo_Feature_SMTP', 'class-features-email.php'),
+        'email_log'                 => array('WP_Arzo_Feature_Email_Log', 'class-features-email.php'),
+
+        // Branding
+        'custom_login'              => array('WP_Arzo_Feature_Custom_Login', 'class-feature-custom-login.php'),
+
+        // Backup & restore
+        'auto_snapshots'            => array('WP_Arzo_Feature_Backups', 'class-feature-backups.php'),
+        'scheduled_backups'         => array('WP_Arzo_Feature_Scheduled_Backups', 'class-feature-scheduled-backups.php'),
+    );
+    foreach ($lazy_features as $fid => $meta) {
+        $registry->register_lazy($fid, $meta[0], $features_dir . $meta[1]);
+    }
+
+    // Config Import/Export is a permanent tool (always available, no toggle). It is NOT a
+    // registered feature — its helper class is only referenced statically from the Settings
+    // hub. Map its class so the autoloader can resolve it on demand (it used to be pulled in
+    // by the now-removed features-registry glob).
+    $registry->map_class('WP_Arzo_Feature_Config_IO', $features_dir . 'class-feature-config-io.php');
+
+    // Advanced Tools (standalone console) — per-tool enable/disable toggles. These share one
+    // class (WP_Arzo_Feature_Console_Tool, differing only by constructor args) and default to
+    // enabled, so they stay on the eager register() path (their file is loaded above).
     if (function_exists('wp_arzo_register_console_tools')) {
         wp_arzo_register_console_tools($registry);
     }
-
-    // Admin tweaks
-    $registry->register(new WP_Arzo_Feature_Last_Login());
-    $registry->register(new WP_Arzo_Feature_Custom_Code());
-    $registry->register(new WP_Arzo_Feature_Custom_CSS());
-    $registry->register(new WP_Arzo_Feature_Login_Redirect());
-    $registry->register(new WP_Arzo_Feature_Custom_Body_Class());
-    $registry->register(new WP_Arzo_Feature_Clean_Admin_Bar());
-    $registry->register(new WP_Arzo_Feature_Enhance_List_Tables());
-    $registry->register(new WP_Arzo_Feature_Crawl_Optimizations());
-
-    // Performance / content
-    $registry->register(new WP_Arzo_Feature_Disable_Emojis());
-    $registry->register(new WP_Arzo_Feature_Heartbeat_Control());
-    $registry->register(new WP_Arzo_Feature_Disable_Self_Pingbacks());
-    $registry->register(new WP_Arzo_Feature_Limit_Revisions());
-
-    // Security
-    $registry->register(new WP_Arzo_Feature_Disable_REST_Guests());
-    $registry->register(new WP_Arzo_Feature_Disable_File_Editor());
-    $registry->register(new WP_Arzo_Feature_Block_User_Enumeration());
-    $registry->register(new WP_Arzo_Feature_Custom_Login_URL());
-    $registry->register(new WP_Arzo_Feature_Limit_Login());
-    $registry->register(new WP_Arzo_Feature_Disable_App_Passwords());
-    $registry->register(new WP_Arzo_Feature_REST_API_Auth());
-    // Two-Factor Authentication is a PRO feature (see wp-arzo-pro). The free core only
-    // advertises it via the Pro catalog placeholder.
-
-    // Core controls / admin tooling. Config Import/Export is a permanent tool (always
-    // available, no toggle) — its page is always registered; only the helper class loads.
-    $registry->register(new WP_Arzo_Feature_Role_Manager());
-
-    // Marketing / SEO
-    $registry->register(new WP_Arzo_Feature_Manage_Robots_Txt());
-    $registry->register(new WP_Arzo_Feature_Manage_Ads_Txt());
-    $registry->register(new WP_Arzo_Feature_Site_Verification());
-
-    // Performance extras
-    $registry->register(new WP_Arzo_Feature_Remove_JQuery_Migrate());
-    $registry->register(new WP_Arzo_Feature_Disable_Front_Dashicons());
-
-    // Email
-    $registry->register(new WP_Arzo_Feature_SMTP());
-    $registry->register(new WP_Arzo_Feature_Email_Log());
-
-    // Branding
-    $registry->register(new WP_Arzo_Feature_Custom_Login());
-
-    // Backup & restore
-    $registry->register(new WP_Arzo_Feature_Backups());
-    $registry->register(new WP_Arzo_Feature_Scheduled_Backups());
 
     /**
      * Add-ons register their own feature modules here.

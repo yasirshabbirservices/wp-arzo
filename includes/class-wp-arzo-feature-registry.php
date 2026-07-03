@@ -23,14 +23,35 @@ class WP_Arzo_Feature_Registry
     /** @var WP_Arzo_Feature_Registry|null */
     private static $instance = null;
 
-    /** @var array<string,WP_Arzo_Feature> */
+    /** @var array<string,WP_Arzo_Feature> Instantiated features (eager + lazily-loaded). */
     private $features = array();
+
+    /**
+     * Lazily-registered features: id => ['class'=>string,'file'=>string,'default'=>bool].
+     * The class is NOT instantiated (and its file NOT loaded) until the feature is
+     * enabled/booted or its page/settings are opened. This is the on-demand loader:
+     * front-end / cron / REST requests load only ENABLED feature classes.
+     *
+     * @var array<string,array>
+     */
+    private $lazy = array();
+
+    /** @var array<string,string> class name => absolute file path (drives the autoloader). */
+    private $class_map = array();
+
+    /** @var string[] Registration order of ids (eager + lazy), for stable listing. */
+    private $order = array();
 
     /** @var array<string,array> */
     private $groups;
 
     private function __construct()
     {
+        // On-demand autoloader for WP Arzo feature/helper classes. Only classes we
+        // explicitly mapped (via register_lazy()/map_class()) are resolved; everything
+        // else is ignored so we never interfere with other autoloaders.
+        spl_autoload_register(array($this, 'autoload'));
+
         $this->groups = array(
             'utilities' => array('label' => 'Utilities & Admin', 'icon' => 'tools'),
             'content'   => array('label' => 'Content & Modeling', 'icon' => 'file'),
@@ -57,23 +78,106 @@ class WP_Arzo_Feature_Registry
         return self::$instance;
     }
 
-    public function register($feature)
+    /**
+     * The autoloader callback. Resolves a WP Arzo class from the class→file map that
+     * register_lazy()/map_class() populate. No-op for anything not in the map.
+     */
+    public function autoload($class)
     {
-        if ($feature instanceof WP_Arzo_Feature) {
-            $this->features[$feature->id()] = $feature;
+        if (isset($this->class_map[$class])) {
+            $file = $this->class_map[$class];
+            if (is_string($file) && $file !== '' && file_exists($file)) {
+                require_once $file;
+            }
         }
     }
 
-    /** @return WP_Arzo_Feature|null */
-    public function get($id)
+    /** Eagerly register an already-instantiated feature (console tools, placeholders). */
+    public function register($feature)
     {
-        return isset($this->features[$id]) ? $this->features[$id] : null;
+        if ($feature instanceof WP_Arzo_Feature) {
+            $id = $feature->id();
+            $this->features[$id] = $feature;
+            if (!in_array($id, $this->order, true)) {
+                $this->order[] = $id;
+            }
+        }
     }
 
-    /** @return array<string,WP_Arzo_Feature> */
+    /**
+     * Lazily register a feature: record its id/class/file/default WITHOUT loading the
+     * class file. The class is loaded on demand (autoloader) the first time get() /
+     * boot_enabled() / all() needs a real instance.
+     *
+     * @param string $id              Stable feature id.
+     * @param string $class           Feature class name.
+     * @param string $file            Absolute path to the file defining $class.
+     * @param bool   $default_enabled Whether the feature is on before the user toggles it.
+     */
+    public function register_lazy($id, $class, $file, $default_enabled = false)
+    {
+        $this->lazy[$id] = array(
+            'class'   => $class,
+            'file'    => $file,
+            'default' => (bool) $default_enabled,
+        );
+        $this->class_map[$class] = $file;
+        if (!in_array($id, $this->order, true)) {
+            $this->order[] = $id;
+        }
+    }
+
+    /**
+     * Map a class name to its file for the autoloader WITHOUT registering a feature.
+     * For always-available helper classes referenced statically (e.g. Config Import/Export)
+     * that used to be pulled in by the now-removed features-registry glob.
+     */
+    public function map_class($class, $file)
+    {
+        $this->class_map[$class] = $file;
+    }
+
+    /** Is an id registered (eager or lazy) — cheap, never loads the class. */
+    public function is_registered($id)
+    {
+        return isset($this->features[$id]) || isset($this->lazy[$id]);
+    }
+
+    /** @return WP_Arzo_Feature|null Instantiating a lazily-registered feature on demand. */
+    public function get($id)
+    {
+        if (isset($this->features[$id])) {
+            return $this->features[$id];
+        }
+        if (isset($this->lazy[$id])) {
+            $class = $this->lazy[$id]['class'];
+            // class_exists() triggers the autoloader, which loads the mapped file.
+            if (class_exists($class)) {
+                $this->features[$id] = new $class();
+                return $this->features[$id];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Every feature as an instantiated object, in registration order. This FORCE-LOADS
+     * all lazily-registered classes, so only admin surfaces that need metadata for every
+     * card (dashboard grid, command palette, setup wizard) should call it — front-end and
+     * background requests must not.
+     *
+     * @return array<string,WP_Arzo_Feature>
+     */
     public function all()
     {
-        return $this->features;
+        $out = array();
+        foreach ($this->order as $id) {
+            $feature = $this->get($id);
+            if ($feature) {
+                $out[$id] = $feature;
+            }
+        }
+        return $out;
     }
 
     public function groups()
@@ -104,7 +208,12 @@ class WP_Arzo_Feature_Registry
         if (array_key_exists($id, $map)) {
             return (bool) $map[$id];
         }
-        $feature = $this->get($id);
+        // Resolve the "on before first toggle" default WITHOUT loading a lazy feature's
+        // class — the descriptor carries it, so boot_enabled() stays lazy.
+        if (isset($this->lazy[$id])) {
+            return (bool) $this->lazy[$id]['default'];
+        }
+        $feature = isset($this->features[$id]) ? $this->features[$id] : null;
         return $feature ? (bool) $feature->default_enabled() : false;
     }
 
@@ -160,12 +269,19 @@ class WP_Arzo_Feature_Registry
         update_option(self::OPT_SETTINGS, $all);
     }
 
-    /** Boot every enabled feature (call once, on plugins_loaded). */
+    /**
+     * Boot every enabled feature (call once, on plugins_loaded). Only ENABLED features'
+     * classes are loaded here — disabled features are never instantiated, which is the
+     * whole point of the on-demand loader on the front-end/cron/REST path.
+     */
     public function boot_enabled()
     {
-        foreach ($this->features as $id => $feature) {
+        foreach ($this->order as $id) {
             if ($this->is_enabled($id)) {
-                $feature->boot();
+                $feature = $this->get($id);
+                if ($feature) {
+                    $feature->boot();
+                }
             }
         }
     }
@@ -181,7 +297,7 @@ class WP_Arzo_Feature_Registry
         foreach (array_keys($this->groups) as $gk) {
             $out[$gk] = array();
         }
-        foreach ($this->features as $feature) {
+        foreach ($this->all() as $feature) {
             $g = $feature->group();
             if (!isset($out[$g])) {
                 $out[$g] = array();
@@ -199,7 +315,7 @@ class WP_Arzo_Feature_Registry
     public function count_enabled()
     {
         $n = 0;
-        foreach (array_keys($this->features) as $id) {
+        foreach ($this->order as $id) {
             if ($this->is_enabled($id)) {
                 $n++;
             }
