@@ -4,6 +4,32 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.109.0] — 2026-07-03
+
+### Added — Analytics pillar, Phase 1: built-in cookieless analytics (NEW)
+
+First slice of the **Analytics initiative** ([`.claude/analytics-plan.md`](.claude/analytics-plan.md)) —
+a built-in, first-party, **cookieless** website-analytics engine so you don't need Site Kit,
+Independent Analytics, or MonsterInsights.
+
+- **Tracking** — a tiny front-end beacon (`assets/js/wp-arzo-analytics.js`, ~1 KB, `sendBeacon`)
+  posts each page-hit to a REST collector (`wp-arzo/v1/hit`) that records it in a custom table
+  (`{prefix}wp_arzo_analytics_hits`). **No cookies, no external services, no personal data at rest** —
+  the IP is used only to derive a **daily-rotating salted visitor hash**, then discarded. Sessions are
+  a 30-minute stateless bucket. Honors Do-Not-Track.
+- **Reports** — a new **WP Arzo → Analytics** dashboard: KPI cards (pageviews, unique visitors,
+  sessions, bounce rate, avg. visit, views/session), a **self-hosted SVG traffic chart** (CSP-safe,
+  token-themed), and **Top pages** + **Top referrers** tables, with **Today / 7 / 30 / 90-day** range
+  switching (AJAX, no reload).
+- **Hygiene** — bot/crawler filtering, logged-in **admin exclusion** (default on), extra role + IP
+  exclusion lists, DNT respect, and **daily retention pruning** (schema-driven settings). Self-referrals
+  and direct traffic are handled correctly; UTM params are captured.
+- **Plumbing** — new `analytics` feature (group **Analytics**, new `chart`/`globe` icons), engine
+  `WP_Arzo_Analytics` (pure helpers harnessed — 35 checks), command-palette entry, submenu near the top.
+  Table dropped + cron cleared on uninstall.
+- Next: **Phase 2** (Geo/Devices/Behaviour reports, CSV export, dashboard widget, per-post views, and
+  the Google GA4/GTM tag tab moving to free); then Pro Phases 3–4.
+
 ## [6.108.0] — 2026-07-03
 
 ### Added — Activity Log: retention by severity (enrichment #8)

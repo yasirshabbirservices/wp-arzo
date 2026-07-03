@@ -35,6 +35,7 @@ class WP_Arzo_Feature_Registry
             'utilities' => array('label' => 'Utilities & Admin', 'icon' => 'tools'),
             'content'   => array('label' => 'Content & Modeling', 'icon' => 'file'),
             'media'     => array('label' => 'Media', 'icon' => 'image'),
+            'analytics' => array('label' => 'Analytics', 'icon' => 'chart'),
             'marketing' => array('label' => 'Marketing & Tracking', 'icon' => 'bolt'),
             'email'     => array('label' => 'Email', 'icon' => 'mail'),
             'security'  => array('label' => 'Security & Access', 'icon' => 'shield'),

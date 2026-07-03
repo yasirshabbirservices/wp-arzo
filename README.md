@@ -7,7 +7,7 @@ One dark, modern dashboard to run, secure, optimize, and rescue your site — pl
 break‑glass power‑tools console and a standalone emergency recovery tool for when
 WordPress won't even load.
 
-![Version](https://img.shields.io/badge/version-6.108.0-16e791)
+![Version](https://img.shields.io/badge/version-6.109.0-16e791)
 ![WordPress](https://img.shields.io/badge/WordPress-%E2%89%A5%205.0-21759b)
 ![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%207.2-777bb4)
 ![Admin only](https://img.shields.io/badge/access-administrators%20only-ff4d4f)
@@ -32,7 +32,7 @@ Everything is **administrators‑only** and authenticates with your existing Wor
 session. The optional **WP Arzo Pro** add‑on registers premium modules into the same
 dashboard (shown as locked **PRO** cards until unlocked).
 
-- **Current version:** `6.108.0` — see [CHANGELOG.md](CHANGELOG.md)
+- **Current version:** `6.109.0` — see [CHANGELOG.md](CHANGELOG.md)
 - **Requires:** WordPress ≥ 5.0 · PHP ≥ 7.2
 - **Highlights:** multi‑provider SMTP with fallback **+ auto‑retry queue**, a CodeMirror
   **Code Snippets** editor with **smart conditional logic**, local **+ scheduled backups**
@@ -131,6 +131,11 @@ The native **WP Arzo** admin menu is the modern home base:
 | **Manage ads.txt** | Edit a virtual `ads.txt` |
 | **Site Verification** | Add Google/Bing/Pinterest/Yandex/Baidu verification tags |
 | **Crawl Optimizations** | Trim crawl bloat (shortlinks, RSD, WLW, generator, etc.) |
+
+### 📊 Analytics
+| Feature | What it does |
+|---|---|
+| **Built‑in Analytics** _(cookieless)_ | Privacy‑first, first‑party website analytics recorded **entirely in your own database** — no cookies, no external services, no personal data at rest (GDPR/CCPA‑friendly). A **WP Arzo → Analytics** dashboard shows pageviews, unique visitors, sessions, bounce rate, avg. visit and views/session, a **traffic chart**, and **Top pages** + **Top referrers**, over Today / 7 / 30 / 90‑day ranges. Bot filtering, admin/role/IP exclusion, Do‑Not‑Track respect, and automatic data retention. _No Site Kit or Independent Analytics needed._ |
 
 ### ✉️ Email
 | Feature | What it does |

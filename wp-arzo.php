@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.108.0
+ * Version: 6.109.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.108.0');
+    define('WP_ARZO_VERSION', '6.109.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -355,11 +355,20 @@ function wp_arzo_uninstall()
         'wp_arzo_leads',
         'wp_arzo_ll_lockouts',
         'wp_arzo_smtp_connections',
+        'wp_arzo_analytics_db',
+        'wp_arzo_analytics_salt',
     );
 
     foreach ($options as $option) {
         delete_option($option);
     }
+
+    // Drop the analytics hits table + clear its prune cron.
+    if (function_exists('wp_clear_scheduled_hook')) {
+        wp_clear_scheduled_hook('wp_arzo_analytics_prune');
+    }
+    global $wpdb;
+    $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}wp_arzo_analytics_hits");
 
     // Remove temporary-login users + their scheduled cleanup.
     $temp_login = WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-temp-login.php';
@@ -491,6 +500,9 @@ foreach ((array) glob(WP_ARZO_PLUGIN_DIR . 'includes/features-registry/*.php') a
 function wp_arzo_bootstrap_features()
 {
     $registry = WP_Arzo_Feature_Registry::instance();
+
+    // Analytics (built-in, cookieless, first-party)
+    $registry->register(new WP_Arzo_Feature_Analytics());
 
     $registry->register(new WP_Arzo_Feature_Disable_Comments());
     $registry->register(new WP_Arzo_Feature_Hide_Admin_Bar());
