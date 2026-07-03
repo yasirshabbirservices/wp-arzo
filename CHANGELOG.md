@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.111.0] — 2026-07-03
+
+### Changed — Analytics pillar, Phase 2b: Google tags now FREE + admin-bar peek
+
+- **Google Analytics 4, Google Tag Manager, and Google Ads tag insertion are now FREE features**
+  (moved from Pro; grouped under **Analytics**) — Site-Kit parity, so you don't need another plugin
+  just to add Google's tags. Each gained an **“Exclude signed-in admins”** option (keeps your own
+  visits out of the data), and GA4 keeps IP anonymization.
+- **Google tab** on the Analytics page — manage GA4 / GTM / Ads in one place (enabled state +
+  configured ID + Configure link), with a note that Pro adds GA4 report data in-dashboard, Consent
+  Mode, and server-side GTM.
+- **Admin-bar peek** — a “N today” pageviews node (with today's unique visitors) linking to Analytics.
+- Removed the now-obsolete Pro GA4/GTM/Ads placeholders from the locked-feature catalog.
+
 ## [6.110.0] — 2026-07-03
 
 ### Added — Analytics pillar, Phase 2: more reports + CSV + surfacing

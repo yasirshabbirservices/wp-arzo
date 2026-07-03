@@ -90,9 +90,7 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'snapchat_pixel', 'title' => 'Snapchat Pixel', 'group' => 'marketing', 'icon' => 'bolt', 'description' => 'Add the Snapchat Pixel and track page views.'),
         array('id' => 'x_pixel', 'title' => 'X (Twitter) Pixel', 'group' => 'marketing', 'icon' => 'bolt', 'description' => 'Add the X / Twitter conversion tracking pixel.'),
         array('id' => 'bing_uet', 'title' => 'Microsoft / Bing UET', 'group' => 'marketing', 'icon' => 'bolt', 'description' => 'Add the Microsoft Advertising (Bing) Universal Event Tracking tag.'),
-        array('id' => 'google_analytics_4', 'title' => 'Google Analytics 4', 'group' => 'marketing', 'icon' => 'search', 'description' => 'Add the GA4 global site tag (gtag.js) with your Measurement ID.'),
-        array('id' => 'google_tag_manager', 'title' => 'Google Tag Manager', 'group' => 'marketing', 'icon' => 'bolt', 'description' => 'Add the GTM container (head script + body noscript) by container ID.'),
-        array('id' => 'google_ads', 'title' => 'Google Ads Tag', 'group' => 'marketing', 'icon' => 'bolt', 'description' => 'Add the Google Ads global site tag (gtag.js) for remarketing & conversions.'),
+        // GA4 / GTM / Google Ads are now FREE features (Analytics group) — no Pro placeholder.
 
         // Content & Modeling
         array('id' => 'content_types', 'title' => 'Content Types (CPT/CCT)', 'group' => 'content', 'icon' => 'file', 'description' => 'Build custom post types and taxonomies from a UI.'),

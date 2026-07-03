@@ -7,7 +7,7 @@ One dark, modern dashboard to run, secure, optimize, and rescue your site — pl
 break‑glass power‑tools console and a standalone emergency recovery tool for when
 WordPress won't even load.
 
-![Version](https://img.shields.io/badge/version-6.110.0-16e791)
+![Version](https://img.shields.io/badge/version-6.111.0-16e791)
 ![WordPress](https://img.shields.io/badge/WordPress-%E2%89%A5%205.0-21759b)
 ![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%207.2-777bb4)
 ![Admin only](https://img.shields.io/badge/access-administrators%20only-ff4d4f)
@@ -32,7 +32,7 @@ Everything is **administrators‑only** and authenticates with your existing Wor
 session. The optional **WP Arzo Pro** add‑on registers premium modules into the same
 dashboard (shown as locked **PRO** cards until unlocked).
 
-- **Current version:** `6.110.0` — see [CHANGELOG.md](CHANGELOG.md)
+- **Current version:** `6.111.0` — see [CHANGELOG.md](CHANGELOG.md)
 - **Requires:** WordPress ≥ 5.0 · PHP ≥ 7.2
 - **Highlights:** multi‑provider SMTP with fallback **+ auto‑retry queue**, a CodeMirror
   **Code Snippets** editor with **smart conditional logic**, local **+ scheduled backups**
@@ -135,7 +135,8 @@ The native **WP Arzo** admin menu is the modern home base:
 ### 📊 Analytics
 | Feature | What it does |
 |---|---|
-| **Built‑in Analytics** _(cookieless)_ | Privacy‑first, first‑party website analytics recorded **entirely in your own database** — no cookies, no external services, no personal data at rest (GDPR/CCPA‑friendly). A **WP Arzo → Analytics** dashboard shows pageviews, unique visitors, sessions, bounce rate, avg. visit and views/session, a **traffic chart**, and reports for **Top pages, Referrers, Countries, Devices/Browsers/OS, Landing & Exit pages, 404s and on‑site Search terms**, over Today / 7 / 30 / 90‑day ranges with **CSV export**. Plus a **dashboard widget** and a **Views column** in the Posts list. Bot filtering, admin/role/IP exclusion, Do‑Not‑Track respect, and automatic data retention. _No Site Kit or Independent Analytics needed._ |
+| **Built‑in Analytics** _(cookieless)_ | Privacy‑first, first‑party website analytics recorded **entirely in your own database** — no cookies, no external services, no personal data at rest (GDPR/CCPA‑friendly). A **WP Arzo → Analytics** dashboard shows pageviews, unique visitors, sessions, bounce rate, avg. visit and views/session, a **traffic chart**, and reports for **Top pages, Referrers, Countries, Devices/Browsers/OS, Landing & Exit pages, 404s and on‑site Search terms**, over Today / 7 / 30 / 90‑day ranges with **CSV export**. Plus a **dashboard widget**, an **admin‑bar “today” peek**, and a **Views column** in the Posts list. Bot filtering, admin/role/IP exclusion, Do‑Not‑Track respect, and automatic data retention. _No Site Kit or Independent Analytics needed._ |
+| **Google Analytics 4 / Tag Manager / Ads tags** | Insert Google's tags without another plugin — GA4 (gtag.js + IP anonymization), GTM (container + body noscript), and Google Ads — managed from one **Google** tab, each with an “exclude signed‑in admins” option. |
 
 ### ✉️ Email
 | Feature | What it does |
