@@ -25,6 +25,22 @@ if (!function_exists('wp_arzo_google_skip_admin')) {
     }
 }
 
+/**
+ * The host that Google tags load from. Defaults to Google's CDN; WP Arzo Pro
+ * (Advanced Google Tags) filters this to a **server-side GTM** container domain.
+ * Returns a bare host (no scheme/path); callers build https://{host}/...
+ */
+if (!function_exists('wp_arzo_google_tag_host')) {
+    function wp_arzo_google_tag_host()
+    {
+        $host = apply_filters('wp_arzo_google_tag_host', 'www.googletagmanager.com');
+        $host = preg_replace('#^https?://#', '', (string) $host);
+        $host = preg_replace('#/.*$#', '', $host);
+        $host = preg_replace('/[^A-Za-z0-9.\-]/', '', $host);
+        return $host !== '' ? $host : 'www.googletagmanager.com';
+    }
+}
+
 class WP_Arzo_Feature_GA4 extends WP_Arzo_Feature
 {
     public function id()
@@ -72,15 +88,25 @@ class WP_Arzo_Feature_GA4 extends WP_Arzo_Feature
         if ($id === '') {
             return;
         }
-        $anon = $this->get_setting('anonymize_ip', true) ? ", { 'anonymize_ip': true }" : '';
+        $host   = wp_arzo_google_tag_host();
+        $params = array();
+        if ($this->get_setting('anonymize_ip', true)) {
+            $params['anonymize_ip'] = true;
+        }
+        /**
+         * Filter the GA4 gtag('config', …) parameters. WP Arzo Pro adds a
+         * `transport_url` here for server-side GTM. @param array $params @param string $id
+         */
+        $params  = (array) apply_filters('wp_arzo_ga4_config_params', $params, $id);
+        $cfgArgs = $params ? ', ' . wp_json_encode($params) : '';
         ?>
         <!-- WP Arzo: Google Analytics 4 -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
+        <script async src="https://<?php echo esc_attr($host); ?>/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag() { dataLayer.push(arguments); }
             gtag('js', new Date());
-            gtag('config', '<?php echo esc_js($id); ?>'<?php echo $anon; ?>);
+            gtag('config', '<?php echo esc_js($id); ?>'<?php echo $cfgArgs; ?>);
         </script>
         <!-- End Google Analytics 4 -->
         <?php
@@ -141,12 +167,13 @@ class WP_Arzo_Feature_GTM extends WP_Arzo_Feature
         if ($id === '') {
             return;
         }
+        $host = wp_arzo_google_tag_host();
         ?>
         <!-- WP Arzo: Google Tag Manager -->
         <script>(function (w, d, s, l, i) {
                 w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
                 var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
-                j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+                j.async = true; j.src = 'https://<?php echo esc_js($host); ?>/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
             })(window, document, 'script', 'dataLayer', '<?php echo esc_js($id); ?>');</script>
         <!-- End Google Tag Manager -->
         <?php
@@ -161,9 +188,10 @@ class WP_Arzo_Feature_GTM extends WP_Arzo_Feature
         if ($id === '') {
             return;
         }
+        $host = wp_arzo_google_tag_host();
         ?>
         <!-- WP Arzo: Google Tag Manager (noscript) -->
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo esc_attr($id); ?>"
+        <noscript><iframe src="https://<?php echo esc_attr($host); ?>/ns.html?id=<?php echo esc_attr($id); ?>"
             height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <?php
     }
@@ -215,9 +243,10 @@ class WP_Arzo_Feature_Google_Ads extends WP_Arzo_Feature
         if ($id === '') {
             return;
         }
+        $host = wp_arzo_google_tag_host();
         ?>
         <!-- WP Arzo: Google Ads -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
+        <script async src="https://<?php echo esc_attr($host); ?>/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag() { dataLayer.push(arguments); }
