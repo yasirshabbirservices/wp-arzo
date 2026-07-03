@@ -129,7 +129,6 @@
 
 /* Reset a couple of wp-admin defaults that fight the dark UI */
 .wpa-admin a { box-shadow: none; }
-.wpa-admin .wpa-btn:focus { box-shadow: var(--arzo-focus-ring); outline: none; }
 
 @media (max-width: 600px) {
   .wpa-grid { grid-template-columns: 1fr; }
@@ -189,12 +188,20 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 .wpa-admin a:not(.wpa-btn):not(.wpa-sidenav__item):not(.wpa-brandbar__gh):not(.wpa-brandbar__email) {
   color: var(--arzo-accent);
 }
-.wpa-admin a:focus,
-.wpa-sidenav__item:focus,
-.wpa-btn:focus { outline: none; box-shadow: none; }
-.wpa-admin a:focus-visible,
-.wpa-sidenav__item:focus-visible,
-.wpa-btn:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
+/* Force the brand focus ring on EVERY interactive element inside WP Arzo surfaces —
+   never wp-admin's blue. The `:is()` list raises specificity just enough to beat
+   wp-admin core's focus rules (e.g. input[type=…]:focus); component rules that set
+   their own `:focus-visible` box-shadow (also the brand ring) still apply. First kill
+   core's :focus box-shadow/outline (mouse click), then draw the ring only for keyboard
+   :focus-visible. */
+.wpa-admin :is(a, button, summary, input, select, textarea, [tabindex], [role="button"], [role="tab"], [role="switch"], [role="menuitem"], [role="option"]):focus {
+  outline: none;
+  box-shadow: none;
+}
+.wpa-admin :is(a, button, summary, input, select, textarea, [tabindex], [role="button"], [role="tab"], [role="switch"], [role="menuitem"], [role="option"]):focus-visible {
+  outline: none;
+  box-shadow: var(--arzo-focus-ring);
+}
 
 /* .wpa-brandbar lives in wp-arzo-components.css (shared by the dashboard + the
    standalone console) so both surfaces render an identical header. */
