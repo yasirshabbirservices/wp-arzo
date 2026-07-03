@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.137.0] — 2026-07-04
+
+### Added — REST API Authentication: per-key auto-expiry
+
+Tier-2 enrichment (ref: wp-rest-api-authentication).
+
+- Each API key can now be issued with an **expiry** (Never / 7 / 30 / 90 days / 1 year). An
+  **expired key stops authenticating** — `match()` skips it via the pure `is_expired($entry,$now)`
+  gate — but is **never auto-deleted**, so you keep the audit trail and can revoke it deliberately.
+  The keys table gains an **Expires (UTC)** column with a red **Expired** badge; the create form
+  gains an **Expires** select. Backward compatible (existing keys default to Never). 7-check harness.
+
 ## [6.136.0] — 2026-07-04
 
 ### Changed — Cron Manager cron-tick fatal capture (Pro catalog copy)

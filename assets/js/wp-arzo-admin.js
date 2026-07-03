@@ -1294,11 +1294,13 @@
     createBtn.addEventListener('click', function () {
       var labelEl = document.getElementById('wpa-rest-label');
       var userEl = document.getElementById('wpa-rest-user');
+      var expEl = document.getElementById('wpa-rest-expires');
       createBtn.disabled = true;
       apiPost('wp_arzo_rest_key_create', {
         nonce: createBtn.dataset.nonce || cfg.restNonce || '',
         label: labelEl ? labelEl.value : '',
-        user_id: userEl ? userEl.value : ''
+        user_id: userEl ? userEl.value : '',
+        expires_days: expEl ? expEl.value : '0'
       }).then(function (res) {
         createBtn.disabled = false;
         if (!res || !res.success) { toast((res && res.data && res.data.message) || 'Could not create key', 'error'); return; }
@@ -1321,6 +1323,7 @@
             '<td>' + esc(d.user) + '</td>' +
             '<td>' + esc(d.created) + '</td>' +
             '<td>—</td>' +
+            '<td>' + (d.expires ? esc(d.expires) : 'Never') + '</td>' +
             '<td class="wpa-backup-actions"><button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-rest-revoke" data-id="' + esc(d.id) + '" data-nonce="' + esc(createBtn.dataset.nonce || '') + '">Revoke</button></td>';
           tbody.insertBefore(tr, tbody.firstChild);
           bindRevoke(tr.querySelector('.wpa-rest-revoke'));

@@ -37,7 +37,7 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
     }
     public function description()
     {
-        return 'Issue API keys so external apps can authenticate to the REST API (Bearer / X-API-Key / Basic).';
+        return 'Issue API keys — with optional auto-expiry and last-used tracking — so external apps can authenticate to the REST API (Bearer / X-API-Key / Basic).';
     }
     public function group()
     {
@@ -149,7 +149,7 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
      * Create a key for the given user. Returns the stored entry plus the one-time
      * plaintext key under 'plain' (never persisted in clear), or WP_Error.
      */
-    public static function create_key($label, $user_id)
+    public static function create_key($label, $user_id, $expires_days = 0)
     {
         $user_id = (int) $user_id;
         if ($user_id <= 0 || !get_userdata($user_id)) {
@@ -159,6 +159,7 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
         $secret = bin2hex(random_bytes(16));  // 32 hex chars
         $plain  = 'arzo_' . $prefix . $secret;
 
+        $expires_days = max(0, (int) $expires_days);
         $entry = array(
             'id'            => 'rk_' . substr(md5(uniqid('', true)), 0, 12),
             'label'         => sanitize_text_field($label) ?: 'API key',
@@ -167,6 +168,8 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
             'user_id'       => $user_id,
             'created_gmt'   => gmdate('Y-m-d H:i:s'),
             'last_used_gmt' => '',
+            // Optional auto-expiry — an expired key stops authenticating (never deleted).
+            'expires_gmt'   => $expires_days > 0 ? gmdate('Y-m-d H:i:s', time() + $expires_days * DAY_IN_SECONDS) : '',
         );
 
         $keys = get_option(self::OPT, array());
@@ -194,6 +197,16 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
         return true;
     }
 
+    /** Pure: has this key entry passed its expiry? Empty expiry = never expires. */
+    public static function is_expired($entry, $now_ts)
+    {
+        if (empty($entry['expires_gmt'])) {
+            return false;
+        }
+        $exp = strtotime($entry['expires_gmt'] . ' UTC');
+        return $exp !== false && (int) $now_ts >= $exp;
+    }
+
     /** Find the stored entry a presented plaintext key matches (prefix + hash), or null. */
     private static function match($key)
     {
@@ -202,12 +215,16 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
         if (!is_array($keys)) {
             return null;
         }
+        $now = time();
         foreach ($keys as $entry) {
             if (!isset($entry['prefix'], $entry['hash'], $entry['user_id'])) {
                 continue;
             }
             if (!hash_equals($entry['prefix'], $prefix)) {
                 continue;
+            }
+            if (self::is_expired($entry, $now)) {
+                continue; // expired keys no longer authenticate
             }
             if (password_verify($key, $entry['hash']) && get_userdata((int) $entry['user_id'])) {
                 return $entry;
