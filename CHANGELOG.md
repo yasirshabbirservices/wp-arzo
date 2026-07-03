@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.129.0] — 2026-07-03
+
+### Fixed — console Debug settings infinite-refresh loop + Advanced Tools launcher layout
+
+- **Infinite auto-refresh loop (Advanced Tools → Debug settings).** Saving the WP_DEBUG/… toggles
+  submits a `<form method="post">`; the handler then echoed `location.reload()`, and reloading a
+  POST-loaded page **re-submits the POST**, which re-emits the reload script — so the page refreshed
+  itself forever. Switched to **Post/Redirect/Get**: after saving it now navigates once to the clean
+  GET URL (`window.location.replace`). Added a standing rule to CLAUDE.md (never `location.reload()`
+  on a POST-loaded page). Other console actions (Plugins/Themes/Site Modes/Users/debug-log) already
+  use AJAX and don't reload.
+- **Advanced Tools launcher page rendered cut-off.** The `WP Arzo → Advanced Tools` menu opens the
+  console in a new tab; when the browser blocks the pop-up it shows a launcher page. That launcher
+  emitted a full `<!DOCTYPE html>` document with `height:100vh` **inside** the already-rendered
+  wp-admin page and then `exit`ed (dropping the admin footer) — so it appeared clipped/broken. It's
+  now a clean in-admin panel (self-contained brand card, spinner, and a prominent "Open Advanced
+  Tools" button) that fits the content area, with a reduced-motion fallback.
+
 ## [6.128.0] — 2026-07-03
 
 ### Changed — Console modernization: live AJAX debug-log viewer (Advanced Tools → Debug)
