@@ -37,6 +37,11 @@ existing WordPress session (administrators only).
 
 See CHANGELOG.md for the full history.
 
+= 6.140.0 =
+* Changed: On-demand feature loading — the registry loads a feature's PHP class only when it's
+  enabled (or its page opens), instead of parsing every module file on every request. A front-end
+  request now loads only the features you actually use. Behavior-preserving; also applied to Pro.
+
 = 6.139.0 =
 * New (free): REST API Auth — per-key read-only scope + per-key auto-expiry (companion features)
 * New (free): Email Log Stats tab (per-connection volume + deliverability trend over 7/30/60 days)
