@@ -2989,13 +2989,20 @@ class WP_Arzo_Admin
 
     private function analytics_tabs()
     {
-        return array(
+        $tabs = array(
             'overview'  => array('label' => 'Overview', 'icon' => 'chart'),
             'geo'       => array('label' => 'Geo', 'icon' => 'globe'),
             'devices'   => array('label' => 'Devices', 'icon' => 'grid'),
             'behaviour' => array('label' => 'Behaviour', 'icon' => 'exchange'),
             'google'    => array('label' => 'Google', 'icon' => 'bolt'),
         );
+        /**
+         * Filter the Analytics report tabs. Add-ons (WP Arzo Pro) append tabs here
+         * (each: ['label'=>, 'icon'=>]) and render their body via `wp_arzo_analytics_render`.
+         *
+         * @param array $tabs tab-key => ['label','icon'].
+         */
+        return apply_filters('wp_arzo_analytics_tabs', $tabs);
     }
 
     /** Two regional-indicator letters → flag emoji, or '' if not a country code. */
@@ -3074,6 +3081,13 @@ class WP_Arzo_Admin
         }
         if ($tab === 'google') {
             return $this->analytics_google();
+        }
+        // Add-on (Pro) tabs render their body here (Campaigns, Real-time, Events…).
+        if ($tab !== 'overview') {
+            $html = apply_filters('wp_arzo_analytics_render', '', $tab, $from, $to);
+            if (is_string($html) && $html !== '') {
+                return $html;
+            }
         }
         return $this->analytics_overview($from, $to);
     }
@@ -3276,8 +3290,18 @@ class WP_Arzo_Admin
                         t.setAttribute('aria-selected', on ? 'true' : 'false');
                     });
                 }
-                function load() {
-                    body.style.opacity = '.5';
+                var refreshTimer = null;
+                function setupRefresh() {
+                    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+                    // A tab body can opt into live polling with [data-wpa-auto-refresh="<seconds>"].
+                    var el = body.querySelector('[data-wpa-auto-refresh]');
+                    if (el) {
+                        var secs = parseInt(el.getAttribute('data-wpa-auto-refresh'), 10) || 15;
+                        refreshTimer = setInterval(function () { load(true); }, Math.max(5, secs) * 1000);
+                    }
+                }
+                function load(silent) {
+                    if (!silent) { body.style.opacity = '.5'; }
                     var fd = new FormData();
                     fd.append('action', 'wp_arzo_analytics_query');
                     fd.append('nonce', nonce);
@@ -3287,13 +3311,13 @@ class WP_Arzo_Admin
                         .then(function (r) { return r.json(); })
                         .then(function (res) {
                             body.style.opacity = '';
-                            if (res && res.success) { body.innerHTML = res.data.html; }
+                            if (res && res.success) { body.innerHTML = res.data.html; setupRefresh(); }
                         })
                         .catch(function () { body.style.opacity = ''; });
                     if (exportLink) {
                         exportLink.href = exportLink.dataset.base + '&view=' + encodeURIComponent(state.view) + '&range=' + encodeURIComponent(state.range);
                     }
-                    if (window.history && history.replaceState) {
+                    if (!silent && window.history && history.replaceState) {
                         history.replaceState(null, '', baseUrl + '&view=' + state.view + '&range=' + state.range);
                     }
                 }
@@ -3310,6 +3334,7 @@ class WP_Arzo_Admin
                 }
                 bind(ranges, 'range', 'range');
                 bind(views, 'view', 'view');
+                setupRefresh(); // first paint may be a live tab (deep-linked)
             })();
             </script>
         <?php

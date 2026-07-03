@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.112.0] — 2026-07-03
+
+### Added — Analytics pillar: extensibility hooks for Pro report tabs (Phase 3a enabler)
+
+- The **Analytics page is now extensible**: add-ons append report tabs via the new
+  **`wp_arzo_analytics_tabs`** filter and render their bodies via **`wp_arzo_analytics_render`**
+  ($html, $tab, $from, $to). WP Arzo Pro uses these to add **Campaigns** and **Real-time** tabs.
+- The engine gained reusable queries: `campaigns()` (UTM performance) and
+  `realtime_active()` / `realtime_recent()` / `realtime_series()` (live view).
+- The report JS gained generic **live auto-refresh**: a tab body with
+  `data-wpa-auto-refresh="<seconds>"` is polled in place (used by the Real-time tab).
+
 ## [6.111.0] — 2026-07-03
 
 ### Changed — Analytics pillar, Phase 2b: Google tags now FREE + admin-bar peek
