@@ -145,7 +145,54 @@
 .wpa-btn--sm { padding: 6px 10px; font-size: var(--arzo-fs-sm); }
 .wpa-btn--lg { padding: 13px 22px; font-size: var(--arzo-fs-lg); }
 .wpa-btn--icon { padding: 8px; }
+.wpa-btn--icon .wpa-icon { width: 16px; height: 16px; }
 .wpa-btn--block { width: 100%; }
+
+/* Pressed / "on" state for a toggle button (aria-pressed or .is-active) — a filter
+   chip or icon toggle reads clearly active: accent fill + accent glyph + accent ring. */
+.wpa-btn[aria-pressed="true"],
+.wpa-btn.is-active {
+  --_bg: var(--arzo-accent-soft);
+  --_fg: var(--arzo-accent);
+  border-color: var(--arzo-accent-ring);
+}
+.wpa-btn[aria-pressed="true"]:hover,
+.wpa-btn.is-active:hover { --_fg: var(--arzo-accent); background: var(--arzo-accent-soft); filter: none; }
+
+/* ============================ Tooltip ================================== */
+/* Lightweight, token-styled hover/focus tooltip for icon-only controls.
+   Usage: class="wpa-has-tip" + data-wpa-tip="Label" + a matching aria-label.
+   Keyboard-accessible (shows on :focus-visible), reduced-motion aware. */
+.wpa-has-tip { position: relative; }
+.wpa-has-tip::after {
+  content: attr(data-wpa-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 5px 9px;
+  background: var(--arzo-bg-elev);
+  color: var(--arzo-text-primary);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-sm);
+  box-shadow: var(--arzo-shadow);
+  font-size: var(--arzo-fs-xs);
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: var(--arzo-z-tooltip, 9999);
+  transition: opacity var(--arzo-transition) ease, transform var(--arzo-transition) ease;
+}
+.wpa-has-tip:hover::after,
+.wpa-has-tip:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wpa-has-tip::after { transition: none; }
+}
 
 /* ============================ Toggle ================================== */
 /* Modern switch. Markup:
@@ -708,7 +755,24 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
   display: flex; flex-direction: column;
   animation: wpa-slide-in var(--arzo-transition) ease;
 }
-.wpa-drawer__body { padding: var(--arzo-space-5); overflow-y: auto; flex: 1; }
+.wpa-drawer__body {
+  padding: var(--arzo-space-5);
+  overflow-y: auto;
+  overscroll-behavior: contain; /* scrolling the drawer never chains to the page behind it */
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--arzo-bg-hover) transparent;
+}
+.wpa-drawer__body::-webkit-scrollbar { width: 10px; }
+.wpa-drawer__body::-webkit-scrollbar-track { background: transparent; }
+.wpa-drawer__body::-webkit-scrollbar-thumb {
+  background: var(--arzo-bg-hover);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--arzo-radius-pill);
+}
+.wpa-drawer__body::-webkit-scrollbar-thumb:hover { background: var(--arzo-border-strong); background-clip: padding-box; }
 .wpa-drawer__foot {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--arzo-space-3);
@@ -719,6 +783,12 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 @keyframes wpa-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wpa-pop-in { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes wpa-slide-in { from { transform: translateX(24px); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .wpa-drawer__panel, .wpa-modal__panel, .wpa-modal__backdrop, .wpa-drawer__backdrop { animation: none; }
+}
+
+/* Lock background scroll while a drawer/modal is open (no confusing double-scroll). */
+html.wpa-scroll-locked, body.wpa-scroll-locked { overflow: hidden !important; }
 
 /* ------------------------------------------------------------- Tabs
    In-page tab navigation (Email / Backups / Settings hub / Pro Cron …).
