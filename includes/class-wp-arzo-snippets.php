@@ -384,6 +384,38 @@ class WP_Arzo_Snippets
         $this->current_php_id = null;
     }
 
+    /**
+     * Run a PHP snippet's code on demand — e.g. from a scheduled Cron "snippet job".
+     * Runs regardless of the snippet's active state (a snippet can be scheduled-only),
+     * with the same Throwable + shutdown-fatal guard as automatic execution. Does NOT
+     * evaluate the display conditions (a scheduled run has no request context).
+     *
+     * @return array{ok:bool,message:string}
+     */
+    public function run_by_id($id)
+    {
+        $snippet = $this->get($id);
+        if (!$snippet) {
+            return array('ok' => false, 'message' => 'Snippet not found.');
+        }
+        if ((isset($snippet['type']) ? $snippet['type'] : 'php') !== 'php') {
+            return array('ok' => false, 'message' => 'Only PHP snippets can run on a schedule.');
+        }
+        $code = preg_replace('/^\s*<\?(php)?/i', '', (string) $snippet['code']);
+        $code = preg_replace('/\?>\s*$/', '', $code);
+
+        $prev = $this->current_php_id;
+        $this->current_php_id = $snippet['id']; // shutdown guard covers uncatchable fatals
+        try {
+            eval($code);
+            $result = array('ok' => true, 'message' => 'Ran OK');
+        } catch (\Throwable $e) {
+            $result = array('ok' => false, 'message' => $e->getMessage());
+        }
+        $this->current_php_id = $prev;
+        return $result;
+    }
+
     /** Backstop for uncatchable fatals (memory, timeouts) during a PHP snippet. */
     public function shutdown_guard()
     {
