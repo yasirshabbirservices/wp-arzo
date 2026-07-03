@@ -36,6 +36,7 @@ class WP_Arzo_Admin
     const PAGE_CONFIG = 'wp-arzo-config';
     const PAGE_LOGIN_SECURITY = 'wp-arzo-login-security';
     const PAGE_EMAIL = 'wp-arzo-email';
+    const PAGE_ANALYTICS = 'wp-arzo-analytics';
     const PAGE_SETTINGS = 'wp-arzo-settings';
     const NONCE_TOGGLE = 'wp_arzo_toggle_feature';
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
@@ -46,6 +47,7 @@ class WP_Arzo_Admin
     const NONCE_TEST_EMAIL = 'wp_arzo_test_email';
     const NONCE_MEDIA = 'wp_arzo_media';
     const NONCE_ACTIVITY = 'wp_arzo_activity';
+    const NONCE_ANALYTICS = 'wp_arzo_analytics';
     const NONCE_REST = 'wp_arzo_rest_auth';
     const NONCE_ROLES = 'wp_arzo_roles';
     const NONCE_CONFIG = 'wp_arzo_config';
@@ -101,6 +103,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_media_delete', array($this, 'ajax_media_delete'));
         add_action('wp_ajax_wp_arzo_activity_clear', array($this, 'ajax_activity_clear'));
         add_action('wp_ajax_wp_arzo_activity_session_kill', array($this, 'ajax_session_kill'));
+        add_action('wp_ajax_wp_arzo_analytics_query', array($this, 'ajax_analytics_query'));
         add_action('wp_ajax_wp_arzo_rest_key_create', array($this, 'ajax_rest_key_create'));
         add_action('wp_ajax_wp_arzo_rest_key_revoke', array($this, 'ajax_rest_key_revoke'));
         add_action('wp_ajax_wp_arzo_role_save_caps', array($this, 'ajax_role_save_caps'));
@@ -198,6 +201,9 @@ class WP_Arzo_Admin
         if ($this->page_visible(self::PAGE_MEDIA)) {
             add_submenu_page(self::PAGE, 'Media Cleanup', 'Media Cleanup', 'manage_options', self::PAGE_MEDIA, array($this, 'render_media_cleanup'), 35);
         }
+        if ($this->page_visible(self::PAGE_ANALYTICS)) {
+            add_submenu_page(self::PAGE, 'Analytics', 'Analytics', 'manage_options', self::PAGE_ANALYTICS, array($this, 'render_analytics'), 8);
+        }
         if ($this->page_visible(self::PAGE_EMAIL)) {
             add_submenu_page(self::PAGE, 'Email', 'Email', 'manage_options', self::PAGE_EMAIL, array($this, 'render_email'), 44);
         }
@@ -237,6 +243,7 @@ class WP_Arzo_Admin
         $rank = array(
             self::PAGE                => 0,  // Dashboard (hub)
             // Monitor & operate (checked most often)
+            self::PAGE_ANALYTICS      => 8,  // Analytics — traffic at a glance
             self::PAGE_ACTIVITY       => 10, // Activity Log — "what's happening"
             self::PAGE_EMAIL          => 12,
             self::PAGE_BACKUPS        => 14,
@@ -271,6 +278,7 @@ class WP_Arzo_Admin
     private function page_features()
     {
         return array(
+            self::PAGE_ANALYTICS => array('analytics'),
             self::PAGE_BACKUPS   => array('auto_snapshots', 'scheduled_backups', 'backup_ftp', 'backup_gdrive', 'backup_pcloud'),
             self::PAGE_EMAIL     => array('smtp', 'email_log'),
             self::PAGE_SNIPPETS  => array('code_snippets'),
@@ -433,6 +441,7 @@ class WP_Arzo_Admin
         // --- Feature pages (verbs a user searches for) -------------------
         $pages = array(
             array('id' => 'dashboard', 'label' => __('Dashboard', 'wp-arzo'),     'icon' => 'screenoptions',     'slug' => self::PAGE,          'always' => true),
+            array('id' => 'analytics', 'label' => __('Analytics', 'wp-arzo'),     'icon' => 'chart-bar',         'slug' => self::PAGE_ANALYTICS),
             array('id' => 'activity',  'label' => __('Activity Log', 'wp-arzo'),  'icon' => 'list-view',         'slug' => self::PAGE_ACTIVITY),
             array('id' => 'email',     'label' => __('Email', 'wp-arzo'),         'icon' => 'email',             'slug' => self::PAGE_EMAIL),
             array('id' => 'backups',   'label' => __('Backups', 'wp-arzo'),       'icon' => 'database-export',   'slug' => self::PAGE_BACKUPS),
@@ -2883,6 +2892,267 @@ class WP_Arzo_Admin
             WP_Arzo_Activity_Log::instance()->record('session_terminated', 'Terminated a session for ' . ($u ? $u->user_login : '#' . $user_id), 0, array('type' => 'user', 'id' => $user_id));
         }
         wp_send_json_success(array('message' => 'Session terminated.'));
+    }
+
+    /* -------------------------------------------------------- Analytics */
+
+    /** Preset date ranges → [from_ts, to_ts]. */
+    private function analytics_range($key)
+    {
+        $now = time();
+        $end = $now;
+        switch ($key) {
+            case 'today':
+                $start = strtotime(gmdate('Y-m-d 00:00:00'));
+                break;
+            case '7d':
+                $start = $now - 7 * DAY_IN_SECONDS;
+                break;
+            case '90d':
+                $start = $now - 90 * DAY_IN_SECONDS;
+                break;
+            case '30d':
+            default:
+                $start = $now - 30 * DAY_IN_SECONDS;
+                break;
+        }
+        return array($start, $end);
+    }
+
+    private function fmt_duration($seconds)
+    {
+        $seconds = max(0, (int) $seconds);
+        $m = floor($seconds / 60);
+        $s = $seconds % 60;
+        return sprintf('%d:%02d', $m, $s);
+    }
+
+    /** Self-hosted SVG area+line chart (CSP-safe, token-colored) for a daily series. */
+    private function analytics_chart($series)
+    {
+        $n = count($series);
+        if ($n === 0) {
+            return '';
+        }
+        $w = 960;
+        $h = 220;
+        $padX = 8;
+        $padY = 16;
+        $max = 1;
+        foreach ($series as $p) {
+            if ($p['views'] > $max) {
+                $max = $p['views'];
+            }
+        }
+        $innerW = $w - $padX * 2;
+        $innerH = $h - $padY * 2;
+        $step = $n > 1 ? $innerW / ($n - 1) : 0;
+
+        $pts = array();
+        foreach ($series as $i => $p) {
+            $x = $padX + $step * $i;
+            $y = $padY + $innerH - ($p['views'] / $max) * $innerH;
+            $pts[] = array(round($x, 1), round($y, 1), $p);
+        }
+        $line = '';
+        foreach ($pts as $i => $pt) {
+            $line .= ($i === 0 ? 'M' : 'L') . $pt[0] . ' ' . $pt[1] . ' ';
+        }
+        $area = $line . 'L' . $pts[$n - 1][0] . ' ' . ($padY + $innerH) . ' L' . $pts[0][0] . ' ' . ($padY + $innerH) . ' Z';
+
+        $first = esc_html($series[0]['date']);
+        $lastd = esc_html($series[$n - 1]['date']);
+        $mid   = esc_html($series[intdiv($n - 1, 2)]['date']);
+
+        $dots = '';
+        foreach ($pts as $pt) {
+            $dots .= '<circle cx="' . $pt[0] . '" cy="' . $pt[1] . '" r="2.5" fill="var(--arzo-accent)"><title>'
+                . esc_html($pt[2]['date'] . ': ' . $pt[2]['views'] . ' views · ' . $pt[2]['visitors'] . ' visitors') . '</title></circle>';
+        }
+
+        return '<div class="wpa-card" style="padding:var(--arzo-space-4,16px);margin-bottom:var(--arzo-space-4,16px);overflow:hidden;">'
+            . '<svg viewBox="0 0 ' . $w . ' ' . ($h + 22) . '" width="100%" role="img" aria-label="Pageviews over time" style="display:block;">'
+            . '<defs><linearGradient id="wpaAnFill" x1="0" y1="0" x2="0" y2="1">'
+            . '<stop offset="0%" stop-color="var(--arzo-accent)" stop-opacity="0.28"/>'
+            . '<stop offset="100%" stop-color="var(--arzo-accent)" stop-opacity="0"/></linearGradient></defs>'
+            . '<line x1="' . $padX . '" y1="' . ($padY + $innerH) . '" x2="' . ($w - $padX) . '" y2="' . ($padY + $innerH) . '" stroke="var(--arzo-border)" />'
+            . '<path d="' . $area . '" fill="url(#wpaAnFill)" />'
+            . '<path d="' . trim($line) . '" fill="none" stroke="var(--arzo-accent)" stroke-width="2" stroke-linejoin="round" />'
+            . $dots
+            . '<text x="' . $padX . '" y="' . ($h + 14) . '" fill="var(--arzo-text-muted)" font-size="12">' . $first . '</text>'
+            . '<text x="' . ($w / 2) . '" y="' . ($h + 14) . '" fill="var(--arzo-text-muted)" font-size="12" text-anchor="middle">' . $mid . '</text>'
+            . '<text x="' . ($w - $padX) . '" y="' . ($h + 14) . '" fill="var(--arzo-text-muted)" font-size="12" text-anchor="end">' . $lastd . '</text>'
+            . '<text x="' . ($w - $padX) . '" y="' . ($padY - 4) . '" fill="var(--arzo-text-muted)" font-size="12" text-anchor="end">peak ' . (int) $max . '</text>'
+            . '</svg></div>';
+    }
+
+    /** Render the analytics dashboard body (KPIs + chart + top pages/referrers) for a range. */
+    private function analytics_body($from, $to)
+    {
+        if (!class_exists('WP_Arzo_Analytics')) {
+            return '<div class="wpa-card">Analytics engine unavailable.</div>';
+        }
+        $engine = WP_Arzo_Analytics::instance();
+        $o      = $engine->overview($from, $to);
+        $pages  = $engine->pages($from, $to, 10);
+        $refs   = $engine->referrers($from, $to, 10);
+
+        ob_start();
+
+        if ((int) $o['views'] === 0) {
+            ?>
+            <div class="wpa-card" style="text-align:center;padding:var(--arzo-space-6,32px);">
+                <?php echo wp_arzo_icon('chart', array('class' => 'wpa-icon', 'style' => 'width:2.5rem;height:2.5rem;color:var(--arzo-text-muted);')); ?>
+                <h2 style="margin:.5rem 0;">No visits recorded in this range yet</h2>
+                <p style="color:var(--arzo-text-muted);max-width:44ch;margin:0 auto;">Analytics records new visits as they happen — cookieless, in your own database. Logged-in admins aren’t counted by default (change that in the feature’s settings). Open your site in a private window to generate a test hit.</p>
+            </div>
+            <?php
+            return ob_get_clean();
+        }
+
+        $tiles = array(
+            array('Pageviews',       number_format_i18n($o['views']),        'chart'),
+            array('Unique visitors', number_format_i18n($o['visitors']),     'users'),
+            array('Sessions',        number_format_i18n($o['sessions']),     'refresh'),
+            array('Bounce rate',     $o['bounce'] . '%',                     'exchange'),
+            array('Avg. visit',      $this->fmt_duration($o['avg_dur']),     'clock'),
+            array('Views / session', $o['per_sess'],                         'list'),
+        );
+        ?>
+        <div class="wpa-card" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--arzo-space-4,16px);margin-bottom:var(--arzo-space-4,16px);">
+            <?php foreach ($tiles as $t) : ?>
+                <div style="display:flex;align-items:center;gap:var(--arzo-space-3,12px);">
+                    <span class="wpa-badge wpa-badge--info" style="width:2.25rem;height:2.25rem;padding:0;justify-content:center;border-radius:var(--arzo-radius,10px);flex:0 0 auto;">
+                        <?php echo wp_arzo_icon($t[2], array('class' => 'wpa-icon')); ?>
+                    </span>
+                    <span style="display:flex;flex-direction:column;line-height:1.2;">
+                        <strong style="font-size:1.4rem;"><?php echo esc_html($t[1]); ?></strong>
+                        <span style="color:var(--arzo-text-muted);font-size:.8rem;"><?php echo esc_html($t[0]); ?></span>
+                    </span>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <?php echo $this->analytics_chart($o['series']); ?>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--arzo-space-4,16px);">
+            <div class="wpa-card" style="padding:0;overflow:hidden;">
+                <div style="padding:var(--arzo-space-3,12px) var(--arzo-space-4,16px);font-weight:600;"><?php echo wp_arzo_icon('file', array('class' => 'wpa-icon wpa-icon--sm')); ?> Top pages</div>
+                <table class="wpa-backup-table">
+                    <thead><tr><th>Page</th><th style="text-align:right;">Views</th><th style="text-align:right;">Visitors</th></tr></thead>
+                    <tbody>
+                        <?php if (empty($pages)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="3">No pages yet.</td></tr>
+                        <?php else : foreach ($pages as $p) : ?>
+                            <tr>
+                                <td><a href="<?php echo esc_url(home_url($p['path'])); ?>" target="_blank" rel="noopener" title="<?php echo esc_attr($p['title'] !== '' ? $p['title'] : $p['path']); ?>"><?php echo esc_html($p['path']); ?></a></td>
+                                <td style="text-align:right;"><?php echo esc_html(number_format_i18n($p['views'])); ?></td>
+                                <td style="text-align:right;color:var(--arzo-text-muted);"><?php echo esc_html(number_format_i18n($p['visitors'])); ?></td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="wpa-card" style="padding:0;overflow:hidden;">
+                <div style="padding:var(--arzo-space-3,12px) var(--arzo-space-4,16px);font-weight:600;"><?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> Top referrers</div>
+                <table class="wpa-backup-table">
+                    <thead><tr><th>Source</th><th style="text-align:right;">Views</th><th style="text-align:right;">Visitors</th></tr></thead>
+                    <tbody>
+                        <?php if (empty($refs)) : ?>
+                            <tr class="wpa-backup-empty"><td colspan="3">No external referrers yet — traffic so far is direct.</td></tr>
+                        <?php else : foreach ($refs as $r) : ?>
+                            <tr>
+                                <td><?php echo esc_html($r['ref_host']); ?></td>
+                                <td style="text-align:right;"><?php echo esc_html(number_format_i18n($r['views'])); ?></td>
+                                <td style="text-align:right;color:var(--arzo-text-muted);"><?php echo esc_html(number_format_i18n($r['visitors'])); ?></td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    public function render_analytics()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+        $ranges = array('today' => 'Today', '7d' => '7 days', '30d' => '30 days', '90d' => '90 days');
+        $range  = isset($_GET['range']) ? sanitize_key(wp_unslash($_GET['range'])) : '30d';
+        if (!isset($ranges[$range])) {
+            $range = '30d';
+        }
+        list($from, $to) = $this->analytics_range($range);
+        $nonce = wp_create_nonce(self::NONCE_ANALYTICS);
+        $base  = admin_url('admin.php?page=' . self::PAGE_ANALYTICS);
+
+        echo '<div class="wrap wpa-admin">';
+        ?>
+            <div class="wpa-admin__bar">
+                <div>
+                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('chart', array('class' => 'wpa-icon')); ?> Analytics</h1>
+                    <p class="wpa-admin__subtitle">Cookieless, first-party traffic — recorded in your own database, no external services.</p>
+                </div>
+                <nav class="wpa-tabs" role="tablist" aria-label="Date range" id="wpa-an-ranges" data-nonce="<?php echo esc_attr($nonce); ?>">
+                    <?php foreach ($ranges as $key => $label) : ?>
+                        <a class="wpa-tab<?php echo $key === $range ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo $key === $range ? 'true' : 'false'; ?>" href="<?php echo esc_url(add_query_arg('range', $key, $base)); ?>" data-range="<?php echo esc_attr($key); ?>"><span><?php echo esc_html($label); ?></span></a>
+                    <?php endforeach; ?>
+                </nav>
+            </div>
+
+            <div id="wpa-an-body"><?php echo $this->analytics_body($from, $to); ?></div>
+
+            <script>
+            (function () {
+                var nav = document.getElementById('wpa-an-ranges'),
+                    body = document.getElementById('wpa-an-body');
+                if (!nav || !body) { return; }
+                var nonce = nav.dataset.nonce;
+                nav.addEventListener('click', function (e) {
+                    var tab = e.target.closest ? e.target.closest('.wpa-tab') : null;
+                    if (!tab) { return; }
+                    e.preventDefault();
+                    var range = tab.dataset.range;
+                    nav.querySelectorAll('.wpa-tab').forEach(function (t) {
+                        var on = t === tab;
+                        t.classList.toggle('is-active', on);
+                        t.setAttribute('aria-selected', on ? 'true' : 'false');
+                    });
+                    body.style.opacity = '.5';
+                    var fd = new FormData();
+                    fd.append('action', 'wp_arzo_analytics_query');
+                    fd.append('nonce', nonce);
+                    fd.append('range', range);
+                    fetch(ajaxurl, { method: 'POST', body: fd, credentials: 'same-origin' })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            body.style.opacity = '';
+                            if (res && res.success) {
+                                body.innerHTML = res.data.html;
+                                if (window.history && history.replaceState) {
+                                    history.replaceState(null, '', '<?php echo esc_js($base); ?>&range=' + range);
+                                }
+                            }
+                        })
+                        .catch(function () { body.style.opacity = ''; });
+                });
+            })();
+            </script>
+        <?php
+        echo '</div>';
+    }
+
+    public function ajax_analytics_query()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_ANALYTICS, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $range = isset($_POST['range']) ? sanitize_key(wp_unslash($_POST['range'])) : '30d';
+        list($from, $to) = $this->analytics_range($range);
+        wp_send_json_success(array('html' => $this->analytics_body($from, $to)));
     }
 
     public function ajax_send_test_email()
