@@ -496,6 +496,68 @@ class WP_Arzo_Analytics
         ), ARRAY_A);
     }
 
+    /** UTM campaign performance (rows: campaign, source, medium, views, visitors). */
+    public function campaigns($from, $to, $limit = 50)
+    {
+        global $wpdb;
+        $t = $this->table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT utm_campaign, utm_source, utm_medium, COUNT(*) views, COUNT(DISTINCT visitor) visitors
+             FROM {$t}
+             WHERE ts BETWEEN %d AND %d AND (utm_campaign <> '' OR utm_source <> '' OR utm_medium <> '')
+             GROUP BY utm_campaign, utm_source, utm_medium
+             ORDER BY views DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** Active visitors in the last N minutes (distinct visitor). */
+    public function realtime_active($minutes = 5)
+    {
+        global $wpdb;
+        $t   = $this->table();
+        $cut = time() - max(1, (int) $minutes) * MINUTE_IN_SECONDS;
+        return (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT visitor) FROM {$t} WHERE ts >= %d", $cut));
+    }
+
+    /** Most recent hits (for the live view). */
+    public function realtime_recent($minutes = 30, $limit = 25)
+    {
+        global $wpdb;
+        $t   = $this->table();
+        $cut = time() - max(1, (int) $minutes) * MINUTE_IN_SECONDS;
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT ts, path, ref_host, country, device, browser FROM {$t} WHERE ts >= %d ORDER BY ts DESC LIMIT %d",
+            $cut,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** Per-minute active-visitor sparkline for the last N minutes. */
+    public function realtime_series($minutes = 30)
+    {
+        global $wpdb;
+        $t   = $this->table();
+        $cut = time() - max(1, (int) $minutes) * MINUTE_IN_SECONDS;
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT FLOOR(ts/60) m, COUNT(*) v FROM {$t} WHERE ts >= %d GROUP BY m ORDER BY m ASC",
+            $cut
+        ), ARRAY_A);
+        $map = array();
+        foreach ((array) $rows as $r) {
+            $map[(int) $r['m']] = (int) $r['v'];
+        }
+        $out   = array();
+        $start = (int) floor($cut / 60);
+        $end   = (int) floor(time() / 60);
+        for ($m = $start; $m <= $end; $m++) {
+            $out[] = isset($map[$m]) ? $map[$m] : 0;
+        }
+        return $out;
+    }
+
     /** Lightweight today's counts for the admin-bar peek (60s transient-cached). */
     public function quick_today()
     {

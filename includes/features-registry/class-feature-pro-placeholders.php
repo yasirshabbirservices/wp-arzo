@@ -91,6 +91,7 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'x_pixel', 'title' => 'X (Twitter) Pixel', 'group' => 'marketing', 'icon' => 'bolt', 'description' => 'Add the X / Twitter conversion tracking pixel.'),
         array('id' => 'bing_uet', 'title' => 'Microsoft / Bing UET', 'group' => 'marketing', 'icon' => 'bolt', 'description' => 'Add the Microsoft Advertising (Bing) Universal Event Tracking tag.'),
         // GA4 / GTM / Google Ads are now FREE features (Analytics group) — no Pro placeholder.
+        array('id' => 'analytics_pro', 'title' => 'Analytics Pro', 'group' => 'analytics', 'icon' => 'chart', 'description' => 'Advanced analytics on the free built-in engine — a UTM Campaigns report and a live Real-time visitor view (more coming: click/event/form tracking, email reports, eCommerce, GA4 in-dashboard reporting).'),
 
         // Content & Modeling
         array('id' => 'content_types', 'title' => 'Content Types (CPT/CCT)', 'group' => 'content', 'icon' => 'file', 'description' => 'Build custom post types and taxonomies from a UI.'),
