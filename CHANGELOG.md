@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.126.0] — 2026-07-03
+
+### Changed — Advanced Cron Manager enrichment (Pro catalog copy)
+
+- Updated the Pro **Advanced Cron Manager** showcase card for its enrichment (Pro v1.54.0): **bulk
+  actions** (run / pause / resume / delete selected events), **CSV export** of the timed run log,
+  and **manual-run error capture** (a hook that throws is recorded as a FAILED run instead of
+  white-screening). No behavioural change in the free core (the feature is Pro); catalog description
+  + version bump so OPcache invalidates. See the Pro changelog for the full feature.
+
 ## [6.125.0] — 2026-07-03
 
 ### Changed — Site Health Monitor enrichment (Pro catalog copy)
