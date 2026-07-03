@@ -495,6 +495,11 @@ body.wp-arzo-screen::-webkit-scrollbar-thumb:hover { background: var(--arzo-bord
   flex: 1; width: 100%; background: transparent; border: 0; outline: none;
   color: var(--arzo-text-primary); font-size: var(--arzo-fs-md); padding: 10px 0;
 }
+/* The wrapper owns the focus ring (:focus-within) — the inner input must NOT draw its
+   own too, or you get a double border. Overrides the global .wpa-admin input:focus-visible
+   ring for this composed control only. */
+.wpa-admin .wpa-fm-searchbar input:focus,
+.wpa-admin .wpa-fm-searchbar input:focus-visible { box-shadow: none; }
 .wpa-fm-searchbar input::placeholder { color: var(--arzo-text-muted); }
 .wpa-fm-progress {
   height: 8px;

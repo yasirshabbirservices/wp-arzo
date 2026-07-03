@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
 
 class WP_Arzo_Analytics
 {
-    const DB_VERSION = '4';
+    const DB_VERSION = '5';
     const OPT_DB     = 'wp_arzo_analytics_db';
     const OPT_SALT   = 'wp_arzo_analytics_salt';
     const CRON_PRUNE = 'wp_arzo_analytics_prune';
@@ -75,6 +75,13 @@ class WP_Arzo_Analytics
     {
         global $wpdb;
         return $wpdb->prefix . 'wp_arzo_analytics_orders';
+    }
+
+    /** The daily rollup table — one aggregate row per day (kept forever, tiny). */
+    public function daily_table()
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'wp_arzo_analytics_daily';
     }
 
     public function maybe_install()
@@ -145,10 +152,22 @@ class WP_Arzo_Analytics
             UNIQUE KEY order_id (order_id),
             KEY ts (ts)
         ) {$collate};";
+        $daily   = $this->daily_table();
+        $sql_daily = "CREATE TABLE {$daily} (
+            day INT UNSIGNED NOT NULL,
+            views INT UNSIGNED NOT NULL DEFAULT 0,
+            visitors INT UNSIGNED NOT NULL DEFAULT 0,
+            sessions INT UNSIGNED NOT NULL DEFAULT 0,
+            bounces INT UNSIGNED NOT NULL DEFAULT 0,
+            dur_sum BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            dur_sessions INT UNSIGNED NOT NULL DEFAULT 0,
+            PRIMARY KEY  (day)
+        ) {$collate};";
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql);
         dbDelta($sql_events);
         dbDelta($sql_orders);
+        dbDelta($sql_daily);
         update_option(self::OPT_DB, self::DB_VERSION, false);
     }
 
@@ -509,8 +528,31 @@ class WP_Arzo_Analytics
 
     /* ------------------------------------------------------------ reporting */
 
-    /** Headline totals + a daily series for a [from,to] unix range. */
+    /**
+     * Headline totals + a daily series for a [from,to] unix range.
+     *
+     * When daily rollups exist (Pro Rollups feature) AND the range reaches back before the
+     * oldest surviving raw hit (i.e. raw was pruned to keep the DB lean), the pre-raw portion
+     * is served from the rollup table and the rest from raw — so old ranges still report even
+     * after their raw hits are gone. Otherwise this is the exact raw query, unchanged.
+     */
     public function overview($from, $to)
+    {
+        $from = (int) $from;
+        $to   = (int) $to;
+        $oldest = $this->oldest_raw_ts();
+        if ($this->rollup_available() && $oldest !== null && $from < $oldest && $oldest <= $to) {
+            return $this->overview_hybrid($from, $to, $oldest);
+        }
+        if ($this->rollup_available() && ($oldest === null || $to < $oldest)) {
+            // The whole range predates any surviving raw hit → pure rollup.
+            return $this->overview_from_rollup($from, $to);
+        }
+        return $this->overview_raw($from, $to);
+    }
+
+    /** Exact headline totals + daily series straight from raw hits. */
+    public function overview_raw($from, $to)
     {
         global $wpdb;
         $t = $this->table();
@@ -570,6 +612,232 @@ class WP_Arzo_Analytics
             );
         }
         return $out;
+    }
+
+    /* --------------------------------------------------- daily rollups (scale) */
+
+    /** Timestamp of the oldest surviving raw hit (null if none). Cheap, indexed on ts. */
+    public function oldest_raw_ts()
+    {
+        global $wpdb;
+        $v = $wpdb->get_var("SELECT MIN(ts) FROM {$this->table()}");
+        return ($v === null) ? null : (int) $v;
+    }
+
+    /** Whether any daily rollup rows exist. */
+    public function rollup_available()
+    {
+        global $wpdb;
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->daily_table()}") > 0;
+    }
+
+    /** Day-number (floor(ts/86400)) of the most recently rolled-up day, or null. */
+    public function last_rollup_day()
+    {
+        global $wpdb;
+        $v = $wpdb->get_var("SELECT MAX(day) FROM {$this->daily_table()}");
+        return ($v === null) ? null : (int) $v;
+    }
+
+    /**
+     * Compute + upsert the aggregate row for one whole UTC day (day-number = floor(ts/86400)).
+     * Idempotent (REPLACE by primary key), so re-running a day is safe. Reads only raw hits.
+     */
+    public function rollup_day($day)
+    {
+        global $wpdb;
+        $day  = (int) $day;
+        $t    = $this->table();
+        $from = $day * 86400;
+        $to   = $from + 86399;
+
+        $views    = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$t} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $visitors = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT visitor) FROM {$t} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $sessions = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT session) FROM {$t} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $bounces  = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM (SELECT session FROM {$t} WHERE ts BETWEEN %d AND %d GROUP BY session HAVING COUNT(*) = 1) x",
+            $from,
+            $to
+        ));
+        $dur = $wpdb->get_row($wpdb->prepare(
+            "SELECT COALESCE(SUM(d),0) s, COUNT(*) n FROM (SELECT MAX(ts) - MIN(ts) d FROM {$t} WHERE ts BETWEEN %d AND %d GROUP BY session) x",
+            $from,
+            $to
+        ), ARRAY_A);
+
+        // Don't store empty days (keeps the table sparse; a gap reads as zero downstream).
+        if ($views === 0) {
+            $wpdb->delete($this->daily_table(), array('day' => $day), array('%d'));
+            return true;
+        }
+        $wpdb->replace(
+            $this->daily_table(),
+            array(
+                'day'          => $day,
+                'views'        => $views,
+                'visitors'     => $visitors,
+                'sessions'     => $sessions,
+                'bounces'      => $bounces,
+                'dur_sum'      => (int) (isset($dur['s']) ? $dur['s'] : 0),
+                'dur_sessions' => (int) (isset($dur['n']) ? $dur['n'] : 0),
+            ),
+            array('%d', '%d', '%d', '%d', '%d', '%d', '%d')
+        );
+        return true;
+    }
+
+    /**
+     * Roll up every day from $from_day..$to_day inclusive (day-numbers). Used to backfill
+     * existing history when rollups are first enabled, and to catch up any missed days.
+     * Capped so a one-off backfill can't run unbounded.
+     */
+    public function rollup_range($from_day, $to_day, $max = 1000)
+    {
+        $from_day = (int) $from_day;
+        $to_day   = (int) $to_day;
+        $done = 0;
+        for ($d = $from_day; $d <= $to_day && $done < (int) $max; $d++, $done++) {
+            $this->rollup_day($d);
+        }
+        return $done;
+    }
+
+    /** Rolled-up daily series [{date,views,visitors}] for a range (fast; from the rollup table). */
+    public function daily_series($from, $to)
+    {
+        global $wpdb;
+        $start = (int) floor(((int) $from) / 86400);
+        $end   = (int) floor(((int) $to) / 86400);
+        $rows  = $wpdb->get_results($wpdb->prepare(
+            "SELECT day d, views v, visitors u FROM {$this->daily_table()} WHERE day BETWEEN %d AND %d ORDER BY day ASC",
+            $start,
+            $end
+        ), ARRAY_A);
+        return self::fill_series($rows, $from, $to);
+    }
+
+    /** Summed daily totals for a range (from the rollup table). */
+    public function daily_totals($from, $to)
+    {
+        global $wpdb;
+        $start = (int) floor(((int) $from) / 86400);
+        $end   = (int) floor(((int) $to) / 86400);
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT COALESCE(SUM(views),0) views, COALESCE(SUM(visitors),0) visitors,
+                    COALESCE(SUM(sessions),0) sessions, COALESCE(SUM(bounces),0) bounces,
+                    COALESCE(SUM(dur_sum),0) dur_sum, COALESCE(SUM(dur_sessions),0) dur_sessions
+             FROM {$this->daily_table()} WHERE day BETWEEN %d AND %d",
+            $start,
+            $end
+        ), ARRAY_A);
+        return array(
+            'views'        => (int) ($row['views'] ?? 0),
+            'visitors'     => (int) ($row['visitors'] ?? 0),
+            'sessions'     => (int) ($row['sessions'] ?? 0),
+            'bounces'      => (int) ($row['bounces'] ?? 0),
+            'dur_sum'      => (int) ($row['dur_sum'] ?? 0),
+            'dur_sessions' => (int) ($row['dur_sessions'] ?? 0),
+        );
+    }
+
+    /** Raw summable component totals (for combining with rollup totals). */
+    private function raw_totals($from, $to)
+    {
+        global $wpdb;
+        $t = $this->table();
+        $from = (int) $from;
+        $to   = (int) $to;
+        $views    = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$t} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $visitors = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT visitor) FROM {$t} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $sessions = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT session) FROM {$t} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $bounces  = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM (SELECT session FROM {$t} WHERE ts BETWEEN %d AND %d GROUP BY session HAVING COUNT(*) = 1) x", $from, $to));
+        $dur = $wpdb->get_row($wpdb->prepare("SELECT COALESCE(SUM(d),0) s, COUNT(*) n FROM (SELECT MAX(ts) - MIN(ts) d FROM {$t} WHERE ts BETWEEN %d AND %d GROUP BY session) x", $from, $to), ARRAY_A);
+        return array(
+            'views' => $views, 'visitors' => $visitors, 'sessions' => $sessions, 'bounces' => $bounces,
+            'dur_sum' => (int) ($dur['s'] ?? 0), 'dur_sessions' => (int) ($dur['n'] ?? 0),
+        );
+    }
+
+    /** Whole range predates surviving raw → serve overview purely from rollups. */
+    private function overview_from_rollup($from, $to)
+    {
+        $totals = $this->daily_totals($from, $to);
+        return self::finalize_overview($totals, $this->daily_series($from, $to));
+    }
+
+    /** Hybrid: rollup for the pruned (pre-raw) portion + raw for the surviving portion. */
+    private function overview_hybrid($from, $to, $oldest_raw_ts)
+    {
+        $split_day  = (int) floor((int) $oldest_raw_ts / 86400); // first day with raw data
+        $roll_to    = $split_day * 86400 - 1;                    // rollup covers up to end of prior day
+        $raw_from   = $split_day * 86400;
+
+        $roll  = ($from <= $roll_to) ? $this->daily_totals($from, $roll_to) : self::zero_totals();
+        $raw   = $this->raw_totals(max($from, $raw_from), $to);
+        $totals = self::combine_totals($roll, $raw);
+
+        // Series: rollup days for the pruned part + raw day-buckets for the rest.
+        $series = $this->hybrid_series($from, $to, $roll_to, $raw_from);
+        return self::finalize_overview($totals, $series);
+    }
+
+    /** Build a continuous daily series spanning rollup (old) + raw (recent) portions. */
+    private function hybrid_series($from, $to, $roll_to, $raw_from)
+    {
+        global $wpdb;
+        $t = $this->table();
+        $roll_rows = array();
+        if ($from <= $roll_to) {
+            $roll_rows = $wpdb->get_results($wpdb->prepare(
+                "SELECT day d, views v, visitors u FROM {$this->daily_table()} WHERE day BETWEEN %d AND %d",
+                (int) floor((int) $from / 86400),
+                (int) floor((int) $roll_to / 86400)
+            ), ARRAY_A);
+        }
+        $raw_rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT FLOOR(ts/86400) d, COUNT(*) v, COUNT(DISTINCT visitor) u FROM {$t} WHERE ts BETWEEN %d AND %d GROUP BY d",
+            max((int) $from, (int) $raw_from),
+            (int) $to
+        ), ARRAY_A);
+        return self::fill_series(array_merge((array) $roll_rows, (array) $raw_rows), $from, $to);
+    }
+
+    /* ---- pure rollup helpers (harnessed) ---- */
+
+    /** Empty component totals. */
+    public static function zero_totals()
+    {
+        return array('views' => 0, 'visitors' => 0, 'sessions' => 0, 'bounces' => 0, 'dur_sum' => 0, 'dur_sessions' => 0);
+    }
+
+    /** Add two component-total arrays (visitor counts sum → an approximation across the seam). */
+    public static function combine_totals($a, $b)
+    {
+        $out = array();
+        foreach (array('views', 'visitors', 'sessions', 'bounces', 'dur_sum', 'dur_sessions') as $k) {
+            $out[$k] = (int) (isset($a[$k]) ? $a[$k] : 0) + (int) (isset($b[$k]) ? $b[$k] : 0);
+        }
+        return $out;
+    }
+
+    /** Derive the display metrics (bounce %, avg duration, views/session) from component totals. */
+    public static function finalize_overview($totals, $series)
+    {
+        $views    = (int) ($totals['views'] ?? 0);
+        $visitors = (int) ($totals['visitors'] ?? 0);
+        $sessions = (int) ($totals['sessions'] ?? 0);
+        $bounces  = (int) ($totals['bounces'] ?? 0);
+        $dur_sum  = (int) ($totals['dur_sum'] ?? 0);
+        $dur_n    = (int) ($totals['dur_sessions'] ?? 0);
+        return array(
+            'views'    => $views,
+            'visitors' => $visitors,
+            'sessions' => $sessions,
+            'bounce'   => $sessions ? round(($bounces / $sessions) * 100, 1) : 0.0,
+            'avg_dur'  => $dur_n ? (int) round($dur_sum / $dur_n) : 0,
+            'per_sess' => $sessions ? round($views / $sessions, 2) : 0.0,
+            'series'   => $series,
+        );
     }
 
     /** Top pages (by views) for a range. */
