@@ -140,7 +140,9 @@ function wp_arzo_pro_feature_catalog()
 function wp_arzo_register_pro_placeholders($registry)
 {
     foreach (wp_arzo_pro_feature_catalog() as $meta) {
-        if (!$registry->get($meta['id'])) {
+        // is_registered() is a cheap membership test — it does NOT force-load (instantiate)
+        // a lazily-registered real module just to check whether the id is taken.
+        if (!$registry->is_registered($meta['id'])) {
             $registry->register(new WP_Arzo_Feature_Pro_Placeholder($meta));
         }
     }

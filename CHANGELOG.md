@@ -4,6 +4,34 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.140.0] — 2026-07-04
+
+### Changed — On-demand feature loading (lazy-local): the registry loads only what you use
+
+The feature registry now loads a feature's PHP class **only when it's enabled (booted) or its
+page/settings are opened** — instead of `require`-ing every `features-registry/*.php` on every
+request. Roadmap item 7z, "load only what you need", applied to **both** tiers (free here, Pro in
+v1.61.0). This is the **`.org`-safe, local** form (all module files still ship in the zip — no
+remote code fetch); the Pro **cloud-download** layer is a later, separately-reviewed change set.
+
+- **Registry** (`class-wp-arzo-feature-registry.php`): a class **autoloader** + deferred
+  registration. New `register_lazy($id, $class, $file, $default = false)` records a feature without
+  instantiating it; `get($id)` lazily loads on first access; `boot_enabled()` loads **only enabled**
+  classes; `all()`/`grouped()` force-load everything (dashboard grid / palette / wizard only — these
+  are admin-only). New `map_class()` (autoload a static-only helper like Config Import/Export) and
+  `is_registered()` (cheap membership test, no load). `is_enabled()`'s default now reads the lazy
+  descriptor, so the boot loop never force-loads a disabled feature.
+- **Bootstrap** (`wp-arzo.php`): the eager `features-registry/*.php` glob is removed; all ~50 free
+  features are registered via `register_lazy`. **Result (measured live):** a front-end request now
+  parses only the *enabled* feature classes (~50 of 91 registered on the test site) — disabled
+  features cost zero parse/instantiate time. Front-end / cron / REST get the full win; the admin grid
+  still force-loads for card metadata (acceptable, admin-only).
+- **Note:** the autoloader means `class_exists('WP_Arzo_Feature_X')` now *loads* the class on
+  demand (previously a no-op when disabled) — harmless, as those call sites read options and their
+  pages are feature-gated.
+- Behavior-preserving refactor. Harnessed (16-check lazy-logic + 53/53 free id→class→file map,
+  all `id()`-verified) and live-verified (grid, toggles, gated pages, Configure drawer, laziness).
+
 ## [6.139.0] — 2026-07-04
 
 ### Added — REST API Authentication: per-key read-only scope
