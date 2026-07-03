@@ -119,6 +119,9 @@ class WP_Arzo_Feature_Email_Log extends WP_Arzo_Feature
         return 'mail';
     }
 
+    const STATS_OPTION = 'wp_arzo_email_stats';
+    const STATS_DAYS   = 60; // rolling per-day history kept for trends
+
     public function boot()
     {
         add_filter('wp_mail', array($this, 'log_mail'));
@@ -154,6 +157,7 @@ class WP_Arzo_Feature_Email_Log extends WP_Arzo_Feature
             $log[0]['error']  = is_wp_error($wp_error) ? $wp_error->get_error_message() : 'Unknown error';
             update_option(self::OPTION, $log, false);
         }
+        self::record_stat('failed', '');
     }
 
     /** Stamp the most-recent log entry with the connection that delivered it. */
@@ -165,6 +169,78 @@ class WP_Arzo_Feature_Email_Log extends WP_Arzo_Feature
             $log[0]['connection'] = sanitize_text_field((string) $title);
             update_option(self::OPTION, $log, false);
         }
+        self::record_stat('sent', sanitize_text_field((string) $title));
+    }
+
+    /* ------------------------------------------ per-connection stats over time
+     * Daily aggregates survive the capped log so deliverability + per-connection
+     * volume can be charted over weeks. { 'Y-m-d' => {sent,failed,conns:{label=>n}} }.
+     */
+
+    public static function record_stat($type, $label)
+    {
+        $stats = get_option(self::STATS_OPTION, array());
+        if (!is_array($stats)) {
+            $stats = array();
+        }
+        $stats = self::bump_stat($stats, gmdate('Y-m-d'), $type, (string) $label, self::STATS_DAYS);
+        update_option(self::STATS_OPTION, $stats, false);
+    }
+
+    /** Pure: increment a day's counter (+ per-connection for 'sent'); trim to $keep days. */
+    public static function bump_stat(array $stats, $day, $type, $label, $keep)
+    {
+        if (!isset($stats[$day]) || !is_array($stats[$day])) {
+            $stats[$day] = array('sent' => 0, 'failed' => 0, 'conns' => array());
+        }
+        if ($type === 'sent') {
+            $stats[$day]['sent'] = (int) $stats[$day]['sent'] + 1;
+            if ($label !== '') {
+                $stats[$day]['conns'][$label] = (isset($stats[$day]['conns'][$label]) ? (int) $stats[$day]['conns'][$label] : 0) + 1;
+            }
+        } elseif ($type === 'failed') {
+            $stats[$day]['failed'] = (int) $stats[$day]['failed'] + 1;
+        }
+        $keep = max(1, (int) $keep);
+        if (count($stats) > $keep) {
+            ksort($stats); // 'Y-m-d' sorts chronologically
+            $stats = array_slice($stats, -$keep, null, true);
+        }
+        return $stats;
+    }
+
+    public static function get_stats()
+    {
+        $s = get_option(self::STATS_OPTION, array());
+        return is_array($s) ? $s : array();
+    }
+
+    /**
+     * Pure: report for the trailing $days ending at $today (a UTC timestamp) —
+     * a per-day series + per-connection totals + window totals.
+     * @return array{series:array,conn_totals:array,total_sent:int,total_failed:int}
+     */
+    public static function stats_report($stats, $days, $today)
+    {
+        $days   = max(1, (int) $days);
+        $series = array();
+        $conns  = array();
+        $ts = 0;
+        $tf = 0;
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $d   = gmdate('Y-m-d', $today - $i * DAY_IN_SECONDS);
+            $day = (isset($stats[$d]) && is_array($stats[$d])) ? $stats[$d] : array('sent' => 0, 'failed' => 0, 'conns' => array());
+            $sent   = (int) (isset($day['sent']) ? $day['sent'] : 0);
+            $failed = (int) (isset($day['failed']) ? $day['failed'] : 0);
+            $series[] = array('date' => $d, 'sent' => $sent, 'failed' => $failed);
+            $ts += $sent;
+            $tf += $failed;
+            foreach ((isset($day['conns']) && is_array($day['conns']) ? $day['conns'] : array()) as $label => $n) {
+                $conns[$label] = (isset($conns[$label]) ? $conns[$label] : 0) + (int) $n;
+            }
+        }
+        arsort($conns);
+        return array('series' => $series, 'conn_totals' => $conns, 'total_sent' => $ts, 'total_failed' => $tf);
     }
 
     private static function push($entry)
