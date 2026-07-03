@@ -83,6 +83,66 @@ class WP_Arzo_Feature_Role_Manager extends WP_Arzo_Feature
     }
 
     /**
+     * Bucket a capability into a category for the grouped editor UI. Pure/harnessable.
+     * Precedence matters (eCommerce first so product/order caps don't fall to Posts).
+     */
+    public static function capability_group($cap)
+    {
+        $cap = (string) $cap;
+        $l   = strtolower($cap);
+        $site = array(
+            'manage_options', 'edit_dashboard', 'import', 'export', 'update_core',
+            'manage_categories', 'manage_links', 'unfiltered_html', 'edit_files',
+            'customize', 'install_languages', 'update_languages', 'manage_privacy_options',
+        );
+        if (preg_match('/woocommerce|product|shop_|coupon|order/', $l)) {
+            return 'ecommerce';
+        }
+        if (strpos($l, 'plugin') !== false) {
+            return 'plugins';
+        }
+        if (strpos($l, 'theme') !== false) {
+            return 'themes';
+        }
+        if (strpos($l, 'user') !== false) {
+            return 'users';
+        }
+        if (strpos($l, 'comment') !== false) {
+            return 'comments';
+        }
+        if ($cap === 'upload_files' || $cap === 'unfiltered_upload') {
+            return 'media';
+        }
+        if (strpos($l, 'page') !== false) {
+            return 'pages';
+        }
+        if (strpos($l, 'post') !== false) {
+            return 'posts';
+        }
+        if (in_array($cap, $site, true)) {
+            return 'site';
+        }
+        return 'other';
+    }
+
+    /** Ordered category => label map for the grouped capability editor. */
+    public static function capability_group_labels()
+    {
+        return array(
+            'posts'     => 'Posts',
+            'pages'     => 'Pages',
+            'media'     => 'Media',
+            'comments'  => 'Comments',
+            'themes'    => 'Appearance & Themes',
+            'plugins'   => 'Plugins',
+            'users'     => 'Users',
+            'ecommerce' => 'eCommerce',
+            'site'      => 'Site & Settings',
+            'other'     => 'Other',
+        );
+    }
+
+    /**
      * Overview rows for the roles table: slug, name, user count, cap count, builtin.
      *
      * @return array<int,array>

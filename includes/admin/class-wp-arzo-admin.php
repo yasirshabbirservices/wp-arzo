@@ -4447,19 +4447,105 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         <?php if ($is_admin_role) : ?>
             <div class="wpa-card" style="margin-bottom:16px;"><p class="wpa-aside-card__text" style="margin:0;"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon wpa-icon--sm')); ?> This is the administrator role — <code>manage_options</code> is locked on to prevent lockout.</p></div>
         <?php endif; ?>
-        <div class="wpa-card">
-            <div class="wpa-caps-grid">
-                <?php foreach ($caps as $cap) :
-                    $on   = !empty($has[$cap]);
-                    $lock = ($is_admin_role && $cap === 'manage_options'); ?>
-                    <label class="wpa-toggle wpa-cap">
-                        <input type="checkbox" class="wpa-toggle__input wpa-cap-input" role="switch" value="<?php echo esc_attr($cap); ?>" <?php checked($on); ?> <?php disabled($lock); ?>>
-                        <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
-                        <span class="wpa-toggle__label"><?php echo esc_html($cap); ?></span>
-                    </label>
-                <?php endforeach; ?>
-            </div>
+        <?php
+        // Group the (long, flat) capability list into categories with a live filter,
+        // so a 60–80+ toggle wall becomes scannable (page-organization directive).
+        $grouped = array();
+        foreach ($caps as $cap) {
+            $grouped[WP_Arzo_Feature_Role_Manager::capability_group($cap)][] = $cap;
+        }
+        $labels        = WP_Arzo_Feature_Role_Manager::capability_group_labels();
+        $granted_total = 0;
+        foreach ($caps as $cap) {
+            if (!empty($has[$cap])) {
+                $granted_total++;
+            }
+        }
+        $cap_total = count($caps);
+        ?>
+        <div class="wpa-card" style="margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+            <input type="search" id="wpa-cap-search" class="wpa-input" placeholder="Filter capabilities…" style="flex:1;min-width:220px;" autocomplete="off">
+            <span class="wpa-badge wpa-badge--neutral" id="wpa-cap-summary"><?php echo (int) $granted_total; ?> of <?php echo (int) $cap_total; ?> granted</span>
         </div>
+        <div id="wpa-caps-groups">
+        <?php foreach ($labels as $gkey => $glabel) :
+            if (empty($grouped[$gkey])) {
+                continue;
+            }
+            $gcaps = $grouped[$gkey];
+            sort($gcaps);
+            $g_granted = 0;
+            foreach ($gcaps as $c) {
+                if (!empty($has[$c])) {
+                    $g_granted++;
+                }
+            } ?>
+            <div class="wpa-card wpa-cap-section" data-group="<?php echo esc_attr($gkey); ?>" style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+                    <h2 class="wpa-group__title" style="margin:0;"><?php echo esc_html($glabel); ?> <span style="color:var(--arzo-text-muted);font-weight:400;font-size:.85em;">(<span class="wpa-cap-gcount"><?php echo (int) $g_granted; ?></span>/<?php echo count($gcaps); ?>)</span></h2>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-cap-toggle-all"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Toggle all</button>
+                </div>
+                <div class="wpa-caps-grid">
+                    <?php foreach ($gcaps as $cap) :
+                        $on   = !empty($has[$cap]);
+                        $lock = ($is_admin_role && $cap === 'manage_options'); ?>
+                        <label class="wpa-toggle wpa-cap" data-cap="<?php echo esc_attr($cap); ?>">
+                            <input type="checkbox" class="wpa-toggle__input wpa-cap-input" role="switch" value="<?php echo esc_attr($cap); ?>" <?php checked($on); ?> <?php disabled($lock); ?>>
+                            <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+                            <span class="wpa-toggle__label"><?php echo esc_html($cap); ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+        </div>
+        <div id="wpa-caps-empty" hidden style="text-align:center;padding:16px;color:var(--arzo-text-muted);">No capabilities match your filter.</div>
+        <script>
+        (function () {
+            var search = document.getElementById('wpa-cap-search'),
+                groups = document.getElementById('wpa-caps-groups'),
+                empty = document.getElementById('wpa-caps-empty'),
+                summary = document.getElementById('wpa-cap-summary');
+            if (!groups) { return; }
+            function refresh() {
+                var all = groups.querySelectorAll('.wpa-cap-input').length,
+                    on = groups.querySelectorAll('.wpa-cap-input:checked').length;
+                if (summary) { summary.textContent = on + ' of ' + all + ' granted'; }
+                groups.querySelectorAll('.wpa-cap-section').forEach(function (sec) {
+                    var c = sec.querySelector('.wpa-cap-gcount');
+                    if (c) { c.textContent = sec.querySelectorAll('.wpa-cap-input:checked').length; }
+                });
+            }
+            if (search) {
+                search.addEventListener('input', function () {
+                    var q = search.value.trim().toLowerCase(), anyVisible = false;
+                    groups.querySelectorAll('.wpa-cap-section').forEach(function (sec) {
+                        var vis = 0;
+                        sec.querySelectorAll('.wpa-cap').forEach(function (cap) {
+                            var match = !q || cap.dataset.cap.toLowerCase().indexOf(q) > -1;
+                            cap.style.display = match ? '' : 'none';
+                            if (match) { vis++; }
+                        });
+                        sec.style.display = vis > 0 ? '' : 'none';
+                        if (vis > 0) { anyVisible = true; }
+                    });
+                    if (empty) { empty.hidden = anyVisible; }
+                });
+            }
+            groups.addEventListener('change', function (e) {
+                if (e.target.classList && e.target.classList.contains('wpa-cap-input')) { refresh(); }
+            });
+            groups.querySelectorAll('.wpa-cap-toggle-all').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var sec = btn.closest('.wpa-cap-section'),
+                        inputs = [].slice.call(sec.querySelectorAll('.wpa-cap-input:not([disabled])')),
+                        anyOff = inputs.some(function (i) { return !i.checked; });
+                    inputs.forEach(function (i) { i.checked = anyOff; });
+                    refresh();
+                });
+            });
+        })();
+        </script>
         <?php
     }
 

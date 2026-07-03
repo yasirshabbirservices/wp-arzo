@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.134.0] — 2026-07-04
+
+### Changed — Role Manager: capability editor grouped by category + live filter
+
+Page-organization rollout. The role **capability editor** was one flat grid of 60–80+ toggles (worse
+with WooCommerce/plugins adding caps) — a hard-to-scan wall. It's now **grouped into categories**
+(Posts · Pages · Media · Comments · Appearance &amp; Themes · Plugins · Users · eCommerce · Site &amp;
+Settings · Other), each a section with a **granted/total count** and a **Toggle all**, plus a **live
+filter** box at the top and a running "N of M granted" summary. Pure
+`capability_group()` / `capability_group_labels()` on `WP_Arzo_Feature_Role_Manager` (37-check
+harness; eCommerce precedence so `edit_products`/`shop_orders` don't fall into Posts). Save behavior
+unchanged. Empty categories are hidden (show-only-when-needed).
+
 ## [6.133.0] — 2026-07-04
 
 ### Added — Console: read-only wp-config.php / .htaccess viewer (secrets masked) + FA→icon
