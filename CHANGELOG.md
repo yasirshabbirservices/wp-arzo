@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.139.0] — 2026-07-04
+
+### Added — REST API Authentication: per-key read-only scope
+
+Companion to per-key expiry (6.137.0) — least-privilege API keys.
+
+- Each key can be issued as **Full access** or **Read-only**. A read-only key authenticates for
+  **safe requests only** (GET/HEAD/OPTIONS); a **write** (POST/PUT/PATCH/DELETE) with a read-only
+  key is treated as unauthenticated, so the REST API answers **401** as usual — great for
+  reporting/dashboard integrations that should never modify data. The create form gains an **Access**
+  select and the keys table an **Access** column (Read-only / Full badge). Pure `is_write_method()`
+  (9-check harness). Backward compatible (existing keys default to Full).
+
 ## [6.138.0] — 2026-07-04
 
 ### Changed — Advanced Tools launcher page fully on-brand (dark, tokenized)

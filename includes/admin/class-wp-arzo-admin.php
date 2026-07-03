@@ -4253,7 +4253,14 @@ class WP_Arzo_Admin
                             } ?>
                         </select>
                     </div>
-                    <div class="wpa-field" style="min-width:160px;margin:0;">
+                    <div class="wpa-field" style="min-width:150px;margin:0;">
+                        <label class="wpa-field__label" for="wpa-rest-scope">Access</label>
+                        <select class="wpa-input" id="wpa-rest-scope" data-wpa-select>
+                            <option value="full">Full access</option>
+                            <option value="read">Read-only</option>
+                        </select>
+                    </div>
+                    <div class="wpa-field" style="min-width:150px;margin:0;">
                         <label class="wpa-field__label" for="wpa-rest-expires">Expires</label>
                         <select class="wpa-input" id="wpa-rest-expires" data-wpa-select>
                             <option value="0">Never</option>
@@ -4277,16 +4284,18 @@ class WP_Arzo_Admin
 
             <div class="wpa-card" style="padding:0;overflow:hidden;">
                 <table class="wpa-backup-table" id="wpa-rest-table">
-                    <thead><tr><th>Label</th><th>Key</th><th>Authenticates as</th><th>Created (UTC)</th><th>Last used (UTC)</th><th>Expires (UTC)</th><th></th></tr></thead>
+                    <thead><tr><th>Label</th><th>Key</th><th>Access</th><th>Authenticates as</th><th>Created (UTC)</th><th>Last used (UTC)</th><th>Expires (UTC)</th><th></th></tr></thead>
                     <tbody>
                         <?php if (empty($keys)) : ?>
-                            <tr class="wpa-backup-empty"><td colspan="7">No keys yet. Generate one above.</td></tr>
+                            <tr class="wpa-backup-empty"><td colspan="8">No keys yet. Generate one above.</td></tr>
                         <?php else : foreach ($keys as $k) :
                             $ku = get_userdata((int) $k['user_id']);
-                            $expired = class_exists('WP_Arzo_Feature_REST_API_Auth') && WP_Arzo_Feature_REST_API_Auth::is_expired($k, time()); ?>
+                            $expired = class_exists('WP_Arzo_Feature_REST_API_Auth') && WP_Arzo_Feature_REST_API_Auth::is_expired($k, time());
+                            $is_read = (isset($k['scope']) && $k['scope'] === 'read'); ?>
                             <tr data-key="<?php echo esc_attr($k['id']); ?>">
                                 <td><strong><?php echo esc_html($k['label']); ?></strong></td>
                                 <td><code>arzo_<?php echo esc_html($k['prefix']); ?>…</code></td>
+                                <td><?php echo $is_read ? '<span class="wpa-badge wpa-badge--info">Read-only</span>' : '<span class="wpa-badge wpa-badge--neutral">Full</span>'; ?></td>
                                 <td><?php echo $ku ? esc_html($ku->display_name) : '<span class="wpa-badge wpa-badge--error">missing user</span>'; ?></td>
                                 <td><?php echo esc_html($k['created_gmt']); ?></td>
                                 <td><?php echo esc_html(!empty($k['last_used_gmt']) ? $k['last_used_gmt'] : '—'); ?></td>
@@ -4335,7 +4344,8 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         $label   = isset($_POST['label']) ? sanitize_text_field(wp_unslash($_POST['label'])) : '';
         $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
         $expires = isset($_POST['expires_days']) ? max(0, (int) $_POST['expires_days']) : 0;
-        $res = WP_Arzo_Feature_REST_API_Auth::create_key($label, $user_id, $expires);
+        $scope   = (isset($_POST['scope']) && $_POST['scope'] === 'read') ? 'read' : 'full';
+        $res = WP_Arzo_Feature_REST_API_Auth::create_key($label, $user_id, $expires, $scope);
         if (is_wp_error($res)) {
             wp_send_json_error(array('message' => $res->get_error_message()), 400);
         }
@@ -4348,6 +4358,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
             'user'  => $ku ? $ku->display_name : '',
             'created' => $res['created_gmt'],
             'expires' => isset($res['expires_gmt']) ? $res['expires_gmt'] : '',
+            'scope' => isset($res['scope']) ? $res['scope'] : 'full',
         ));
     }
 

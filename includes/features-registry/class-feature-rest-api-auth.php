@@ -37,7 +37,7 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
     }
     public function description()
     {
-        return 'Issue API keys — with optional auto-expiry and last-used tracking — so external apps can authenticate to the REST API (Bearer / X-API-Key / Basic).';
+        return 'Issue API keys — with optional read-only scope, auto-expiry and last-used tracking — so external apps can authenticate to the REST API (Bearer / X-API-Key / Basic).';
     }
     public function group()
     {
@@ -89,8 +89,22 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
             return $user_id;
         }
 
+        // Read-only keys may only make safe (read) requests — a write with a read-only
+        // key is treated as unauthenticated, so the REST API answers 401 as usual.
+        if (isset($entry['scope']) && $entry['scope'] === 'read'
+            && self::is_write_method(isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET')) {
+            return $user_id;
+        }
+
         self::touch($entry['id']);
         return (int) $entry['user_id'];
+    }
+
+    /** Pure: is this HTTP method a state-changing (write) request? */
+    public static function is_write_method($method)
+    {
+        $method = strtoupper(trim((string) $method));
+        return !in_array($method, array('GET', 'HEAD', 'OPTIONS'), true);
     }
 
     /** Read the presented key from the enabled transports, or '' if none. */
@@ -149,7 +163,7 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
      * Create a key for the given user. Returns the stored entry plus the one-time
      * plaintext key under 'plain' (never persisted in clear), or WP_Error.
      */
-    public static function create_key($label, $user_id, $expires_days = 0)
+    public static function create_key($label, $user_id, $expires_days = 0, $scope = 'full')
     {
         $user_id = (int) $user_id;
         if ($user_id <= 0 || !get_userdata($user_id)) {
@@ -160,6 +174,7 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
         $plain  = 'arzo_' . $prefix . $secret;
 
         $expires_days = max(0, (int) $expires_days);
+        $scope = ($scope === 'read') ? 'read' : 'full';
         $entry = array(
             'id'            => 'rk_' . substr(md5(uniqid('', true)), 0, 12),
             'label'         => sanitize_text_field($label) ?: 'API key',
@@ -170,6 +185,8 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
             'last_used_gmt' => '',
             // Optional auto-expiry — an expired key stops authenticating (never deleted).
             'expires_gmt'   => $expires_days > 0 ? gmdate('Y-m-d H:i:s', time() + $expires_days * DAY_IN_SECONDS) : '',
+            // Access scope: 'full' (default) or 'read' (safe GET/HEAD/OPTIONS only).
+            'scope'         => $scope,
         );
 
         $keys = get_option(self::OPT, array());
