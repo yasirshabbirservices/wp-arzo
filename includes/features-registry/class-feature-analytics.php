@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
 
 class WP_Arzo_Analytics
 {
-    const DB_VERSION = '2';
+    const DB_VERSION = '3';
     const OPT_DB     = 'wp_arzo_analytics_db';
     const OPT_SALT   = 'wp_arzo_analytics_salt';
     const CRON_PRUNE = 'wp_arzo_analytics_prune';
@@ -63,6 +63,13 @@ class WP_Arzo_Analytics
         return $wpdb->prefix . 'wp_arzo_analytics_hits';
     }
 
+    /** The events table (clicks / downloads / outbound / form submits / custom events). */
+    public function events_table()
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'wp_arzo_analytics_events';
+    }
+
     public function maybe_install()
     {
         if (get_option(self::OPT_DB) === self::DB_VERSION) {
@@ -70,6 +77,7 @@ class WP_Arzo_Analytics
         }
         global $wpdb;
         $table   = $this->table();
+        $events  = $this->events_table();
         $collate = $wpdb->get_charset_collate();
         $sql = "CREATE TABLE {$table} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -95,8 +103,25 @@ class WP_Arzo_Analytics
             KEY session (session),
             KEY path (path)
         ) {$collate};";
+        $sql_events = "CREATE TABLE {$events} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            ts INT UNSIGNED NOT NULL DEFAULT 0,
+            etype VARCHAR(20) NOT NULL DEFAULT '',
+            name VARCHAR(190) NOT NULL DEFAULT '',
+            path VARCHAR(190) NOT NULL DEFAULT '',
+            target VARCHAR(255) NOT NULL DEFAULT '',
+            country CHAR(2) NOT NULL DEFAULT '',
+            device VARCHAR(10) NOT NULL DEFAULT '',
+            visitor CHAR(16) NOT NULL DEFAULT '',
+            session CHAR(16) NOT NULL DEFAULT '',
+            PRIMARY KEY  (id),
+            KEY ts (ts),
+            KEY etype (etype),
+            KEY visitor (visitor)
+        ) {$collate};";
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql);
+        dbDelta($sql_events);
         update_option(self::OPT_DB, self::DB_VERSION, false);
     }
 
@@ -198,6 +223,13 @@ class WP_Arzo_Analytics
             // keep root as '/'
         }
         return array(substr($path, 0, 190), $utm);
+    }
+
+    /** Whitelist of event types the collector accepts — never store raw input. */
+    public static function allowed_event_type($t)
+    {
+        $t = preg_replace('/[^a-z]/', '', strtolower((string) $t));
+        return in_array($t, array('click', 'outbound', 'download', 'mailto', 'tel', 'form', 'custom'), true) ? $t : '';
     }
 
     /** Central gate: should this hit be recorded? Pure for harnessing. */
@@ -315,6 +347,60 @@ class WP_Arzo_Analytics
                 'search'       => isset($data['s']) ? substr(sanitize_text_field((string) $data['s']), 0, 190) : '',
             ),
             array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s')
+        );
+        return true;
+    }
+
+    /**
+     * Record an interaction event from the beacon ({k:'e', e:type, n:name, p:path, u:target}).
+     * Same privacy gate as a page hit — cookieless, no PII at rest.
+     */
+    public function record_event($data)
+    {
+        if (!$this->enabled || !is_array($data)) {
+            return false;
+        }
+        $server = $_SERVER;
+        $ua  = isset($server['HTTP_USER_AGENT']) ? (string) $server['HTTP_USER_AGENT'] : '';
+        $ip  = $this->client_ip($server);
+        $dnt = isset($server['HTTP_DNT']) && $server['HTTP_DNT'] === '1';
+
+        if (!self::should_record(
+            $this->enabled,
+            $this->respect_dnt,
+            $dnt,
+            $this->user_excluded(),
+            in_array($ip, $this->exclude_ips, true),
+            self::is_bot($ua)
+        )) {
+            return false;
+        }
+
+        $etype = self::allowed_event_type(isset($data['e']) ? $data['e'] : '');
+        if ($etype === '') {
+            return false;
+        }
+        list($path) = self::split_path(isset($data['p']) ? $data['p'] : '');
+        list($device) = self::parse_ua($ua);
+
+        $ts   = time();
+        $salt = $this->current_salt();
+
+        global $wpdb;
+        $wpdb->insert(
+            $this->events_table(),
+            array(
+                'ts'      => $ts,
+                'etype'   => $etype,
+                'name'    => substr(sanitize_text_field(isset($data['n']) ? (string) $data['n'] : ''), 0, 190),
+                'path'    => $path,
+                'target'  => substr(sanitize_text_field(isset($data['u']) ? (string) $data['u'] : ''), 0, 255),
+                'country' => self::country_from_server($server),
+                'device'  => $device,
+                'visitor' => self::visitor_hash($salt, $ip, $ua),
+                'session' => self::session_hash($salt, $ip, $ua, $ts),
+            ),
+            array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
         );
         return true;
     }
@@ -513,6 +599,43 @@ class WP_Arzo_Analytics
         ), ARRAY_A);
     }
 
+    /** Interaction events grouped by (type, name, target) for a range. */
+    public function events($from, $to, $limit = 100)
+    {
+        global $wpdb;
+        $t = $this->events_table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT etype, name, target, COUNT(*) count, COUNT(DISTINCT visitor) visitors
+             FROM {$t} WHERE ts BETWEEN %d AND %d
+             GROUP BY etype, name, target ORDER BY count DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** Event totals grouped by type (for the summary chips). */
+    public function events_by_type($from, $to)
+    {
+        global $wpdb;
+        $t = $this->events_table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT etype, COUNT(*) count, COUNT(DISTINCT visitor) visitors
+             FROM {$t} WHERE ts BETWEEN %d AND %d
+             GROUP BY etype ORDER BY count DESC",
+            (int) $from,
+            (int) $to
+        ), ARRAY_A);
+    }
+
+    /** Total events recorded in a range. */
+    public function events_total($from, $to)
+    {
+        global $wpdb;
+        $t = $this->events_table();
+        return (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$t} WHERE ts BETWEEN %d AND %d", (int) $from, (int) $to));
+    }
+
     /** Active visitors in the last N minutes (distinct visitor). */
     public function realtime_active($minutes = 5)
     {
@@ -584,15 +707,17 @@ class WP_Arzo_Analytics
         return (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$t} WHERE path = %s", (string) $path));
     }
 
-    /** Daily retention prune. */
+    /** Daily retention prune (hits + events). */
     public function prune()
     {
         if ($this->retention_days <= 0) {
             return 0;
         }
         global $wpdb;
-        $cutoff = time() - ($this->retention_days * DAY_IN_SECONDS);
-        return (int) $wpdb->query($wpdb->prepare("DELETE FROM {$this->table()} WHERE ts < %d", $cutoff));
+        $cutoff  = time() - ($this->retention_days * DAY_IN_SECONDS);
+        $deleted = (int) $wpdb->query($wpdb->prepare("DELETE FROM {$this->table()} WHERE ts < %d", $cutoff));
+        $deleted += (int) $wpdb->query($wpdb->prepare("DELETE FROM {$this->events_table()} WHERE ts < %d", $cutoff));
+        return $deleted;
     }
 
     /* ------------------------------------------------------------ collector */
@@ -611,7 +736,11 @@ class WP_Arzo_Analytics
         // sendBeacon posts text/plain — read the raw body ourselves.
         $data = json_decode($request->get_body(), true);
         if (is_array($data)) {
-            $this->record($data);
+            if (isset($data['k']) && $data['k'] === 'e') {
+                $this->record_event($data);
+            } else {
+                $this->record($data);
+            }
         }
         // Always 204; never leak whether the hit was counted.
         return new WP_REST_Response(null, 204);
@@ -808,6 +937,15 @@ class WP_Arzo_Feature_Analytics extends WP_Arzo_Feature
             'endpoint' => esc_url_raw(rest_url('wp-arzo/v1/hit')),
             'is404'    => is_404() ? 1 : 0,
             'search'   => is_search() ? (string) get_search_query() : '',
+            /**
+             * Interaction-event tracking rules for the beacon. Empty by default —
+             * the beacon attaches no extra listeners (zero overhead). WP Arzo Pro
+             * (Analytics Pro) populates this via the filter when event tracking is on.
+             *
+             * @param array $rules ['outbound'=>0|1,'downloads'=>0|1,'email'=>0|1,
+             *                       'forms'=>0|1,'exts'=>'pdf,zip,…','selectors'=>[{sel,name,type}]]
+             */
+            'events'   => (array) apply_filters('wp_arzo_analytics_event_rules', array()),
         ));
     }
 

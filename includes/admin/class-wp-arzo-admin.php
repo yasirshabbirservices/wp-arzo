@@ -3382,6 +3382,14 @@ class WP_Arzo_Admin
             $sets['Exit']       = $engine->exiting($from, $to, 500);
             $sets['404']        = $engine->not_found($from, $to, 500);
             $sets['Search']     = $engine->searches($from, $to, 500);
+        } elseif ($tab === 'events' && method_exists($engine, 'events')) {
+            $sets['Event'] = array_map(function ($r) {
+                return array(
+                    'label'    => trim($r['etype'] . ': ' . $r['name']),
+                    'views'    => $r['count'],
+                    'visitors' => $r['visitors'],
+                );
+            }, $engine->events($from, $to, 500));
         } else {
             $sets['Page']     = array_map(function ($r) {
                 return array('label' => $r['path'], 'views' => $r['views'], 'visitors' => $r['visitors']);

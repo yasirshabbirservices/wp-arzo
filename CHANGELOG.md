@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.113.0] — 2026-07-03
+
+### Added — Analytics pillar: event-tracking engine (Phase 3b, free half)
+
+- The built-in analytics engine gained an **interaction-events** store: a new
+  `{prefix}wp_arzo_analytics_events` table (**DB v3**, created by `dbDelta`) plus
+  `record_event()` and the `events()` / `events_by_type()` / `events_total()` reporting
+  queries. The queries live in the free engine; **WP Arzo Pro (Analytics Pro)** gates the
+  tracking config + Events report tab (same pattern as Campaigns / Real-time).
+- The collector `wp-arzo/v1/hit` now accepts event payloads (`{k:'e', e:type, n:name, …}`)
+  alongside page hits — same cookieless privacy gate (no cookies, no PII at rest, DNT honored).
+- The beacon (`assets/js/wp-arzo-analytics.js`) gained **dormant, opt-in delegated listeners**
+  for outbound-link / download / mailto / tel / form / custom (`data-wpa-track="…"`) events.
+  With no server rules it attaches nothing (zero overhead); Pro supplies the rules via the new
+  **`wp_arzo_analytics_event_rules`** filter.
+- CSV export handles the **Events** tab; retention prune and uninstall now cover the events
+  table; new `cursor` icon.
+
 ## [6.112.0] — 2026-07-03
 
 ### Added — Analytics pillar: extensibility hooks for Pro report tabs (Phase 3a enabler)
