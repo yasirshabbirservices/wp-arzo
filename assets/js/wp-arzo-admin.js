@@ -1295,12 +1295,14 @@
       var labelEl = document.getElementById('wpa-rest-label');
       var userEl = document.getElementById('wpa-rest-user');
       var expEl = document.getElementById('wpa-rest-expires');
+      var scopeEl = document.getElementById('wpa-rest-scope');
       createBtn.disabled = true;
       apiPost('wp_arzo_rest_key_create', {
         nonce: createBtn.dataset.nonce || cfg.restNonce || '',
         label: labelEl ? labelEl.value : '',
         user_id: userEl ? userEl.value : '',
-        expires_days: expEl ? expEl.value : '0'
+        expires_days: expEl ? expEl.value : '0',
+        scope: scopeEl ? scopeEl.value : 'full'
       }).then(function (res) {
         createBtn.disabled = false;
         if (!res || !res.success) { toast((res && res.data && res.data.message) || 'Could not create key', 'error'); return; }
@@ -1320,6 +1322,7 @@
           tr.innerHTML =
             '<td><strong>' + esc(d.label) + '</strong></td>' +
             '<td><code>arzo_' + esc(d.prefix) + '…</code></td>' +
+            '<td>' + (d.scope === 'read' ? '<span class="wpa-badge wpa-badge--info">Read-only</span>' : '<span class="wpa-badge wpa-badge--neutral">Full</span>') + '</td>' +
             '<td>' + esc(d.user) + '</td>' +
             '<td>' + esc(d.created) + '</td>' +
             '<td>—</td>' +
