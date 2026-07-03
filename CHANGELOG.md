@@ -4,6 +4,29 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.120.0] — 2026-07-03
+
+### Added — Configure a feature in place (dashboard drawer + finder) (Settings UX, Phase 1)
+
+Configuring a specific feature used to mean hunting for its card in the ~50-card grid, then
+bouncing to a separate settings page. Now:
+
+- **In-place Configure drawer.** For a feature with settings but no dedicated page, “Configure”
+  opens its full settings form in a slide-in drawer **right on the dashboard** — load + save go
+  through AJAX (no page reload); enhanced selects, conditional (`show_if`) fields, focus
+  management and Escape/backdrop close all work. The old full-page settings route still works
+  when JS is off (the Configure link’s href) and via Ctrl-K. *(Progressive disclosure +
+  co-location — best-practice: keep the control next to the thing it configures.)*
+- **“Configurable only” filter chip** next to the feature search — instantly narrows the grid to
+  just the features that have settings.
+- **Ctrl-K “Configure: ‹feature›”** entries for every enabled, configurable feature, so you can
+  jump straight to one from the command palette.
+
+New AJAX endpoints `wp_arzo_feature_form` / `wp_arzo_feature_save` (capability + nonce gated);
+the field sanitizer was refactored into a shared `sanitize_feature_settings()` used by both the
+page form and the drawer. No new top-level surface — the dashboard stays the one place to enable
+*and* now configure.
+
 ## [6.119.0] — 2026-07-03
 
 ### Changed — Analytics page header (UX)
