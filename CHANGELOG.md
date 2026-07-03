@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.138.0] — 2026-07-04
+
+### Changed — Advanced Tools launcher page fully on-brand (dark, tokenized)
+
+- The `WP Arzo → Advanced Tools` launcher (shown when the pop-up is blocked) sat on wp-admin's
+  **white** content background. It now paints the **entire admin content area** with the WP Arzo dark
+  surface and is rebuilt on **design tokens** end-to-end (self-contained `--arzo-*` block, same values
+  as `design-tokens.css`): a centered brand card with the **WP Arzo glyph badge**, an inline spinner
+  while opening, the accent CTA, a status line, and a **"← Back to the WP Arzo dashboard"** link. Full
+  hover / active / focus-visible states + reduced-motion; footer recolored for the dark surface. Zero
+  hardcoded palette values in the styling (tokens only).
+
 ## [6.137.0] — 2026-07-04
 
 ### Added — REST API Authentication: per-key auto-expiry
