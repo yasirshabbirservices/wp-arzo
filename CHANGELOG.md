@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.125.0] — 2026-07-03
+
+### Changed — Site Health Monitor enrichment (Pro catalog copy)
+
+- Updated the Pro **Site Health Monitor** showcase card to reflect its enrichment (Pro v1.53.0):
+  three new checks (**object cache**, **autoloaded-option weight**, **database overhead**),
+  **uptime %** + **response-time trends**, and a **shareable branded status page** — alongside the
+  existing alerts, heartbeat ping, and JSON status endpoint. No behavioural change in the free core
+  (the feature is Pro); this is the placeholder/catalog description + version bump so OPcache
+  invalidates. See the Pro changelog for the full feature.
+
 ## [6.124.0] — 2026-07-03
 
 ### Added — Analytics rollup engine (Phase 4 — scale) + double-border fix
