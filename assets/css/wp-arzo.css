@@ -1185,12 +1185,16 @@ html {
    Mouse interaction does not trigger :focus-visible, so this is keyboard-only. */
 a:focus-visible,
 button:focus-visible,
+summary:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible,
 [role="button"]:focus-visible,
-[role="switch"]:focus-visible {
+[role="tab"]:focus-visible,
+[role="switch"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="option"]:focus-visible {
   outline: none;
   box-shadow: var(--arzo-focus-ring);
   border-radius: var(--arzo-radius-sm);

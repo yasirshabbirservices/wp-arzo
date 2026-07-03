@@ -949,6 +949,17 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             box-shadow: 0 0 0 3px var(--accent-ring);
         }
 
+        /* Generic brand focus ring for any other interactive element (never browser blue). */
+        a:focus-visible,
+        summary:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        [tabindex]:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--accent-ring);
+        }
+
         /* Secondary / ghost button — for non-primary actions (matches dashboard). */
         .btn-secondary {
             background: var(--background-elev);

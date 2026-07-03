@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.121.0] — 2026-07-03
+
+### Fixed — Focus rings now always use the brand ring, never wp-admin blue
+
+- Every interactive element inside WP Arzo surfaces (links, buttons, `summary`, inputs,
+  selects, `[role]`/`[tabindex]` elements) now shows the **brand green focus ring**
+  (`--arzo-focus-ring`) on keyboard focus — WordPress core's blue `:focus` box-shadow no longer
+  leaks through. Previously only `a` / `.wpa-btn` / `.wpa-sidenav__item` were covered, so native
+  buttons, `<summary>` (e.g. Journeys rows), selects and role-based controls could still flash
+  wp-admin blue.
+- Implemented as a low-maintenance `.wpa-admin :is(…)` baseline that beats core's focus rules
+  while letting component-specific `:focus-visible` styles still apply; the console/public
+  stylesheet (`wp-arzo.css`) and the standalone Emergency tool got the same catch-all. Verified:
+  0 blue focus shadows across all dashboard controls.
+
 ## [6.120.0] — 2026-07-03
 
 ### Added — Configure a feature in place (dashboard drawer + finder) (Settings UX, Phase 1)
