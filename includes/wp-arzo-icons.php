@@ -80,6 +80,7 @@ if (!function_exists('wp_arzo_icon_paths')) {
             'list'         => '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
             'bolt'         => '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
             'cursor'       => '<path d="M3 3l7.5 18 2.6-7.9L21 10.5z"/>',
+            'cart'         => '<circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L23 6H6"/>',
             'chart'        => '<line x1="3" y1="21" x2="21" y2="21"/><rect x="5" y="12" width="3.5" height="6"/><rect x="10.25" y="8" width="3.5" height="10"/><rect x="15.5" y="4" width="3.5" height="14"/>',
             'globe'        => '<circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/>',
             'code'         => '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',

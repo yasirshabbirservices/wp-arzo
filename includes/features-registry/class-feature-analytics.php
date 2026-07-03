@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
 
 class WP_Arzo_Analytics
 {
-    const DB_VERSION = '3';
+    const DB_VERSION = '4';
     const OPT_DB     = 'wp_arzo_analytics_db';
     const OPT_SALT   = 'wp_arzo_analytics_salt';
     const CRON_PRUNE = 'wp_arzo_analytics_prune';
@@ -68,6 +68,13 @@ class WP_Arzo_Analytics
     {
         global $wpdb;
         return $wpdb->prefix . 'wp_arzo_analytics_events';
+    }
+
+    /** The eCommerce orders table (revenue + first-party source attribution). */
+    public function orders_table()
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'wp_arzo_analytics_orders';
     }
 
     public function maybe_install()
@@ -119,9 +126,29 @@ class WP_Arzo_Analytics
             KEY etype (etype),
             KEY visitor (visitor)
         ) {$collate};";
+        $orders  = $this->orders_table();
+        $sql_orders = "CREATE TABLE {$orders} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            ts INT UNSIGNED NOT NULL DEFAULT 0,
+            order_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            revenue DECIMAL(14,2) NOT NULL DEFAULT 0,
+            currency CHAR(3) NOT NULL DEFAULT '',
+            ref_host VARCHAR(190) NOT NULL DEFAULT '',
+            utm_source VARCHAR(100) NOT NULL DEFAULT '',
+            utm_medium VARCHAR(100) NOT NULL DEFAULT '',
+            utm_campaign VARCHAR(100) NOT NULL DEFAULT '',
+            landing VARCHAR(190) NOT NULL DEFAULT '',
+            country CHAR(2) NOT NULL DEFAULT '',
+            visitor CHAR(16) NOT NULL DEFAULT '',
+            session CHAR(16) NOT NULL DEFAULT '',
+            PRIMARY KEY  (id),
+            UNIQUE KEY order_id (order_id),
+            KEY ts (ts)
+        ) {$collate};";
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql);
         dbDelta($sql_events);
+        dbDelta($sql_orders);
         update_option(self::OPT_DB, self::DB_VERSION, false);
     }
 
@@ -405,6 +432,81 @@ class WP_Arzo_Analytics
         return true;
     }
 
+    /** Normalize a 3-letter currency code (uppercase, letters only). Pure. */
+    public static function sanitize_currency($c)
+    {
+        return substr(strtoupper(preg_replace('/[^A-Za-z]/', '', (string) $c)), 0, 3);
+    }
+
+    /**
+     * Record a completed order with first-party source attribution.
+     * $data = ['order_id'=>int, 'revenue'=>float, 'currency'=>'USD']. Called by the Pro
+     * eCommerce feature from an eCommerce plugin's order-complete hook. INSERT IGNORE on
+     * the unique order_id keeps it idempotent (safe if the hook fires more than once).
+     */
+    public function record_order($data)
+    {
+        if (!$this->enabled || !is_array($data)) {
+            return false;
+        }
+        $order_id = isset($data['order_id']) ? (int) $data['order_id'] : 0;
+        if ($order_id <= 0) {
+            return false;
+        }
+        $revenue  = isset($data['revenue']) ? round((float) $data['revenue'], 2) : 0.0;
+        $currency = self::sanitize_currency(isset($data['currency']) ? $data['currency'] : '');
+
+        // First-party attribution: this shopper's first touch in the hits table.
+        $server  = $_SERVER;
+        $ua      = isset($server['HTTP_USER_AGENT']) ? (string) $server['HTTP_USER_AGENT'] : '';
+        $ip      = $this->client_ip($server);
+        $ts      = time();
+        $salt    = $this->current_salt();
+        $visitor = self::visitor_hash($salt, $ip, $ua);
+        $session = self::session_hash($salt, $ip, $ua, $ts);
+        $attr    = $this->first_touch($session, $visitor);
+
+        global $wpdb;
+        $wpdb->query($wpdb->prepare(
+            "INSERT IGNORE INTO {$this->orders_table()}
+             (ts, order_id, revenue, currency, ref_host, utm_source, utm_medium, utm_campaign, landing, country, visitor, session)
+             VALUES (%d, %d, %f, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            $ts,
+            $order_id,
+            $revenue,
+            $currency,
+            $attr['ref_host'],
+            $attr['utm_source'],
+            $attr['utm_medium'],
+            $attr['utm_campaign'],
+            $attr['landing'],
+            $attr['country'],
+            $visitor,
+            $session
+        ));
+        return true;
+    }
+
+    /** Earliest recorded touch for a session (fallback: same-day visitor) → attribution fields. */
+    private function first_touch($session, $visitor)
+    {
+        global $wpdb;
+        $t   = $this->table();
+        $cols = 'path, ref_host, utm_source, utm_medium, utm_campaign, country';
+        $row = $wpdb->get_row($wpdb->prepare("SELECT {$cols} FROM {$t} WHERE session = %s ORDER BY ts ASC LIMIT 1", $session), ARRAY_A);
+        if (!$row) {
+            $row = $wpdb->get_row($wpdb->prepare("SELECT {$cols} FROM {$t} WHERE visitor = %s ORDER BY ts ASC LIMIT 1", $visitor), ARRAY_A);
+        }
+        return array(
+            'ref_host'     => isset($row['ref_host']) ? $row['ref_host'] : '',
+            'utm_source'   => isset($row['utm_source']) ? $row['utm_source'] : '',
+            'utm_medium'   => isset($row['utm_medium']) ? $row['utm_medium'] : '',
+            'utm_campaign' => isset($row['utm_campaign']) ? $row['utm_campaign'] : '',
+            'landing'      => isset($row['path']) ? $row['path'] : '',
+            'country'      => isset($row['country']) ? $row['country'] : '',
+        );
+    }
+
     /* ------------------------------------------------------------ reporting */
 
     /** Headline totals + a daily series for a [from,to] unix range. */
@@ -634,6 +736,86 @@ class WP_Arzo_Analytics
         global $wpdb;
         $t = $this->events_table();
         return (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$t} WHERE ts BETWEEN %d AND %d", (int) $from, (int) $to));
+    }
+
+    /** eCommerce headline totals for a range: orders, revenue, AOV, sessions, conversion %. */
+    public function ecommerce_totals($from, $to)
+    {
+        global $wpdb;
+        $o = $this->orders_table();
+        $t = $this->table();
+        $from = (int) $from;
+        $to   = (int) $to;
+        $orders  = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$o} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $revenue = (float) $wpdb->get_var($wpdb->prepare("SELECT COALESCE(SUM(revenue),0) FROM {$o} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $sessions = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT session) FROM {$t} WHERE ts BETWEEN %d AND %d", $from, $to));
+        $currency = (string) $wpdb->get_var($wpdb->prepare("SELECT currency FROM {$o} WHERE ts BETWEEN %d AND %d AND currency <> '' ORDER BY ts DESC LIMIT 1", $from, $to));
+        return array(
+            'orders'   => $orders,
+            'revenue'  => round($revenue, 2),
+            'aov'      => $orders ? round($revenue / $orders, 2) : 0.0,
+            'sessions' => $sessions,
+            'conv'     => $sessions ? round(($orders / $sessions) * 100, 2) : 0.0,
+            'currency' => $currency,
+        );
+    }
+
+    /** Revenue attributed by source (utm_source → ref_host → direct) for a range. */
+    public function revenue_by_source($from, $to, $limit = 25)
+    {
+        global $wpdb;
+        $o = $this->orders_table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT CASE WHEN utm_source <> '' THEN utm_source WHEN ref_host <> '' THEN ref_host ELSE 'direct' END label,
+                    COUNT(*) orders, COALESCE(SUM(revenue),0) revenue
+             FROM {$o} WHERE ts BETWEEN %d AND %d
+             GROUP BY label ORDER BY revenue DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** Top converting landing pages (the entry page of each converting session). */
+    public function converting_landing($from, $to, $limit = 25)
+    {
+        global $wpdb;
+        $o = $this->orders_table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT CASE WHEN landing <> '' THEN landing ELSE '(unknown)' END label,
+                    COUNT(*) orders, COALESCE(SUM(revenue),0) revenue
+             FROM {$o} WHERE ts BETWEEN %d AND %d
+             GROUP BY label ORDER BY revenue DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** Daily revenue series for the range (continuous, like fill_series). */
+    public function revenue_series($from, $to)
+    {
+        global $wpdb;
+        $o = $this->orders_table();
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT FLOOR(ts/86400) d, COALESCE(SUM(revenue),0) r FROM {$o} WHERE ts BETWEEN %d AND %d GROUP BY d ORDER BY d ASC",
+            (int) $from,
+            (int) $to
+        ), ARRAY_A);
+        $map = array();
+        foreach ((array) $rows as $row) {
+            $map[(int) $row['d']] = (float) $row['r'];
+        }
+        $out   = array();
+        $start = (int) floor(((int) $from) / 86400);
+        $end   = (int) floor(((int) $to) / 86400);
+        if ($end - $start > 370) {
+            $start = $end - 370;
+        }
+        for ($d = $start; $d <= $end; $d++) {
+            $out[] = array('date' => gmdate('Y-m-d', $d * 86400), 'revenue' => isset($map[$d]) ? $map[$d] : 0.0);
+        }
+        return $out;
     }
 
     /** Active visitors in the last N minutes (distinct visitor). */

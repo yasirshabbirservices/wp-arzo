@@ -93,6 +93,7 @@ function wp_arzo_pro_feature_catalog()
         // GA4 / GTM / Google Ads are now FREE features (Analytics group) — no Pro placeholder.
         array('id' => 'analytics_pro', 'title' => 'Analytics Pro', 'group' => 'analytics', 'icon' => 'chart', 'description' => 'Advanced analytics on the free built-in engine — a UTM Campaigns report, a live Real-time visitor view, and no-code Event tracking (clicks, downloads, outbound links, form submits) (more coming: eCommerce, GA4 in-dashboard reporting).'),
         array('id' => 'analytics_reports', 'title' => 'Analytics Email Reports', 'group' => 'analytics', 'icon' => 'mail', 'description' => 'Scheduled HTML analytics digests (daily, weekly or monthly) — traffic summary, top pages, referrers and countries — emailed to you through your WP Arzo email connections.'),
+        array('id' => 'analytics_ecommerce', 'title' => 'eCommerce Analytics', 'group' => 'analytics', 'icon' => 'cart', 'description' => 'Attribute WooCommerce revenue to your traffic — revenue, orders, average order value and conversion rate, plus revenue by source and top converting landing pages, in the Analytics dashboard.'),
 
         // Content & Modeling
         array('id' => 'content_types', 'title' => 'Content Types (CPT/CCT)', 'group' => 'content', 'icon' => 'file', 'description' => 'Build custom post types and taxonomies from a UI.'),
