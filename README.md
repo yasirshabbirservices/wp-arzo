@@ -102,8 +102,8 @@ The native **WP Arzo** admin menu is the modern home base:
 | **Custom Login Page** | Brand every login screen — logo, colors, background, custom CSS |
 | **Block User Enumeration** | Stop `?author=N` and REST user enumeration |
 | **Restrict REST API** | Require auth for REST endpoints |
-| **REST API Authentication** | Issue/revoke API keys + HTTP Basic auth via `determine_current_user` |
-| **Role Manager** | Edit role capabilities; add, clone, and delete roles |
+| **REST API Authentication** | Issue/revoke API keys (Bearer / X‑API‑Key / Basic) with **per‑key read‑only scope**, **auto‑expiry**, and last‑used tracking |
+| **Role Manager** | Edit role capabilities (grouped by category with a live filter + per‑group toggle‑all); add, clone, and delete roles |
 | **Disable Theme/Plugin Editor** | Remove the in‑admin file editors |
 
 ### ✍️ Content & Developer
@@ -142,7 +142,7 @@ The native **WP Arzo** admin menu is the modern home base:
 | Feature | What it does |
 |---|---|
 | **Email Delivery (SMTP & API)** | A SureMail‑style **connections manager**: pick a provider (Custom SMTP, Gmail, Outlook, Zoho, Yahoo, Fastmail, Amazon SES, Mailjet, **SMTP2GO, SparkPost, MailerSend, Elastic Email**, SendGrid, Mailgun, Postmark, Brevo — 16 providers), configure multiple named connections with a **primary + ordered fallback**, per‑connection test send, and an **auto‑retry queue** that re‑sends failed messages with backoff |
-| **Email Log** | Every sent/failed email with recipient, subject, connection, resend, CSV export, and a deliverability meter |
+| **Email Log** | Every sent/failed email with recipient, subject, connection, resend, CSV export, and a deliverability meter — plus a **Stats** tab (7/30/60‑day per‑connection volume + deliverability trend chart) and an **Engagement** column (opens/clicks) when Pro Email Tracking is active |
 
 ### 💾 Backup & Config
 | Feature | What it does |
@@ -172,7 +172,7 @@ individually from the dashboard):
 | **Files** | Full file manager (**elFinder**) rooted at the WordPress install, dark‑skinned |
 | **Plugins** | Activate / deactivate via toggle; upload a plugin ZIP |
 | **Themes** | Switch the active theme; upload a theme ZIP |
-| **Debug** | Toggle `WP_DEBUG` / `WP_DEBUG_LOG` / `WP_DEBUG_DISPLAY` / `SCRIPT_DEBUG` / `SAVEQUERIES`; view & clear the debug log |
+| **Debug** | Toggle `WP_DEBUG` / `WP_DEBUG_LOG` / `WP_DEBUG_DISPLAY` / `SCRIPT_DEBUG` / `SAVEQUERIES`; a **live AJAX debug‑log console** (tail depth, auto‑refresh, severity filter, download, clear); and a read‑only **wp‑config.php / .htaccess viewer** with secrets masked |
 | **Site Modes** | Maintenance (503) / Coming Soon (200 + noindex) / Payment Required (402) pages with social contacts, plus the Emergency Recovery toggle |
 | **Extra Options** | Set PHP limits via `wp-config.php`, `.htaccess`, or `php.ini` |
 | **Temporary Logins** | Passwordless, time‑limited, revocable login links for support/clients/devs |
