@@ -1642,6 +1642,9 @@ class WP_Arzo_Admin
         }
         $failed_count = 0;
         $by_conn = array(); // connection label => ['sent'=>n,'failed'=>n]
+        $has_tracking = false; // any entry carries open/click data (Pro Email Tracking)
+        $open_total = 0;
+        $click_total = 0;
         foreach ($log as $row) {
             $failed = (isset($row['status']) && $row['status'] === 'failed');
             if ($failed) {
@@ -1652,6 +1655,11 @@ class WP_Arzo_Admin
                 $by_conn[$label] = array('sent' => 0, 'failed' => 0);
             }
             $by_conn[$label][$failed ? 'failed' : 'sent']++;
+            if (isset($row['opens']) || isset($row['clicks'])) {
+                $has_tracking = true;
+                $open_total  += (int) (isset($row['opens']) ? $row['opens'] : 0);
+                $click_total += (int) (isset($row['clicks']) ? $row['clicks'] : 0);
+            }
         }
         $total       = count($log);
         $sent_count  = $total - $failed_count;
@@ -1664,6 +1672,9 @@ class WP_Arzo_Admin
                     <p class="wpa-admin__subtitle">
                         <span class="wpa-badge wpa-badge--success"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon')); ?> <?php echo (int) $sent_count; ?> sent</span>
                         <span class="wpa-badge wpa-badge--error" style="margin-left:6px;"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?> <?php echo (int) $failed_count; ?> failed</span>
+                        <?php if ($has_tracking) : ?>
+                            <span class="wpa-badge wpa-badge--neutral" style="margin-left:6px;" title="Total opens · clicks across logged emails"><?php echo wp_arzo_icon('eye', array('class' => 'wpa-icon')); ?> <?php echo (int) $open_total; ?> · <?php echo wp_arzo_icon('external', array('class' => 'wpa-icon')); ?> <?php echo (int) $click_total; ?></span>
+                        <?php endif; ?>
                         <?php echo $enabled ? '' : ' · logging is OFF (enable “Email Log” on the dashboard)'; ?>
                     </p>
                 </div>
@@ -1725,16 +1736,18 @@ class WP_Arzo_Admin
             <div class="wpa-card" style="padding:0;overflow:hidden;">
                 <table class="wpa-backup-table" id="wpa-emaillog-table">
                     <thead>
-                        <tr><th>Time (UTC)</th><th>To</th><th>Subject</th><th>Connection</th><th>Status</th></tr>
+                        <tr><th>Time (UTC)</th><th>To</th><th>Subject</th><th>Connection</th><th>Status</th><?php if ($has_tracking) : ?><th title="Opens · Clicks (Email Tracking)">Engagement</th><?php endif; ?></tr>
                     </thead>
                     <tbody>
                         <?php if (empty($log)) : ?>
-                            <tr class="wpa-backup-empty"><td colspan="5">No emails logged yet.</td></tr>
+                            <tr class="wpa-backup-empty"><td colspan="<?php echo $has_tracking ? 6 : 5; ?>">No emails logged yet.</td></tr>
                         <?php else : foreach ($log as $row) :
                             $status = isset($row['status']) ? $row['status'] : 'sent';
                             $failed = ($status === 'failed');
                             $id     = isset($row['id']) ? (string) $row['id'] : '';
                             $conn   = (isset($row['connection']) && $row['connection'] !== '') ? (string) $row['connection'] : '';
+                            $opens  = (int) (isset($row['opens']) ? $row['opens'] : 0);
+                            $clicks = (int) (isset($row['clicks']) ? $row['clicks'] : 0);
                             $needle = strtolower(($row['to'] ?? '') . ' ' . ($row['subject'] ?? '') . ' ' . $conn);
                             ?>
                             <tr class="wpa-email-row" data-id="<?php echo esc_attr($id); ?>" data-status="<?php echo esc_attr($failed ? 'failed' : 'sent'); ?>" data-filter="<?php echo esc_attr($needle); ?>" tabindex="0" style="cursor:pointer;">
@@ -1748,6 +1761,12 @@ class WP_Arzo_Admin
                                         <?php echo $failed ? 'Failed' : 'Sent'; ?>
                                     </span>
                                 </td>
+                                <?php if ($has_tracking) : ?>
+                                    <td style="white-space:nowrap;color:var(--arzo-text-muted);font-size:.9em;" title="<?php echo esc_attr($opens . ' open' . ($opens === 1 ? '' : 's') . ' · ' . $clicks . ' click' . ($clicks === 1 ? '' : 's')); ?>">
+                                        <span style="color:<?php echo $opens ? 'var(--arzo-success)' : 'inherit'; ?>;"><?php echo wp_arzo_icon('eye', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $opens; ?></span>
+                                        <span style="margin-left:8px;color:<?php echo $clicks ? 'var(--arzo-accent)' : 'inherit'; ?>;"><?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $clicks; ?></span>
+                                    </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; endif; ?>
                     </tbody>

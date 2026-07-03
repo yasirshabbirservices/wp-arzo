@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.127.0] — 2026-07-03
+
+### Added — Email Log open/click tracking API + Engagement column (powers Pro Email Tracking)
+
+- **Email Log tracking API** (`WP_Arzo_Feature_Email_Log`): `track_token()` (per-message HMAC),
+  `current_id()`, and `record_open()` / `record_click()` (token-verified counter bumps with
+  `first_open` / `last_open` / `last_click` timestamps, capped). These let the new **Pro Email
+  Open & Click Tracking** module record engagement back onto the matching log entry — the token
+  authorizes the public pixel/redirect endpoints without a login and prevents forgery.
+- **Engagement column** on the Email Log: when any entry carries open/click data, the table shows
+  an eye/link count per row and a total opens · clicks badge in the header. Hidden entirely when no
+  tracking data exists, so the free log stays clean. New `eye` icon.
+
 ## [6.126.0] — 2026-07-03
 
 ### Changed — Advanced Cron Manager enrichment (Pro catalog copy)
