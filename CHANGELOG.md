@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.136.0] — 2026-07-04
+
+### Changed — Cron Manager cron-tick fatal capture (Pro catalog copy)
+
+- Updated the Pro **Advanced Cron Manager** showcase card: error capture now covers **fatals on the
+  real cron tick** (not just manual "Run now") — a hook that dies mid-execution is recorded as a
+  FAILED run-log entry with the error. Catalog copy + version bump; feature ships in the Pro add-on.
+
 ## [6.135.0] — 2026-07-04
 
 ### Changed — Notifications enrichment (Pro catalog copy)
