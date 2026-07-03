@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.135.0] — 2026-07-04
+
+### Changed — Notifications enrichment (Pro catalog copy)
+
+- Updated the Pro **Notifications** showcase card for its enrichment (Pro v1.59.0): a **per-channel
+  severity floor** (only notify at/above Low/Medium/High/Critical) and **quiet hours** (hold
+  non-critical alerts during a nightly window; critical always breaks through). Catalog description
+  + version bump; the feature ships in the Pro add-on.
+
 ## [6.134.0] — 2026-07-04
 
 ### Changed — Role Manager: capability editor grouped by category + live filter
