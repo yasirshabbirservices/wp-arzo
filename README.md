@@ -193,7 +193,8 @@ The optional Pro add‑on registers these modules into the same dashboard:
 
 | Group | Pro modules |
 |---|---|
-| **Marketing & Tracking** | Meta (Facebook) Pixel · TikTok Pixel · LinkedIn Insight Tag · Pinterest Tag · Snapchat Pixel · X (Twitter) Pixel · Microsoft/Bing UET · Google Analytics 4 · Google Tag Manager · Google Ads |
+| **Marketing & Tracking** | Meta (Facebook) Pixel · TikTok Pixel · LinkedIn Insight Tag · Pinterest Tag · Snapchat Pixel · X (Twitter) Pixel · Microsoft/Bing UET _(GA4 · Tag Manager · Google Ads are now **free** — see Analytics)_ |
+| **Analytics** | Analytics Pro — a **UTM Campaigns** report and a live **Real-time** visitor view on top of the free built-in engine _(more coming: click/event/form tracking, email reports, eCommerce, GA4 in‑dashboard reporting)_ |
 | **Content Modeling** | Content Types (CPT/CCT builder) · Custom Fields (meta‑box builder) |
 | **Media** | Media Folders (nestable library folders + filters) |
 | **Branding** | Admin Branding & Custom Dashboard · Text Replacement (white‑label) |
