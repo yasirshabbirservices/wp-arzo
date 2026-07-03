@@ -665,7 +665,16 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
   border-bottom: 1px solid var(--arzo-border);
 }
 .wpa-modal__head h2,
-.wpa-drawer__head h2 { margin: 0; font-size: var(--arzo-fs-lg); color: var(--arzo-text-strong); }
+.wpa-drawer__head h2 {
+  margin: 0;
+  display: flex; align-items: center; gap: var(--arzo-space-2);
+  font-size: var(--arzo-fs-lg); color: var(--arzo-text-strong);
+  min-width: 0;
+}
+.wpa-modal__head h2 .wpa-icon,
+.wpa-drawer__head h2 .wpa-icon { flex: 0 0 auto; color: var(--arzo-accent); }
+.wpa-modal__head h2 span,
+.wpa-drawer__head h2 span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* wp-admin's global heading/text colors (near-black) leak into anything we
    don't explicitly color — invisible on our dark surfaces. Force tokens on
@@ -789,6 +798,31 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 
 /* Lock background scroll while a drawer/modal is open (no confusing double-scroll). */
 html.wpa-scroll-locked, body.wpa-scroll-locked { overflow: hidden !important; }
+
+/* ============================ Skeleton loader ========================= */
+/* Shimmering placeholders while async content (e.g. a drawer form) loads —
+   feels faster than a spinner and previews the shape of what's coming. */
+.wpa-skel { display: grid; gap: var(--arzo-space-4); }
+.wpa-skel__row { display: grid; gap: var(--arzo-space-2); }
+.wpa-skel__bar {
+  border-radius: var(--arzo-radius-sm);
+  background: var(--arzo-bg-elev);
+  background-image: linear-gradient(90deg,
+    transparent 0%, var(--arzo-bg-hover) 40%, var(--arzo-bg-hover) 60%, transparent 100%);
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  animation: wpa-shimmer 1.3s ease-in-out infinite;
+}
+.wpa-skel__bar--label { width: 38%; height: 11px; }
+.wpa-skel__bar--input { width: 100%; height: 38px; }
+.wpa-skel__bar--wide  { width: 72%; height: 11px; }
+@keyframes wpa-shimmer {
+  0%   { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wpa-skel__bar { animation: none; }
+}
 
 /* ------------------------------------------------------------- Tabs
    In-page tab navigation (Email / Backups / Settings hub / Pro Cron …).

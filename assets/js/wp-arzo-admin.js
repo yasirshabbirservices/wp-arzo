@@ -215,6 +215,8 @@
       drawer.hidden = true;
       document.documentElement.classList.remove('wpa-scroll-locked');
       fieldsBox.innerHTML = '';
+      form.removeAttribute('aria-busy');
+      saveBtn.disabled = false;
       if (lastTrigger) { try { lastTrigger.focus(); } catch (e) {} }
     }
 
@@ -266,10 +268,19 @@
 
     var featEl = document.getElementById('wpa-settings-drawer-feature');
 
+    // Shimmering placeholder rows while the form loads (feels faster than a spinner).
+    function skeleton() {
+      var row = '<div class="wpa-skel__row"><div class="wpa-skel__bar wpa-skel__bar--label"></div><div class="wpa-skel__bar wpa-skel__bar--input"></div></div>';
+      return '<div class="wpa-skel" aria-hidden="true">' + row + row + row + row + '</div>'
+        + '<span class="wpa-sr-only" role="status">Loading settings…</span>';
+    }
+
     function load(id, trigger) {
       lastTrigger = trigger || null;
       featEl.value = id; // submitted with the form on save
-      fieldsBox.innerHTML = '<p style="color:var(--arzo-text-muted);">Loading…</p>';
+      fieldsBox.innerHTML = skeleton();
+      form.setAttribute('aria-busy', 'true');
+      saveBtn.disabled = true; // can't save a form that hasn't loaded
       if (titleEl) { titleEl.textContent = 'Configure'; }
       open();
       var body = new FormData();
@@ -282,6 +293,8 @@
           if (!res || !res.success) { toast((res && res.data && res.data.message) || 'Could not load settings', 'error'); close(); return; }
           if (titleEl) { titleEl.textContent = res.data.title || 'Configure'; }
           fieldsBox.innerHTML = res.data.fields || '';
+          form.removeAttribute('aria-busy');
+          saveBtn.disabled = false;
           if (window.wpArzo && wpArzo.initSelects) { wpArzo.initSelects(fieldsBox); }
           bindConditionals(fieldsBox);
           var first = fieldsBox.querySelector('input:not([type=hidden]), select, textarea');
