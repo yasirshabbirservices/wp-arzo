@@ -4,6 +4,23 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.128.0] — 2026-07-03
+
+### Changed — Console modernization: live AJAX debug-log viewer (Advanced Tools → Debug)
+
+Console-modernization enrichment (Phase C). The Debug tab's old static "last 50 lines" block
+becomes a modern, AJAX-driven **debug-log console**:
+
+- **Live tail** via a new capability + nonce gated `read_debug_log` operation — pick the tail depth
+  (50 / 200 / 500 / 2000), **Refresh**, or flip **Auto** (5 s polling). Large files are read
+  efficiently (only the trailing ~512 KB is scanned; a partial first line is dropped and the tail is
+  flagged). Pure `wp_arzo_debug_tail()` harnessed (16 checks).
+- **Severity filter** (All / Errors / Warnings / Notices) with client-side coloring, **Download**
+  (`download_debug_log` → nonce-gated `.txt` attachment), and a danger-colored **Clear**.
+- Rebuilt with **`wp_arzo_icon()` SVGs + `.wpa-btn` / `.wpa-select` / `.wpa-toggle`** components
+  (advancing the console's FontAwesome→icon migration) and semantic action colors. Both new
+  operations are mapped in `wp_arzo_console_tool_for_request()` so per-tool gating stays complete.
+
 ## [6.127.0] — 2026-07-03
 
 ### Added — Email Log open/click tracking API + Engagement column (powers Pro Email Tracking)
