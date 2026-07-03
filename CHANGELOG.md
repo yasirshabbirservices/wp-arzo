@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.115.0] — 2026-07-03
+
+### Added — Analytics pillar: eCommerce revenue store (Phase 4, free half)
+
+- The built-in engine gained an **orders** store: a new `{prefix}wp_arzo_analytics_orders`
+  table (**DB v4**, `dbDelta`, `UNIQUE(order_id)`) plus `record_order()` — which attributes
+  each order to the shopper's **first-party first touch** (utm / referrer / landing page, via
+  `first_touch()` against the hits table) — and the reporting queries `ecommerce_totals()`
+  (orders / revenue / AOV / conversion %), `revenue_by_source()`, `converting_landing()`, and
+  `revenue_series()`. The recording + queries live in the free engine; **WP Arzo Pro
+  (eCommerce Analytics)** hooks WooCommerce and gates the report tab. Generic by design so
+  EDD / SureCart / FluentCart can hook the same `record_order()` later.
+- `INSERT IGNORE` keeps recording idempotent (safe if an order hook fires more than once);
+  `sanitize_currency()` normalizes the currency code. Orders are **not** pruned (revenue
+  history is kept); the table is dropped on uninstall. New `cart` icon.
+
 ## [6.114.0] — 2026-07-03
 
 ### Added — reusable `button` settings field (enables Pro scheduled email reports)
