@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.130.0] — 2026-07-03
+
+### Added — Snippets: `run_by_id()` for scheduled execution (powers Pro Cron snippet jobs)
+
+- `WP_Arzo_Snippets::run_by_id($id)` runs a **PHP** snippet's code on demand (regardless of its
+  active state), with the same Throwable + shutdown-fatal guard as automatic execution, returning
+  `{ok, message}`. This lets the Pro **Advanced Cron Manager** schedule a snippet as a recurring
+  "snippet job". Non-PHP snippets and missing ids are rejected. (Catalog copy for the Pro Cron
+  Manager updated to mention Snippet jobs; Pro v1.57.0.)
+
 ## [6.129.0] — 2026-07-03
 
 ### Fixed — console Debug settings infinite-refresh loop + Advanced Tools launcher layout
