@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.119.0] — 2026-07-03
+
+### Changed — Analytics page header (UX)
+
+- The Analytics header now shows the **resolved date window** for the active range (e.g.
+  “Showing Jun 3 – Jul 3, 2026”, site-timezone) under the range control, so it’s always clear
+  exactly what period the report covers — it updates live when you switch Today / 7 / 30 / 90.
+- The date-range control is now visually distinct from the report-tab row (grouped with a clock
+  caption), reducing the two-identical-tab-rows ambiguity. Tokens only; no new JS dependency.
+- Added `analytics_range_label()`; the AJAX report endpoint returns the window label alongside
+  the body.
+
 ## [6.118.0] — 2026-07-03
 
 ### Added — Analytics: visitor Journeys engine (Phase 4)

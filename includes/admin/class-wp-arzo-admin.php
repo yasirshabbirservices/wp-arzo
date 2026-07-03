@@ -2931,6 +2931,14 @@ class WP_Arzo_Admin
         return array($start, $end);
     }
 
+    /** Human "Jun 3 – Jul 3, 2026" label for the active window (site timezone). */
+    private function analytics_range_label($from, $to)
+    {
+        $same_year = wp_date('Y', $from) === wp_date('Y', $to);
+        $from_fmt  = $same_year ? 'M j' : 'M j, Y';
+        return wp_date($from_fmt, $from) . ' – ' . wp_date('M j, Y', $to);
+    }
+
     private function fmt_duration($seconds)
     {
         $seconds = max(0, (int) $seconds);
@@ -3266,13 +3274,19 @@ class WP_Arzo_Admin
                     <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('chart', array('class' => 'wpa-icon')); ?> Analytics</h1>
                     <p class="wpa-admin__subtitle">Cookieless, first-party traffic — recorded in your own database, no external services.</p>
                 </div>
-                <div style="display:flex;gap:var(--arzo-space-3,12px);align-items:center;flex-wrap:wrap;">
-                    <nav class="wpa-tabs" role="tablist" aria-label="Date range" id="wpa-an-ranges">
-                        <?php foreach ($ranges as $key => $label) : ?>
-                            <a class="wpa-tab<?php echo $key === $range ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo $key === $range ? 'true' : 'false'; ?>" href="<?php echo esc_url(add_query_arg(array('view' => $tab, 'range' => $key), $base)); ?>" data-range="<?php echo esc_attr($key); ?>"><span><?php echo esc_html($label); ?></span></a>
-                        <?php endforeach; ?>
-                    </nav>
-                    <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-an-export" href="<?php echo esc_url(add_query_arg(array('view' => $tab, 'range' => $range), $export_base)); ?>" data-base="<?php echo esc_url($export_base); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV</a>
+                <div style="display:flex;flex-direction:column;gap:var(--arzo-space-2,8px);align-items:flex-end;">
+                    <div style="display:flex;gap:var(--arzo-space-3,12px);align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                        <nav class="wpa-tabs" role="tablist" aria-label="Date range" id="wpa-an-ranges" style="margin-bottom:0;">
+                            <?php foreach ($ranges as $key => $label) : ?>
+                                <a class="wpa-tab<?php echo $key === $range ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo $key === $range ? 'true' : 'false'; ?>" href="<?php echo esc_url(add_query_arg(array('view' => $tab, 'range' => $key), $base)); ?>" data-range="<?php echo esc_attr($key); ?>"><span><?php echo esc_html($label); ?></span></a>
+                            <?php endforeach; ?>
+                        </nav>
+                        <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-an-export" href="<?php echo esc_url(add_query_arg(array('view' => $tab, 'range' => $range), $export_base)); ?>" data-base="<?php echo esc_url($export_base); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV</a>
+                    </div>
+                    <p style="margin:0;display:flex;align-items:center;gap:var(--arzo-space-2,6px);color:var(--arzo-text-muted);font-size:var(--arzo-fs-sm,.8rem);">
+                        <?php echo wp_arzo_icon('clock', array('class' => 'wpa-icon wpa-icon--sm', 'style' => 'color:var(--arzo-text-muted);')); ?>
+                        <span>Showing <strong style="color:var(--arzo-text-secondary);font-weight:600;" id="wpa-an-span"><?php echo esc_html($this->analytics_range_label($from, $to)); ?></strong></span>
+                    </p>
                 </div>
             </div>
 
@@ -3322,7 +3336,12 @@ class WP_Arzo_Admin
                         .then(function (r) { return r.json(); })
                         .then(function (res) {
                             body.style.opacity = '';
-                            if (res && res.success) { body.innerHTML = res.data.html; setupRefresh(); }
+                            if (res && res.success) {
+                                body.innerHTML = res.data.html;
+                                var span = document.getElementById('wpa-an-span');
+                                if (span && res.data.span) { span.textContent = res.data.span; }
+                                setupRefresh();
+                            }
                         })
                         .catch(function () { body.style.opacity = ''; });
                     if (exportLink) {
@@ -3363,7 +3382,10 @@ class WP_Arzo_Admin
             $tab = 'overview';
         }
         list($from, $to) = $this->analytics_range($range);
-        wp_send_json_success(array('html' => $this->analytics_body($from, $to, $tab)));
+        wp_send_json_success(array(
+            'html' => $this->analytics_body($from, $to, $tab),
+            'span' => $this->analytics_range_label($from, $to),
+        ));
     }
 
     /** Stream the current report tab as CSV. */
