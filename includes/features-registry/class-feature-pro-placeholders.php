@@ -121,6 +121,7 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'mcp_server', 'title' => 'AI / MCP Server', 'group' => 'ops', 'icon' => 'sparkles', 'description' => 'Expose the site to AI agents (Claude, etc.) via a Model Context Protocol endpoint — read tools plus confirm-gated write tools, authenticated with your REST API keys.'),
 
         // Email
+        array('id' => 'email_tracking', 'title' => 'Email Open & Click Tracking', 'group' => 'email', 'icon' => 'eye', 'description' => 'See which emails get opened and which links get clicked. Adds a privacy-respecting tracking pixel + signed click-through links to your HTML emails, then surfaces opens &amp; clicks right in the Email Log. Requires the free Email Log.'),
 
         // Backup & Restore
         array('id' => 'backup_ftp', 'title' => 'Off-site Backups: FTP', 'group' => 'backup', 'icon' => 'upload', 'description' => 'Automatically upload each new database snapshot (zipped) to an FTP server.'),

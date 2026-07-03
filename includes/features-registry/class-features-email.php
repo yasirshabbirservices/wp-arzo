@@ -179,4 +179,69 @@ class WP_Arzo_Feature_Email_Log extends WP_Arzo_Feature
         }
         update_option(self::OPTION, $log, false);
     }
+
+    /* --------------------------------------------------- open/click tracking API
+     * These let an add-on (Pro Email Tracking) record opens/clicks against a logged
+     * message. The per-message token authorizes the public pixel/redirect endpoints
+     * without a login (recipients aren't WP users) and prevents forgery/enumeration.
+     */
+
+    /** Deterministic per-message secret token (public endpoints verify this). */
+    public static function track_token($id)
+    {
+        $id = (string) $id;
+        if ($id === '') {
+            return '';
+        }
+        $salt = function_exists('wp_salt') ? wp_salt('auth') : 'wp-arzo-fallback-salt';
+        return substr(hash_hmac('sha256', 'wpa-email-track|' . $id, $salt), 0, 20);
+    }
+
+    /** Id of the newest log entry — the message being sent when hooked after log_mail(). */
+    public static function current_id()
+    {
+        $log = get_option(self::OPTION, array());
+        return (is_array($log) && !empty($log) && isset($log[0]['id'])) ? (string) $log[0]['id'] : '';
+    }
+
+    public static function record_open($id, $token)
+    {
+        return self::bump($id, $token, 'open');
+    }
+
+    public static function record_click($id, $token)
+    {
+        return self::bump($id, $token, 'click');
+    }
+
+    /** Verify token, then increment the entry's open/click counter. @return bool */
+    private static function bump($id, $token, $type)
+    {
+        $id = (string) $id;
+        if ($id === '' || !hash_equals(self::track_token($id), (string) $token)) {
+            return false;
+        }
+        $log = get_option(self::OPTION, array());
+        if (!is_array($log)) {
+            return false;
+        }
+        foreach ($log as $i => $row) {
+            if (isset($row['id']) && $row['id'] === $id) {
+                $now = time();
+                if ($type === 'open') {
+                    $log[$i]['opens'] = min(100000, (int) (isset($row['opens']) ? $row['opens'] : 0) + 1);
+                    if (empty($row['first_open'])) {
+                        $log[$i]['first_open'] = $now;
+                    }
+                    $log[$i]['last_open'] = $now;
+                } else {
+                    $log[$i]['clicks'] = min(100000, (int) (isset($row['clicks']) ? $row['clicks'] : 0) + 1);
+                    $log[$i]['last_click'] = $now;
+                }
+                update_option(self::OPTION, $log, false);
+                return true;
+            }
+        }
+        return false;
+    }
 }
