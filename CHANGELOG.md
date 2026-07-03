@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.117.0] — 2026-07-03
+
+### Added — Google tags: extension points for Consent Mode + server-side GTM (Phase 4)
+
+- The free GA4 / GTM / Google Ads tags now load from a **filterable host** via the new
+  `wp_arzo_google_tag_host` filter (bare host, sanitized), and the GA4 `config` params are
+  filterable via `wp_arzo_ga4_config_params`. This lets **WP Arzo Pro (Advanced Google Tags)**
+  route tags through a **server-side GTM** container and add a GA4 `transport_url` — with no
+  behavioural change when Pro is absent (defaults to `www.googletagmanager.com`).
+- Added the **Advanced Google Tags** (`google_tags_pro`) locked-PRO showcase card (Consent
+  Mode v2 + server-side GTM).
+
 ## [6.116.0] — 2026-07-03
 
 ### Changed — Pro catalog: advertise Content Analytics (Phase 4)

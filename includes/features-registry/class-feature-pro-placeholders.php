@@ -95,6 +95,7 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'analytics_reports', 'title' => 'Analytics Email Reports', 'group' => 'analytics', 'icon' => 'mail', 'description' => 'Scheduled HTML analytics digests (daily, weekly or monthly) — traffic summary, top pages, referrers and countries — emailed to you through your WP Arzo email connections.'),
         array('id' => 'analytics_ecommerce', 'title' => 'eCommerce Analytics', 'group' => 'analytics', 'icon' => 'cart', 'description' => 'Attribute WooCommerce revenue to your traffic — revenue, orders, average order value and conversion rate, plus revenue by source and top converting landing pages, in the Analytics dashboard.'),
         array('id' => 'analytics_content', 'title' => 'Content Analytics', 'group' => 'analytics', 'icon' => 'user', 'description' => 'Author, post-type and category reports on top of the built-in engine — see which authors, content types and categories drive your traffic, with traffic-share %.'),
+        array('id' => 'google_tags_pro', 'title' => 'Advanced Google Tags', 'group' => 'analytics', 'icon' => 'shield', 'description' => 'Consent Mode v2 (GDPR-friendly defaults for your GA4 / GTM / Ads tags) and server-side GTM (route tags through your own tagging server).'),
 
         // Content & Modeling
         array('id' => 'content_types', 'title' => 'Content Types (CPT/CCT)', 'group' => 'content', 'icon' => 'file', 'description' => 'Build custom post types and taxonomies from a UI.'),
