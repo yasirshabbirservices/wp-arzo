@@ -202,6 +202,17 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
   outline: none;
   box-shadow: var(--arzo-focus-ring);
 }
+/* wp-admin ALSO recolors links blue on :hover / :focus / :active (the `color` property, not
+   just the focus ring). Force our intended colors in every interactive state so nothing ever
+   flashes wp-admin blue: link-styled buttons keep their own `--_fg`; every other link reads
+   accent (nav items + brand links already go accent on hover — this just extends it to
+   focus/active). Specificity (.wpa-admin + class/type + state) beats core's `a:hover/focus`. */
+.wpa-admin .wpa-btn:hover,
+.wpa-admin .wpa-btn:focus,
+.wpa-admin .wpa-btn:active { color: var(--_fg); }
+.wpa-admin a:not(.wpa-btn):hover,
+.wpa-admin a:not(.wpa-btn):focus,
+.wpa-admin a:not(.wpa-btn):active { color: var(--arzo-accent); }
 
 /* .wpa-brandbar lives in wp-arzo-components.css (shared by the dashboard + the
    standalone console) so both surfaces render an identical header. */

@@ -4,6 +4,25 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.123.0] — 2026-07-03
+
+### Fixed — the *last* wp-admin blue: link `color` on hover / focus / active
+
+- The previous focus fix (6.121) neutralized wp-admin's blue focus **ring** (box-shadow/outline)
+  but not its blue **text color**: WordPress recolors `a:hover`/`a:focus`/`a:active` blue
+  (`#135e96` / `#043959`), which still leaked onto link-styled buttons (Configure, Export CSV),
+  sidenav items, and the brand-bar links. Now every interactive state keeps its intended color —
+  link-styled buttons hold their `--_fg`, other links read accent — so nothing ever flashes blue.
+  Verified with real keyboard focus: 0 blue across links/buttons.
+
+### Changed — Configure drawer: skeleton loader + aligned header
+
+- The drawer now shows a **shimmering skeleton** (label + field placeholders that mirror the
+  form's shape) while it loads, instead of a bare "Loading…", and **disables Save + sets
+  `aria-busy`** until the form is ready — a faster-feeling, clearer load. Reduced-motion aware.
+- **Drawer/modal header icon + title are now vertically centered** (the `h2` is a flex row with a
+  gap; long titles ellipsize).
+
 ## [6.122.0] — 2026-07-03
 
 ### Changed — Settings drawer & "Configurable only" filter polish (Settings UX)
