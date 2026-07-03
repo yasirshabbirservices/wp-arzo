@@ -129,6 +129,57 @@ if (isset($_GET['operation'])) {
         readfile($file);
         exit;
     }
+
+    if ($operation === 'read_config_file') {
+        header('Content-Type: application/json');
+        if (!current_user_can('manage_options') || !check_ajax_referer('wp_arzo_ajax', 'nonce', false)) {
+            echo json_encode(['success' => false, 'message' => 'Security check failed']);
+            exit;
+        }
+        $which = isset($_GET['file']) ? sanitize_key($_GET['file']) : 'wpconfig';
+        // Fixed, server-defined paths only (never user input) — no traversal risk.
+        if ($which === 'wpconfig') {
+            $path = is_file(ABSPATH . 'wp-config.php') ? ABSPATH . 'wp-config.php' : dirname(ABSPATH) . '/wp-config.php';
+        } elseif ($which === 'htaccess') {
+            $path = ABSPATH . '.htaccess';
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Unknown file']);
+            exit;
+        }
+        if (!is_file($path)) {
+            echo json_encode(['success' => true, 'exists' => false, 'content' => '', 'path' => $path]);
+            exit;
+        }
+        $content = (string) file_get_contents($path);
+        if ($which === 'wpconfig') {
+            $content = wp_arzo_mask_config($content); // never expose DB password / salts
+        }
+        echo json_encode(['success' => true, 'exists' => true, 'content' => $content, 'path' => $path, 'size' => strlen($content)]);
+        exit;
+    }
+}
+
+/**
+ * Mask secret values in wp-config.php (DB password + all auth keys/salts) so the
+ * read-only viewer never reveals credentials. Pure/harnessable.
+ */
+function wp_arzo_mask_config($content)
+{
+    $secrets = array(
+        'DB_PASSWORD',
+        'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY',
+        'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT',
+    );
+    foreach ($secrets as $k) {
+        $content = preg_replace_callback(
+            '/(define\(\s*[\'"]' . preg_quote($k, '/') . '[\'"]\s*,\s*([\'"]))(.*?)(\2\s*\))/s',
+            function ($m) {
+                return $m[1] . str_repeat('•', 12) . $m[4];
+            },
+            $content
+        );
+    }
+    return $content;
 }
 
 /**
@@ -300,7 +351,7 @@ function handleDebug()
                     <?php endforeach; ?>
                 </div>
 
-                <button type="submit" name="update_debug_settings" class="btn" style="margin-top: 15px;"><i class="fas fa-save"></i> Update Debug
+                <button type="submit" name="update_debug_settings" class="btn" style="margin-top: 15px;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Update Debug
                     Settings</button>
             </form>
         <?php endif; ?>
@@ -498,6 +549,45 @@ function handleDebug()
                 fetch(url.toString(), { method: 'POST', body: fd, credentials: 'same-origin' })
                     .then(function (r) { return r.json(); }).then(function () { load(); });
             });
+            load();
+        })();
+        </script>
+
+        <?php $wpa_cfg_nonce = wp_create_nonce('wp_arzo_ajax'); $wpa_cfg_ajax = admin_url('admin-ajax.php'); ?>
+        <div class="wpa-card" id="wpa-cfg" data-nonce="<?php echo esc_attr($wpa_cfg_nonce); ?>" data-ajax="<?php echo esc_url($wpa_cfg_ajax); ?>" style="margin-top:20px;padding:0;overflow:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--arzo-border);">
+                <h3 style="margin:0;"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configuration files <span style="color:var(--arzo-text-secondary);font-weight:400;font-size:.8em;">read-only · secrets masked</span></h3>
+                <select class="wpa-select" data-wpa-select id="wpa-cfg-file" aria-label="Configuration file to view">
+                    <option value="wpconfig">wp-config.php</option>
+                    <option value="htaccess">.htaccess</option>
+                </select>
+            </div>
+            <pre id="wpa-cfg-view" style="margin:0;max-height:420px;overflow:auto;padding:14px 18px;font-family:var(--arzo-font-mono,monospace);font-size:12px;line-height:1.5;background:var(--arzo-bg-input);white-space:pre;color:var(--arzo-text-secondary);">Loading…</pre>
+        </div>
+        <script>
+        (function () {
+            var root = document.getElementById('wpa-cfg');
+            if (!root) { return; }
+            var nonce = root.dataset.nonce, ajax = root.dataset.ajax,
+                pre = document.getElementById('wpa-cfg-view'), sel = document.getElementById('wpa-cfg-file');
+            function load() {
+                var url = new URL(ajax);
+                url.searchParams.set('action', 'wp_arzo_standalone');
+                url.searchParams.set('tab', 'debug');
+                url.searchParams.set('operation', 'read_config_file');
+                url.searchParams.set('file', sel.value);
+                var fd = new FormData(); fd.append('nonce', nonce);
+                fetch(url.toString(), { method: 'POST', body: fd, credentials: 'same-origin' })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (!d || !d.success) { pre.textContent = 'Could not read the file.'; return; }
+                        if (!d.exists) { pre.textContent = 'This file does not exist on this install.'; return; }
+                        pre.textContent = d.content;
+                        pre.scrollTop = 0;
+                    })
+                    .catch(function () { pre.textContent = 'Request failed.'; });
+            }
+            sel.addEventListener('change', load);
             load();
         })();
         </script>
