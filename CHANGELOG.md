@@ -4,6 +4,19 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.133.0] — 2026-07-04
+
+### Added — Console: read-only wp-config.php / .htaccess viewer (secrets masked) + FA→icon
+
+- Advanced Tools → **Debug** gains a **Configuration files** viewer: inspect `wp-config.php` and
+  `.htaccess` read-only, without SSH/FTP. New capability + nonce gated `read_config_file` operation
+  (fixed server-defined paths only — no traversal); mapped in `wp_arzo_console_tool_for_request()`.
+- **Secrets are masked** before the content ever leaves the server — `DB_PASSWORD` and all eight
+  auth **keys/salts** are replaced with bullets; non-secrets (`DB_NAME`/`DB_USER`/`DB_HOST`,
+  `$table_prefix`, `WP_DEBUG`, …) stay visible for diagnosis. Pure `wp_arzo_mask_config()` harnessed
+  (14 checks).
+- Continued the console **FontAwesome → `wp_arzo_icon()`** migration (the Debug settings save button).
+
 ## [6.132.0] — 2026-07-04
 
 ### Changed — Site Health scheduled digest (Pro catalog copy)

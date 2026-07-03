@@ -90,7 +90,7 @@ if (isset($_GET['tab'])) {
         }
     }
     // Handle Debug operations
-    if (($_GET['tab'] === 'debug' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['clear_debug_log', 'log_debug_change', 'read_debug_log', 'download_debug_log'])) {
+    if (($_GET['tab'] === 'debug' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['clear_debug_log', 'log_debug_change', 'read_debug_log', 'download_debug_log', 'read_config_file'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/debug.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/debug.php');
             exit;
