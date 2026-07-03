@@ -79,6 +79,8 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_set_theme', array($this, 'ajax_set_theme'));
         add_action('wp_ajax_wp_arzo_toggle_feature', array($this, 'ajax_toggle_feature'));
         add_action('wp_ajax_wp_arzo_toggle_group', array($this, 'ajax_toggle_group'));
+        add_action('wp_ajax_wp_arzo_feature_form', array($this, 'ajax_feature_form'));
+        add_action('wp_ajax_wp_arzo_feature_save', array($this, 'ajax_feature_save'));
         add_action('wp_ajax_wp_arzo_backup_create', array($this, 'ajax_backup_create'));
         add_action('wp_ajax_wp_arzo_backup_diff', array($this, 'ajax_backup_diff'));
         add_action('wp_ajax_wp_arzo_backup_restore', array($this, 'ajax_backup_restore'));
@@ -355,6 +357,7 @@ class WP_Arzo_Admin
             'rolesNonce'   => wp_create_nonce(self::NONCE_ROLES),
             'configNonce'  => wp_create_nonce(self::NONCE_CONFIG),
             'connNonce'    => wp_create_nonce(self::NONCE_EMAIL_CONN),
+            'settingsNonce' => wp_create_nonce(self::NONCE_SETTINGS),
             'adminEmail'   => get_option('admin_email'),
         ));
 
@@ -492,6 +495,31 @@ class WP_Arzo_Admin
                 ),
                 'icon'  => 'admin-settings',
                 'url'   => add_query_arg('tab', $key, $settings_base),
+            );
+        }
+
+        // --- Configure a specific feature (schema-only, enabled) ---------
+        // Dedicated-page features are already listed above / as Settings tabs; this
+        // covers the many toggle-grid features whose settings otherwise need hunting.
+        foreach ($this->registry()->all() as $feature) {
+            if (!$feature->is_enabled() || !$feature->has_settings()) {
+                continue;
+            }
+            if ($this->feature_manage_url($feature->id()) !== '') {
+                continue; // has a dedicated destination already surfaced
+            }
+            if (!apply_filters('wp_arzo_feature_is_available', true, $feature)) {
+                continue;
+            }
+            $items[] = array(
+                'id'    => 'configure-' . $feature->id(),
+                'label' => sprintf(
+                    /* translators: %s: feature name. */
+                    __('Configure: %s', 'wp-arzo'),
+                    $feature->title()
+                ),
+                'icon'  => 'admin-settings',
+                'url'   => add_query_arg(array('page' => self::PAGE, 'view' => 'settings', 'feature' => $feature->id()), admin_url('admin.php')),
             );
         }
 
@@ -694,9 +722,14 @@ class WP_Arzo_Admin
 
         <div class="wpa-layout">
             <div class="wpa-main">
-                <div class="wpa-fm-searchbar" role="search">
-                    <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon')); ?>
-                    <input type="search" id="wpa-feature-search" placeholder="Search all features…" aria-label="Search features">
+                <div style="display:flex;gap:var(--arzo-space-3,12px);align-items:center;flex-wrap:wrap;margin-bottom:var(--arzo-space-4,16px);">
+                    <div class="wpa-fm-searchbar" role="search" style="flex:1 1 240px;margin-bottom:0;">
+                        <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon')); ?>
+                        <input type="search" id="wpa-feature-search" placeholder="Search all features…" aria-label="Search features">
+                    </div>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-config-filter" aria-pressed="false" title="Show only features that have settings to configure">
+                        <?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configurable only
+                    </button>
                 </div>
                 <div id="wpa-feature-grid">
                     <?php foreach ($grouped as $group_key => $features) :
@@ -763,6 +796,25 @@ class WP_Arzo_Admin
                 }
                 ?>
             </aside>
+        </div>
+
+        <!-- Configure drawer: a schema-only feature's settings, opened in place from its card. -->
+        <div class="wpa-drawer" id="wpa-settings-drawer" hidden data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_SETTINGS)); ?>">
+            <div class="wpa-drawer__backdrop" data-settings-close></div>
+            <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="wpa-settings-drawer-title">
+                <div class="wpa-drawer__head">
+                    <h2 id="wpa-settings-drawer-title"><?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon')); ?> <span>Configure</span></h2>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-settings-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                </div>
+                <form class="wpa-drawer__body" id="wpa-settings-drawer-form">
+                    <input type="hidden" name="feature" id="wpa-settings-drawer-feature" value="">
+                    <div id="wpa-settings-drawer-fields"><!-- fields injected here --></div>
+                </form>
+                <div class="wpa-drawer__foot">
+                    <button type="button" class="wpa-btn wpa-btn--ghost" data-settings-close>Cancel</button>
+                    <button type="submit" form="wpa-settings-drawer-form" class="wpa-btn wpa-btn--primary" id="wpa-settings-drawer-save"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save settings</button>
+                </div>
+            </div>
         </div>
         <?php
         $this->render_shell_close();
@@ -919,13 +971,18 @@ class WP_Arzo_Admin
         $id        = $feature->id();
         $enabled   = $feature->is_enabled();
         $is_pro    = $feature->tier() === 'pro';
+        $dedicated = $this->feature_manage_url($id);
         $manage    = $this->feature_config_url($feature);
+        // Schema-only features (settings but no dedicated page) open in an in-place drawer;
+        // features with a dedicated page keep navigating there.
+        $is_drawer = ($dedicated === '' && $feature->has_settings());
         /** Pro addon can hook this to lock features behind a license. */
         $available = apply_filters('wp_arzo_feature_is_available', true, $feature);
         $search    = strtolower($feature->title() . ' ' . $feature->description());
         ?>
         <div class="wpa-feature-card<?php echo $enabled ? ' is-on' : ''; ?>"
             data-feature-card="<?php echo esc_attr($id); ?>"
+            data-configurable="<?php echo $manage !== '' ? '1' : '0'; ?>"
             data-search="<?php echo esc_attr($search); ?>">
             <div class="wpa-feature-card__icon"><?php echo wp_arzo_icon($feature->icon(), array('class' => 'wpa-icon')); ?></div>
             <div class="wpa-feature-card__body">
@@ -943,6 +1000,7 @@ class WP_Arzo_Admin
                 <?php if ($manage !== '') : ?>
                     <a class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-feature-card__settings<?php echo $enabled ? '' : ' is-hidden'; ?>"
                         href="<?php echo esc_url($manage); ?>"
+                        <?php if ($is_drawer) : ?>data-config-drawer="<?php echo esc_attr($id); ?>"<?php endif; ?>
                         aria-label="<?php echo esc_attr('Configure ' . $feature->title()); ?>">
                         <?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configure
                     </a>
@@ -1132,13 +1190,23 @@ class WP_Arzo_Admin
             wp_die('Security check failed.');
         }
 
+        $this->registry()->save_settings($feature->id(), $this->sanitize_feature_settings($feature, $_POST));
+        return true;
+    }
+
+    /**
+     * Sanitize a feature's schema settings from a raw source array (e.g. $_POST).
+     * Shared by the full-page settings form and the dashboard Configure drawer.
+     */
+    private function sanitize_feature_settings(WP_Arzo_Feature $feature, array $src)
+    {
         $clean = array();
         foreach ($feature->settings_schema() as $field) {
             if (empty($field['key']) || empty($field['type']) || $field['type'] === 'test_email' || $field['type'] === 'button') {
                 continue; // test_email / button are UI actions, not stored settings
             }
             $key = $field['key'];
-            $raw = isset($_POST['wpa_field_' . $key]) ? wp_unslash($_POST['wpa_field_' . $key]) : null;
+            $raw = isset($src['wpa_field_' . $key]) ? wp_unslash($src['wpa_field_' . $key]) : null;
 
             switch ($field['type']) {
                 case 'toggle':
@@ -1181,8 +1249,53 @@ class WP_Arzo_Admin
             }
         }
 
-        $this->registry()->save_settings($feature->id(), $clean);
-        return true;
+        return $clean;
+    }
+
+    /** Render just the schema fields for a feature (no <form>/nonce) — used by the drawer. */
+    private function render_feature_form_fields(WP_Arzo_Feature $feature)
+    {
+        ob_start();
+        foreach ($feature->settings_schema() as $field) {
+            $this->render_field($feature, $field);
+        }
+        return ob_get_clean();
+    }
+
+    /**
+     * AJAX: return a feature's schema form (fields HTML) for the dashboard Configure drawer.
+     * Only for features with settings and no dedicated page (those still link out).
+     */
+    public function ajax_feature_form()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_SETTINGS, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $id      = isset($_POST['feature']) ? sanitize_key(wp_unslash($_POST['feature'])) : '';
+        $feature = $this->registry()->get($id);
+        if (!$feature || !$feature->has_settings() || !$feature->is_enabled()) {
+            wp_send_json_error(array('message' => 'Feature not configurable'), 404);
+        }
+        wp_send_json_success(array(
+            'title'  => $feature->title(),
+            'icon'   => wp_arzo_icon($feature->icon(), array('class' => 'wpa-icon')),
+            'fields' => $this->render_feature_form_fields($feature),
+        ));
+    }
+
+    /** AJAX: save a feature's schema settings from the Configure drawer. */
+    public function ajax_feature_save()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_SETTINGS, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $id      = isset($_POST['feature']) ? sanitize_key(wp_unslash($_POST['feature'])) : '';
+        $feature = $this->registry()->get($id);
+        if (!$feature || !$feature->has_settings() || !$feature->is_enabled()) {
+            wp_send_json_error(array('message' => 'Feature not configurable'), 404);
+        }
+        $this->registry()->save_settings($feature->id(), $this->sanitize_feature_settings($feature, $_POST));
+        wp_send_json_success(array('title' => $feature->title()));
     }
 
     /* -------------------------------------------------------------- AJAX */

@@ -76,6 +76,7 @@
   // matches both. A group heading hides when none of its cards survive the filters.
   var featureQuery = '';
   var featureCat = '*';
+  var featureConfigurableOnly = false;
 
   function applyFeatureFilters() {
     if (!document.getElementById('wpa-feature-grid')) return;
@@ -86,7 +87,9 @@
       var inCat = featureCat === '*' || group.getAttribute('data-group') === featureCat;
       var groupHasMatch = false;
       group.querySelectorAll('[data-feature-card]').forEach(function (card) {
-        var match = inCat && (!featureQuery || (card.dataset.search || '').indexOf(featureQuery) !== -1);
+        var match = inCat
+          && (!featureQuery || (card.dataset.search || '').indexOf(featureQuery) !== -1)
+          && (!featureConfigurableOnly || card.dataset.configurable === '1');
         card.hidden = !match;
         if (match) { groupHasMatch = true; anyVisible = true; }
       });
@@ -98,11 +101,21 @@
 
   function bindSearch() {
     var box = document.getElementById('wpa-feature-search');
-    if (!box) return;
-    box.addEventListener('input', function () {
-      featureQuery = box.value.trim().toLowerCase();
-      applyFeatureFilters();
-    });
+    if (box) {
+      box.addEventListener('input', function () {
+        featureQuery = box.value.trim().toLowerCase();
+        applyFeatureFilters();
+      });
+    }
+    var chip = document.getElementById('wpa-config-filter');
+    if (chip) {
+      chip.addEventListener('click', function () {
+        featureConfigurableOnly = !featureConfigurableOnly;
+        chip.setAttribute('aria-pressed', featureConfigurableOnly ? 'true' : 'false');
+        chip.classList.toggle('is-active', featureConfigurableOnly);
+        applyFeatureFilters();
+      });
+    }
   }
 
   // -------------------------------------------------- Category master toggles
@@ -173,6 +186,108 @@
       if (el) { el.addEventListener('change', apply); }
     });
     apply();
+  }
+
+  // --------------------------------- Dashboard "Configure" drawer (in-place settings)
+  // Schema-only features (settings but no dedicated page) open their form in a drawer
+  // right on the dashboard — no page bounce. Load + save go through AJAX; the same
+  // full-page settings route still works when JS is off (the Configure link's href).
+  function bindSettingsDrawer() {
+    var drawer = document.getElementById('wpa-settings-drawer');
+    if (!drawer) { return; }
+    var form = document.getElementById('wpa-settings-drawer-form');
+    var fieldsBox = document.getElementById('wpa-settings-drawer-fields');
+    var titleEl = document.querySelector('#wpa-settings-drawer-title span');
+    var saveBtn = document.getElementById('wpa-settings-drawer-save');
+    var nonce = drawer.dataset.nonce || cfg.settingsNonce || '';
+    var lastTrigger = null;
+
+    function open() { drawer.hidden = false; }
+    function close() {
+      drawer.hidden = true;
+      fieldsBox.innerHTML = '';
+      if (lastTrigger) { try { lastTrigger.focus(); } catch (e) {} }
+    }
+
+    // Scoped show_if handling for the injected fields (mirrors bindSettingsConditionals).
+    function bindConditionals(root) {
+      var fields = root.querySelectorAll('.wpa-field[data-wpa-showif]');
+      if (!fields.length) { return; }
+      function conditionsOf(f) { try { return JSON.parse(f.getAttribute('data-wpa-showif')) || []; } catch (e) { return []; } }
+      function controllerValue(key) {
+        var el = root.querySelector('[name="wpa_field_' + key + '"]');
+        if (!el) { return null; }
+        if (el.type === 'checkbox') { return el.checked ? '1' : ''; }
+        return el.value;
+      }
+      function apply() {
+        fields.forEach(function (f) {
+          var show = conditionsOf(f).every(function (c) { return (c.value || []).indexOf(controllerValue(c.field)) !== -1; });
+          f.style.display = show ? '' : 'none';
+        });
+      }
+      var seen = {};
+      fields.forEach(function (f) { conditionsOf(f).forEach(function (c) { if (c && c.field) { seen[c.field] = true; } }); });
+      Object.keys(seen).forEach(function (key) {
+        var el = root.querySelector('[name="wpa_field_' + key + '"]');
+        if (el) { el.addEventListener('change', apply); }
+      });
+      apply();
+    }
+
+    var featEl = document.getElementById('wpa-settings-drawer-feature');
+
+    function load(id, trigger) {
+      lastTrigger = trigger || null;
+      featEl.value = id; // submitted with the form on save
+      fieldsBox.innerHTML = '<p style="color:var(--arzo-text-muted);">Loading…</p>';
+      if (titleEl) { titleEl.textContent = 'Configure'; }
+      open();
+      var body = new FormData();
+      body.append('action', 'wp_arzo_feature_form');
+      body.append('nonce', nonce);
+      body.append('feature', id);
+      fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!res || !res.success) { toast((res && res.data && res.data.message) || 'Could not load settings', 'error'); close(); return; }
+          if (titleEl) { titleEl.textContent = res.data.title || 'Configure'; }
+          fieldsBox.innerHTML = res.data.fields || '';
+          if (window.wpArzo && wpArzo.initSelects) { wpArzo.initSelects(fieldsBox); }
+          bindConditionals(fieldsBox);
+          var first = fieldsBox.querySelector('input:not([type=hidden]), select, textarea');
+          if (first) { try { first.focus(); } catch (e) {} }
+        })
+        .catch(function () { toast('Request failed', 'error'); close(); });
+    }
+
+    // Intercept Configure clicks on schema-only cards (delegated — cards never re-render).
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest ? e.target.closest('[data-config-drawer]') : null;
+      if (!trigger) { return; }
+      e.preventDefault();
+      load(trigger.getAttribute('data-config-drawer'), trigger);
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      saveBtn.disabled = true;
+      var body = new FormData(form); // includes the feature id + every wpa_field_*
+      body.append('action', 'wp_arzo_feature_save');
+      body.append('nonce', nonce);
+      fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          saveBtn.disabled = false;
+          if (!res || !res.success) { toast((res && res.data && res.data.message) || 'Could not save settings', 'error'); return; }
+          toast((res.data && res.data.title ? res.data.title : 'Settings') + ' saved', 'success');
+          close();
+        })
+        .catch(function () { saveBtn.disabled = false; toast('Request failed', 'error'); });
+    });
+
+    drawer.querySelectorAll('[data-settings-close]').forEach(function (el) { el.addEventListener('click', close); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !drawer.hidden) { close(); } });
   }
 
   // SMTP provider presets: pick a provider → auto-fill host / port / encryption.
@@ -1285,7 +1400,7 @@
     });
   }
 
-  function init() { bindThemeToggle(); bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSmtpPresets(); bindEmailConnections(); bindEmailOnboarding(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
+  function init() { bindThemeToggle(); bindToggles(); bindGroupToggles(); bindSearch(); bindCategoryFilter(); bindSettingsConditionals(); bindSettingsDrawer(); bindSmtpPresets(); bindEmailConnections(); bindEmailOnboarding(); bindBackups(); bindEmailLog(); bindActivityLog(); bindLicense(); bindSnippets(); bindEmailExtras(); bindMediaCleanup(); bindRestKeys(); bindRoleManager(); bindConfigIO(); }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
