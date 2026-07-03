@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.131.0] — 2026-07-03
+
+### Added — Email → Stats: per-connection volume & deliverability over time
+
+- New **Stats** tab on the Email page. The email log is capped (150 entries), so long-term trends
+  were lost; now the Email Log records **daily aggregates** (`wp_arzo_email_stats`, kept 60 days):
+  total sent/failed per day plus a per-connection sent count. Recorded from the existing
+  `wp_arzo_email_delivered` (sent, with connection) and `wp_mail_failed` (failed) hooks — no new
+  send-path overhead.
+- The tab shows a **7/30/60-day** range, KPIs (sent · failed · deliverability %), a self-hosted
+  **daily stacked-bar chart** (sent green / failed red), and a **by-connection breakdown** (volume +
+  share). Empty-state until there's activity. Pure `bump_stat()` / `stats_report()` harnessed
+  (19 checks). New option added to uninstall cleanup.
+
 ## [6.130.0] — 2026-07-03
 
 ### Added — Snippets: `run_by_id()` for scheduled execution (powers Pro Cron snippet jobs)

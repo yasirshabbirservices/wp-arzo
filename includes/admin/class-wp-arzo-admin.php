@@ -1798,6 +1798,105 @@ class WP_Arzo_Admin
         <?php
     }
 
+    /** Email → Stats: per-connection volume + deliverability trend over time. */
+    private function render_email_stats_body()
+    {
+        $range = isset($_GET['range']) ? (int) $_GET['range'] : 30;
+        if (!in_array($range, array(7, 30, 60), true)) {
+            $range = 30;
+        }
+        $report = WP_Arzo_Feature_Email_Log::stats_report(WP_Arzo_Feature_Email_Log::get_stats(), $range, time());
+        $series = $report['series'];
+        $sent   = (int) $report['total_sent'];
+        $failed = (int) $report['total_failed'];
+        $total  = $sent + $failed;
+        $pct    = $total > 0 ? round($sent / $total * 100) : 0;
+        $conns  = $report['conn_totals'];
+        $base   = admin_url('admin.php?page=' . self::PAGE_EMAIL . '&tab=stats');
+
+        // Build the daily stacked-bar SVG (sent green + failed red).
+        $max = 1;
+        foreach ($series as $d) {
+            $max = max($max, $d['sent'] + $d['failed']);
+        }
+        $n     = max(1, count($series));
+        $bw    = 100 / $n;         // per-day slot width (%)
+        $barW  = $bw * 0.72;       // bar width within the slot
+        $bars  = '';
+        foreach ($series as $i => $d) {
+            $x    = $i * $bw + ($bw - $barW) / 2;
+            $st   = ($d['sent'] / $max) * 38;
+            $ft   = ($d['failed'] / $max) * 38;
+            $tip  = esc_attr($d['date'] . ' · ' . $d['sent'] . ' sent · ' . $d['failed'] . ' failed');
+            if ($ft > 0) {
+                $bars .= '<rect x="' . round($x, 2) . '" y="' . round(40 - $ft, 2) . '" width="' . round($barW, 2) . '" height="' . round($ft, 2) . '" fill="var(--arzo-error)" rx="0.4"><title>' . $tip . '</title></rect>';
+            }
+            if ($st > 0) {
+                $bars .= '<rect x="' . round($x, 2) . '" y="' . round(40 - $ft - $st, 2) . '" width="' . round($barW, 2) . '" height="' . round($st, 2) . '" fill="var(--arzo-success)" rx="0.4"><title>' . $tip . '</title></rect>';
+            }
+        }
+        ?>
+        <div class="wpa-admin__bar">
+            <div>
+                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('route', array('class' => 'wpa-icon')); ?> Email Stats</h1>
+                <p class="wpa-admin__subtitle">Per-connection volume &amp; deliverability over time — daily aggregates kept for <?php echo (int) WP_Arzo_Feature_Email_Log::STATS_DAYS; ?> days, independent of the capped log.</p>
+            </div>
+            <nav class="wpa-tabs" aria-label="Range" style="margin:0;">
+                <?php foreach (array(7 => '7 days', 30 => '30 days', 60 => '60 days') as $r => $lbl) : ?>
+                    <a class="wpa-tab<?php echo $r === $range ? ' is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('range', $r, $base)); ?>"<?php echo $r === $range ? ' aria-current="page"' : ''; ?>><span><?php echo esc_html($lbl); ?></span></a>
+                <?php endforeach; ?>
+            </nav>
+        </div>
+
+        <?php if ($total === 0) : ?>
+            <div class="wpa-card" style="text-align:center;padding:30px 20px;">
+                <?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?>
+                <p style="margin:10px auto 0;color:var(--arzo-text-muted);max-width:480px;">No email activity in this window yet. As emails send through your connections, daily volume and deliverability will chart here.</p>
+            </div>
+        <?php else : ?>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:16px;">
+                <div class="wpa-card" style="padding:16px 18px;"><div style="font-size:1.6rem;font-weight:700;color:var(--arzo-success);"><?php echo (int) $sent; ?></div><div style="color:var(--arzo-text-muted);font-size:.82rem;">Sent (<?php echo (int) $range; ?>d)</div></div>
+                <div class="wpa-card" style="padding:16px 18px;"><div style="font-size:1.6rem;font-weight:700;color:<?php echo $failed ? 'var(--arzo-error)' : 'var(--arzo-text)'; ?>;"><?php echo (int) $failed; ?></div><div style="color:var(--arzo-text-muted);font-size:.82rem;">Failed (<?php echo (int) $range; ?>d)</div></div>
+                <div class="wpa-card" style="padding:16px 18px;"><div style="font-size:1.6rem;font-weight:700;color:<?php echo $pct >= 95 ? 'var(--arzo-success)' : 'var(--arzo-text)'; ?>;"><?php echo (int) $pct; ?>%</div><div style="color:var(--arzo-text-muted);font-size:.82rem;">Deliverability</div></div>
+            </div>
+
+            <div class="wpa-card" style="margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;">
+                    <h2 class="wpa-group__title" style="margin:0;">Daily volume</h2>
+                    <span style="color:var(--arzo-text-muted);font-size:.82rem;"><span style="color:var(--arzo-success);">■</span> sent&nbsp;&nbsp;<span style="color:var(--arzo-error);">■</span> failed</span>
+                </div>
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" width="100%" height="120" role="img" aria-label="Daily email volume, sent and failed" style="margin-top:12px;display:block;">
+                    <?php echo $bars; // rects built above, values escaped ?>
+                </svg>
+            </div>
+
+            <div class="wpa-card">
+                <h2 class="wpa-group__title" style="margin-top:0;">By connection</h2>
+                <?php if (empty($conns)) : ?>
+                    <p style="color:var(--arzo-text-muted);margin:0;">No per-connection sends recorded in this window (emails may have sent without a WP Arzo connection).</p>
+                <?php else :
+                    $cmax = max($conns); ?>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <?php foreach ($conns as $label => $count) :
+                            $w = $cmax > 0 ? round($count / $cmax * 100) : 0;
+                            $share = $sent > 0 ? round($count / $sent * 100) : 0; ?>
+                            <div>
+                                <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:4px;">
+                                    <strong><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($label); ?></strong>
+                                    <span style="color:var(--arzo-text-muted);"><?php echo (int) $count; ?> · <?php echo (int) $share; ?>%</span>
+                                </div>
+                                <div style="height:8px;background:var(--arzo-bg-input);border-radius:var(--arzo-radius-pill);overflow:hidden;">
+                                    <div style="height:100%;width:<?php echo (int) $w; ?>%;background:var(--arzo-accent);border-radius:var(--arzo-radius-pill);"></div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+        <?php
+    }
+
     public function ajax_email_log_clear()
     {
         if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
@@ -1986,6 +2085,7 @@ class WP_Arzo_Admin
         $queue_pending = class_exists('WP_Arzo_Email_Queue') ? WP_Arzo_Email_Queue::instance()->pending_count() : 0;
         $tabs = array(
             'logs'        => array('label' => 'Logs', 'icon' => 'list'),
+            'stats'       => array('label' => 'Stats', 'icon' => 'route'),
             'queue'       => array('label' => 'Queue', 'icon' => 'refresh', 'badge' => $queue_pending),
             'connections' => array('label' => 'Connections', 'icon' => 'mail'),
             'settings'    => array('label' => 'Settings', 'icon' => 'settings'),
@@ -2017,6 +2117,8 @@ class WP_Arzo_Admin
 
         if ($tab === 'logs') {
             $this->render_email_log_body();
+        } elseif ($tab === 'stats') {
+            $this->render_email_stats_body();
         } elseif ($tab === 'queue') {
             $this->render_email_queue_body();
         } elseif ($tab === 'settings') {
