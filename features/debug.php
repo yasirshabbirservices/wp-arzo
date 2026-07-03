@@ -86,6 +86,86 @@ if (isset($_GET['operation'])) {
         echo json_encode($response);
         exit;
     }
+
+    if ($operation === 'read_debug_log') {
+        header('Content-Type: application/json');
+        if (!current_user_can('manage_options') || !check_ajax_referer('wp_arzo_ajax', 'nonce', false)) {
+            echo json_encode(['success' => false, 'message' => 'Security check failed']);
+            exit;
+        }
+        $n    = isset($_GET['lines']) ? (int) $_GET['lines'] : 200;
+        $n    = max(50, min(2000, $n));
+        $file = WP_CONTENT_DIR . '/debug.log';
+        $tail = wp_arzo_debug_tail($file, $n);
+        echo json_encode([
+            'success' => true,
+            'exists'  => is_file($file),
+            'lines'   => $tail['lines'],
+            'size'    => $tail['size'],
+            'size_h'  => size_format((int) $tail['size']),
+            'partial' => !empty($tail['partial']),
+        ]);
+        exit;
+    }
+
+    if ($operation === 'download_debug_log') {
+        if (!current_user_can('manage_options') || !check_ajax_referer('wp_arzo_ajax', 'nonce', false)) {
+            status_header(403);
+            header('Content-Type: text/plain');
+            echo 'Security check failed';
+            exit;
+        }
+        $file = WP_CONTENT_DIR . '/debug.log';
+        if (!is_file($file)) {
+            status_header(404);
+            header('Content-Type: text/plain');
+            echo 'No debug.log file.';
+            exit;
+        }
+        nocache_headers();
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Content-Disposition: attachment; filename="debug-log-' . gmdate('Ymd-His') . '.txt"');
+        header('Content-Length: ' . filesize($file));
+        readfile($file);
+        exit;
+    }
+}
+
+/**
+ * Read the last $lines lines of a log file without loading the whole thing —
+ * only the trailing ~512 KB is scanned. The path is a fixed, server-defined
+ * location (never user input). @return array{lines:string[],size:int,partial:bool}
+ */
+function wp_arzo_debug_tail($file, $lines)
+{
+    $lines = max(1, (int) $lines);
+    if (!is_file($file)) {
+        return array('lines' => array(), 'size' => 0, 'partial' => false);
+    }
+    $size = (int) filesize($file);
+    $f    = @fopen($file, 'rb');
+    if (!$f) {
+        return array('lines' => array(), 'size' => $size, 'partial' => false);
+    }
+    $max     = 512 * 1024; // bound the tail read
+    $start   = ($size > $max) ? $size - $max : 0;
+    $partial = $start > 0;
+    if ($start > 0) {
+        fseek($f, $start);
+    }
+    $data = stream_get_contents($f);
+    fclose($f);
+    if ($partial) {
+        $nl = strpos($data, "\n"); // drop the (likely partial) first line
+        if ($nl !== false) {
+            $data = substr($data, $nl + 1);
+        }
+    }
+    $arr = preg_split('/\r\n|\r|\n/', rtrim((string) $data, "\r\n"));
+    if (count($arr) > $lines) {
+        $arr = array_slice($arr, -$lines);
+    }
+    return array('lines' => array_values($arr), 'size' => $size, 'partial' => $partial);
 }
 
 function handleDebug()
@@ -321,61 +401,105 @@ function handleDebug()
             </table>
         </div>
 
-        <?php if (file_exists(WP_CONTENT_DIR . '/debug.log')): ?>
-            <div
-                style="background: var(--arzo-bg-hover); padding: 20px; border-radius: var(--radius-global); border: 1px solid var(--arzo-border); margin-top: 20px; position: relative;">
-                <h3>Recent Debug Log Entries</h3>
-                <div style="position: absolute; top: 20px; right: 20px;">
-                    <i class="fas fa-copy" onclick="copyDebugLog()"
-                        style="cursor: pointer; margin-right: 10px; color: var(--accent-color);" title="Copy debug log"></i>
-                    <i class="fas fa-trash-alt" onclick="clearDebugLog()" style="cursor: pointer; color: var(--danger-color);"
-                        title="Clear debug log"></i>
+        <?php
+        $wpa_dbg_nonce = wp_create_nonce('wp_arzo_ajax');
+        $wpa_dbg_ajax  = admin_url('admin-ajax.php');
+        $wpa_dbg_dl    = add_query_arg(array('action' => 'wp_arzo_standalone', 'tab' => 'debug', 'operation' => 'download_debug_log', 'nonce' => $wpa_dbg_nonce), $wpa_dbg_ajax);
+        ?>
+        <div class="wpa-card" id="wpa-dbg" data-nonce="<?php echo esc_attr($wpa_dbg_nonce); ?>" data-ajax="<?php echo esc_url($wpa_dbg_ajax); ?>" style="margin-top:20px;padding:0;overflow:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--arzo-border);">
+                <h3 style="margin:0;">Debug log <span id="wpa-dbg-meta" style="color:var(--arzo-text-secondary);font-weight:400;font-size:.82em;"></span></h3>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <select class="wpa-select" data-wpa-select id="wpa-dbg-lines" aria-label="Lines to show">
+                        <option value="50">Last 50</option>
+                        <option value="200" selected>Last 200</option>
+                        <option value="500">Last 500</option>
+                        <option value="2000">Last 2000</option>
+                    </select>
+                    <select class="wpa-select" data-wpa-select id="wpa-dbg-filter" aria-label="Severity filter">
+                        <option value="">All levels</option>
+                        <option value="error">Errors</option>
+                        <option value="warning">Warnings</option>
+                        <option value="notice">Notices</option>
+                    </select>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-dbg-refresh"><?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Refresh</button>
+                    <label class="wpa-toggle" style="margin:0;"><input class="wpa-toggle__input" type="checkbox" role="switch" id="wpa-dbg-auto"><span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span><span class="wpa-toggle__label" style="font-size:.85em;">Auto</span></label>
+                    <a class="wpa-btn wpa-btn--secondary wpa-btn--sm" id="wpa-dbg-download" href="<?php echo esc_url($wpa_dbg_dl); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Download</a>
+                    <button type="button" class="wpa-btn wpa-btn--danger wpa-btn--sm" id="wpa-dbg-clear"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear</button>
                 </div>
-                <div id="debug-log-content"
-                    style="background: var(--arzo-bg-input); padding: 15px; border-radius: var(--radius-global); max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">
-                    <?php
-                    $log_content = file_get_contents(WP_CONTENT_DIR . '/debug.log');
-                    $log_lines = explode("\n", $log_content);
-                    $recent_lines = array_slice($log_lines, -50); // Show last 50 lines
-
-                    foreach ($recent_lines as $line) {
-                        if (empty(trim($line))) continue;
-
-                        $line = htmlspecialchars($line);
-                        $color = 'var(--arzo-text-strong)';
-                        $bg_color = 'transparent';
-                        $border_left = 'none';
-
-                        // Detect log type and apply colors
-                        if (stripos($line, 'warning') !== false || stripos($line, 'warn') !== false) {
-                            $color = 'var(--arzo-warning)'; // yellow
-                            $border_left = '3px solid var(--arzo-warning)';
-                        } elseif (stripos($line, 'deprecated') !== false) {
-                            $color = 'var(--arzo-warning)'; // orange  
-                            $border_left = '3px solid var(--arzo-warning)';
-                        } elseif (stripos($line, 'error') !== false || stripos($line, 'fatal') !== false) {
-                            $color = 'var(--arzo-error)'; // red
-                            $border_left = '3px solid var(--arzo-error)';
-                        } elseif (stripos($line, 'notice') !== false || stripos($line, 'info') !== false) {
-                            $color = 'var(--arzo-info)';
-                            $border_left = '3px solid var(--arzo-info)';
-                        } elseif (stripos($line, 'login') !== false || stripos($line, 'performed') !== false) {
-                            $color = 'var(--arzo-success)'; // green for login/activity messages
-                            $border_left = '3px solid var(--arzo-success)';
-                        } elseif (preg_match('/\[\d{4}-\d{2}-\d{2}/', $line)) {
-                            // Date/timestamp lines
-                            $color = 'var(--arzo-neutral)';
-                        }
-
-                        echo '<div style="color: ' . $color . '; margin-bottom: 2px; padding: 2px 8px; border-left: ' . $border_left . '; padding-left: ' . ($border_left !== 'none' ? '12px' : '8px') . ';">' . $line . '</div>';
-                    }
-                    ?>
-                </div>
-                <p style="margin-top: 10px; font-size: 12px; color: var(--arzo-text-secondary);">
-                    Showing last 50 lines. Full log: <?php echo WP_CONTENT_DIR . '/debug.log'; ?>
-                </p>
             </div>
-        <?php endif; ?>
+            <pre id="wpa-dbg-log" style="margin:0;max-height:420px;overflow:auto;padding:14px 18px;font-family:var(--arzo-font-mono,monospace);font-size:12px;line-height:1.5;background:var(--arzo-bg-input);white-space:pre-wrap;word-break:break-word;color:var(--arzo-text-secondary);">Loading…</pre>
+        </div>
+        <script>
+        (function () {
+            var root = document.getElementById('wpa-dbg');
+            if (!root) { return; }
+            var nonce = root.dataset.nonce, ajax = root.dataset.ajax,
+                pre = document.getElementById('wpa-dbg-log'),
+                linesSel = document.getElementById('wpa-dbg-lines'),
+                filterSel = document.getElementById('wpa-dbg-filter'),
+                meta = document.getElementById('wpa-dbg-meta'),
+                auto = document.getElementById('wpa-dbg-auto'),
+                timer = null, raw = [];
+            var CMAP = { error: 'var(--arzo-error)', warning: 'var(--arzo-warning)', notice: 'var(--arzo-info)' };
+            function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+            function sevOf(line) {
+                var l = line.toLowerCase();
+                if (l.indexOf('fatal') > -1 || l.indexOf('error') > -1) { return 'error'; }
+                if (l.indexOf('deprecated') > -1 || l.indexOf('warning') > -1 || l.indexOf('warn') > -1) { return 'warning'; }
+                if (l.indexOf('notice') > -1 || l.indexOf('info') > -1) { return 'notice'; }
+                return '';
+            }
+            function render() {
+                var filt = filterSel.value, html = '', shown = 0;
+                raw.forEach(function (line) {
+                    if (!line) { return; }
+                    var sev = sevOf(line);
+                    if (filt && sev !== filt) { return; }
+                    shown++;
+                    var col = CMAP[sev] || 'var(--arzo-text-strong)';
+                    var bl = sev ? ('border-left:3px solid ' + col + ';padding-left:9px;') : '';
+                    html += '<div style="color:' + col + ';' + bl + '">' + esc(line) + '</div>';
+                });
+                pre.innerHTML = html || '<div style="color:var(--arzo-text-secondary)">No matching lines.</div>';
+            }
+            function load() {
+                var url = new URL(ajax);
+                url.searchParams.set('action', 'wp_arzo_standalone');
+                url.searchParams.set('tab', 'debug');
+                url.searchParams.set('operation', 'read_debug_log');
+                url.searchParams.set('lines', linesSel.value);
+                var fd = new FormData(); fd.append('nonce', nonce);
+                fetch(url.toString(), { method: 'POST', body: fd, credentials: 'same-origin' })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (!d || !d.success) { pre.textContent = 'Could not read the log.'; return; }
+                        raw = d.lines || [];
+                        meta.textContent = '· ' + (d.size_h || '0 B') + (d.partial ? ' (tail)' : '') + ' · ' + raw.length + ' lines';
+                        render();
+                        pre.scrollTop = pre.scrollHeight;
+                    })
+                    .catch(function () { pre.textContent = 'Request failed.'; });
+            }
+            linesSel.addEventListener('change', load);
+            filterSel.addEventListener('change', render);
+            document.getElementById('wpa-dbg-refresh').addEventListener('click', load);
+            auto.addEventListener('change', function () {
+                if (auto.checked) { timer = setInterval(load, 5000); } else if (timer) { clearInterval(timer); timer = null; }
+            });
+            document.getElementById('wpa-dbg-clear').addEventListener('click', function () {
+                if (!confirm('Clear the debug log? This permanently empties the file.')) { return; }
+                var url = new URL(ajax);
+                url.searchParams.set('action', 'wp_arzo_standalone');
+                url.searchParams.set('tab', 'debug');
+                url.searchParams.set('operation', 'clear_debug_log');
+                var fd = new FormData(); fd.append('nonce', nonce);
+                fetch(url.toString(), { method: 'POST', body: fd, credentials: 'same-origin' })
+                    .then(function (r) { return r.json(); }).then(function () { load(); });
+            });
+            load();
+        })();
+        </script>
 
 
     </div>

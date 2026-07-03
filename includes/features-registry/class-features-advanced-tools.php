@@ -163,6 +163,8 @@ function wp_arzo_console_tool_for_request($tab, $op)
         'get_users_page'            => 'users',
         'clear_debug_log'           => 'debug',
         'log_debug_change'          => 'debug',
+        'read_debug_log'            => 'debug',
+        'download_debug_log'        => 'debug',
         'update_maintenance_option' => 'site_modes',
         'activate_mode'             => 'site_modes',
         'deactivate_mode'           => 'site_modes',
