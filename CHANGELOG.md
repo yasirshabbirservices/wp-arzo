@@ -4,6 +4,27 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.110.0] — 2026-07-03
+
+### Added — Analytics pillar, Phase 2: more reports + CSV + surfacing
+
+Builds on Phase 1 — the Analytics dashboard is now **tabbed** (Overview / Geo / Devices / Behaviour)
+and the data is surfaced across wp-admin.
+
+- **Geo** — a **Countries** report (with flag emoji), from a `country` column populated header-first
+  (`CF-IPCountry` / host geo headers; a bundled DB comes in a later phase).
+- **Devices** — **Device type**, **Browser**, and **Operating system** breakdowns (parsed from the
+  User-Agent server-side).
+- **Behaviour** — **Landing** and **Exit** pages (per-session first/last hit), **404s** (new `is_404`
+  flag from the beacon), and on-site **Search terms** (new `search` column).
+- **CSV export** of the current tab + range (nonce-gated `admin-post` stream).
+- **Dashboard widget** — an "Analytics — last 7 days" wp-admin widget (KPIs + top pages + deep link).
+- **Per-post Views column** — a Views count on every public post-type list table.
+- Schema **DB v2** (adds `is_404` + `search`; dbDelta migration). New engine queries harnessed for the
+  SQL-safe dimension whitelist (42 checks total). Reports use a shared breakdown renderer.
+- Next: **P2b** — move the GA4/GTM/Ads tag insertion from Pro into a free **Google** tab (enriched);
+  then Pro Phases 3–4.
+
 ## [6.109.0] — 2026-07-03
 
 ### Added — Analytics pillar, Phase 1: built-in cookieless analytics (NEW)

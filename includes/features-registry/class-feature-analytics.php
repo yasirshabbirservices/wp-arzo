@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
 
 class WP_Arzo_Analytics
 {
-    const DB_VERSION = '1';
+    const DB_VERSION = '2';
     const OPT_DB     = 'wp_arzo_analytics_db';
     const OPT_SALT   = 'wp_arzo_analytics_salt';
     const CRON_PRUNE = 'wp_arzo_analytics_prune';
@@ -87,6 +87,8 @@ class WP_Arzo_Analytics
             os VARCHAR(30) NOT NULL DEFAULT '',
             visitor CHAR(16) NOT NULL DEFAULT '',
             session CHAR(16) NOT NULL DEFAULT '',
+            is_404 TINYINT NOT NULL DEFAULT 0,
+            search VARCHAR(190) NOT NULL DEFAULT '',
             PRIMARY KEY  (id),
             KEY ts (ts),
             KEY visitor (visitor),
@@ -309,8 +311,10 @@ class WP_Arzo_Analytics
                 'os'           => $os,
                 'visitor'      => self::visitor_hash($salt, $ip, $ua),
                 'session'      => self::session_hash($salt, $ip, $ua, $ts),
+                'is_404'       => !empty($data['f']) ? 1 : 0,
+                'search'       => isset($data['s']) ? substr(sanitize_text_field((string) $data['s']), 0, 190) : '',
             ),
-            array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+            array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s')
         );
         return true;
     }
@@ -402,6 +406,90 @@ class WP_Arzo_Analytics
         return (array) $wpdb->get_results($wpdb->prepare(
             "SELECT ref_host, COUNT(*) views, COUNT(DISTINCT visitor) visitors
              FROM {$t} WHERE ts BETWEEN %d AND %d AND ref_host <> '' GROUP BY ref_host ORDER BY views DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** Whitelist of GROUP-BY columns for breakdown() — never interpolate raw input. */
+    public static function allowed_dimension($col)
+    {
+        return in_array($col, array('country', 'device', 'browser', 'os'), true) ? $col : '';
+    }
+
+    /** Generic single-column breakdown → rows of [label, views, visitors]. */
+    public function breakdown($col, $from, $to, $limit = 25)
+    {
+        $col = self::allowed_dimension($col);
+        if ($col === '') {
+            return array();
+        }
+        global $wpdb;
+        $t = $this->table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT {$col} label, COUNT(*) views, COUNT(DISTINCT visitor) visitors
+             FROM {$t} WHERE ts BETWEEN %d AND %d AND {$col} <> '' GROUP BY {$col} ORDER BY views DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** Entry (landing) pages — the first hit of each session. */
+    public function landing($from, $to, $limit = 25)
+    {
+        global $wpdb;
+        $t = $this->table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT h.path label, COUNT(*) views, COUNT(DISTINCT h.visitor) visitors
+             FROM {$t} h JOIN (SELECT session, MIN(ts) mt FROM {$t} WHERE ts BETWEEN %d AND %d GROUP BY session) f
+               ON h.session = f.session AND h.ts = f.mt
+             GROUP BY h.path ORDER BY views DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** Exit pages — the last hit of each session. */
+    public function exiting($from, $to, $limit = 25)
+    {
+        global $wpdb;
+        $t = $this->table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT h.path label, COUNT(*) views, COUNT(DISTINCT h.visitor) visitors
+             FROM {$t} h JOIN (SELECT session, MAX(ts) mt FROM {$t} WHERE ts BETWEEN %d AND %d GROUP BY session) f
+               ON h.session = f.session AND h.ts = f.mt
+             GROUP BY h.path ORDER BY views DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** 404 hits by path. */
+    public function not_found($from, $to, $limit = 25)
+    {
+        global $wpdb;
+        $t = $this->table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT path label, COUNT(*) views, COUNT(DISTINCT visitor) visitors
+             FROM {$t} WHERE ts BETWEEN %d AND %d AND is_404 = 1 GROUP BY path ORDER BY views DESC LIMIT %d",
+            (int) $from,
+            (int) $to,
+            (int) $limit
+        ), ARRAY_A);
+    }
+
+    /** On-site search terms. */
+    public function searches($from, $to, $limit = 25)
+    {
+        global $wpdb;
+        $t = $this->table();
+        return (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT search label, COUNT(*) views, COUNT(DISTINCT visitor) visitors
+             FROM {$t} WHERE ts BETWEEN %d AND %d AND search <> '' GROUP BY search ORDER BY views DESC LIMIT %d",
             (int) $from,
             (int) $to,
             (int) $limit
@@ -520,6 +608,86 @@ class WP_Arzo_Feature_Analytics extends WP_Arzo_Feature
             wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', WP_Arzo_Analytics::CRON_PRUNE);
         }
         add_action('wp_arzo_feature_disabled', array($this, 'on_disabled'));
+
+        // Surfacing: wp-admin dashboard widget + a Views column on post-type list tables.
+        if (is_admin()) {
+            add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
+            add_action('load-edit.php', array($this, 'setup_post_columns'));
+        }
+    }
+
+    public function add_dashboard_widget()
+    {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        wp_add_dashboard_widget('wp_arzo_analytics_widget', 'Analytics — last 7 days', array($this, 'render_dashboard_widget'));
+    }
+
+    public function render_dashboard_widget()
+    {
+        $engine = WP_Arzo_Analytics::instance();
+        $to     = time();
+        $from   = $to - 7 * DAY_IN_SECONDS;
+        $o      = $engine->overview($from, $to);
+        $pages  = $engine->pages($from, $to, 5);
+        $url    = admin_url('admin.php?page=wp-arzo-analytics');
+
+        $tiles = array(
+            array('Views', number_format_i18n($o['views'])),
+            array('Visitors', number_format_i18n($o['visitors'])),
+            array('Sessions', number_format_i18n($o['sessions'])),
+            array('Bounce', $o['bounce'] . '%'),
+        );
+        echo '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">';
+        foreach ($tiles as $t) {
+            echo '<div style="text-align:center;padding:8px;background:var(--arzo-bg-elev,#f6f7f7);border-radius:8px;">'
+                . '<strong style="display:block;font-size:1.3rem;">' . esc_html($t[1]) . '</strong>'
+                . '<span style="color:var(--arzo-text-muted,#646970);font-size:.8rem;">' . esc_html($t[0]) . '</span></div>';
+        }
+        echo '</div>';
+        if (!empty($pages)) {
+            echo '<table class="widefat striped" style="margin-bottom:10px;"><thead><tr><th>Top page</th><th style="text-align:right;">Views</th></tr></thead><tbody>';
+            foreach ($pages as $p) {
+                echo '<tr><td>' . esc_html($p['path']) . '</td><td style="text-align:right;">' . esc_html(number_format_i18n($p['views'])) . '</td></tr>';
+            }
+            echo '</tbody></table>';
+        } else {
+            echo '<p style="color:#646970;">No visits recorded in the last 7 days yet.</p>';
+        }
+        echo '<p style="margin:0;"><a class="button button-secondary" href="' . esc_url($url) . '">View full analytics →</a></p>';
+    }
+
+    public function setup_post_columns()
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (!$screen || empty($screen->post_type)) {
+            return;
+        }
+        $pt = $screen->post_type;
+        add_filter("manage_edit-{$pt}_columns", array($this, 'views_column'));
+        add_action("manage_{$pt}_posts_custom_column", array($this, 'views_column_content'), 10, 2);
+    }
+
+    public function views_column($cols)
+    {
+        $cols['wp_arzo_views'] = __('Views', 'wp-arzo');
+        return $cols;
+    }
+
+    public function views_column_content($col, $post_id)
+    {
+        if ($col !== 'wp_arzo_views') {
+            return;
+        }
+        $link = get_permalink($post_id);
+        if (!$link) {
+            echo '—';
+            return;
+        }
+        $path = wp_make_link_relative($link);
+        $views = WP_Arzo_Analytics::instance()->views_for_path($path);
+        echo $views ? esc_html(number_format_i18n($views)) : '<span style="color:#a7aaad;">0</span>';
     }
 
     public function enqueue_beacon()
@@ -536,6 +704,8 @@ class WP_Arzo_Feature_Analytics extends WP_Arzo_Feature
         );
         wp_localize_script('wp-arzo-analytics', 'wpArzoAnalytics', array(
             'endpoint' => esc_url_raw(rest_url('wp-arzo/v1/hit')),
+            'is404'    => is_404() ? 1 : 0,
+            'search'   => is_search() ? (string) get_search_query() : '',
         ));
     }
 

@@ -28,7 +28,9 @@
         var payload = JSON.stringify({
             p: location.pathname + location.search,
             t: document.title || '',
-            r: document.referrer || ''
+            r: document.referrer || '',
+            f: cfg.is404 ? 1 : 0,
+            s: cfg.search || ''
         });
 
         var sent = false;
