@@ -32,7 +32,7 @@ Everything is **administrators‑only** and authenticates with your existing Wor
 session. The optional **WP Arzo Pro** add‑on registers premium modules into the same
 dashboard (shown as locked **PRO** cards until unlocked).
 
-- **Current version:** `6.113.0` — see [CHANGELOG.md](CHANGELOG.md)
+- **Current version:** `6.114.0` — see [CHANGELOG.md](CHANGELOG.md)
 - **Requires:** WordPress ≥ 5.0 · PHP ≥ 7.2
 - **Highlights:** multi‑provider SMTP with fallback **+ auto‑retry queue**, a CodeMirror
   **Code Snippets** editor with **smart conditional logic**, local **+ scheduled backups**

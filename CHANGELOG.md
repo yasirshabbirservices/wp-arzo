@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.114.0] — 2026-07-03
+
+### Added — reusable `button` settings field (enables Pro scheduled email reports)
+
+- The schema-driven settings renderer gained a generic **`button`** field type: a nonce'd
+  link to an `admin-post.php` action the owning feature registers (fields: `action`,
+  `button` label, `button_icon`). Skipped by the settings save loop (it's a UI action, not a
+  stored value). Used by **WP Arzo Pro → Analytics Email Reports** for its “Send a test report
+  now” button, and reusable by any future feature that needs an inline action button.
+
 ## [6.113.0] — 2026-07-03
 
 ### Added — Analytics pillar: event-tracking engine (Phase 3b, free half)
