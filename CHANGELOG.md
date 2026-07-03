@@ -4,6 +4,13 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.140.1] — 2026-07-04
+
+### Changed — "Get Pro" upsell link points to yasirshabbir.com/wp-arzo
+
+The locked-feature "Get Pro" CTA now links to the product site **https://yasirshabbir.com/wp-arzo/** (was a
+placeholder URL). Filterable via `wp_arzo_pro_upgrade_url`; the Pro add-on sets the same URL.
+
 ## [6.140.0] — 2026-07-04
 
 ### Changed — On-demand feature loading (lazy-local): the registry loads only what you use
