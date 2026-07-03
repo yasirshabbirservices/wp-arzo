@@ -863,6 +863,141 @@ class WP_Arzo_Analytics
         return $out;
     }
 
+    /* ------------------------------------------------------------ journeys */
+
+    /**
+     * Recent visitor journeys (sessions) for a range — one row per anonymous 30-min
+     * session bucket, with its landing/exit page, source, page count, duration, and
+     * device/location. Built entirely from the existing hits/events/orders tables
+     * (the cookieless `session` hash) — no per-visitor identity, no schema change.
+     */
+    public function journeys($from, $to, $limit = 40, $offset = 0)
+    {
+        global $wpdb;
+        $t = $this->table();
+        $rows = (array) $wpdb->get_results($wpdb->prepare(
+            "SELECT h.session,
+                MIN(h.ts) started, MAX(h.ts) ended, COUNT(*) views,
+                MAX(h.country) country, MAX(h.device) device, MAX(h.visitor) visitor,
+                (SELECT h2.path FROM {$t} h2 WHERE h2.session = h.session ORDER BY h2.ts ASC, h2.id ASC LIMIT 1) landing,
+                (SELECT h2.title FROM {$t} h2 WHERE h2.session = h.session ORDER BY h2.ts ASC, h2.id ASC LIMIT 1) landing_title,
+                (SELECT h2.ref_host FROM {$t} h2 WHERE h2.session = h.session ORDER BY h2.ts ASC, h2.id ASC LIMIT 1) ref_host,
+                (SELECT h3.path FROM {$t} h3 WHERE h3.session = h.session ORDER BY h3.ts DESC, h3.id DESC LIMIT 1) exit_path
+             FROM {$t} h
+             WHERE h.ts BETWEEN %d AND %d
+             GROUP BY h.session
+             ORDER BY started DESC
+             LIMIT %d OFFSET %d",
+            (int) $from,
+            (int) $to,
+            max(1, (int) $limit),
+            max(0, (int) $offset)
+        ), ARRAY_A);
+        if (empty($rows)) {
+            return array();
+        }
+
+        // Enrich the page's sessions with interaction + order counts (one query each).
+        $sessions = array();
+        foreach ($rows as $r) {
+            $sessions[] = $r['session'];
+        }
+        $ph  = implode(',', array_fill(0, count($sessions), '%s'));
+        $ev  = array();
+        $evq = $wpdb->get_results($wpdb->prepare(
+            "SELECT session, COUNT(*) c FROM {$this->events_table()} WHERE session IN ({$ph}) GROUP BY session",
+            $sessions
+        ), ARRAY_A);
+        foreach ((array) $evq as $row) {
+            $ev[$row['session']] = (int) $row['c'];
+        }
+        $od  = array();
+        $odq = $wpdb->get_results($wpdb->prepare(
+            "SELECT session, COUNT(*) c, COALESCE(SUM(revenue),0) r, MAX(currency) cur FROM {$this->orders_table()} WHERE session IN ({$ph}) GROUP BY session",
+            $sessions
+        ), ARRAY_A);
+        foreach ((array) $odq as $row) {
+            $od[$row['session']] = array('orders' => (int) $row['c'], 'revenue' => (float) $row['r'], 'currency' => (string) $row['cur']);
+        }
+
+        foreach ($rows as &$r) {
+            $s = $r['session'];
+            $r['events']   = isset($ev[$s]) ? $ev[$s] : 0;
+            $r['orders']   = isset($od[$s]) ? $od[$s]['orders'] : 0;
+            $r['revenue']  = isset($od[$s]) ? $od[$s]['revenue'] : 0.0;
+            $r['currency'] = isset($od[$s]) ? $od[$s]['currency'] : '';
+            $r['duration'] = max(0, (int) $r['ended'] - (int) $r['started']);
+        }
+        unset($r);
+        return $rows;
+    }
+
+    /** Total distinct sessions in a range (for the "N more" hint). */
+    public function journeys_count($from, $to)
+    {
+        global $wpdb;
+        return (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(DISTINCT session) FROM {$this->table()} WHERE ts BETWEEN %d AND %d",
+            (int) $from,
+            (int) $to
+        ));
+    }
+
+    /** The full ordered step timeline for one session (pageviews + events + orders). */
+    public function journey_steps($session)
+    {
+        $session = preg_replace('/[^a-f0-9]/', '', (string) $session);
+        if ($session === '') {
+            return array();
+        }
+        global $wpdb;
+        $views  = $wpdb->get_results($wpdb->prepare("SELECT ts, path, title, ref_host FROM {$this->table()} WHERE session = %s ORDER BY ts ASC, id ASC LIMIT 200", $session), ARRAY_A);
+        $events = $wpdb->get_results($wpdb->prepare("SELECT ts, etype, name, target FROM {$this->events_table()} WHERE session = %s ORDER BY ts ASC, id ASC LIMIT 200", $session), ARRAY_A);
+        $orders = $wpdb->get_results($wpdb->prepare("SELECT ts, order_id, revenue, currency FROM {$this->orders_table()} WHERE session = %s ORDER BY ts ASC LIMIT 50", $session), ARRAY_A);
+        return self::merge_steps($views, $events, $orders);
+    }
+
+    /** Merge pageviews/events/orders into one chronological step list. Pure for harnessing. */
+    public static function merge_steps($views, $events, $orders)
+    {
+        $steps = array();
+        foreach ((array) $views as $v) {
+            $steps[] = array('kind' => 'view', 'ts' => (int) $v['ts'], 'path' => (string) $v['path'], 'title' => (string) $v['title'], 'ref_host' => isset($v['ref_host']) ? (string) $v['ref_host'] : '');
+        }
+        foreach ((array) $events as $e) {
+            $steps[] = array('kind' => 'event', 'ts' => (int) $e['ts'], 'etype' => (string) $e['etype'], 'name' => (string) $e['name'], 'target' => (string) $e['target']);
+        }
+        foreach ((array) $orders as $o) {
+            $steps[] = array('kind' => 'order', 'ts' => (int) $o['ts'], 'order_id' => (int) $o['order_id'], 'revenue' => (float) $o['revenue'], 'currency' => (string) $o['currency']);
+        }
+        // Chronological; on a tie, a pageview precedes an event which precedes an order.
+        usort($steps, function ($a, $b) {
+            if ($a['ts'] === $b['ts']) {
+                $rank = array('view' => 0, 'event' => 1, 'order' => 2);
+                return $rank[$a['kind']] - $rank[$b['kind']];
+            }
+            return $a['ts'] < $b['ts'] ? -1 : 1;
+        });
+        return $steps;
+    }
+
+    /** Human duration like "2m 14s" / "45s" / "1h 3m". Pure. */
+    public static function human_duration($seconds)
+    {
+        $seconds = max(0, (int) $seconds);
+        if ($seconds < 60) {
+            return $seconds . 's';
+        }
+        $m = (int) floor($seconds / 60);
+        $s = $seconds % 60;
+        if ($m < 60) {
+            return $s ? $m . 'm ' . $s . 's' : $m . 'm';
+        }
+        $h = (int) floor($m / 60);
+        $m = $m % 60;
+        return $m ? $h . 'h ' . $m . 'm' : $h . 'h';
+    }
+
     /** Lightweight today's counts for the admin-bar peek (60s transient-cached). */
     public function quick_today()
     {

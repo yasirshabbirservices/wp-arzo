@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.118.0] — 2026-07-03
+
+### Added — Analytics: visitor Journeys engine (Phase 4)
+
+- The built-in Analytics engine (`WP_Arzo_Analytics`) gained visitor-**journey** queries — one
+  row per anonymous cookieless 30-minute session, with its landing/exit page, source, page
+  count, duration, device and country: `journeys()` / `journeys_count()`, plus `journey_steps()`
+  which merges a session's pageviews, tracked events and orders into one chronological timeline.
+- **No schema change** — journeys are reconstructed entirely from the existing `session` hash on
+  the hits / events / orders tables (no new table, no per-visitor identity, still cookieless).
+- Pure helpers `merge_steps()` (chronological step merge + tie-break) and `human_duration()`
+  are harnessed (17 checks). Added a `route` icon glyph.
+- Surfaced by **WP Arzo Pro (Analytics Pro)** as a new **Journeys** report tab (expand a visit to
+  replay its path — pages → events → order — with zero extra JS via native `<details>`).
+
 ## [6.117.0] — 2026-07-03
 
 ### Added — Google tags: extension points for Consent Mode + server-side GTM (Phase 4)
