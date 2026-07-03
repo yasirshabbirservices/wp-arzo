@@ -826,8 +826,12 @@ class WP_Arzo_Admin
      */
     private function render_license_box()
     {
-        $active = function_exists('wp_arzo_is_pro_active') && wp_arzo_is_pro_active();
+        $active  = function_exists('wp_arzo_is_pro_active') && wp_arzo_is_pro_active();
         $upgrade = function_exists('wp_arzo_pro_upgrade_url') ? wp_arzo_pro_upgrade_url() : '#';
+        // The Pro add-on exposes its "Manage License" page URL here (empty when Pro isn't
+        // installed). Activation itself lives on that page — this card only reflects status
+        // and links to it (no inline key entry).
+        $manage = apply_filters('wp_arzo_pro_manage_license_url', '');
         ?>
         <div class="wpa-aside-card wpa-license<?php echo $active ? ' is-active' : ''; ?>">
             <div class="wpa-aside-card__head">
@@ -836,18 +840,30 @@ class WP_Arzo_Admin
                 <span class="wpa-badge <?php echo $active ? 'wpa-badge--success' : 'wpa-badge--neutral'; ?>"><?php echo $active ? 'Pro active' : 'Free'; ?></span>
             </div>
             <?php if ($active) : ?>
-                <p class="wpa-aside-card__text">WP Arzo Pro is active. All premium features are unlocked.</p>
+                <p class="wpa-aside-card__text">WP Arzo Pro is active — all premium features are unlocked.</p>
+                <?php if ($manage) : ?>
+                    <div class="wpa-license__actions">
+                        <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($manage); ?>">
+                            <?php echo wp_arzo_icon('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Manage license
+                        </a>
+                    </div>
+                <?php endif; ?>
             <?php else : ?>
-                <p class="wpa-aside-card__text">Enter your WP Arzo Pro license key to unlock premium features.</p>
-                <input type="text" id="wpa-license-key" class="wpa-input" placeholder="License key" autocomplete="off">
+                <p class="wpa-aside-card__text"><?php echo $manage
+                    ? 'Activate your WP Arzo Pro license to unlock every premium feature.'
+                    : 'Unlock analytics, advanced security, cloud backups and more with WP Arzo Pro.'; ?></p>
                 <div class="wpa-license__actions">
-                    <button type="button" id="wpa-license-activate" class="wpa-btn wpa-btn--primary wpa-btn--sm"
-                        data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_LICENSE)); ?>">
-                        <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Activate
-                    </button>
-                    <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener">Get Pro</a>
+                    <?php if ($manage) : ?>
+                        <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url($manage); ?>">
+                            <?php echo wp_arzo_icon('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Activate a license
+                        </a>
+                        <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener">Get Pro</a>
+                    <?php else : ?>
+                        <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener">
+                            <?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Get WP Arzo Pro
+                        </a>
+                    <?php endif; ?>
                 </div>
-                <p class="wpa-aside-card__note" id="wpa-license-msg" hidden></p>
             <?php endif; ?>
         </div>
         <?php

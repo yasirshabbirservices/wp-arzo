@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.140.2] — 2026-07-04
+
+### Changed — dashboard License card links to the Manage License page
+
+The dashboard **License** card now just reflects status (Pro active / Free) and links to the Pro
+**Manage License** page for activation, via the new `wp_arzo_pro_manage_license_url` filter. Removed
+its old inline license-key field + Activate button, which used a pre-SureCart activation path that
+was no longer wired to anything (the real activation lives on the Manage License page). Pairs with
+Pro v1.62.3.
+
 ## [6.140.1] — 2026-07-04
 
 ### Changed — "Get Pro" upsell link points to wparzo.com
