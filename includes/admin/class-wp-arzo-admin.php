@@ -1060,6 +1060,17 @@ class WP_Arzo_Admin
                 echo '</div>';
                 echo '<p class="wpa-field__help" id="wpa-test-email-msg">Sends a test message using the current (saved) settings.</p>';
                 break;
+            case 'button':
+                // A UI action (not a stored value): a nonce'd link to an admin-post handler
+                // the owning feature registers. Fields: action (required), button (label), button_icon.
+                $act    = isset($field['action']) ? sanitize_key($field['action']) : '';
+                $btn    = isset($field['button']) ? $field['button'] : 'Run';
+                $bicon  = isset($field['button_icon']) ? $field['button_icon'] : 'bolt';
+                if ($act !== '') {
+                    $href = wp_nonce_url(admin_url('admin-post.php?action=' . $act), $act);
+                    echo '<a class="wpa-btn wpa-btn--secondary" href="' . esc_url($href) . '">' . wp_arzo_icon($bicon, array('class' => 'wpa-icon wpa-icon--sm')) . ' ' . esc_html($btn) . '</a>';
+                }
+                break;
             case 'number':
                 echo '<input class="wpa-input" type="number" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
                 break;
@@ -1123,8 +1134,8 @@ class WP_Arzo_Admin
 
         $clean = array();
         foreach ($feature->settings_schema() as $field) {
-            if (empty($field['key']) || empty($field['type']) || $field['type'] === 'test_email') {
-                continue; // test_email is a UI action, not a stored setting
+            if (empty($field['key']) || empty($field['type']) || $field['type'] === 'test_email' || $field['type'] === 'button') {
+                continue; // test_email / button are UI actions, not stored settings
             }
             $key = $field['key'];
             $raw = isset($_POST['wpa_field_' . $key]) ? wp_unslash($_POST['wpa_field_' . $key]) : null;
