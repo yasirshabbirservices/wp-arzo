@@ -37,6 +37,16 @@ existing WordPress session (administrators only).
 
 See CHANGELOG.md for the full history.
 
+= 6.139.0 =
+* New (free): REST API Auth — per-key read-only scope + per-key auto-expiry (companion features)
+* New (free): Email Log Stats tab (per-connection volume + deliverability trend over 7/30/60 days)
+* New (free): Role capability editor grouped by category with a live filter
+* New (free): live AJAX debug-log console + read-only wp-config/.htaccess viewer (secrets masked)
+* Changed: Advanced Tools launcher page fully dark + tokenized (was on a white background)
+* Pro (v1.53.0-v1.60.0): Site Health trends/uptime/status-page/digest; Cron bulk actions + CSV +
+  Snippet jobs + cron-tick fatal capture; Email open/click tracking; Notifications severity floor +
+  quiet hours. See CHANGELOG.md.
+
 = 6.104.0 =
 * New (free): Email retry queue — messages that every connection fails to send are queued and
   auto-retried with backoff (5m/15m/1h/6h, up to 4 tries); new Queue tab with retry/delete/clear
