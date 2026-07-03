@@ -496,6 +496,24 @@ class WP_Arzo_Analytics
         ), ARRAY_A);
     }
 
+    /** Lightweight today's counts for the admin-bar peek (60s transient-cached). */
+    public function quick_today()
+    {
+        $cached = get_transient('wp_arzo_analytics_today');
+        if (is_array($cached)) {
+            return $cached;
+        }
+        global $wpdb;
+        $t    = $this->table();
+        $from = strtotime(gmdate('Y-m-d 00:00:00'));
+        $out  = array(
+            'views'    => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$t} WHERE ts >= %d", $from)),
+            'visitors' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT visitor) FROM {$t} WHERE ts >= %d", $from)),
+        );
+        set_transient('wp_arzo_analytics_today', $out, MINUTE_IN_SECONDS);
+        return $out;
+    }
+
     /** Views for a single path (per-post view counter). */
     public function views_for_path($path)
     {
@@ -614,6 +632,28 @@ class WP_Arzo_Feature_Analytics extends WP_Arzo_Feature
             add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
             add_action('load-edit.php', array($this, 'setup_post_columns'));
         }
+        // Admin-bar "today" peek (front-end + admin, for admins).
+        add_action('admin_bar_menu', array($this, 'admin_bar_today'), 80);
+    }
+
+    public function admin_bar_today($bar)
+    {
+        if (!current_user_can('manage_options') || !is_object($bar)) {
+            return;
+        }
+        $c = WP_Arzo_Analytics::instance()->quick_today();
+        $bar->add_node(array(
+            'id'    => 'wp-arzo-analytics',
+            'title' => '<span class="ab-icon dashicons dashicons-chart-bar" style="top:2px;"></span>' . esc_html(number_format_i18n($c['views'])) . ' today',
+            'href'  => admin_url('admin.php?page=wp-arzo-analytics'),
+            'meta'  => array('title' => sprintf('WP Arzo Analytics — %s views · %s visitors today', number_format_i18n($c['views']), number_format_i18n($c['visitors']))),
+        ));
+        $bar->add_node(array(
+            'parent' => 'wp-arzo-analytics',
+            'id'     => 'wp-arzo-analytics-visitors',
+            'title'  => esc_html(number_format_i18n($c['visitors'])) . ' unique visitors today',
+            'href'   => admin_url('admin.php?page=wp-arzo-analytics'),
+        ));
     }
 
     public function add_dashboard_widget()

@@ -2994,6 +2994,7 @@ class WP_Arzo_Admin
             'geo'       => array('label' => 'Geo', 'icon' => 'globe'),
             'devices'   => array('label' => 'Devices', 'icon' => 'grid'),
             'behaviour' => array('label' => 'Behaviour', 'icon' => 'exchange'),
+            'google'    => array('label' => 'Google', 'icon' => 'bolt'),
         );
     }
 
@@ -3071,7 +3072,60 @@ class WP_Arzo_Admin
                 . $this->analytics_breakdown('Search terms', 'search', $engine->searches($from, $to, 15))
                 . '</div>';
         }
+        if ($tab === 'google') {
+            return $this->analytics_google();
+        }
         return $this->analytics_overview($from, $to);
+    }
+
+    /** Google tab: manage the (free) GA4 / GTM / Google Ads tag insertion in one place. */
+    private function analytics_google()
+    {
+        $items = array(
+            'google_analytics_4' => array('icon' => 'chart', 'id_key' => 'measurement_id', 'id_label' => 'Measurement ID', 'blurb' => 'Send pageviews & events to Google Analytics 4 (gtag.js).'),
+            'google_tag_manager' => array('icon' => 'code', 'id_key' => 'container_id', 'id_label' => 'Container ID', 'blurb' => 'Load a GTM container to manage all your marketing tags from Google.'),
+            'google_ads'         => array('icon' => 'bolt', 'id_key' => 'conversion_id', 'id_label' => 'Conversion ID', 'blurb' => 'Google Ads remarketing & conversion tracking tag.'),
+        );
+        $registry = $this->registry();
+
+        ob_start();
+        ?>
+        <div class="wpa-card" style="margin-bottom:var(--arzo-space-4,16px);display:flex;gap:var(--arzo-space-3,12px);align-items:flex-start;">
+            <?php echo wp_arzo_icon('info', array('class' => 'wpa-icon', 'style' => 'flex:0 0 auto;color:var(--arzo-accent);')); ?>
+            <p style="margin:0;color:var(--arzo-text-muted);">Insert Google’s tags without another plugin. These forward data to Google and work alongside — or instead of — the built-in cookieless engine. <em>GA4 report data inside this dashboard, Consent Mode, and server-side GTM arrive with WP Arzo Pro.</em></p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--arzo-space-4,16px);">
+            <?php foreach ($items as $id => $meta) :
+                $feature = $registry->get($id);
+                if (!$feature) {
+                    continue;
+                }
+                $enabled  = $registry->is_enabled($id);
+                $value    = trim((string) $feature->get_setting($meta['id_key'], ''));
+                $configured = $value !== '';
+                $config_url = add_query_arg(array('page' => self::PAGE, 'view' => 'settings', 'feature' => $id), admin_url('admin.php'));
+                ?>
+                <div class="wpa-card">
+                    <div style="display:flex;align-items:center;gap:var(--arzo-space-3,12px);margin-bottom:var(--arzo-space-3,12px);">
+                        <span class="wpa-badge wpa-badge--info" style="width:2.25rem;height:2.25rem;padding:0;justify-content:center;border-radius:var(--arzo-radius,10px);flex:0 0 auto;"><?php echo wp_arzo_icon($meta['icon'], array('class' => 'wpa-icon')); ?></span>
+                        <div>
+                            <strong style="display:block;"><?php echo esc_html($feature->title()); ?></strong>
+                            <span class="wpa-badge wpa-badge--<?php echo $enabled ? 'success' : 'neutral'; ?>"><?php echo $enabled ? 'Enabled' : 'Disabled'; ?></span>
+                            <?php if ($enabled) : ?>
+                                <span class="wpa-badge wpa-badge--<?php echo $configured ? 'success' : 'warning'; ?>"><?php echo $configured ? esc_html($meta['id_label'] . ' set') : 'Not configured'; ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <p style="color:var(--arzo-text-muted);margin:0 0 var(--arzo-space-3,12px);"><?php echo esc_html($meta['blurb']); ?></p>
+                    <?php if ($enabled && $configured) : ?>
+                        <p style="margin:0 0 var(--arzo-space-3,12px);"><code><?php echo esc_html($value); ?></code></p>
+                    <?php endif; ?>
+                    <a class="wpa-btn wpa-btn--secondary wpa-btn--sm" href="<?php echo esc_url($config_url); ?>"><?php echo wp_arzo_icon('settings', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo $enabled ? 'Configure' : 'Enable & configure'; ?></a>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 
     /** Overview tab: KPIs + chart + top pages/referrers. */
