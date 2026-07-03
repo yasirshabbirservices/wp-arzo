@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.140.0
+Stable tag: 6.140.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,9 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.140.1 =
+* Changed: the "Get Pro" upsell link now points to https://wparzo.com/ (filterable).
 
 = 6.140.0 =
 * Changed: On-demand feature loading — the registry loads a feature's PHP class only when it's
