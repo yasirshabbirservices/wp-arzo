@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.128.0
+ * Version: 6.129.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.128.0');
+    define('WP_ARZO_VERSION', '6.129.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -676,141 +676,56 @@ if (!function_exists('wp_arzo_pro_upgrade_url')) {
  */
 function wp_arzo_redirect_page()
 {
+    // Renders INSIDE the normal wp-admin page (WP already emitted the admin header),
+    // so this must be a content fragment — never a full <html> document, and never
+    // exit() (that would drop the admin footer and produce a cut-off page). It is a
+    // self-contained launcher card (brand palette inline) that opens the standalone
+    // Advanced Tools console in a new tab, with a button fallback when popups are blocked.
     $tool_url = admin_url('admin-ajax.php?action=wp_arzo_standalone');
-?>
-    <!DOCTYPE html>
-    <html>
-
-    <head>
-        <title>Opening WP Arzo...</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100vh;
-                margin: 0;
-                background: #121212;
-            }
-
-            .message {
-                text-align: center;
-                background: #1e1e1e;
-                padding: 50px;
-                border-radius: 8px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-                max-width: 450px;
-                border: 1px solid #333333;
-            }
-
-            .spinner {
-                border: 4px solid #2a2a2a;
-                border-top: 4px solid #16e791;
-                border-radius: 50%;
-                width: 50px;
-                height: 50px;
-                animation: spin 1s linear infinite;
-                margin: 0 auto 25px;
-            }
-
-            @keyframes spin {
-                0% {
-                    transform: rotate(0deg);
-                }
-
-                100% {
-                    transform: rotate(360deg);
-                }
-            }
-
-            h2 {
-                color: #ffffff;
-                margin: 0 0 15px;
-                font-size: 24px;
-                font-weight: 600;
-            }
-
-            p {
-                color: #cccccc;
-                margin: 0;
-                font-size: 14px;
-            }
-
-            .btn {
-                display: inline-block;
-                margin-top: 25px;
-                padding: 14px 32px;
-                background: #16e791;
-                color: #121212;
-                text-decoration: none;
-                border-radius: 4px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(22, 231, 145, 0.3);
-            }
-
-            .btn:hover {
-                background: #0ea66b;
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(22, 231, 145, 0.4);
-            }
-
-            #status {
-                margin-top: 20px;
-                font-size: 13px;
-                color: #16e791;
-                line-height: 1.6;
-            }
-
-            #status a {
-                color: #16e791;
-                text-decoration: underline;
-            }
-
-            #status a:hover {
-                color: #ffffff;
-            }
-        </style>
-    </head>
-
-    <body>
-        <div class="message">
-            <div class="spinner" id="spinner"></div>
-            <h2>Opening WP Arzo Tool...</h2>
-            <p id="message">Please wait...</p>
-            <a href="<?php echo esc_url($tool_url); ?>" target="_blank" class="btn" id="openBtn" style="display:none;">Open
-                WP Arzo</a>
-            <p id="status"></p>
+    ?>
+    <div class="wrap">
+        <div class="wpa-launch">
+            <div class="wpa-launch__spinner" id="wpa-launch-spinner" aria-hidden="true"></div>
+            <h1 class="wpa-launch__title">Opening Advanced Tools…</h1>
+            <p class="wpa-launch__msg" id="wpa-launch-msg">The console opens in a new browser tab.</p>
+            <a href="<?php echo esc_url($tool_url); ?>" target="_blank" rel="noopener" class="wpa-launch__btn" id="wpa-launch-btn">Open Advanced Tools</a>
+            <p class="wpa-launch__status" id="wpa-launch-status"></p>
         </div>
-        <script>
-            (function() {
-                var toolUrl = '<?php echo esc_js($tool_url); ?>';
-                var newWindow = window.open(toolUrl, '_blank');
-
-                // Check if popup was blocked
-                setTimeout(function() {
-                    if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-                        // Popup was blocked
-                        document.getElementById('spinner').style.display = 'none';
-                        document.getElementById('message').textContent = 'Popup was blocked by your browser.';
-                        document.getElementById('openBtn').style.display = 'inline-block';
-                        document.getElementById('status').textContent = 'Please click the button above to open the tool.';
-                    } else {
-                        // Popup opened successfully
-                        document.getElementById('message').textContent = 'Tool opened in new tab!';
-                        document.getElementById('status').innerHTML = 'You can close this tab or <a href="<?php echo admin_url(); ?>">return to dashboard</a>';
-                        document.getElementById('status').style.color = 'rgba(255, 255, 255, 0.8)';
-                        document.getElementById('spinner').style.display = 'none';
-                    }
-                }, 500);
-            })();
-        </script>
-    </body>
-
-    </html>
-<?php
-    exit;
+    </div>
+    <style>
+        .wpa-launch { max-width: 520px; margin: 40px auto; text-align: center; background: #1c1c1f; border: 1px solid #2e2e33; border-radius: 14px; padding: 40px 32px; box-shadow: 0 8px 32px rgba(0, 0, 0, .35); }
+        .wpa-launch__spinner { width: 46px; height: 46px; border: 4px solid #2a2a2f; border-top-color: #16e791; border-radius: 50%; margin: 4px auto 22px; animation: wpaLaunchSpin 1s linear infinite; }
+        @keyframes wpaLaunchSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .wpa-launch__spinner { animation: none; } }
+        .wpa-launch__title { color: #fff; font-size: 22px; font-weight: 600; margin: 0 0 10px; padding: 0; }
+        .wpa-launch__msg { color: #b6b6bd; font-size: 14px; margin: 0 0 22px; }
+        .wpa-launch__btn { display: inline-block; padding: 13px 30px; background: #16e791; color: #121212; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background .2s ease, transform .2s ease; }
+        .wpa-launch__btn:hover, .wpa-launch__btn:focus { background: #0ea66b; color: #121212; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(22, 231, 145, .3); }
+        .wpa-launch__btn:focus-visible { outline: 2px solid #16e791; outline-offset: 3px; }
+        .wpa-launch__status { margin: 16px 0 0; font-size: 13px; color: #16e791; line-height: 1.6; min-height: 1.6em; }
+        .wpa-launch__status a { color: #16e791; }
+    </style>
+    <script>
+        (function () {
+            var url = <?php echo wp_json_encode($tool_url); ?>;
+            var win = window.open(url, '_blank');
+            setTimeout(function () {
+                var blocked = !win || win.closed || typeof win.closed === 'undefined';
+                var sp = document.getElementById('wpa-launch-spinner');
+                if (sp) { sp.style.display = 'none'; }
+                var msg = document.getElementById('wpa-launch-msg');
+                var status = document.getElementById('wpa-launch-status');
+                if (blocked) {
+                    if (msg) { msg.textContent = 'Your browser blocked the pop-up.'; }
+                    if (status) { status.textContent = 'Click “Open Advanced Tools” above to launch it.'; }
+                } else {
+                    if (msg) { msg.textContent = 'Advanced Tools opened in a new tab.'; }
+                    if (status) { status.innerHTML = 'You can close this and continue in the other tab.'; }
+                }
+            }, 600);
+        })();
+    </script>
+    <?php
 }
 
 /**

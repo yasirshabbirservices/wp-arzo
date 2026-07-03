@@ -239,12 +239,13 @@ function handleDebug()
 
         // Write the updated config
         if (file_put_contents($wp_config_path, $new_config)) {
-            echo '<div class="success">Debug settings updated successfully! Please refresh the page to see current values.</div>';
-            echo '<script>
-            setTimeout(function() {
-                location.reload();
-            }, 2000);
-            </script>';
+            echo '<div class="success">Debug settings updated successfully!</div>';
+            // IMPORTANT: this page was reached by a POST form submit. location.reload()
+            // re-issues that POST, which re-writes the config and re-emits this reload
+            // script — an infinite auto-refresh loop. Navigate to the clean GET URL
+            // (replace, so Back doesn't re-POST) to reflect the new constants once.
+            $debug_get_url = admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=debug');
+            echo '<script>setTimeout(function () { window.location.replace(' . wp_json_encode($debug_get_url) . '); }, 1200);</script>';
         } else {
             echo '<div class="error">Failed to update wp-config.php. Check file permissions.</div>';
         }
