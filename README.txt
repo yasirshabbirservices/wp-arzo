@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.140.1
+Stable tag: 6.140.2
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.140.2 =
+* Changed: the dashboard "License" card now reflects Pro status and links to the Pro "Manage
+  License" page (removed an old inline license field that predated the current activation flow).
 
 = 6.140.1 =
 * Changed: the "Get Pro" upsell link now points to https://yasirshabbir.com/wp-arzo/ (filterable).
