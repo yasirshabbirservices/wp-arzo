@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.137.0
+ * Version: 6.138.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -28,7 +28,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.137.0');
+    define('WP_ARZO_VERSION', '6.138.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -683,36 +683,63 @@ function wp_arzo_redirect_page()
     // self-contained launcher card (brand palette inline) that opens the standalone
     // Advanced Tools console in a new tab, with a button fallback when popups are blocked.
     $tool_url = admin_url('admin-ajax.php?action=wp_arzo_standalone');
+    $dash_url = admin_url('admin.php?page=wp-arzo');
+    $glyph    = defined('WP_ARZO_PLUGIN_URL') ? WP_ARZO_PLUGIN_URL . 'assets/wp-arzo-glyph.svg' : '';
     ?>
-    <div class="wrap">
-        <div class="wpa-launch">
-            <div class="wpa-launch__spinner" id="wpa-launch-spinner" aria-hidden="true"></div>
-            <h1 class="wpa-launch__title">Opening Advanced Tools…</h1>
-            <p class="wpa-launch__msg" id="wpa-launch-msg">The console opens in a new browser tab.</p>
-            <a href="<?php echo esc_url($tool_url); ?>" target="_blank" rel="noopener" class="wpa-launch__btn" id="wpa-launch-btn">Open Advanced Tools</a>
-            <p class="wpa-launch__status" id="wpa-launch-status"></p>
+    <style>
+        /* Self-contained WP Arzo token subset (same values as design-tokens.css) so the
+           whole launcher is on-brand even before any plugin CSS is enqueued here. */
+        :root {
+            --arzo-bg-dark:#121212; --arzo-bg-panel:#1e1e1e; --arzo-bg-elev:#242424;
+            --arzo-border:#333333; --arzo-border-strong:#444444;
+            --arzo-text-strong:#ffffff; --arzo-text-primary:#e0e0e0; --arzo-text-secondary:#999999;
+            --arzo-accent:#16e791; --arzo-accent-hover:#0ea66b; --arzo-accent-soft:rgba(22,231,145,.12);
+            --arzo-radius:8px; --arzo-radius-lg:14px; --arzo-text-on-accent:#121212;
+        }
+        /* Paint the ENTIRE admin content area with the brand dark surface (not white). */
+        #wpwrap, #wpcontent, #wpbody, #wpbody-content { background: var(--arzo-bg-dark) !important; }
+        #wpbody-content { padding-bottom: 0; }
+        #wpfooter, #wpfooter a { color: var(--arzo-text-secondary) !important; }
+        .wpa-launch-wrap { margin: 0; }
+        .wpa-launch-inner { min-height: calc(100vh - 120px); display: flex; align-items: center; justify-content: center; padding: 40px 20px; box-sizing: border-box; }
+        .wpa-launch { max-width: 540px; width: 100%; text-align: center; background: var(--arzo-bg-panel); border: 1px solid var(--arzo-border); border-radius: var(--arzo-radius-lg); padding: 48px 40px; box-shadow: 0 24px 70px rgba(0, 0, 0, .5); }
+        .wpa-launch__badge { width: 76px; height: 76px; margin: 0 auto 22px; border-radius: 20px; background: var(--arzo-accent-soft); border: 1px solid var(--arzo-border); display: flex; align-items: center; justify-content: center; }
+        .wpa-launch__badge img { width: 42px; height: 42px; display: block; }
+        .wpa-launch__spin { width: 18px; height: 18px; border: 2px solid var(--arzo-border-strong); border-top-color: var(--arzo-accent); border-radius: 50%; display: inline-block; vertical-align: -3px; margin-right: 6px; animation: wpaLaunchSpin .8s linear infinite; }
+        @keyframes wpaLaunchSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .wpa-launch__spin { animation: none; } }
+        .wpa-launch__title { color: var(--arzo-text-strong); font-size: 24px; font-weight: 700; margin: 0 0 8px; padding: 0; line-height: 1.2; }
+        .wpa-launch__msg { color: var(--arzo-text-secondary); font-size: 14px; margin: 0 0 26px; line-height: 1.55; }
+        .wpa-launch__btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 30px; background: var(--arzo-accent); color: var(--arzo-text-on-accent); text-decoration: none; border-radius: var(--arzo-radius); font-weight: 600; font-size: 15px; transition: background .18s ease, transform .18s ease, box-shadow .18s ease; }
+        .wpa-launch__btn:hover, .wpa-launch__btn:active { background: var(--arzo-accent-hover); color: var(--arzo-text-on-accent); transform: translateY(-1px); box-shadow: 0 10px 26px var(--arzo-accent-soft); }
+        .wpa-launch__btn:focus-visible { outline: 2px solid var(--arzo-accent); outline-offset: 3px; }
+        .wpa-launch__btn svg { width: 18px; height: 18px; }
+        .wpa-launch__status { margin: 18px 0 0; font-size: 13px; color: var(--arzo-accent); line-height: 1.6; min-height: 1.6em; }
+        .wpa-launch__foot { margin: 24px 0 0; font-size: 13px; color: var(--arzo-text-secondary); }
+        .wpa-launch__foot a { color: var(--arzo-text-primary); text-decoration: none; border-bottom: 1px solid var(--arzo-border-strong); padding-bottom: 1px; }
+        .wpa-launch__foot a:hover, .wpa-launch__foot a:focus { color: var(--arzo-accent); border-bottom-color: var(--arzo-accent); }
+    </style>
+    <div class="wrap wpa-launch-wrap">
+        <div class="wpa-launch-inner">
+            <div class="wpa-launch">
+                <?php if ($glyph !== '') : ?>
+                    <div class="wpa-launch__badge"><img src="<?php echo esc_url($glyph); ?>" alt="" width="42" height="42"></div>
+                <?php endif; ?>
+                <h1 class="wpa-launch__title">Advanced Tools</h1>
+                <p class="wpa-launch__msg" id="wpa-launch-msg"><span class="wpa-launch__spin" id="wpa-launch-spin" aria-hidden="true"></span>Opening the standalone power-tools console in a new browser tab&hellip;</p>
+                <a href="<?php echo esc_url($tool_url); ?>" target="_blank" rel="noopener" class="wpa-launch__btn" id="wpa-launch-btn"><?php echo wp_arzo_icon('external', array()); ?> Open Advanced Tools</a>
+                <p class="wpa-launch__status" id="wpa-launch-status"></p>
+                <p class="wpa-launch__foot"><a href="<?php echo esc_url($dash_url); ?>">&larr; Back to the WP Arzo dashboard</a></p>
+            </div>
         </div>
     </div>
-    <style>
-        .wpa-launch { max-width: 520px; margin: 40px auto; text-align: center; background: #1c1c1f; border: 1px solid #2e2e33; border-radius: 14px; padding: 40px 32px; box-shadow: 0 8px 32px rgba(0, 0, 0, .35); }
-        .wpa-launch__spinner { width: 46px; height: 46px; border: 4px solid #2a2a2f; border-top-color: #16e791; border-radius: 50%; margin: 4px auto 22px; animation: wpaLaunchSpin 1s linear infinite; }
-        @keyframes wpaLaunchSpin { to { transform: rotate(360deg); } }
-        @media (prefers-reduced-motion: reduce) { .wpa-launch__spinner { animation: none; } }
-        .wpa-launch__title { color: #fff; font-size: 22px; font-weight: 600; margin: 0 0 10px; padding: 0; }
-        .wpa-launch__msg { color: #b6b6bd; font-size: 14px; margin: 0 0 22px; }
-        .wpa-launch__btn { display: inline-block; padding: 13px 30px; background: #16e791; color: #121212; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background .2s ease, transform .2s ease; }
-        .wpa-launch__btn:hover, .wpa-launch__btn:focus { background: #0ea66b; color: #121212; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(22, 231, 145, .3); }
-        .wpa-launch__btn:focus-visible { outline: 2px solid #16e791; outline-offset: 3px; }
-        .wpa-launch__status { margin: 16px 0 0; font-size: 13px; color: #16e791; line-height: 1.6; min-height: 1.6em; }
-        .wpa-launch__status a { color: #16e791; }
-    </style>
     <script>
         (function () {
             var url = <?php echo wp_json_encode($tool_url); ?>;
             var win = window.open(url, '_blank');
             setTimeout(function () {
                 var blocked = !win || win.closed || typeof win.closed === 'undefined';
-                var sp = document.getElementById('wpa-launch-spinner');
+                var sp = document.getElementById('wpa-launch-spin');
                 if (sp) { sp.style.display = 'none'; }
                 var msg = document.getElementById('wpa-launch-msg');
                 var status = document.getElementById('wpa-launch-status');
