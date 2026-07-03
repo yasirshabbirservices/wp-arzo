@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.122.0] — 2026-07-03
+
+### Changed — Settings drawer & "Configurable only" filter polish (Settings UX)
+
+- **"Configurable only" is now an icon-only toggle** (sliders glyph) with a **hover/focus
+  tooltip** (new reusable `.wpa-has-tip` component) instead of a text button — and it now has a
+  clear **pressed/active state**: any `.wpa-btn[aria-pressed="true"]` / `.is-active` reads accent
+  (soft-accent fill + accent glyph + accent ring), so "filter on" is obvious at a glance. The
+  tooltip + `aria-label` update to reflect the current state.
+- **Configure drawer hardened for reliability + accessibility:**
+  - **Focus trap** — Tab/Shift+Tab cycle within the open dialog (WCAG 2.4.3); focus moves in on
+    open and returns to the triggering card on close; Escape and backdrop close.
+  - **Background scroll lock** while open (`.wpa-scroll-locked`) — no confusing double-scroll;
+    the drawer body uses `overscroll-behavior: contain`.
+  - **Proper custom scrollbar** on the drawer body (thin, branded, token-based) + reduced-motion
+    fallback for the open animation.
+- New `--arzo-z-tooltip` token (above modal/drawer so tips aren't clipped).
+
 ## [6.121.0] — 2026-07-03
 
 ### Fixed — Focus rings now always use the brand ring, never wp-admin blue

@@ -727,8 +727,8 @@ class WP_Arzo_Admin
                         <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon')); ?>
                         <input type="search" id="wpa-feature-search" placeholder="Search all features…" aria-label="Search features">
                     </div>
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-config-filter" aria-pressed="false" title="Show only features that have settings to configure">
-                        <?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configurable only
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-btn--icon wpa-has-tip" id="wpa-config-filter" aria-pressed="false" aria-label="Show only configurable features" data-wpa-tip="Show only configurable features">
+                        <?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                     </button>
                 </div>
                 <div id="wpa-feature-grid">

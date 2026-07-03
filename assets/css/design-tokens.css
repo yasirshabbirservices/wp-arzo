@@ -114,6 +114,7 @@
     --arzo-z-dropdown: 1000;
     --arzo-z-sticky: 1100;
     --arzo-z-modal: 100000;
+    --arzo-z-tooltip: 100100; /* above modal/drawer so icon-button tips aren't clipped */
     --arzo-z-toast: 100200;
 
     /* ================================================================== */

@@ -109,10 +109,15 @@
     }
     var chip = document.getElementById('wpa-config-filter');
     if (chip) {
+      var TIP_OFF = 'Show only configurable features';
+      var TIP_ON = 'Showing configurable only — click to show all';
       chip.addEventListener('click', function () {
         featureConfigurableOnly = !featureConfigurableOnly;
         chip.setAttribute('aria-pressed', featureConfigurableOnly ? 'true' : 'false');
         chip.classList.toggle('is-active', featureConfigurableOnly);
+        var tip = featureConfigurableOnly ? TIP_ON : TIP_OFF;
+        chip.setAttribute('aria-label', tip);
+        chip.setAttribute('data-wpa-tip', tip);
         applyFeatureFilters();
       });
     }
@@ -202,12 +207,36 @@
     var nonce = drawer.dataset.nonce || cfg.settingsNonce || '';
     var lastTrigger = null;
 
-    function open() { drawer.hidden = false; }
+    function open() {
+      drawer.hidden = false;
+      document.documentElement.classList.add('wpa-scroll-locked'); // lock background scroll
+    }
     function close() {
       drawer.hidden = true;
+      document.documentElement.classList.remove('wpa-scroll-locked');
       fieldsBox.innerHTML = '';
       if (lastTrigger) { try { lastTrigger.focus(); } catch (e) {} }
     }
+
+    // Visible, keyboard-reachable focusables inside the drawer (skip the sr-only native
+    // <select> that the custom listbox replaces).
+    function focusables() {
+      var sel = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      return Array.prototype.filter.call(drawer.querySelectorAll(sel), function (el) {
+        if (el.classList.contains('wpa-sr-only')) { return false; }
+        return el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement;
+      });
+    }
+
+    // Trap Tab within the open dialog (WCAG 2.4.3 / modal focus management).
+    drawer.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab' || drawer.hidden) { return; }
+      var list = focusables();
+      if (!list.length) { return; }
+      var first = list[0], last = list[list.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
 
     // Scoped show_if handling for the injected fields (mirrors bindSettingsConditionals).
     function bindConditionals(root) {
