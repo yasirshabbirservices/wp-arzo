@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.124.0] — 2026-07-03
+
+### Added — Analytics rollup engine (Phase 4 — scale) + double-border fix
+
+- **Daily rollup engine** in `WP_Arzo_Analytics` (**DB v5**, new `{prefix}wp_arzo_analytics_daily`
+  table — one aggregate row per day): `rollup_day()` / `rollup_range()` (idempotent, skips empty
+  days) + `daily_totals()` / `daily_series()` + `oldest_raw_ts()` / `rollup_available()` /
+  `last_rollup_day()`. `overview()` now **auto-serves from rollups** the portion of a range that
+  reaches back past the oldest surviving raw hit (`overview_hybrid()` / `overview_from_rollup()`),
+  so old date ranges still report **after their raw hits have been pruned** — letting a busy site
+  keep raw retention short without losing history. Pure helpers `combine_totals()` /
+  `finalize_overview()` / `zero_totals()` harnessed (22 checks). Rollup rows are never pruned;
+  the daily table is dropped on uninstall. Surfaced by the new Pro **Analytics Rollups** feature
+  (the free engine holds the primitives; Pro schedules the cron + controls). Live-verified.
+- **Fixed a double focus border** on the feature search: the wrapper owns the ring via
+  `:focus-within`, so the inner `<input>` no longer draws its own ring on top (the global
+  `input:focus-visible` ring is suppressed for `.wpa-fm-searchbar input`).
+
 ## [6.123.0] — 2026-07-03
 
 ### Fixed — the *last* wp-admin blue: link `color` on hover / focus / active
