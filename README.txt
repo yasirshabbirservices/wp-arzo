@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.140.2
+Stable tag: 6.141.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.141.0 =
+* Security: hardening across the Emergency Recovery tool (recovery password is now set only
+  from inside WordPress), the Advanced Tools file manager (CSRF nonce on the file connector),
+  and Config Import (imported code snippets are always imported disabled). Updating recommended.
 
 = 6.140.2 =
 * Changed: the dashboard "License" card now reflects Pro status and links to the Pro "Manage
