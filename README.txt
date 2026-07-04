@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.143.1
+Stable tag: 6.144.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,12 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.144.0 =
+* Added: reusable client-side table pager (`wpArzo.tablePager`) — a filter-aware pager for
+  lists that render every row server-side. The **Email Log** and **Activity Log** now paginate
+  (25 per page) instead of one long scroll; the pager self-hides when everything fits on one
+  page and works together with the existing search/status filters.
 
 = 6.143.1 =
 * Fixed: `<button>`-based `.wpa-tab` tabs (e.g. the Pro Site Health page's Checks / Trends /

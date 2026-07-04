@@ -4,6 +4,29 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.144.0] — 2026-07-05
+
+### Added — reusable client-side table pager (`wpArzo.tablePager`); Email + Activity logs paginate
+
+- New reusable **`wpArzo.tablePager(allRows, { perPage, noun, mountAfter })`** in
+  `wp-arzo-components.js` (+ `.wpa-pager` styles in `wp-arzo-components.css`) — a **filter-aware**
+  client-side pager for surfaces that render every row server-side and filter in the browser. It
+  OWNS row visibility: a page's filter computes the matching rows and calls
+  `pager.setMatches(matches)`; the pager shows one page at a time and hides the rest. It
+  **self-hides when everything fits on a single page** (show-only-when-needed) and preserves the
+  no-JS/server-rendered first paint. This fills the "every list rolls its own pager" gap.
+- The **Email Log** and **Activity Log** (free) previously rendered *all* rows into one long
+  scroll (capped, but up to hundreds/1,000 rows) with client-side search/status filtering. They
+  now paginate at **25 per page**, driven by that shared pager and wired into their existing
+  filters — filtering re-pages the matching set, and short logs are unchanged.
+
+### Fixed — Cron Manager “Events” pager (Pro) Next/Prev did nothing
+
+- Companion Pro fix (**Pro 1.65.3**): the Cron Manager Events tab enabled its **Next →** button
+  from the real page count but hard-coded the JS paging state to `pages = 1`, so `if (page < pages)`
+  was always false and clicks were silent no-ops. It now seeds `page`/`pages` from server-rendered
+  `data-paged`/`data-pages` attributes (the pattern the Advanced Audit Log already uses).
+
 ## [6.143.1] — 2026-07-05
 
 ### Fixed — `<button>` tabs lost the dark pill styling

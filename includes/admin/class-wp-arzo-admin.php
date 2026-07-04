@@ -3083,18 +3083,22 @@ class WP_Arzo_Admin
                     empty = document.getElementById('wpa-activity-empty');
                 if (!table) { return; }
                 var rows = Array.prototype.slice.call(table.querySelectorAll('tbody tr[data-action]'));
+                var card = table.closest('.wpa-card');
+                var pager = (window.wpArzo && wpArzo.tablePager)
+                    ? wpArzo.tablePager(rows, { perPage: 25, noun: 'event', mountAfter: card })
+                    : null;
                 function apply() {
                     var s = sev ? sev.value : '', a = act ? act.value : '',
-                        text = (q ? q.value : '').trim().toLowerCase(), shown = 0;
-                    rows.forEach(function (tr) {
-                        var ok = (!s || tr.dataset.sev === s) &&
-                                 (!a || tr.dataset.action === a) &&
-                                 (!text || tr.dataset.search.indexOf(text) !== -1);
-                        tr.hidden = !ok;
-                        if (ok) { shown++; }
+                        text = (q ? q.value : '').trim().toLowerCase();
+                    var matches = rows.filter(function (tr) {
+                        return (!s || tr.dataset.sev === s) &&
+                               (!a || tr.dataset.action === a) &&
+                               (!text || tr.dataset.search.indexOf(text) !== -1);
                     });
-                    if (empty) { empty.hidden = shown !== 0; }
+                    if (empty) { empty.hidden = matches.length !== 0; }
                     if (reset) { reset.hidden = !(s || a || text); }
+                    if (pager) { pager.setMatches(matches); }
+                    else { rows.forEach(function (tr) { tr.hidden = matches.indexOf(tr) === -1; }); }
                 }
                 [sev, act].forEach(function (el) { if (el) { el.addEventListener('change', apply); } });
                 if (q) { q.addEventListener('input', apply); }
