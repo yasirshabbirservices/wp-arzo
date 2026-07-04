@@ -224,6 +224,75 @@
     });
   };
 
+  // ------------------------------------------------------- Client-side table pager
+  // A filter-aware pager for lists that render every row server-side (Email Log,
+  // Activity Log …). It OWNS row visibility: after your filter decides which rows
+  // match, call pager.setMatches(matchingRowsArray) — the pager shows one page at a
+  // time and hides the rest. It self-hides when everything fits on one page
+  // (show-only-when-needed) and keeps the no-JS/server-rendered first paint (all
+  // rows show until JS runs). Tokens/classes only.
+  //
+  //   var pager = wpArzo.tablePager(allRows, { perPage: 25, mountAfter: tableCard });
+  //   function apply() { …; pager.setMatches(allRows.filter(isVisible)); }
+  //
+  wpArzo.tablePager = function (allRows, opts) {
+    opts = opts || {};
+    allRows = Array.prototype.slice.call(allRows || []);
+    var perPage = Math.max(1, opts.perPage || 25);
+    var noun = opts.noun || 'item';
+    var page = 1;
+    var matches = allRows.slice();
+
+    var bar = document.createElement('div');
+    bar.className = 'wpa-pager';
+    var info = document.createElement('span');
+    info.className = 'wpa-pager__info';
+    var nav = document.createElement('span');
+    nav.className = 'wpa-pager__nav';
+    var prev = document.createElement('button');
+    prev.type = 'button';
+    prev.className = 'wpa-btn wpa-btn--ghost wpa-btn--sm';
+    prev.textContent = '← Prev';
+    var next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'wpa-btn wpa-btn--ghost wpa-btn--sm';
+    next.textContent = 'Next →';
+    nav.appendChild(prev);
+    nav.appendChild(next);
+    bar.appendChild(info);
+    bar.appendChild(nav);
+
+    function pageCount() { return Math.max(1, Math.ceil(matches.length / perPage)); }
+    function render() {
+      var pages = pageCount();
+      if (page > pages) { page = pages; }
+      if (page < 1) { page = 1; }
+      var start = (page - 1) * perPage;
+      allRows.forEach(function (r) { r.hidden = true; });
+      matches.slice(start, start + perPage).forEach(function (r) { r.hidden = false; });
+      info.textContent = matches.length
+        ? ('Page ' + page + ' of ' + pages + ' · ' + matches.length + ' ' + noun + (matches.length === 1 ? '' : 's'))
+        : '';
+      prev.disabled = page <= 1;
+      next.disabled = page >= pages;
+      // Only surface the pager when there's more than one page to move between.
+      bar.style.display = matches.length > perPage ? 'flex' : 'none';
+    }
+    prev.addEventListener('click', function () { if (page > 1) { page--; render(); } });
+    next.addEventListener('click', function () { if (page < pageCount()) { page++; render(); } });
+
+    if (opts.mountAfter && opts.mountAfter.parentNode) {
+      opts.mountAfter.parentNode.insertBefore(bar, opts.mountAfter.nextSibling);
+    }
+    render();
+
+    return {
+      element: bar,
+      setMatches: function (m) { matches = Array.prototype.slice.call(m || []); page = 1; render(); },
+      refresh: render
+    };
+  };
+
   // -------------------------------------------------------------- Boot
   function init() { wpArzo.initSelects(document); wpArzo.initCollapses(document); }
   if (document.readyState === 'loading') {

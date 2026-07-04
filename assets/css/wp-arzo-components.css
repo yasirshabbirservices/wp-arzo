@@ -905,3 +905,15 @@ html.wpa-scroll-locked, body.wpa-scroll-locked { overflow: hidden !important; }
   .wpa-vnav { position: static; flex-direction: row; flex-wrap: wrap; }
   .wpa-vnav .wpa-tab { width: auto; }
 }
+
+/* ------------------------------------------------------------------ Pager
+   Client-side pager for render-all lists (Email Log, Activity Log …), built by
+   wpArzo.tablePager(). Self-hides at a single page. */
+.wpa-pager {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: var(--arzo-space-3);
+  margin-top: var(--arzo-space-3);
+  flex-wrap: wrap;
+}
+.wpa-pager__info { color: var(--arzo-text-muted); font-size: var(--arzo-fs-sm); }
+.wpa-pager__nav { display: inline-flex; gap: var(--arzo-space-2); }

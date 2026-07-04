@@ -836,18 +836,21 @@
     var search = document.getElementById('wpa-emaillog-search');
     var status = document.getElementById('wpa-emaillog-status');
     var emptyEl = document.getElementById('wpa-emaillog-empty');
+    var emailCard = table.closest('.wpa-card');
+    var emailPager = (window.wpArzo && wpArzo.tablePager)
+      ? wpArzo.tablePager(rows, { perPage: 25, noun: 'email', mountAfter: emailCard })
+      : null;
     function applyFilter() {
       var q = (search && search.value ? search.value : '').trim().toLowerCase();
       var st = status && status.value ? status.value : 'all';
-      var shown = 0;
-      rows.forEach(function (row) {
+      var matches = rows.filter(function (row) {
         var okText = !q || (row.getAttribute('data-filter') || '').indexOf(q) !== -1;
         var okStat = st === 'all' || row.getAttribute('data-status') === st;
-        var vis = okText && okStat;
-        row.hidden = !vis;
-        if (vis) shown++;
+        return okText && okStat;
       });
-      if (emptyEl) emptyEl.hidden = shown !== 0;
+      if (emptyEl) emptyEl.hidden = matches.length !== 0;
+      if (emailPager) { emailPager.setMatches(matches); }
+      else { rows.forEach(function (row) { row.hidden = matches.indexOf(row) === -1; }); }
     }
     if (search) search.addEventListener('input', applyFilter);
     if (status) status.addEventListener('change', applyFilter);
