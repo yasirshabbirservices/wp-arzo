@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.141.2
+Stable tag: 6.142.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.142.0 =
+* Added: `menu` and `eye-off` icons; the Pro catalog now advertises the new **Admin Menu
+  Manager** (drag-drop reorder / hide / rename wp-admin menus, saved per role).
 
 = 6.141.2 =
 * Fixed: the "Analytics — last 7 days" dashboard widget showed dark KPI numbers on dark tiles

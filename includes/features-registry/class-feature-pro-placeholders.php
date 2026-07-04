@@ -108,6 +108,7 @@ function wp_arzo_pro_feature_catalog()
         // Branding & UI
         array('id' => 'admin_branding', 'title' => 'Admin Branding & Dashboard', 'group' => 'branding', 'icon' => 'sparkles', 'description' => 'White-label wp-admin: accent color, custom footer, and a Custom Dashboard — a branded welcome panel, or render any Bricks / Elementor / Divi / WordPress page or template as the entire dashboard (optionally only for non-admins).'),
         array('id' => 'text_replacement', 'title' => 'Text Replacement (White-label)', 'group' => 'branding', 'icon' => 'edit', 'description' => 'Rebrand wp-admin — replace any text (e.g. “WordPress” → your brand) across menus, toolbar and labels.'),
+        array('id' => 'menu_manager', 'title' => 'Admin Menu Manager', 'group' => 'branding', 'icon' => 'menu', 'description' => 'Reorder, hide and rename wp-admin menu items with drag-and-drop — saved per role (a lean menu for clients, the full menu for admins).'),
 
         // Security
         array('id' => 'two_factor', 'title' => 'Two-Factor Authentication', 'group' => 'security', 'icon' => 'lock', 'description' => 'Add an authenticator-app second factor (TOTP) to login, with one-time recovery codes and an admin reset. Strictly opt-in per user.'),
