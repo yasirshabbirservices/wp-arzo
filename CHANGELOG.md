@@ -4,6 +4,25 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.141.0] — 2026-07-04
+
+### Security — hardening across the Emergency tool, file manager, and config import
+
+A security review pass hardened several administration surfaces. **Updating is recommended.**
+
+- **Emergency Recovery tool** — the recovery password can now only be set from inside
+  WordPress (**WP Arzo → Advanced Tools → Site Modes → Emergency Recovery**). The public
+  recovery page no longer offers a "create password" step; when it hasn't been configured
+  it shows setup guidance instead. Set it up **before** you need it, then bookmark the page.
+- **File manager (Advanced Tools → Files)** — the elFinder backend connector now verifies a
+  security token (nonce) on every request, closing a cross-site-request-forgery gap. No
+  change to normal use — the file manager works exactly as before.
+- **Config Import** — imported code snippets are now always imported **disabled**. Review and
+  enable each snippet manually after an import (imported configs can carry executable PHP).
+- **File download confinement** — tightened the path check used by the console's download
+  helper so it can't be satisfied by a sibling directory whose name merely starts with the
+  site root.
+
 ## [6.140.2] — 2026-07-04
 
 ### Changed — dashboard License card links to the Manage License page

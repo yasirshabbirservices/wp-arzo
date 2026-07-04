@@ -46,8 +46,12 @@ if (isset($_GET['download'])) {
     // (e.g. /etc/passwd, private keys, parent-directory secrets).
     $real_target = realpath($file_path);
     $real_root   = realpath(ABSPATH);
+    // Compare against the root WITH a trailing separator so a sibling directory whose name
+    // merely starts with the root string (e.g. "/var/www/html-backup" vs "/var/www/html")
+    // can't slip past the containment check.
     $is_contained = ($real_target !== false && $real_root !== false &&
-        strpos($real_target, $real_root) === 0);
+        ($real_target === $real_root ||
+            strpos($real_target, rtrim($real_root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR) === 0));
 
     if ($is_contained && file_exists($real_target) && is_file($real_target)) {
         $file_path = $real_target;

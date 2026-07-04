@@ -147,6 +147,11 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
         if (!empty($clean['snippets']) && class_exists('WP_Arzo_Snippets')) {
             $snippets = WP_Arzo_Snippets::instance();
             foreach ($clean['snippets'] as $s) {
+                // Security: never auto-activate imported code. A config file can be shared
+                // between sites and may carry arbitrary PHP snippets; forcing every imported
+                // snippet inactive means an admin must review and manually enable each one
+                // before it can execute — closing the "import a file → silent RCE" path.
+                $s['active'] = 0;
                 $snippets->save($s); // preserves id → overwrites match, else appends
                 $imported++;
             }

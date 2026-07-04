@@ -42,6 +42,19 @@ if (!function_exists('wp_arzo_elfinder_access')) {
 // --- BACKEND CONNECTOR ---
 if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
 
+    // CSRF protection: this connector performs full read/write/upload/delete/rename on the
+    // WordPress tree, so require a valid nonce on EVERY request. The elFinder client sends it
+    // as `customData` (see the init below), which it appends to all commands — AJAX, uploads,
+    // and the download/open GET URLs alike — so verifying it here breaks nothing for the real
+    // UI while blocking cross-site (CSRF) requests that ride an admin's cookies.
+    $wp_arzo_fm_nonce = isset($_REQUEST['nonce']) ? sanitize_text_field(wp_unslash($_REQUEST['nonce'])) : '';
+    if (!wp_verify_nonce($wp_arzo_fm_nonce, 'wp_arzo_fm')) {
+        header('Content-Type: application/json');
+        status_header(403);
+        echo json_encode(['error' => ['Invalid or expired security token. Reload the page and try again.']]);
+        exit;
+    }
+
     // Disable error reporting to prevent JSON corruption
     error_reporting(0);
     
@@ -157,6 +170,9 @@ if (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector') {
             
             $('#elfinder').elfinder({
                 url : connectorUrl,
+                // Sent with every connector request (AJAX, uploads, download/open URLs) so the
+                // server can verify the CSRF nonce. See the connector guard in this file.
+                customData : { nonce : (window.fm && window.fm.nonce) ? window.fm.nonce : '' },
                 lang : 'en',
                 height: height,
                 defaultView: 'list',

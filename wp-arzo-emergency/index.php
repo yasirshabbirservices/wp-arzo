@@ -164,17 +164,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $error_msg = 'Invalid password.';
             }
         }
-    } elseif ($_POST['action'] === 'setup' && $setup_mode) {
-        if (isset($_POST['new_password']) && !empty($_POST['new_password'])) {
-            $hash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-            $config_content = "<?php\n// WP Arzo Emergency Config\n// DO NOT EDIT MANUALLY\ndefine('WP_ARZO_EMERGENCY_HASH', '$hash');\n";
-            if (file_put_contents(WP_ARZO_CONFIG_FILE, $config_content)) {
-                $_SESSION['arzo_emergency_auth'] = true;
-                redirect($redirect_base);
-            } else {
-                $error_msg = 'Failed to write config file. Check permissions.';
-            }
-        }
     } elseif ($_POST['action'] === 'logout') {
         session_destroy();
         redirect($redirect_base);
@@ -1269,16 +1258,28 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                 <?php if ($success_msg) echo "<div class='alert alert-success' style='text-align:left; margin-bottom:20px;'>$success_msg</div>"; ?>
                 <?php if ($error_msg) echo "<div class='alert alert-error' style='text-align:left; margin-bottom:20px;'>$error_msg</div>"; ?>
 
-                <form method="post">
-                    <input type="hidden" name="action" value="<?php echo $setup_mode ? 'setup' : 'login'; ?>">
-                    <div style="text-align: left; margin-bottom: 5px;">
-                        <label
-                            style="font-size: 12px; color: var(--muted-text); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;"><?php echo $setup_mode ? 'Create Password' : 'Password'; ?></label>
+                <?php if ($setup_mode): ?>
+                    <div class="alert alert-error" style="text-align:left; margin-bottom:0;">
+                        <strong>Emergency Recovery is not configured yet.</strong>
+                        <p style="margin:10px 0 0;">For security, the recovery password can only be
+                            set from inside WordPress — it can't be created from this public page.</p>
+                        <p style="margin:10px 0 0;">Log in to <strong>wp-admin</strong> and go to
+                            <em>WP Arzo &rarr; Advanced Tools &rarr; Site Modes &rarr; Emergency
+                                Recovery</em>, toggle it on to generate a password, then bookmark
+                            this page. Set it up <strong>before</strong> you need it.</p>
                     </div>
-                    <input type="password" name="<?php echo $setup_mode ? 'new_password' : 'password'; ?>"
-                        class="form-control" placeholder="Enter your password" required autofocus>
-                    <button type="submit" class="btn"><?php echo arzo_em_icon($setup_mode ? 'check' : 'shield'); ?> <?php echo $setup_mode ? 'Create & Login' : 'Login'; ?></button>
-                </form>
+                <?php else: ?>
+                    <form method="post">
+                        <input type="hidden" name="action" value="login">
+                        <div style="text-align: left; margin-bottom: 5px;">
+                            <label
+                                style="font-size: 12px; color: var(--muted-text); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Password</label>
+                        </div>
+                        <input type="password" name="password"
+                            class="form-control" placeholder="Enter your password" required autofocus>
+                        <button type="submit" class="btn"><?php echo arzo_em_icon('shield'); ?> Login</button>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
     <?php else: ?>
