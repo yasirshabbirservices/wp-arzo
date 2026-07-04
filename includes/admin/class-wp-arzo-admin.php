@@ -3540,13 +3540,15 @@ class WP_Arzo_Admin
                 </div>
             </div>
 
-            <nav class="wpa-tabs" role="tablist" aria-label="Reports" id="wpa-an-views" data-nonce="<?php echo esc_attr($nonce); ?>" style="margin-bottom:var(--arzo-space-4,16px);">
-                <?php foreach ($tabs as $key => $t) : ?>
-                    <a class="wpa-tab<?php echo $key === $tab ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo $key === $tab ? 'true' : 'false'; ?>" href="<?php echo esc_url(add_query_arg(array('view' => $key, 'range' => $range), $base)); ?>" data-view="<?php echo esc_attr($key); ?>"><?php echo wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')); ?><span><?php echo esc_html($t['label']); ?></span></a>
-                <?php endforeach; ?>
-            </nav>
+            <div class="wpa-vnav-layout">
+                <nav class="wpa-vnav" role="tablist" aria-orientation="vertical" aria-label="Reports" id="wpa-an-views" data-nonce="<?php echo esc_attr($nonce); ?>">
+                    <?php foreach ($tabs as $key => $t) : ?>
+                        <a class="wpa-tab<?php echo $key === $tab ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo $key === $tab ? 'true' : 'false'; ?>" href="<?php echo esc_url(add_query_arg(array('view' => $key, 'range' => $range), $base)); ?>" data-view="<?php echo esc_attr($key); ?>"><?php echo wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')); ?><span><?php echo esc_html($t['label']); ?></span></a>
+                    <?php endforeach; ?>
+                </nav>
 
-            <div id="wpa-an-body"><?php echo $this->analytics_body($from, $to, $tab); ?></div>
+                <div id="wpa-an-body"><?php echo $this->analytics_body($from, $to, $tab); ?></div>
+            </div>
 
             <script>
             (function () {
