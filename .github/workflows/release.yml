@@ -36,7 +36,6 @@ jobs:
             --exclude='build' \
             --exclude='.gitignore' \
             --exclude='.gitattributes' \
-            --exclude='assets/libs/adminneo/adminneo-config.php' \
             ./ build/wp-arzo/
           (cd build && zip -rq wp-arzo.zip wp-arzo)
           ls -la build
