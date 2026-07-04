@@ -4,6 +4,16 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.142.0] — 2026-07-05
+
+### Added — icons + catalog entry for the Pro Admin Menu Manager
+
+- New `menu` (hamburger) and `eye-off` icons in `wp_arzo_icon_paths()`.
+- The Pro showcase catalog now advertises the new **Admin Menu Manager** (Pro v1.65.0):
+  drag-and-drop reorder, hide and rename wp-admin menu items, saved per role — a lean menu
+  for clients, the full menu for admins. Lives at WP Arzo → Settings → Admin Menu when the
+  Pro add-on is active.
+
 ## [6.141.2] — 2026-07-05
 
 ### Fixed — Analytics dashboard widget contrast
