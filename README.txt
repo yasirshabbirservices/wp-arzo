@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.141.1
+Stable tag: 6.141.2
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.141.2 =
+* Fixed: the "Analytics — last 7 days" dashboard widget showed dark KPI numbers on dark tiles
+  (it used the dark admin-dashboard tokens on the light wp-admin dashboard) — now readable.
 
 = 6.141.1 =
 * Changed: Pro “Admin Branding & Dashboard” card copy now advertises the full-page Custom

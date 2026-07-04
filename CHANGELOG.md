@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.141.2] — 2026-07-05
+
+### Fixed — Analytics dashboard widget contrast
+
+The "Analytics — last 7 days" wp-admin **dashboard widget** showed its KPI numbers dark-on-dark:
+the KPI tiles referenced WP Arzo's **dark** `--arzo-*` design tokens (enqueued admin-wide) while the
+widget renders on the standard **light** dashboard. The tiles now use explicit light-context colors
+(light tile, dark number) so the counts are always readable.
+
 ## [6.141.1] — 2026-07-04
 
 ### Changed — Pro “Admin Branding & Dashboard” card advertises the full-page dashboard

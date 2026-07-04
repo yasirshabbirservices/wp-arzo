@@ -1455,11 +1455,14 @@ class WP_Arzo_Feature_Analytics extends WP_Arzo_Feature
             array('Sessions', number_format_i18n($o['sessions'])),
             array('Bounce', $o['bounce'] . '%'),
         );
+        // Explicit light-context colors: this widget renders on the standard (light) wp-admin
+        // dashboard, NOT inside .wpa-admin, so it must NOT use WP Arzo's dark --arzo-* tokens
+        // (which are enqueued admin-wide and would render dark numbers on a dark tile).
         echo '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">';
         foreach ($tiles as $t) {
-            echo '<div style="text-align:center;padding:8px;background:var(--arzo-bg-elev,#f6f7f7);border-radius:8px;">'
-                . '<strong style="display:block;font-size:1.3rem;">' . esc_html($t[1]) . '</strong>'
-                . '<span style="color:var(--arzo-text-muted,#646970);font-size:.8rem;">' . esc_html($t[0]) . '</span></div>';
+            echo '<div style="text-align:center;padding:10px 8px;background:#f6f7f7;border:1px solid #e2e4e7;border-radius:8px;">'
+                . '<strong style="display:block;font-size:1.3rem;color:#1d2327;">' . esc_html($t[1]) . '</strong>'
+                . '<span style="color:#646970;font-size:.8rem;">' . esc_html($t[0]) . '</span></div>';
         }
         echo '</div>';
         if (!empty($pages)) {
