@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.142.0
+Stable tag: 6.143.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.143.0 =
+* Changed: the Analytics page's report tabs moved from a horizontal row to a new reusable
+  `.wpa-vnav` left-sidebar rail — much better with many tabs (Pro adds Campaigns, Real-time,
+  Events, Journeys, eCommerce…). Few-tab pages keep the horizontal pills.
 
 = 6.142.0 =
 * Added: `menu` and `eye-off` icons; the Pro catalog now advertises the new **Admin Menu

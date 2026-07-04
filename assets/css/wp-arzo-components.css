@@ -870,3 +870,30 @@ html.wpa-scroll-locked, body.wpa-scroll-locked { overflow: hidden !important; }
   from { transform: scale(.94); opacity: .6; }
   to   { transform: scale(1);   opacity: 1; }
 }
+
+/* --------------------------------------------------- Vertical nav (vnav)
+   Left-sidebar navigation for MANY-tab pages (6+ sections, e.g. Analytics).
+   Reuses .wpa-tab items — same state set, laid out as a vertical rail beside
+   a content pane. Few-tab pages keep the horizontal .wpa-tabs pills. */
+.wpa-vnav-layout {
+  display: grid;
+  grid-template-columns: clamp(160px, 18vw, 220px) minmax(0, 1fr);
+  gap: var(--arzo-space-4);
+  align-items: start;
+}
+.wpa-vnav {
+  display: flex; flex-direction: column; gap: var(--arzo-space-1);
+  padding: var(--arzo-space-1);
+  background: var(--arzo-bg-panel);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius-lg);
+  position: sticky;
+  top: calc(var(--arzo-space-10) + var(--arzo-space-2)); /* clears the admin bar */
+  max-width: 100%;
+}
+.wpa-vnav .wpa-tab { width: 100%; justify-content: flex-start; }
+@media (max-width: 782px) {
+  .wpa-vnav-layout { grid-template-columns: minmax(0, 1fr); }
+  .wpa-vnav { position: static; flex-direction: row; flex-wrap: wrap; }
+  .wpa-vnav .wpa-tab { width: auto; }
+}

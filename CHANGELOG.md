@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.143.0] — 2026-07-05
+
+### Changed — Analytics reports get a left-sidebar nav (new `.wpa-vnav` component)
+
+- New reusable **`.wpa-vnav`** component in `wp-arzo-components.css`: a vertical left-sidebar
+  rail for **many-tab pages** (6+ sections). It reuses the `.wpa-tab` item styles (same hover /
+  active / focus-visible / selected state set — no new states to maintain), sits sticky beside
+  a content pane (`.wpa-vnav-layout` grid), and collapses to a wrapping horizontal row on
+  narrow screens. Few-tab pages keep the horizontal `.wpa-tabs` pills.
+- The **Analytics page** is the first adopter: its report tabs (Overview / Geo / Devices /
+  Behaviour / Google — plus the Pro tabs: Campaigns, Real-time, Events, Journeys, eCommerce,
+  Authors, Content) now render in the sidebar rail. Tabs registered by add-ons via
+  `wp_arzo_analytics_tabs` slot in automatically; the AJAX tab-swap, deep links, CSV export
+  and live auto-refresh behave exactly as before.
+
 ## [6.142.0] — 2026-07-05
 
 ### Added — icons + catalog entry for the Pro Admin Menu Manager
