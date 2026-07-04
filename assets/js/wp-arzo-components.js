@@ -224,72 +224,88 @@
     });
   };
 
-  // ------------------------------------------------------- Client-side table pager
-  // A filter-aware pager for lists that render every row server-side (Email Log,
-  // Activity Log …). It OWNS row visibility: after your filter decides which rows
-  // match, call pager.setMatches(matchingRowsArray) — the pager shows one page at a
-  // time and hides the rest. It self-hides when everything fits on one page
-  // (show-only-when-needed) and keeps the no-JS/server-rendered first paint (all
-  // rows show until JS runs). Tokens/classes only.
+  // --------------------------------------------------- Server-side AJAX list pager
+  // Reusable controller for admin list tables that paginate + filter server-side
+  // (Email Log, Activity Log, …). The first page is rendered server-side (works with
+  // no JS); this then binds the filter inputs + Prev/Next to an admin-ajax endpoint
+  // that returns { html, total, pages, paged } and swaps the <tbody> in place — the
+  // DOM only ever holds one page. This is the project's required list pattern.
   //
-  //   var pager = wpArzo.tablePager(allRows, { perPage: 25, mountAfter: tableCard });
-  //   function apply() { …; pager.setMatches(allRows.filter(isVisible)); }
+  // Markup contract: a pager element carrying data-paged / data-pages (so Prev/Next
+  // know the real page count on the first click), containing an info span + Prev/Next
+  // buttons. Pass those elements in.
   //
-  wpArzo.tablePager = function (allRows, opts) {
+  //   wpArzo.ajaxList({
+  //     endpoint: 'wp_arzo_email_log_query', nonce: n, ajaxUrl: url, noun: 'email',
+  //     tbody: tbodyEl, pager: pagerEl, info: infoEl, prev: prevBtn, next: nextBtn,
+  //     filters: [ { el: search, key: 'q', on: 'input' }, { el: status, key: 'status', on: 'change' } ],
+  //     onLoad: function (data) { /* re-sync anything derived from the rows */ }
+  //   });
+  //
+  wpArzo.ajaxList = function (opts) {
     opts = opts || {};
-    allRows = Array.prototype.slice.call(allRows || []);
-    var perPage = Math.max(1, opts.perPage || 25);
+    var pager = opts.pager;
+    var page = parseInt(pager && pager.dataset.paged, 10) || 1;
+    var pages = parseInt(pager && pager.dataset.pages, 10) || 1;
     var noun = opts.noun || 'item';
-    var page = 1;
-    var matches = allRows.slice();
+    var ajaxUrl = opts.ajaxUrl || window.ajaxurl;
+    var t, busy = false, seq = 0;
 
-    var bar = document.createElement('div');
-    bar.className = 'wpa-pager';
-    var info = document.createElement('span');
-    info.className = 'wpa-pager__info';
-    var nav = document.createElement('span');
-    nav.className = 'wpa-pager__nav';
-    var prev = document.createElement('button');
-    prev.type = 'button';
-    prev.className = 'wpa-btn wpa-btn--ghost wpa-btn--sm';
-    prev.textContent = '← Prev';
-    var next = document.createElement('button');
-    next.type = 'button';
-    next.className = 'wpa-btn wpa-btn--ghost wpa-btn--sm';
-    next.textContent = 'Next →';
-    nav.appendChild(prev);
-    nav.appendChild(next);
-    bar.appendChild(info);
-    bar.appendChild(nav);
-
-    function pageCount() { return Math.max(1, Math.ceil(matches.length / perPage)); }
-    function render() {
-      var pages = pageCount();
-      if (page > pages) { page = pages; }
-      if (page < 1) { page = 1; }
-      var start = (page - 1) * perPage;
-      allRows.forEach(function (r) { r.hidden = true; });
-      matches.slice(start, start + perPage).forEach(function (r) { r.hidden = false; });
-      info.textContent = matches.length
-        ? ('Page ' + page + ' of ' + pages + ' · ' + matches.length + ' ' + noun + (matches.length === 1 ? '' : 's'))
-        : '';
-      prev.disabled = page <= 1;
-      next.disabled = page >= pages;
-      // Only surface the pager when there's more than one page to move between.
-      bar.style.display = matches.length > perPage ? 'flex' : 'none';
+    function body(p) {
+      var b = new FormData();
+      b.append('action', opts.endpoint);
+      b.append('nonce', opts.nonce || '');
+      b.append('paged', p || 1);
+      (opts.filters || []).forEach(function (f) {
+        if (f.el) { b.append(f.key, f.el.value != null ? f.el.value : ''); }
+      });
+      if (typeof opts.extra === 'function') {
+        var ex = opts.extra() || {};
+        Object.keys(ex).forEach(function (k) { b.append(k, ex[k]); });
+      }
+      return b;
     }
-    prev.addEventListener('click', function () { if (page > 1) { page--; render(); } });
-    next.addEventListener('click', function () { if (page < pageCount()) { page++; render(); } });
-
-    if (opts.mountAfter && opts.mountAfter.parentNode) {
-      opts.mountAfter.parentNode.insertBefore(bar, opts.mountAfter.nextSibling);
+    function paint(d) {
+      page = d.paged; pages = d.pages;
+      if (opts.tbody) { opts.tbody.innerHTML = d.html; }
+      if (opts.info) {
+        opts.info.textContent = d.total
+          ? ('Page ' + page + ' of ' + pages + ' · ' + d.total + ' ' + noun + (d.total === 1 ? '' : 's'))
+          : '';
+      }
+      if (opts.prev) { opts.prev.disabled = page <= 1; }
+      if (opts.next) { opts.next.disabled = page >= pages; }
+      if (pager) { pager.style.display = pages > 1 ? 'flex' : 'none'; }
+      if (typeof opts.onLoad === 'function') { opts.onLoad(d); }
     }
-    render();
+    function load(p) {
+      var my = ++seq; // sequence guard: only the most recent request may paint
+      busy = true;
+      return fetch(ajaxUrl, { method: 'POST', body: body(p), credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (my !== seq) { return; } // superseded by a newer request — drop this stale response
+          busy = false;
+          if (res && res.success) { paint(res.data); }
+        })
+        .catch(function () { if (my === seq) { busy = false; } });
+    }
+
+    (opts.filters || []).forEach(function (f) {
+      if (!f.el) { return; }
+      if (f.on === 'input') {
+        f.el.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { load(1); }, 300); });
+      } else {
+        f.el.addEventListener('change', function () { load(1); });
+      }
+    });
+    if (opts.prev) { opts.prev.addEventListener('click', function () { if (!busy && page > 1) { load(page - 1); } }); }
+    if (opts.next) { opts.next.addEventListener('click', function () { if (!busy && page < pages) { load(page + 1); } }); }
 
     return {
-      element: bar,
-      setMatches: function (m) { matches = Array.prototype.slice.call(m || []); page = 1; render(); },
-      refresh: render
+      load: load,
+      reload: function () { return load(page); },
+      page: function () { return page; }
     };
   };
 

@@ -54,6 +54,10 @@ class WP_Arzo_Admin
     const NONCE_LOGIN_SECURITY = 'wp_arzo_login_security';
     const NONCE_EMAIL_CONN = 'wp_arzo_email_conn';
 
+    // Server-side AJAX list page sizes (Email Log / Activity Log paginate via admin-ajax).
+    const EMAIL_LOG_PER_PAGE = 25;
+    const ACTIVITY_PER_PAGE = 25;
+
     public static function instance()
     {
         if (self::$instance === null) {
@@ -92,6 +96,7 @@ class WP_Arzo_Admin
         add_action('admin_post_wp_arzo_snippets_export', array($this, 'handle_snippets_export'));
         add_action('admin_post_wp_arzo_snippets_import', array($this, 'handle_snippets_import'));
         add_action('wp_ajax_wp_arzo_email_log_detail', array($this, 'ajax_email_log_detail'));
+        add_action('wp_ajax_wp_arzo_email_log_query', array($this, 'ajax_email_log_query'));
         add_action('wp_ajax_wp_arzo_activate_license', array($this, 'ajax_activate_license'));
         add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
         add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
@@ -104,6 +109,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_media_scan', array($this, 'ajax_media_scan'));
         add_action('wp_ajax_wp_arzo_media_delete', array($this, 'ajax_media_delete'));
         add_action('wp_ajax_wp_arzo_activity_clear', array($this, 'ajax_activity_clear'));
+        add_action('wp_ajax_wp_arzo_activity_query', array($this, 'ajax_activity_query'));
         add_action('wp_ajax_wp_arzo_activity_session_kill', array($this, 'ajax_session_kill'));
         add_action('wp_ajax_wp_arzo_analytics_query', array($this, 'ajax_analytics_query'));
         add_action('admin_post_wp_arzo_analytics_export', array($this, 'handle_analytics_export'));
@@ -1754,41 +1760,24 @@ class WP_Arzo_Admin
                     <thead>
                         <tr><th>Time (UTC)</th><th>To</th><th>Subject</th><th>Connection</th><th>Status</th><?php if ($has_tracking) : ?><th title="Opens · Clicks (Email Tracking)">Engagement</th><?php endif; ?></tr>
                     </thead>
-                    <tbody>
-                        <?php if (empty($log)) : ?>
-                            <tr class="wpa-backup-empty"><td colspan="<?php echo $has_tracking ? 6 : 5; ?>">No emails logged yet.</td></tr>
-                        <?php else : foreach ($log as $row) :
-                            $status = isset($row['status']) ? $row['status'] : 'sent';
-                            $failed = ($status === 'failed');
-                            $id     = isset($row['id']) ? (string) $row['id'] : '';
-                            $conn   = (isset($row['connection']) && $row['connection'] !== '') ? (string) $row['connection'] : '';
-                            $opens  = (int) (isset($row['opens']) ? $row['opens'] : 0);
-                            $clicks = (int) (isset($row['clicks']) ? $row['clicks'] : 0);
-                            $needle = strtolower(($row['to'] ?? '') . ' ' . ($row['subject'] ?? '') . ' ' . $conn);
-                            ?>
-                            <tr class="wpa-email-row" data-id="<?php echo esc_attr($id); ?>" data-status="<?php echo esc_attr($failed ? 'failed' : 'sent'); ?>" data-filter="<?php echo esc_attr($needle); ?>" tabindex="0" style="cursor:pointer;">
-                                <td><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['time'] ?? 0))); ?></td>
-                                <td><?php echo esc_html($row['to'] ?? ''); ?></td>
-                                <td><?php echo esc_html($row['subject'] ?? ''); ?></td>
-                                <td style="color:var(--arzo-text-muted);"><?php echo $conn !== '' ? esc_html($conn) : '—'; ?></td>
-                                <td>
-                                    <span class="wpa-badge <?php echo $failed ? 'wpa-badge--error' : 'wpa-badge--success'; ?>">
-                                        <?php echo wp_arzo_icon($failed ? 'x' : 'check', array('class' => 'wpa-icon')); ?>
-                                        <?php echo $failed ? 'Failed' : 'Sent'; ?>
-                                    </span>
-                                </td>
-                                <?php if ($has_tracking) : ?>
-                                    <td style="white-space:nowrap;color:var(--arzo-text-muted);font-size:.9em;" title="<?php echo esc_attr($opens . ' open' . ($opens === 1 ? '' : 's') . ' · ' . $clicks . ' click' . ($clicks === 1 ? '' : 's')); ?>">
-                                        <span style="color:<?php echo $opens ? 'var(--arzo-success)' : 'inherit'; ?>;"><?php echo wp_arzo_icon('eye', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $opens; ?></span>
-                                        <span style="margin-left:8px;color:<?php echo $clicks ? 'var(--arzo-accent)' : 'inherit'; ?>;"><?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $clicks; ?></span>
-                                    </td>
-                                <?php endif; ?>
-                            </tr>
-                        <?php endforeach; endif; ?>
+                    <tbody id="wpa-emaillog-rows">
+                        <?php
+                        $per   = self::EMAIL_LOG_PER_PAGE;
+                        $pages = max(1, (int) ceil($total / $per));
+                        // First page is rendered server-side (works with no JS); the pager
+                        // then fetches subsequent pages/filters via admin-ajax and swaps rows.
+                        echo $this->render_email_log_rows(array_slice($log, 0, $per), $has_tracking, 'No emails logged yet.'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        ?>
                     </tbody>
                 </table>
                 <?php if (!empty($log)) : ?>
-                    <div id="wpa-emaillog-empty" hidden style="padding:24px;text-align:center;color:var(--arzo-text-muted);">No emails match your filter.</div>
+                    <div class="wpa-pager" id="wpa-emaillog-pager" data-nonce="<?php echo esc_attr($email_nonce); ?>" data-paged="1" data-pages="<?php echo (int) $pages; ?>" style="display:<?php echo $pages > 1 ? 'flex' : 'none'; ?>;padding:12px 16px;margin:0;border-top:1px solid var(--arzo-border);">
+                        <span class="wpa-pager__info" id="wpa-emaillog-pageinfo"><?php echo $total ? esc_html('Page 1 of ' . (int) $pages . ' · ' . (int) $total . ' email' . ($total === 1 ? '' : 's')) : ''; ?></span>
+                        <span class="wpa-pager__nav">
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-emaillog-prev" disabled>← Prev</button>
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-emaillog-next" <?php disabled($pages <= 1); ?>>Next →</button>
+                        </span>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -1812,6 +1801,110 @@ class WP_Arzo_Admin
                 </div>
             <?php endif; ?>
         <?php
+    }
+
+    /**
+     * Render a set of email-log rows to <tr> HTML. Shared by the server-rendered
+     * first page and the AJAX pager so both stay identical. $has_tracking must be
+     * computed from the FULL log (it controls the Engagement column) so the row
+     * cell count always matches the header.
+     */
+    private function render_email_log_rows($rows, $has_tracking, $empty_msg = '')
+    {
+        if (empty($rows)) {
+            $colspan = $has_tracking ? 6 : 5;
+            return '<tr class="wpa-backup-empty"><td colspan="' . (int) $colspan . '">'
+                . esc_html($empty_msg !== '' ? $empty_msg : 'No emails logged yet.') . '</td></tr>';
+        }
+        ob_start();
+        foreach ($rows as $row) {
+            $status = isset($row['status']) ? $row['status'] : 'sent';
+            $failed = ($status === 'failed');
+            $id     = isset($row['id']) ? (string) $row['id'] : '';
+            $conn   = (isset($row['connection']) && $row['connection'] !== '') ? (string) $row['connection'] : '';
+            $opens  = (int) (isset($row['opens']) ? $row['opens'] : 0);
+            $clicks = (int) (isset($row['clicks']) ? $row['clicks'] : 0);
+            $needle = strtolower(($row['to'] ?? '') . ' ' . ($row['subject'] ?? '') . ' ' . $conn);
+            ?>
+            <tr class="wpa-email-row" data-id="<?php echo esc_attr($id); ?>" data-status="<?php echo esc_attr($failed ? 'failed' : 'sent'); ?>" data-filter="<?php echo esc_attr($needle); ?>" tabindex="0" style="cursor:pointer;">
+                <td><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['time'] ?? 0))); ?></td>
+                <td><?php echo esc_html($row['to'] ?? ''); ?></td>
+                <td><?php echo esc_html($row['subject'] ?? ''); ?></td>
+                <td style="color:var(--arzo-text-muted);"><?php echo $conn !== '' ? esc_html($conn) : '—'; ?></td>
+                <td>
+                    <span class="wpa-badge <?php echo $failed ? 'wpa-badge--error' : 'wpa-badge--success'; ?>">
+                        <?php echo wp_arzo_icon($failed ? 'x' : 'check', array('class' => 'wpa-icon')); ?>
+                        <?php echo $failed ? 'Failed' : 'Sent'; ?>
+                    </span>
+                </td>
+                <?php if ($has_tracking) : ?>
+                    <td style="white-space:nowrap;color:var(--arzo-text-muted);font-size:.9em;" title="<?php echo esc_attr($opens . ' open' . ($opens === 1 ? '' : 's') . ' · ' . $clicks . ' click' . ($clicks === 1 ? '' : 's')); ?>">
+                        <span style="color:<?php echo $opens ? 'var(--arzo-success)' : 'inherit'; ?>;"><?php echo wp_arzo_icon('eye', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $opens; ?></span>
+                        <span style="margin-left:8px;color:<?php echo $clicks ? 'var(--arzo-accent)' : 'inherit'; ?>;"><?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $clicks; ?></span>
+                    </td>
+                <?php endif; ?>
+            </tr>
+            <?php
+        }
+        return ob_get_clean();
+    }
+
+    /** Filter the email log by free-text (to/subject/connection) + status (all|sent|failed). */
+    private function filter_email_log($log, $q, $status)
+    {
+        $q = strtolower(trim($q));
+        return array_values(array_filter($log, function ($row) use ($q, $status) {
+            $st = (isset($row['status']) && $row['status'] === 'failed') ? 'failed' : 'sent';
+            if (($status === 'sent' || $status === 'failed') && $st !== $status) {
+                return false;
+            }
+            if ($q !== '') {
+                $conn = (isset($row['connection']) && $row['connection'] !== '') ? (string) $row['connection'] : '';
+                $hay  = strtolower(($row['to'] ?? '') . ' ' . ($row['subject'] ?? '') . ' ' . $conn);
+                if (strpos($hay, $q) === false) {
+                    return false;
+                }
+            }
+            return true;
+        }));
+    }
+
+    /** AJAX: paginated + filtered email-log rows (server-side, in-place table swap). */
+    public function ajax_email_log_query()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_EMAIL, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $log = get_option('wp_arzo_email_log', array());
+        if (!is_array($log)) {
+            $log = array();
+        }
+        // Engagement column presence is a whole-log property (must match the header).
+        $has_tracking = false;
+        foreach ($log as $r) {
+            if (isset($r['opens']) || isset($r['clicks'])) {
+                $has_tracking = true;
+                break;
+            }
+        }
+        $q      = sanitize_text_field(wp_unslash($_POST['q'] ?? ''));
+        $status = sanitize_key($_POST['status'] ?? 'all');
+        $paged  = max(1, (int) ($_POST['paged'] ?? 1));
+
+        $filtered = $this->filter_email_log($log, $q, $status);
+        $total    = count($filtered);
+        $per      = self::EMAIL_LOG_PER_PAGE;
+        $pages    = max(1, (int) ceil($total / $per));
+        $paged    = min($paged, $pages);
+        $slice    = array_slice($filtered, ($paged - 1) * $per, $per);
+        $empty    = ($q !== '' || ($status !== '' && $status !== 'all')) ? 'No emails match your filter.' : 'No emails logged yet.';
+
+        wp_send_json_success(array(
+            'html'  => $this->render_email_log_rows($slice, $has_tracking, $empty),
+            'total' => $total,
+            'pages' => $pages,
+            'paged' => $paged,
+        ));
     }
 
     /** Email → Stats: per-connection volume + deliverability trend over time. */
@@ -3026,97 +3119,137 @@ class WP_Arzo_Admin
                     <thead>
                         <tr><th>Time (UTC)</th><th>Severity</th><th>Event</th><th>Detail</th><th>User</th><th>IP</th></tr>
                     </thead>
-                    <tbody>
-                        <?php if (empty($log)) : ?>
-                            <tr class="wpa-backup-empty"><td colspan="6">No activity recorded yet.</td></tr>
-                        <?php else : foreach ($log as $row) :
-                            $a    = isset($row['a']) ? $row['a'] : '';
-                            $meta = WP_Arzo_Activity_Log::action_meta($a);
-                            $sev  = WP_Arzo_Activity_Log::action_severity($a);
-                            $sm   = $severities[$sev];
-                            $detail = $row['o'] ?? '';
-                            $user   = $row['ul'] ?? '—';
-                            $ip     = $row['ip'] ?? '';
-                            $search = strtolower($detail . ' ' . $user . ' ' . $ip . ' ' . $meta[0]);
-                            ?>
-                            <tr data-action="<?php echo esc_attr($a); ?>" data-sev="<?php echo esc_attr($sev); ?>" data-search="<?php echo esc_attr($search); ?>">
-                                <td style="white-space:nowrap;"><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['t'] ?? 0))); ?></td>
-                                <td><span class="wpa-badge wpa-badge--<?php echo esc_attr($sm[1]); ?>"><?php echo wp_arzo_icon($sm[2], array('class' => 'wpa-icon')); ?> <?php echo esc_html($sm[0]); ?></span></td>
-                                <td>
-                                    <span class="wpa-badge wpa-badge--<?php echo esc_attr($meta[1]); ?>">
-                                        <?php echo wp_arzo_icon($meta[2], array('class' => 'wpa-icon')); ?>
-                                        <?php echo esc_html($meta[0]); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php
-                                    $url = WP_Arzo_Activity_Log::object_edit_url($row['lt'] ?? '', $row['li'] ?? 0);
-                                    if ($url) {
-                                        printf(
-                                            '<a href="%s" title="Open this item">%s %s</a>',
-                                            esc_url($url),
-                                            esc_html($detail),
-                                            wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm'))
-                                        );
-                                    } else {
-                                        echo esc_html($detail);
-                                    }
-                                    ?>
-                                </td>
-                                <td><?php echo esc_html($user); ?></td>
-                                <td><code><?php echo esc_html($ip); ?></code></td>
-                            </tr>
-                        <?php endforeach; endif; ?>
-                        <tr id="wpa-activity-empty" class="wpa-backup-empty" hidden><td colspan="6">No events match your filter.</td></tr>
+                    <tbody id="wpa-activity-rows">
+                        <?php
+                        $per   = self::ACTIVITY_PER_PAGE;
+                        $pages = max(1, (int) ceil(count($log) / $per));
+                        // First page server-side (no-JS friendly); pager fetches the rest.
+                        echo $this->render_activity_rows(array_slice($log, 0, $per), 'No activity recorded yet.'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        ?>
                     </tbody>
                 </table>
+                <?php if (!empty($log)) : ?>
+                    <div class="wpa-pager" id="wpa-activity-pager" data-nonce="<?php echo esc_attr($nonce); ?>" data-paged="1" data-pages="<?php echo (int) $pages; ?>" style="display:<?php echo $pages > 1 ? 'flex' : 'none'; ?>;padding:12px 16px;margin:0;border-top:1px solid var(--arzo-border);">
+                        <span class="wpa-pager__info" id="wpa-activity-pageinfo"><?php echo esc_html('Page 1 of ' . (int) $pages . ' · ' . (int) count($log) . ' event' . (count($log) === 1 ? '' : 's')); ?></span>
+                        <span class="wpa-pager__nav">
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-activity-prev" disabled>← Prev</button>
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-activity-next" <?php disabled($pages <= 1); ?>>Next →</button>
+                        </span>
+                    </div>
+                <?php endif; ?>
             </div>
 
-            <?php if (!empty($log)) : ?>
-            <script>
-            (function () {
-                var sev = document.getElementById('wpa-act-sev'),
-                    act = document.getElementById('wpa-act-action'),
-                    q = document.getElementById('wpa-act-q'),
-                    reset = document.getElementById('wpa-act-reset'),
-                    table = document.getElementById('wpa-activity-table'),
-                    empty = document.getElementById('wpa-activity-empty');
-                if (!table) { return; }
-                var rows = Array.prototype.slice.call(table.querySelectorAll('tbody tr[data-action]'));
-                var card = table.closest('.wpa-card');
-                var pager = (window.wpArzo && wpArzo.tablePager)
-                    ? wpArzo.tablePager(rows, { perPage: 25, noun: 'event', mountAfter: card })
-                    : null;
-                function apply() {
-                    var s = sev ? sev.value : '', a = act ? act.value : '',
-                        text = (q ? q.value : '').trim().toLowerCase();
-                    var matches = rows.filter(function (tr) {
-                        return (!s || tr.dataset.sev === s) &&
-                               (!a || tr.dataset.action === a) &&
-                               (!text || tr.dataset.search.indexOf(text) !== -1);
-                    });
-                    if (empty) { empty.hidden = matches.length !== 0; }
-                    if (reset) { reset.hidden = !(s || a || text); }
-                    if (pager) { pager.setMatches(matches); }
-                    else { rows.forEach(function (tr) { tr.hidden = matches.indexOf(tr) === -1; }); }
-                }
-                [sev, act].forEach(function (el) { if (el) { el.addEventListener('change', apply); } });
-                if (q) { q.addEventListener('input', apply); }
-                if (reset) {
-                    reset.addEventListener('click', function () {
-                        if (q) { q.value = ''; }
-                        [sev, act].forEach(function (el) {
-                            if (!el) { return; }
-                            el.value = '';
-                            if (window.wpArzo && wpArzo.setSelectValue) { wpArzo.setSelectValue(el, ''); }
-                        });
-                        apply();
-                    });
-                }
-            })();
-            </script>
-            <?php endif; ?>
+            <?php // Pagination/filter behaviour is bound in wp-arzo-admin.js (bindActivityPager),
+                  // so it runs after wpArzo (a script dependency) has loaded. ?>
         <?php
+    }
+
+    /**
+     * Render a set of activity-log rows to <tr> HTML. Shared by the server-rendered
+     * first page and the AJAX pager so both stay identical.
+     */
+    private function render_activity_rows($rows, $empty_msg = '')
+    {
+        if (empty($rows)) {
+            return '<tr class="wpa-backup-empty"><td colspan="6">'
+                . esc_html($empty_msg !== '' ? $empty_msg : 'No activity recorded yet.') . '</td></tr>';
+        }
+        $severities = WP_Arzo_Activity_Log::severities();
+        ob_start();
+        foreach ($rows as $row) {
+            $a      = isset($row['a']) ? $row['a'] : '';
+            $meta   = WP_Arzo_Activity_Log::action_meta($a);
+            $sevkey = WP_Arzo_Activity_Log::action_severity($a);
+            $sm     = $severities[$sevkey];
+            $detail = $row['o'] ?? '';
+            $user   = $row['ul'] ?? '—';
+            $ip     = $row['ip'] ?? '';
+            $search = strtolower($detail . ' ' . $user . ' ' . $ip . ' ' . $meta[0]);
+            ?>
+            <tr data-action="<?php echo esc_attr($a); ?>" data-sev="<?php echo esc_attr($sevkey); ?>" data-search="<?php echo esc_attr($search); ?>">
+                <td style="white-space:nowrap;"><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['t'] ?? 0))); ?></td>
+                <td><span class="wpa-badge wpa-badge--<?php echo esc_attr($sm[1]); ?>"><?php echo wp_arzo_icon($sm[2], array('class' => 'wpa-icon')); ?> <?php echo esc_html($sm[0]); ?></span></td>
+                <td>
+                    <span class="wpa-badge wpa-badge--<?php echo esc_attr($meta[1]); ?>">
+                        <?php echo wp_arzo_icon($meta[2], array('class' => 'wpa-icon')); ?>
+                        <?php echo esc_html($meta[0]); ?>
+                    </span>
+                </td>
+                <td>
+                    <?php
+                    $url = WP_Arzo_Activity_Log::object_edit_url($row['lt'] ?? '', $row['li'] ?? 0);
+                    if ($url) {
+                        printf(
+                            '<a href="%s" title="Open this item">%s %s</a>',
+                            esc_url($url),
+                            esc_html($detail),
+                            wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm'))
+                        );
+                    } else {
+                        echo esc_html($detail);
+                    }
+                    ?>
+                </td>
+                <td><?php echo esc_html($user); ?></td>
+                <td><code><?php echo esc_html($ip); ?></code></td>
+            </tr>
+            <?php
+        }
+        return ob_get_clean();
+    }
+
+    /** Filter the activity log by severity + action key + free-text (detail/user/ip/label). */
+    private function filter_activity_log($log, $sev, $action, $q)
+    {
+        $q = strtolower(trim($q));
+        return array_values(array_filter($log, function ($row) use ($sev, $action, $q) {
+            $a = isset($row['a']) ? $row['a'] : '';
+            if ($action !== '' && $a !== $action) {
+                return false;
+            }
+            if ($sev !== '' && WP_Arzo_Activity_Log::action_severity($a) !== $sev) {
+                return false;
+            }
+            if ($q !== '') {
+                $meta = WP_Arzo_Activity_Log::action_meta($a);
+                $hay  = strtolower(($row['o'] ?? '') . ' ' . ($row['ul'] ?? '') . ' ' . ($row['ip'] ?? '') . ' ' . $meta[0]);
+                if (strpos($hay, $q) === false) {
+                    return false;
+                }
+            }
+            return true;
+        }));
+    }
+
+    /** AJAX: paginated + filtered activity-log rows (server-side, in-place table swap). */
+    public function ajax_activity_query()
+    {
+        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_ACTIVITY, 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Security check failed'), 403);
+        }
+        $log = class_exists('WP_Arzo_Activity_Log') ? WP_Arzo_Activity_Log::instance()->get_log() : array();
+        if (!is_array($log)) {
+            $log = array();
+        }
+        $sev    = sanitize_key($_POST['sev'] ?? '');
+        $action = sanitize_key($_POST['fa'] ?? '');
+        $q      = sanitize_text_field(wp_unslash($_POST['q'] ?? ''));
+        $paged  = max(1, (int) ($_POST['paged'] ?? 1));
+
+        $filtered = $this->filter_activity_log($log, $sev, $action, $q);
+        $total    = count($filtered);
+        $per      = self::ACTIVITY_PER_PAGE;
+        $pages    = max(1, (int) ceil($total / $per));
+        $paged    = min($paged, $pages);
+        $slice    = array_slice($filtered, ($paged - 1) * $per, $per);
+        $empty    = ($sev !== '' || $action !== '' || $q !== '') ? 'No events match your filter.' : 'No activity recorded yet.';
+
+        wp_send_json_success(array(
+            'html'  => $this->render_activity_rows($slice, $empty),
+            'total' => $total,
+            'pages' => $pages,
+            'paged' => $paged,
+        ));
     }
 
     public function ajax_activity_clear()

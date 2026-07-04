@@ -4,6 +4,35 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.145.0] — 2026-07-05
+
+### Changed — Email Log + Activity Log move to server-side AJAX pagination (verified live)
+
+- Replaced the interim **client-side** pager (6.144.0) with **true server-side AJAX pagination +
+  filtering** for the **Email Log** and free **Activity Log** — the project's required list pattern.
+  The first page is server-rendered (works with no JS); a new reusable **`wpArzo.ajaxList()`**
+  controller then fetches each page/filter from `admin-ajax.php` and swaps the `<tbody>` in place,
+  so the DOM only ever holds **one page** (25/page) regardless of log size.
+  - New PHP: `render_email_log_rows()` / `render_activity_rows()` (shared by the first paint and the
+    AJAX response so they stay identical), `filter_email_log()` / `filter_activity_log()`, and the
+    capability + nonce gated `ajax_email_log_query` / `ajax_activity_query` handlers.
+  - Search + status/severity/event filters query the server and reset to page 1; the Email Log's
+    row-click detail drawer now uses **event delegation** so it keeps working after each page swap.
+  - `wpArzo.ajaxList()` seeds its page state from server-rendered `data-paged` / `data-pages`
+    (so Prev/Next are correct on the first click) and carries a **request-sequence guard** so an
+    out-of-order response from overlapping filter changes can't overwrite a newer one.
+  - The Activity Log's pager binding lives in `wp-arzo-admin.js` (not inline) so it runs after the
+    `wpArzo` dependency has loaded. `wpArzo.tablePager` (the 6.144.0 client pager) is removed.
+- **Verified on a live LocalWP site**: 42-row logs paginate, filter, reset-to-page-1, drawer swaps,
+  the race guard holds, and no console errors; the Pro Cron pager fix (below) was confirmed too.
+
+### Fixed — Cron Manager “Events” pager (Pro) Next/Prev did nothing
+
+- Companion Pro fix (**Pro 1.65.3**): the Cron Manager Events tab enabled its **Next →** button
+  from the real page count but hard-coded the JS paging state to `pages = 1`, so `if (page < pages)`
+  was always false and clicks were silent no-ops. It now seeds `page`/`pages` from server-rendered
+  `data-paged`/`data-pages` attributes (the pattern the Advanced Audit Log already uses).
+
 ## [6.144.0] — 2026-07-05
 
 ### Added — reusable client-side table pager (`wpArzo.tablePager`); Email + Activity logs paginate

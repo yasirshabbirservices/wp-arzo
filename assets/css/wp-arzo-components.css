@@ -907,8 +907,9 @@ html.wpa-scroll-locked, body.wpa-scroll-locked { overflow: hidden !important; }
 }
 
 /* ------------------------------------------------------------------ Pager
-   Client-side pager for render-all lists (Email Log, Activity Log …), built by
-   wpArzo.tablePager(). Self-hides at a single page. */
+   Pager bar for server-side AJAX list tables (Email Log, Activity Log …). The
+   first page is server-rendered; wpArzo.ajaxList() swaps pages in place and
+   self-hides the bar at a single page. */
 .wpa-pager {
   display: flex; justify-content: space-between; align-items: center;
   gap: var(--arzo-space-3);
