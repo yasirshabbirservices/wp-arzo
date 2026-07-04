@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.143.1] — 2026-07-05
+
+### Fixed — `<button>` tabs lost the dark pill styling
+
+- `.wpa-tab` was only ever used on `<a>` elements until the Pro Site Health page rendered its
+  Checks / Trends / Settings tabs as `<button data-tab>` (the documented client-side tab
+  pattern) — and the component never reset native button chrome, so inactive tabs showed the
+  browser's default light-gray button (dark text on a light pill, off the consistency bar).
+  `.wpa-tab` now strips `appearance` / `background` / `border`, inherits the font, and sets
+  `cursor: pointer`, so `<a>` and `<button>` tabs render identically on every surface.
+
 ## [6.143.0] — 2026-07-05
 
 ### Changed — Analytics reports get a left-sidebar nav (new `.wpa-vnav` component)

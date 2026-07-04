@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.143.0
+Stable tag: 6.143.1
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,12 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.143.1 =
+* Fixed: `<button>`-based `.wpa-tab` tabs (e.g. the Pro Site Health page's Checks / Trends /
+  Settings) rendered with the browser's native light-gray button chrome on inactive tabs —
+  the component now strips button appearance/background/border so button and link tabs look
+  identical.
 
 = 6.143.0 =
 * Changed: the Analytics page's report tabs moved from a horizontal row to a new reusable

@@ -841,6 +841,14 @@ html.wpa-scroll-locked, body.wpa-scroll-locked { overflow: hidden !important; }
   position: relative;
   display: inline-flex; align-items: center; gap: var(--arzo-space-2);
   padding: var(--arzo-space-2) var(--arzo-space-4);
+  margin: 0;
+  /* Tabs may be <a> or <button data-tab> — strip native button chrome */
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
   color: var(--arzo-text-secondary); text-decoration: none;
   border-radius: calc(var(--arzo-radius-lg) - var(--arzo-space-1));
   font-weight: 600; font-size: var(--arzo-fs-md); line-height: 1.4;
