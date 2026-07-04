@@ -4,6 +4,14 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.141.1] — 2026-07-04
+
+### Changed — Pro “Admin Branding & Dashboard” card advertises the full-page dashboard
+
+Updated the locked Pro card copy to reflect the enriched **Custom Dashboard** (Pro v1.63.0): render
+any Bricks / Elementor / Divi / WordPress page or template as the entire dashboard, optionally only
+for non-admins. Free-core copy only — no behaviour change.
+
 ## [6.141.0] — 2026-07-04
 
 ### Security — hardening across the Emergency tool, file manager, and config import
