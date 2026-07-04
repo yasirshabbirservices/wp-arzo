@@ -4,25 +4,33 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.145.0
+Stable tag: 6.146.0
 License: Proprietary
 
-Ultimate WordPress Maintenance & Administration Suite.
+One suite to run, secure, optimize, and rescue your WordPress site — replace 20+ single-purpose plugins.
 
 == Description ==
 
-WP Arzo provides a comprehensive, standalone admin console for managing your WordPress site:
+**WP Arzo replaces a drawer full of single-purpose plugins with one cohesive, lightweight suite.**
+Three reasons sites switch:
 
-* Site Information - WordPress, PHP, MySQL, server, and disk information
-* User Management - Create, delete, and log in as any user
-* Database Access - Browse tables and run SQL queries
-* File Manager - Browse, edit, upload, and download files (powered by elFinder)
-* Plugin Manager - Activate / deactivate and upload plugins
-* Theme Manager - Switch and upload themes
-* Debug Tools - Toggle WP_DEBUG family settings and view the debug log
-* Site Modes - Maintenance / Coming Soon / Payment Required, plus emergency recovery
-* Extra Options - Configure PHP limits via wp-config.php / .htaccess / php.ini
-* Quick Login - Create a temporary admin or generate a one-time emergency access link
+* **Replace 20+ plugins.** ~50 site-enhancement features in one dashboard — SMTP with fallback,
+  code snippets, backups, security hardening, login protection, media tools, performance tweaks,
+  role/capability editing, REST API keys, and dozens more. Enable only what you need; disabled
+  features load zero code.
+* **Analytics without Site Kit.** A built-in, cookieless, first-party analytics engine — traffic,
+  top pages, referrers, geo, devices and behaviour, recorded in your own database. No external
+  service, no cookie banner, no MonsterInsights.
+* **AI-agent ready.** WP Arzo Pro exposes a governed MCP (Model Context Protocol) server so AI
+  assistants can safely read and act on your site — permissioned, audited, and confirm-gated.
+
+Everything is administrator-only and built for modern WordPress: accessible (WCAG 2.2 AA),
+token-themed, and modular so your site only ever loads what it uses.
+
+**Advanced Tools console** — a standalone dark console of hands-on power tools: Site Info, Users,
+Debug, Site Modes, Extra Options, Temporary Logins, plus (with WP Arzo Pro) a full **File Manager**
+and **Database manager**. **Emergency Recovery** — a self-contained script that works even when
+WordPress is fully down.
 
 The console opens in its own tab via the WordPress admin menu and authenticates with your
 existing WordPress session (administrators only).
@@ -36,6 +44,14 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.146.0 =
+* Changed: the console **File Manager (elFinder)** and **Database manager (AdminNeo)** are now
+  WP Arzo Pro power-tools. Moving these large third-party libraries out of the free core makes the
+  free plugin dramatically lighter (~19 MB smaller) and shrinks its security surface. When Pro is
+  active the tools work exactly as before; without Pro, those console tabs show an unlock prompt.
+* Changed: refreshed the plugin description to lead with what matters — replace 20+ plugins,
+  built-in cookieless analytics, and AI-agent (MCP) readiness.
 
 = 6.145.0 =
 * Changed: the **Email Log** and **Activity Log** now paginate + filter via **server-side AJAX**

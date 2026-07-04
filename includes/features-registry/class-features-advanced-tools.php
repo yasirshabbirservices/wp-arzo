@@ -104,8 +104,8 @@ function wp_arzo_console_tool_catalog()
 {
     return array(
         'users'         => array('id' => 'tool_users', 'title' => 'Users (Console)', 'icon' => 'users', 'description' => 'Advanced Tools → Users: browse, search, and manage all site users.'),
-        'database'      => array('id' => 'tool_database', 'title' => 'Database (Console)', 'icon' => 'database', 'description' => 'Advanced Tools → Database: a full database manager (AdminNeo) — browse, edit, export/import, run SQL. Disable to lock down direct DB access.'),
-        'files'         => array('id' => 'tool_files', 'title' => 'File Manager (Console)', 'icon' => 'folder', 'description' => 'Advanced Tools → Files: the elFinder file manager. Disable to block file browsing/editing/downloads.'),
+        'database'      => array('id' => 'tool_database', 'title' => 'Database (Console)', 'icon' => 'database', 'description' => 'Advanced Tools → Database: a full database manager (AdminNeo) — browse, edit, export/import, run SQL. A WP Arzo Pro power-tool; disable to lock down direct DB access.'),
+        'files'         => array('id' => 'tool_files', 'title' => 'File Manager (Console)', 'icon' => 'folder', 'description' => 'Advanced Tools → Files: the elFinder file manager (browse/edit/upload/download). A WP Arzo Pro power-tool; disable to block file access entirely.'),
         'plugins'       => array('id' => 'tool_plugins', 'title' => 'Plugins (Console)', 'icon' => 'plugin', 'description' => 'Advanced Tools → Plugins: activate/deactivate plugins from the console.'),
         'themes'        => array('id' => 'tool_themes', 'title' => 'Themes (Console)', 'icon' => 'theme', 'description' => 'Advanced Tools → Themes: switch the active theme from the console.'),
         'debug'         => array('id' => 'tool_debug', 'title' => 'Debug Tools (Console)', 'icon' => 'bug', 'description' => 'Advanced Tools → Debug: toggle WP_DEBUG and view/clear the debug log.'),
@@ -155,7 +155,6 @@ function wp_arzo_console_tool_for_request($tab, $op)
 
     $op_map = array(
         'elfinder_connector'        => 'files',
-        'get_db_tables_page'        => 'database',
         'get_plugins_page'          => 'plugins',
         'toggle_plugin'             => 'plugins',
         'get_themes_page'           => 'themes',
@@ -187,4 +186,53 @@ function wp_arzo_register_console_tools($registry)
     foreach (wp_arzo_console_tool_catalog() as $meta) {
         $registry->register(new WP_Arzo_Feature_Console_Tool($meta));
     }
+}
+
+/**
+ * The heavy console power-tools (File Manager = elFinder, Database = AdminNeo) are
+ * provided by WP Arzo Pro, which ships the bundled libraries and registers a renderer
+ * on these filters. Keeping the large third-party libraries out of the free .org core
+ * shrinks its download size and security/audit surface. When Pro is absent, the free
+ * console shows an upsell in place of the tool.
+ *
+ * @param string $tool 'files' | 'database'
+ * @return callable|null Renderer supplied by Pro, or null when Pro is not providing it.
+ */
+function wp_arzo_console_tool_provider($tool)
+{
+    $provider = apply_filters('wp_arzo_console_tool_provider_' . $tool, null);
+    return is_callable($provider) ? $provider : null;
+}
+
+/**
+ * Render the "this is a Pro power-tool" upsell panel inside the standalone console.
+ * Used by features/files.php and features/database.php when Pro isn't providing the tool.
+ *
+ * @param string $title Tool name (e.g. "File Manager").
+ * @param string $desc  One-line description of what it does.
+ * @param string $icon  wp_arzo_icon() key.
+ */
+function wp_arzo_console_pro_upsell($title, $desc, $icon = 'tools')
+{
+    $upgrade = function_exists('wp_arzo_pro_upgrade_url') ? wp_arzo_pro_upgrade_url() : 'https://yasirshabbir.com/wp-arzo/';
+    $glyph   = function_exists('wp_arzo_icon') ? wp_arzo_icon($icon, array('class' => 'wpa-icon wpa-icon--xl')) : '';
+    ?>
+    <div class="content">
+        <div style="max-width:560px;margin:8vh auto;text-align:center;padding:var(--arzo-space-8,32px);
+            background:var(--arzo-bg-panel);border:1px solid var(--arzo-border);border-radius:var(--arzo-radius-lg,14px);">
+            <div style="display:inline-flex;padding:var(--arzo-space-4,16px);border-radius:999px;
+                background:var(--arzo-accent-soft);color:var(--arzo-accent);margin-bottom:var(--arzo-space-4,16px);"><?php echo $glyph; ?></div>
+            <h1 style="border:0;margin:0 0 var(--arzo-space-2,8px);font-size:var(--arzo-fs-xl,1.4rem);"><?php echo esc_html($title); ?>
+                <span style="font-size:var(--arzo-fs-sm,.8rem);color:var(--arzo-accent);border:1px solid var(--arzo-accent-ring);
+                    padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px;">PRO</span></h1>
+            <p style="color:var(--arzo-text-secondary);margin:0 0 var(--arzo-space-5,20px);"><?php echo esc_html($desc); ?></p>
+            <p style="color:var(--arzo-text-muted);font-size:var(--arzo-fs-sm,.8rem);margin:0 0 var(--arzo-space-5,20px);">
+                This power-tool ships with <strong>WP Arzo Pro</strong> — keeping the heavy library out of the
+                free plugin makes it lighter and more secure for everyone.</p>
+            <a class="btn" style="background:var(--arzo-accent);color:var(--arzo-text-on-accent);text-decoration:none;
+                display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--arzo-radius-sm,8px);font-weight:600;"
+                href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener">Unlock with WP Arzo Pro &rarr;</a>
+        </div>
+    </div>
+    <?php
 }

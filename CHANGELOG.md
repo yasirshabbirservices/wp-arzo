@@ -4,6 +4,26 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.146.0] — 2026-07-05
+
+### Changed — File Manager & Database manager are now Pro power-tools (leaner, safer free core)
+
+The two heaviest console tools — the **File Manager** (elFinder) and **Database manager** (AdminNeo)
+— now ship with **WP Arzo Pro** instead of the free core. Moving these large third-party libraries
+out of the free plugin removes **~19 MB** and the bulk of the free plugin's security/audit surface
+(the file connector + the bundled DB admin), keeping the free core lean and focused.
+
+- The free standalone console exposes a provider hook (`wp_arzo_console_tool_provider_{files,database}`).
+  When Pro is active and licensed it registers the renderers (from `includes/console-powertools.php`)
+  and both tools work **exactly as before** — same dark theme, same CSRF-nonced elFinder connector
+  with dotfile denial, same WP-gated AdminNeo loader that auto-connects with your DB credentials.
+- Without Pro, the **Files** and **Database** console tabs show a branded "unlock with Pro" panel;
+  connector/download requests return a 403. The console's other tools are unchanged and stay free.
+- Live-verified end-to-end: with Pro, elFinder lists files (with `.htaccess` correctly denied) and
+  AdminNeo loads; without Pro, both tabs show the upsell.
+- Refreshed the wp.org description to lead with the three reasons sites switch: replace 20+ plugins,
+  cookieless analytics without Site Kit, and AI-agent (MCP) readiness.
+
 ## [6.145.0] — 2026-07-05
 
 ### Changed — Email Log + Activity Log move to server-side AJAX pagination (verified live)

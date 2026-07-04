@@ -61,13 +61,8 @@ if (isset($_GET['tab'])) {
             exit;
         }
     }
-    // Handle Database operations
-    if (($_GET['tab'] === 'database' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && $_GET['operation'] === 'get_db_tables_page') {
-        if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/database.php')) {
-            include(WP_ARZO_PLUGIN_DIR . 'features/database.php');
-            exit;
-        }
-    }
+    // (Database: the AdminNeo manager runs in its own WP-gated iframe loader supplied by
+    // WP Arzo Pro — there is no console AJAX operation to intercept here.)
     // Handle Plugin operations
     if (($_GET['tab'] === 'plugins' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['get_plugins_page', 'toggle_plugin'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/plugins.php')) {

@@ -7,7 +7,7 @@ One dark, modern dashboard to run, secure, optimize, and rescue your site — pl
 break‑glass power‑tools console and a standalone emergency recovery tool for when
 WordPress won't even load.
 
-![Version](https://img.shields.io/badge/version-6.145.0-16e791)
+![Version](https://img.shields.io/badge/version-6.146.0-16e791)
 ![WordPress](https://img.shields.io/badge/WordPress-%E2%89%A5%205.0-21759b)
 ![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%207.2-777bb4)
 ![Admin only](https://img.shields.io/badge/access-administrators%20only-ff4d4f)
@@ -25,20 +25,21 @@ built around three surfaces:
 | Surface | What it's for |
 |---|---|
 | 🎛️ **Feature Manager** | A native, full‑dark dashboard: a searchable, category‑filtered **toggle grid** of ~50 site‑enhancement features, each with schema‑driven settings — enable only what you need. |
-| 🧰 **Advanced Tools console** | A standalone dark console of hands‑on power tools: Site Info, Users, Database, Files, Plugins, Themes, Debug, Site Modes, Extra Options, Temporary Logins. |
+| 🧰 **Advanced Tools console** | A standalone dark console of hands‑on power tools: Site Info, Users, Plugins, Themes, Debug, Site Modes, Extra Options, Temporary Logins — plus a full **File Manager** and **Database manager** with [WP Arzo Pro](https://yasirshabbir.com/wp-arzo/). |
 | 🚑 **Emergency Recovery** | A self‑contained recovery script that works even when WordPress is fully down (WSOD, fatal plugin conflict) — deactivate plugins, switch themes, create an admin, fix URLs, and more. |
 
 Everything is **administrators‑only** and authenticates with your existing WordPress
 session. The optional **WP Arzo Pro** add‑on registers premium modules into the same
 dashboard (shown as locked **PRO** cards until unlocked).
 
-- **Current version:** `6.145.0` — see [CHANGELOG.md](CHANGELOG.md)
+- **Current version:** `6.146.0` — see [CHANGELOG.md](CHANGELOG.md)
 - **Requires:** WordPress ≥ 5.0 · PHP ≥ 7.2
-- **Highlights:** multi‑provider SMTP with fallback **+ auto‑retry queue**, a CodeMirror
-  **Code Snippets** editor with **smart conditional logic**, local **+ scheduled backups**
-  with file snapshots & diff, a bundled database manager (AdminNeo) and file manager
-  (elFinder), **REST API authentication**, a **role/capability editor**, and dozens of
-  performance, security, and admin refinements.
+- **Highlights:** a built‑in **cookieless analytics** engine (no Site Kit needed), multi‑provider
+  SMTP with fallback **+ auto‑retry queue**, a CodeMirror **Code Snippets** editor with **smart
+  conditional logic**, local **+ scheduled backups** with file snapshots & diff, **REST API
+  authentication**, a **role/capability editor**, and dozens of performance, security, and admin
+  refinements. Heavy power‑tools (File Manager, Database manager) ship with **WP Arzo Pro** to keep
+  the free core lean.
 
 ---
 
