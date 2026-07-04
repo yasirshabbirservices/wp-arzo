@@ -829,44 +829,24 @@
 
     var table = document.getElementById('wpa-emaillog-table');
     if (!table) return;
-    var rows = Array.prototype.slice.call(table.querySelectorAll('tr.wpa-email-row'));
-    if (!rows.length) return;
-
-    // ---- Search + status filtering -------------------------------------
+    var tbody = table.querySelector('tbody');
     var search = document.getElementById('wpa-emaillog-search');
     var status = document.getElementById('wpa-emaillog-status');
-    var emptyEl = document.getElementById('wpa-emaillog-empty');
-    var emailCard = table.closest('.wpa-card');
-    var emailPager = (window.wpArzo && wpArzo.tablePager)
-      ? wpArzo.tablePager(rows, { perPage: 25, noun: 'email', mountAfter: emailCard })
-      : null;
-    function applyFilter() {
-      var q = (search && search.value ? search.value : '').trim().toLowerCase();
-      var st = status && status.value ? status.value : 'all';
-      var matches = rows.filter(function (row) {
-        var okText = !q || (row.getAttribute('data-filter') || '').indexOf(q) !== -1;
-        var okStat = st === 'all' || row.getAttribute('data-status') === st;
-        return okText && okStat;
-      });
-      if (emptyEl) emptyEl.hidden = matches.length !== 0;
-      if (emailPager) { emailPager.setMatches(matches); }
-      else { rows.forEach(function (row) { row.hidden = matches.indexOf(row) === -1; }); }
-    }
-    if (search) search.addEventListener('input', applyFilter);
-    if (status) status.addEventListener('change', applyFilter);
+    var pager = document.getElementById('wpa-emaillog-pager');
 
     // ---- Row-click detail drawer ---------------------------------------
     var drawer = document.getElementById('wpa-emaillog-drawer');
     var detail = document.getElementById('wpa-emaillog-detail');
     var titleEl = document.getElementById('wpa-emaillog-drawer-title');
     var resendBtn = document.getElementById('wpa-emaillog-resend');
-    if (!drawer || !detail) return;
 
-    function closeDrawer() { drawer.hidden = true; }
-    drawer.querySelectorAll('[data-maillog-close]').forEach(function (el) {
-      el.addEventListener('click', closeDrawer);
-    });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !drawer.hidden) closeDrawer(); });
+    function closeDrawer() { if (drawer) drawer.hidden = true; }
+    if (drawer) {
+      drawer.querySelectorAll('[data-maillog-close]').forEach(function (el) {
+        el.addEventListener('click', closeDrawer);
+      });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !drawer.hidden) closeDrawer(); });
+    }
 
     function detailRow(label, value, opts) {
       opts = opts || {};
@@ -883,6 +863,7 @@
     }
 
     function openRow(id) {
+      if (!drawer || !detail) return;
       detail.innerHTML = '';
       var loading = document.createElement('p');
       loading.textContent = 'Loading…';
@@ -947,34 +928,107 @@
         });
     }
 
-    rows.forEach(function (row) {
-      var id = row.getAttribute('data-id');
-      if (!id) return;
-      row.addEventListener('click', function () { openRow(id); });
-      row.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRow(id); }
+    // Delegated row activation — one handler on the <tbody>, so it keeps working
+    // after each AJAX page swap replaces the rows.
+    if (tbody) {
+      tbody.addEventListener('click', function (e) {
+        var row = e.target.closest('tr.wpa-email-row');
+        if (row && row.getAttribute('data-id')) { openRow(row.getAttribute('data-id')); }
       });
-    });
+      tbody.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var row = e.target.closest('tr.wpa-email-row');
+        if (row && row.getAttribute('data-id')) { e.preventDefault(); openRow(row.getAttribute('data-id')); }
+      });
+    }
+
+    // Server-side AJAX pagination + filtering (first page is server-rendered).
+    if (window.wpArzo && wpArzo.ajaxList && pager && tbody) {
+      wpArzo.ajaxList({
+        endpoint: 'wp_arzo_email_log_query',
+        nonce: pager.dataset.nonce || '',
+        ajaxUrl: cfg.ajaxUrl,
+        noun: 'email',
+        tbody: tbody,
+        pager: pager,
+        info: document.getElementById('wpa-emaillog-pageinfo'),
+        prev: document.getElementById('wpa-emaillog-prev'),
+        next: document.getElementById('wpa-emaillog-next'),
+        filters: [
+          { el: search, key: 'q', on: 'input' },
+          { el: status, key: 'status', on: 'change' }
+        ]
+      });
+    }
   }
 
   // -------------------------------------------------- Activity log
   function bindActivityLog() {
     var btn = document.getElementById('wpa-activity-clear');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      if (!confirm('Clear the entire activity log?')) return;
-      btn.disabled = true;
-      var body = new FormData();
-      body.append('action', 'wp_arzo_activity_clear');
-      body.append('nonce', btn.dataset.nonce || '');
-      fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
-        .then(function (r) { return r.json(); })
-        .then(function (res) {
-          if (res && res.success) { toast('Activity log cleared', 'success'); reload(600); }
-          else { btn.disabled = false; toast('Could not clear log', 'error'); }
-        })
-        .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+    if (btn) {
+      btn.addEventListener('click', function () {
+        if (!confirm('Clear the entire activity log?')) return;
+        btn.disabled = true;
+        var body = new FormData();
+        body.append('action', 'wp_arzo_activity_clear');
+        body.append('nonce', btn.dataset.nonce || '');
+        fetch(cfg.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res && res.success) { toast('Activity log cleared', 'success'); reload(600); }
+            else { btn.disabled = false; toast('Could not clear log', 'error'); }
+          })
+          .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
+      });
+    }
+    bindActivityPager();
+  }
+
+  // Server-side AJAX pagination + filtering for the free Activity Log (Events tab).
+  // Lives here (not inline in PHP) so it runs after wpArzo (a dependency) is loaded.
+  function bindActivityPager() {
+    var tbody = document.getElementById('wpa-activity-rows');
+    var pager = document.getElementById('wpa-activity-pager');
+    if (!tbody || !pager || !window.wpArzo || !wpArzo.ajaxList) return;
+    var sev = document.getElementById('wpa-act-sev'),
+        act = document.getElementById('wpa-act-action'),
+        q = document.getElementById('wpa-act-q'),
+        reset = document.getElementById('wpa-act-reset');
+    var list = wpArzo.ajaxList({
+      endpoint: 'wp_arzo_activity_query',
+      nonce: pager.dataset.nonce || '',
+      ajaxUrl: cfg.ajaxUrl,
+      noun: 'event',
+      tbody: tbody,
+      pager: pager,
+      info: document.getElementById('wpa-activity-pageinfo'),
+      prev: document.getElementById('wpa-activity-prev'),
+      next: document.getElementById('wpa-activity-next'),
+      filters: [
+        { el: sev, key: 'sev', on: 'change' },
+        { el: act, key: 'fa', on: 'change' },
+        { el: q, key: 'q', on: 'input' }
+      ]
     });
+    // Reset appears only while a filter is active (self-cleaning UI).
+    function syncReset() {
+      if (!reset) return;
+      reset.hidden = !((sev && sev.value) || (act && act.value) || (q && q.value));
+    }
+    [sev, act].forEach(function (el) { if (el) el.addEventListener('change', syncReset); });
+    if (q) q.addEventListener('input', syncReset);
+    if (reset) {
+      reset.addEventListener('click', function () {
+        if (q) q.value = '';
+        [sev, act].forEach(function (el) {
+          if (!el) return;
+          el.value = '';
+          if (window.wpArzo && wpArzo.setSelectValue) wpArzo.setSelectValue(el, '');
+        });
+        syncReset();
+        list.load(1);
+      });
+    }
   }
 
   // -------------------------------------------------- License activate

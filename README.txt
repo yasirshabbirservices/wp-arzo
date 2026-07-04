@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.144.0
+Stable tag: 6.145.0
 License: Proprietary
 
 Ultimate WordPress Maintenance & Administration Suite.
@@ -36,6 +36,17 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.145.0 =
+* Changed: the **Email Log** and **Activity Log** now paginate + filter via **server-side AJAX**
+  (`admin-ajax`, in-place table swap — the project's required list pattern), replacing the interim
+  client-side pager from 6.144.0. The DOM only ever holds one page (25/page); search + status/
+  severity/event filters query the server and reset to page 1; row-click drawer uses event
+  delegation so it survives page swaps. New reusable `wpArzo.ajaxList()` controller (seeds page
+  state from `data-paged`/`data-pages`, guards against out-of-order responses). Verified on a live
+  site.
+* Fixed (Pro 1.65.3): Cron Manager “Events” Next/Prev pager was a no-op — now seeds its page count
+  from the server so navigation works on the first click.
 
 = 6.144.0 =
 * Added: reusable client-side table pager (`wpArzo.tablePager`) — a filter-aware pager for
