@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Maintenance & Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.149.0
+ * Version: 6.150.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -30,7 +30,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.149.0');
+    define('WP_ARZO_VERSION', '6.150.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -289,10 +289,12 @@ function wp_arzo_deactivate()
     // Always disable any active maintenance mode on deactivation.
     delete_option('maintenance_tool_active_mode');
 
-    // Clear scheduled-backup cron so it doesn't linger while deactivated.
+    // Clear every plugin cron so nothing fires no-ops while deactivated.
     wp_clear_scheduled_hook('wp_arzo_scheduled_backup');
-    // Clear the email retry-queue cron.
     wp_clear_scheduled_hook('wp_arzo_email_retry');
+    wp_clear_scheduled_hook('wp_arzo_analytics_prune');
+    wp_clear_scheduled_hook('wp_arzo_analytics_rollup');
+    wp_clear_scheduled_hook('wp_arzo_tl_gc');
 
     // Clean up transient‑based access tokens.
     if (function_exists('delete_transient')) {
@@ -663,7 +665,8 @@ add_action('plugins_loaded', 'wp_arzo_bootstrap_features', 20);
 /**
  * Freemium gate. Free-tier features are always available; pro-tier features are
  * available only when a Pro signal is present. The WP Arzo Pro add-on flips
- * `wp_arzo_pro_active` (true) once it is installed and licensed via Freemius.
+ * `wp_arzo_pro_active` (true) once it is installed. Licensing (via SureCart) gates
+ * automatic updates + support, not feature access.
  */
 if (!function_exists('wp_arzo_is_pro_active')) {
     function wp_arzo_is_pro_active()
@@ -684,7 +687,7 @@ add_filter('wp_arzo_feature_is_available', function ($available, $feature) {
 
 /**
  * Upgrade / "get Pro" URL used by the dashboard's locked-feature CTA. Filterable so
- * the Pro add-on (or Freemius) can point it at the real checkout/account URL.
+ * the Pro add-on can point it at the real checkout/account URL.
  */
 if (!function_exists('wp_arzo_pro_upgrade_url')) {
     function wp_arzo_pro_upgrade_url()

@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 6.149.0
+Stable tag: 6.150.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,12 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.150.0 =
+* Changed: internal cleanup — removed dead license-activation code (an unused AJAX handler + JS that
+  targeted markup no longer rendered), scrubbed stale "Freemius" comments (licensing is SureCart),
+  and deactivation now clears all plugin cron events (analytics prune/rollup, temp-login GC) so none
+  fire while the plugin is off. No user-facing behavior change.
 
 = 6.149.0 =
 * Changed: WordPress.org submission-readiness (pass 2) — the Advanced Tools console is now CDN-free.

@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.150.0] — 2026-07-05
+
+### Removed / Changed — dead code & cleanup
+
+- **Removed the dead license-activation code.** An `ajax_activate_license` handler, its
+  `NONCE_LICENSE`, the `licenseNonce` payload, a `wp_arzo_activate_license_result` filter nothing
+  hooked, and the `bindLicense()` JS all targeted a markup form that hasn't been rendered since the
+  License card moved to a link-out (the current SureCart flow lives on the Pro "Manage License"
+  page). Removed the whole unused trio.
+- **Scrubbed stale "Freemius" references** in three docblocks — WP Arzo Pro is licensed via
+  **SureCart**, and licensing is update-gating (features aren't license-gated).
+- **Deactivation now clears every plugin cron** (`wp_arzo_analytics_prune`, `wp_arzo_analytics_rollup`,
+  `wp_arzo_tl_gc` in addition to the backup/email crons) so nothing fires no-ops while the plugin
+  is deactivated.
+
 ## [6.149.0] — 2026-07-05
 
 ### Changed — WordPress.org submission-readiness (compliance pass 2 of 2): console is CDN-free

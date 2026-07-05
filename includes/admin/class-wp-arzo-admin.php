@@ -42,7 +42,6 @@ class WP_Arzo_Admin
     const NONCE_SETTINGS = 'wp_arzo_feature_settings';
     const NONCE_BACKUPS = 'wp_arzo_backups';
     const NONCE_EMAIL = 'wp_arzo_email_log';
-    const NONCE_LICENSE = 'wp_arzo_license';
     const NONCE_SNIPPETS = 'wp_arzo_snippets';
     const NONCE_TEST_EMAIL = 'wp_arzo_test_email';
     const NONCE_MEDIA = 'wp_arzo_media';
@@ -97,7 +96,6 @@ class WP_Arzo_Admin
         add_action('admin_post_wp_arzo_snippets_import', array($this, 'handle_snippets_import'));
         add_action('wp_ajax_wp_arzo_email_log_detail', array($this, 'ajax_email_log_detail'));
         add_action('wp_ajax_wp_arzo_email_log_query', array($this, 'ajax_email_log_query'));
-        add_action('wp_ajax_wp_arzo_activate_license', array($this, 'ajax_activate_license'));
         add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
         add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
         add_action('wp_ajax_wp_arzo_send_test_email', array($this, 'ajax_send_test_email'));
@@ -356,7 +354,6 @@ class WP_Arzo_Admin
             'ajaxUrl'      => admin_url('admin-ajax.php'),
             'nonce'        => wp_create_nonce(self::NONCE_TOGGLE),
             'backupNonce'  => wp_create_nonce(self::NONCE_BACKUPS),
-            'licenseNonce' => wp_create_nonce(self::NONCE_LICENSE),
             'snippetNonce' => wp_create_nonce(self::NONCE_SNIPPETS),
             'mediaNonce'   => wp_create_nonce(self::NONCE_MEDIA),
             'restNonce'    => wp_create_nonce(self::NONCE_REST),
@@ -827,8 +824,9 @@ class WP_Arzo_Admin
     }
 
     /**
-     * License / activation card (sidebar). Real activation is delegated to the Pro
-     * add-on / Freemius via the `wp_arzo_activate_license_result` filter.
+     * License / activation card (sidebar). Reflects WP Arzo Pro's update-gating model —
+     * it reads the `wp_arzo_pro_license_active` signal and links out to the Pro "Manage
+     * License" page; there is no inline activation form (the Pro add-on owns that flow).
      */
     private function render_license_box()
     {
@@ -4373,31 +4371,6 @@ class WP_Arzo_Admin
         $ids = array_map('intval', $ids);
         $deleted = WP_Arzo_Media_Cleanup::instance()->delete($ids);
         wp_send_json_success(array('deleted' => $deleted));
-    }
-
-    /* -------------------------------------------------------- License */
-
-    public function ajax_activate_license()
-    {
-        if (!current_user_can('manage_options') || !check_ajax_referer(self::NONCE_LICENSE, 'nonce', false)) {
-            wp_send_json_error(array('message' => 'Security check failed'), 403);
-        }
-        $key = isset($_POST['key']) ? sanitize_text_field(wp_unslash($_POST['key'])) : '';
-
-        /**
-         * The Pro add-on / Freemius hooks this to perform real activation and returns
-         * ['success'=>bool, 'message'=>string]. Until then, activation is unavailable.
-         */
-        $result = apply_filters('wp_arzo_activate_license_result', null, $key);
-
-        if (is_array($result) && isset($result['success'])) {
-            if (!empty($result['success'])) {
-                wp_send_json_success(array('message' => isset($result['message']) ? $result['message'] : 'License activated.'));
-            }
-            wp_send_json_error(array('message' => isset($result['message']) ? $result['message'] : 'Activation failed.'), 400);
-        }
-
-        wp_send_json_error(array('message' => 'Licensing is not connected on this site yet. Install WP Arzo Pro to activate.'), 501);
     }
 
     /* ----------------------------------------------------- REST API Auth */
