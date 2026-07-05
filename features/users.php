@@ -139,8 +139,7 @@ window.open("' . admin_url() . '", "_blank");
     <div class="content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h1>User Management</h1>
-            <button type="button" onclick="showCreateUserLightbox()" class="btn btn-primary"><i
-                    class="fas fa-user-plus"></i> Create New User</button>
+            <button type="button" onclick="showCreateUserLightbox()" class="btn btn-primary"><?php echo wp_arzo_icon('users', ['size' => 16]); ?> Create New User</button>
         </div>
 
         <h3>Existing Users</h3>
@@ -239,7 +238,7 @@ window.open("' . admin_url() . '", "_blank");
                             'style="background-color: rgba(22, 231, 145, 0.1);"' : '';
                         html += `<tr ${rowClass}>`;
                         html += `<td>${user.id}</td>`;
-                        html += `<td>${user.username}${user.is_current ? ' <i class="fas fa-user" style="color: var(--accent-color);" title="Current User"></i>' : ''}</td>`;
+                        html += `<td>${user.username}${user.is_current ? ' <span style="color: var(--accent-color);" title="Current User"><?php echo wp_arzo_icon('user', ['size' => 14]); ?></span>' : ''}</td>`;
                         html += `<td>${user.email}</td>`;
                         html += `<td>${user.roles}</td>`;
                         html += `<td>${user.is_current ? '<span style="color: var(--accent-color); font-weight: bold;">Logged In</span>' : '<span style="color: var(--arzo-text-secondary);">Offline</span>'}</td>`;
@@ -251,11 +250,11 @@ window.open("' . admin_url() . '", "_blank");
                             html += `<input type="hidden" name="wp_arzo_user_nonce" value="${userActionNonce}">`;
                             html += `<input type="hidden" name="user_id" value="${user.id}">`;
                             html +=
-                                `<button type="submit" name="quick_login" class="btn btn-success" title="Login as ${user.username}" style="background: var(--success-color); border: none; padding: 5px 10px; font-size: 12px;"><i class="fas fa-sign-in-alt"></i> Login</button>`;
+                                `<button type="submit" name="quick_login" class="btn btn-success" title="Login as ${user.username}" style="background: var(--success-color); border: none; padding: 5px 10px; font-size: 12px;"><?php echo wp_arzo_icon('login', ['size' => 14]); ?> Login</button>`;
                             html += `</form>`;
                         } else {
                             html +=
-                                `<span style="color: var(--accent-color); font-size: 12px; margin-right: 5px;"><i class="fas fa-check-circle"></i> Active</span>`;
+                                `<span style="color: var(--accent-color); font-size: 12px; margin-right: 5px;"><?php echo wp_arzo_icon('check-circle', ['size' => 14]); ?> Active</span>`;
                         }
 
                         // Delete Button
@@ -264,7 +263,7 @@ window.open("' . admin_url() . '", "_blank");
                             html += `<input type="hidden" name="wp_arzo_user_nonce" value="${userActionNonce}">`;
                             html += `<input type="hidden" name="user_id" value="${user.id}">`;
                             html +=
-                                `<button type="submit" name="delete_user" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete user: ${user.username}?');" title="Delete ${user.username}" style="background: var(--danger-color); border: none; padding: 5px 10px; font-size: 12px;"><i class="fas fa-trash"></i> Delete</button>`;
+                                `<button type="submit" name="delete_user" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete user: ${user.username}?');" title="Delete ${user.username}" style="background: var(--danger-color); border: none; padding: 5px 10px; font-size: 12px;"><?php echo wp_arzo_icon('trash', ['size' => 14]); ?> Delete</button>`;
                             html += `</form>`;
                         } else {
                             html +=

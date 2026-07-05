@@ -437,13 +437,13 @@ function handleExtraOptions()
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="submit" name="update_php_limits" class="btn" style="flex: 1;"><i class="fas fa-save"></i> Update Limits</button>
+                    <button type="submit" name="update_php_limits" class="btn" style="flex: 1;"><?php echo wp_arzo_icon('save'); ?> Update Limits</button>
                     <button type="submit" name="reset_php_limits" class="btn"
                         style="background-color: transparent; border: 1px solid var(--arzo-border-strong); color: var(--arzo-text-secondary); flex:1;"
                         onclick="return confirm('Are you sure you want to reset to default PHP limits?');"
                         onmouseover="this.style.borderColor='var(--arzo-border-strong)'; this.style.color='var(--arzo-text-strong)';"
                         onmouseout="this.style.borderColor='var(--arzo-border)'; this.style.color='var(--arzo-text-secondary)';">
-                        <i class="fas fa-rotate-left"></i> Reset to Defaults
+                        <?php echo wp_arzo_icon('refresh'); ?> Reset to Defaults
                     </button>
                 </div>
             </form>
@@ -454,10 +454,10 @@ function handleExtraOptions()
                 style="background: var(--arzo-bg-hover); padding: 20px; border-radius: var(--radius-global); border: 1px solid var(--arzo-border); margin-top: 20px; position: relative;">
                 <h3>PHP Limits Update Log</h3>
                 <div style="position: absolute; top: 20px; right: 20px;">
-                    <i class="fas fa-copy" onclick="copyDebugLog()"
-                        style="cursor: pointer; margin-right: 10px; color: var(--accent-color);" title="Copy debug log"></i>
-                    <i class="fas fa-trash-alt" onclick="clearDebugLog()" style="cursor: pointer; color: var(--danger-color);"
-                        title="Clear debug log"></i>
+                    <button type="button" class="wpa-iconbtn" onclick="copyDebugLog()"
+                        style="margin-right: 6px; color: var(--accent-color);" title="Copy debug log" aria-label="Copy debug log"><?php echo wp_arzo_icon('copy'); ?></button>
+                    <button type="button" class="wpa-iconbtn" onclick="clearDebugLog()" style="color: var(--danger-color);"
+                        title="Clear debug log" aria-label="Clear debug log"><?php echo wp_arzo_icon('trash'); ?></button>
                 </div>
                 <div id="debug-log-content"
                     style="background: var(--arzo-bg-input); padding: 15px; border-radius: var(--radius-global); max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">

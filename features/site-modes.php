@@ -661,7 +661,7 @@ function handleMaintenanceModes()
 
         <!-- Social Contact Settings -->
         <div class="settings-box">
-            <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 16px;"><i class="fas fa-address-book"></i> Social
+            <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 16px;"><?php echo wp_arzo_icon('users', ['class' => 'wpa-icon wpa-hicon']); ?> Social
                 Contact Settings</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                 <div class="form-group">
@@ -696,7 +696,7 @@ function handleMaintenanceModes()
                 <div class="status-badge">ACTIVE</div>
 
                 <div class="card-header">
-                    <i class="fas fa-tools mode-icon"></i>
+                    <?php echo wp_arzo_icon('tools', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
                     <h3>Maintenance Mode</h3>
                 </div>
 
@@ -732,13 +732,13 @@ function handleMaintenanceModes()
                 </div>
 
                 <button type="button" class="btn-mode btn-activate" onclick="toggleMode('maintenance')">
-                    <i class="fas fa-check"></i> Activate Mode
+                    <?php echo wp_arzo_icon('check', ['size' => 15]); ?> Activate Mode
                 </button>
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
-                    <i class="fas fa-times"></i> Deactivate Mode
+                    <?php echo wp_arzo_icon('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
                 <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
-                    <i class="fas fa-eye"></i> View Active Mode
+                    <?php echo wp_arzo_icon('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
 
@@ -748,7 +748,7 @@ function handleMaintenanceModes()
                 <div class="status-badge">ACTIVE</div>
 
                 <div class="card-header">
-                    <i class="fas fa-rocket mode-icon"></i>
+                    <?php echo wp_arzo_icon('rocket', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
                     <h3>Coming Soon Mode</h3>
                 </div>
 
@@ -784,13 +784,13 @@ function handleMaintenanceModes()
                 </div>
 
                 <button type="button" class="btn-mode btn-activate" onclick="toggleMode('coming_soon')">
-                    <i class="fas fa-check"></i> Activate Mode
+                    <?php echo wp_arzo_icon('check', ['size' => 15]); ?> Activate Mode
                 </button>
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
-                    <i class="fas fa-times"></i> Deactivate Mode
+                    <?php echo wp_arzo_icon('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
                 <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
-                    <i class="fas fa-eye"></i> View Active Mode
+                    <?php echo wp_arzo_icon('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
 
@@ -800,7 +800,7 @@ function handleMaintenanceModes()
                 <div class="status-badge">ACTIVE</div>
 
                 <div class="card-header">
-                    <i class="fas fa-credit-card mode-icon"></i>
+                    <?php echo wp_arzo_icon('credit-card', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
                     <h3>Payment Required</h3>
                 </div>
 
@@ -836,13 +836,13 @@ function handleMaintenanceModes()
                 </div>
 
                 <button type="button" class="btn-mode btn-activate" onclick="toggleMode('payment_request')">
-                    <i class="fas fa-check"></i> Activate Mode
+                    <?php echo wp_arzo_icon('check', ['size' => 15]); ?> Activate Mode
                 </button>
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
-                    <i class="fas fa-times"></i> Deactivate Mode
+                    <?php echo wp_arzo_icon('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
                 <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
-                    <i class="fas fa-eye"></i> View Active Mode
+                    <?php echo wp_arzo_icon('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
 
@@ -850,7 +850,7 @@ function handleMaintenanceModes()
             <div class="mode-card mode-emergency <?php echo $emergency_configured ? 'active' : ''; ?>" id="card-emergency">
                 <div class="emergency-head">
                     <div class="card-header">
-                        <i class="fas fa-ambulance mode-icon"></i>
+                        <?php echo wp_arzo_icon('heartbeat', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
                         <h3>Emergency Mode</h3>
                         <span class="emergency-badge" id="emergency-badge"<?php echo $emergency_configured ? '' : ' style="display:none;"'; ?>>ACTIVE</span>
                     </div>
@@ -867,17 +867,17 @@ function handleMaintenanceModes()
                 <div class="emergency-body" id="emergency-body"<?php echo $emergency_configured ? '' : ' style="display:none;"'; ?>>
                     <div class="active-controls" id="emergency-active-controls">
                         <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo esc_js(home_url('/wp-arzo/emergency/')); ?>', this)">
-                            <i class="fas fa-link"></i> Copy Link
+                            <?php echo wp_arzo_icon('link', ['size' => 15]); ?> Copy Link
                         </button>
                         <button type="button" class="btn-action" title="Works even when WordPress rewrites are down" onclick="copyToClipboard('<?php echo esc_js(WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/index.php'); ?>', this)">
-                            <i class="fas fa-life-ring"></i> Copy Direct Link
+                            <?php echo wp_arzo_icon('shield', ['size' => 15]); ?> Copy Direct Link
                         </button>
                         <button type="button" class="btn-action" onclick="resetEmergencyPassword(this)">
-                            <i class="fas fa-key"></i> Reset Password
+                            <?php echo wp_arzo_icon('key', ['size' => 15]); ?> Reset Password
                         </button>
                     </div>
                     <p class="emergency-note">
-                        <i class="fas fa-life-ring"></i> <strong>Direct Link</strong> is the file URL — bookmark it. It keeps working even when WordPress is fully down (WSOD) and the pretty <code>/wp-arzo/emergency/</code> rewrite can't load.
+                        <?php echo wp_arzo_icon('shield', ['class' => 'wpa-icon wpa-hicon']); ?> <strong>Direct Link</strong> is the file URL — bookmark it. It keeps working even when WordPress is fully down (WSOD) and the pretty <code>/wp-arzo/emergency/</code> rewrite can't load.
                     </p>
                 </div>
             </div>
@@ -894,11 +894,11 @@ function handleMaintenanceModes()
         const emergencyDirectUrl = '<?php echo esc_js(WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/index.php'); ?>';
 
         // Build an action button for the emergency card.
-        function makeEmergencyBtn(iconClass, label, onClick) {
+        function makeEmergencyBtn(iconSvg, label, onClick) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'btn-action';
-            btn.innerHTML = '<i class="' + iconClass + '"></i> ' + label;
+            btn.innerHTML = iconSvg + ' ' + label;
             btn.onclick = onClick;
             return btn;
         }
@@ -933,13 +933,13 @@ function handleMaintenanceModes()
 
                             // Rebuild the action buttons (Copy Link / Direct Link / Password).
                             activeControls.innerHTML = '';
-                            activeControls.appendChild(makeEmergencyBtn('fas fa-link', 'Copy Link', function() {
+                            activeControls.appendChild(makeEmergencyBtn(<?php echo json_encode(wp_arzo_icon('link', ['size' => 15])); ?>, 'Copy Link', function() {
                                 copyToClipboard(data.url || emergencyPrettyUrl, this);
                             }));
-                            activeControls.appendChild(makeEmergencyBtn('fas fa-life-ring', 'Copy Direct Link', function() {
+                            activeControls.appendChild(makeEmergencyBtn(<?php echo json_encode(wp_arzo_icon('shield', ['size' => 15])); ?>, 'Copy Direct Link', function() {
                                 copyToClipboard(emergencyDirectUrl, this);
                             }));
-                            activeControls.appendChild(makeEmergencyBtn('fas fa-key', 'Copy Password', function() {
+                            activeControls.appendChild(makeEmergencyBtn(<?php echo json_encode(wp_arzo_icon('key', ['size' => 15])); ?>, 'Copy Password', function() {
                                 copyToClipboard(data.password, this);
                             }));
                         } else {
@@ -1008,7 +1008,7 @@ function handleMaintenanceModes()
                         showToast('Password Reset Successfully');
 
                         // Transform button to Copy Password
-                        btn.innerHTML = '<i class="fas fa-key"></i> Copy Password';
+                        btn.innerHTML = <?php echo json_encode(wp_arzo_icon('key', ['size' => 15])); ?> + ' Copy Password';
                         btn.disabled = false;
                         btn.onclick = function() {
                             copyToClipboard(data.password, this);
@@ -1030,7 +1030,7 @@ function handleMaintenanceModes()
         function copyToClipboard(text, btn) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.innerHTML = <?php echo json_encode(wp_arzo_icon('check', ['size' => 15])); ?> + ' Copied!';
                 btn.classList.add('success');
                 setTimeout(() => {
                     btn.innerHTML = originalHtml;

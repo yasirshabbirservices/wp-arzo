@@ -246,7 +246,9 @@ if ($action === 'wp_arzo_standalone') {
 <head>
     <title>WP Arzo - Administration Suite</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <?php
+    // Icons are inline SVG (wp_arzo_icon) — no Font Awesome CDN (WordPress.org: no offloaded assets).
+    ?>
     <?php
     // Centralized, cache-safe CSS loading. Order matters: design tokens first (the
     // single source of truth), then the component library, then the base console CSS.

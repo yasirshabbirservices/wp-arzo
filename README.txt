@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 6.148.0
+Stable tag: 6.149.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,12 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.149.0 =
+* Changed: WordPress.org submission-readiness (pass 2) — the Advanced Tools console is now CDN-free.
+  Removed the Font Awesome stylesheet and migrated ~39 console icons (Site Info, Users, Site Modes,
+  Extra Options, Temporary Login, incl. JS-built buttons) to inline SVG. The free plugin now makes
+  zero external asset requests on any surface.
 
 = 6.148.0 =
 * Changed: WordPress.org submission-readiness (pass 1). Declared GPL-3.0-or-later in the plugin header
