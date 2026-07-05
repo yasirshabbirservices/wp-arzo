@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.152.1
+Stable tag: 6.153.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,12 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.153.0 =
+* Added: a new **“MCP only”** scope for REST API keys. An MCP-scoped key authenticates *only* for the
+  WP Arzo MCP endpoint and is rejected everywhere else on the REST API — so you can safely hand an AI
+  agent a key that drives the MCP server without granting general REST write access. (Read-only and Full
+  scopes are unchanged.)
 
 = 6.152.1 =
 * Changed: bumped "Tested up to" to WordPress 7.0 (verified end-to-end on a live 7.0 install — dashboard,

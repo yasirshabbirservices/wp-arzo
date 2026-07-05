@@ -1348,7 +1348,7 @@
           tr.innerHTML =
             '<td><strong>' + esc(d.label) + '</strong></td>' +
             '<td><code>arzo_' + esc(d.prefix) + '…</code></td>' +
-            '<td>' + (d.scope === 'read' ? '<span class="wpa-badge wpa-badge--info">Read-only</span>' : '<span class="wpa-badge wpa-badge--neutral">Full</span>') + '</td>' +
+            '<td>' + (d.scope === 'read' ? '<span class="wpa-badge wpa-badge--info">Read-only</span>' : (d.scope === 'mcp' ? '<span class="wpa-badge wpa-badge--accent">MCP only</span>' : '<span class="wpa-badge wpa-badge--neutral">Full</span>')) + '</td>' +
             '<td>' + esc(d.user) + '</td>' +
             '<td>' + esc(d.created) + '</td>' +
             '<td>—</td>' +

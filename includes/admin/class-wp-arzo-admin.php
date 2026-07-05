@@ -4434,6 +4434,7 @@ class WP_Arzo_Admin
                         <select class="wpa-input" id="wpa-rest-scope" data-wpa-select>
                             <option value="full">Full access</option>
                             <option value="read">Read-only</option>
+                            <option value="mcp">MCP only</option>
                         </select>
                     </div>
                     <div class="wpa-field" style="min-width:150px;margin:0;">
@@ -4467,11 +4468,18 @@ class WP_Arzo_Admin
                         <?php else : foreach ($keys as $k) :
                             $ku = get_userdata((int) $k['user_id']);
                             $expired = class_exists('WP_Arzo_Feature_REST_API_Auth') && WP_Arzo_Feature_REST_API_Auth::is_expired($k, time());
-                            $is_read = (isset($k['scope']) && $k['scope'] === 'read'); ?>
+                            $scope = isset($k['scope']) ? $k['scope'] : 'full';
+                            if ($scope === 'read') {
+                                $scope_badge = '<span class="wpa-badge wpa-badge--info">Read-only</span>';
+                            } elseif ($scope === 'mcp') {
+                                $scope_badge = '<span class="wpa-badge wpa-badge--accent">MCP only</span>';
+                            } else {
+                                $scope_badge = '<span class="wpa-badge wpa-badge--neutral">Full</span>';
+                            } ?>
                             <tr data-key="<?php echo esc_attr($k['id']); ?>">
                                 <td><strong><?php echo esc_html($k['label']); ?></strong></td>
                                 <td><code>arzo_<?php echo esc_html($k['prefix']); ?>…</code></td>
-                                <td><?php echo $is_read ? '<span class="wpa-badge wpa-badge--info">Read-only</span>' : '<span class="wpa-badge wpa-badge--neutral">Full</span>'; ?></td>
+                                <td><?php echo $scope_badge; // phpcs:ignore WordPress.Security.EscapeOutput ?></td>
                                 <td><?php echo $ku ? esc_html($ku->display_name) : '<span class="wpa-badge wpa-badge--error">missing user</span>'; ?></td>
                                 <td><?php echo esc_html($k['created_gmt']); ?></td>
                                 <td><?php echo esc_html(!empty($k['last_used_gmt']) ? $k['last_used_gmt'] : '—'); ?></td>
@@ -4520,7 +4528,8 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         $label   = isset($_POST['label']) ? sanitize_text_field(wp_unslash($_POST['label'])) : '';
         $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
         $expires = isset($_POST['expires_days']) ? max(0, (int) $_POST['expires_days']) : 0;
-        $scope   = (isset($_POST['scope']) && $_POST['scope'] === 'read') ? 'read' : 'full';
+        $scope   = isset($_POST['scope']) ? sanitize_key(wp_unslash($_POST['scope'])) : 'full';
+        $scope   = in_array($scope, array('read', 'mcp'), true) ? $scope : 'full';
         $res = WP_Arzo_Feature_REST_API_Auth::create_key($label, $user_id, $expires, $scope);
         if (is_wp_error($res)) {
             wp_send_json_error(array('message' => $res->get_error_message()), 400);
