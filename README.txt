@@ -4,7 +4,7 @@ Tags: maintenance, administration, tools, database, file manager
 Requires at least: 5.0
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 6.146.0
+Stable tag: 6.147.0
 License: Proprietary
 
 One suite to run, secure, optimize, and rescue your WordPress site — replace 20+ single-purpose plugins.
@@ -44,6 +44,12 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.147.0 =
+* Changed: the dashboard License card now reflects WP Arzo Pro's update-gating model with three
+  states — green "Pro active" (licensed), amber "Updates paused" (Pro features working, license
+  inactive → activate for updates), and the "Free" upsell. Reads a new `wp_arzo_pro_license_active`
+  signal from the Pro add-on.
 
 = 6.146.0 =
 * Changed: the console **File Manager (elFinder)** and **Database manager (AdminNeo)** are now
