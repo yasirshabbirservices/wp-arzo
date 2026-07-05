@@ -37,7 +37,7 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
     }
     public function description()
     {
-        return 'Issue API keys — with optional read-only scope, auto-expiry and last-used tracking — so external apps can authenticate to the REST API (Bearer / X-API-Key / Basic).';
+        return 'Issue API keys — with optional read-only or MCP-only scope, auto-expiry and last-used tracking — so external apps (and AI agents) can authenticate to the REST API (Bearer / X-API-Key / Basic).';
     }
     public function group()
     {
@@ -89,9 +89,24 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
             return $user_id;
         }
 
+        $scope = isset($entry['scope']) ? $entry['scope'] : 'full';
+
+        // MCP-scoped keys authenticate ONLY for the WP Arzo MCP endpoint (a key you can
+        // safely hand to an AI agent). On every other route they resolve to nothing, so
+        // they can't drive the general REST API. Within MCP, write actions stay gated by
+        // the MCP "Allow write actions" toggle + per-call confirm — this scope just bounds
+        // *where* the key works, not what MCP itself permits.
+        if ($scope === 'mcp') {
+            if (!self::is_mcp_request()) {
+                return $user_id;
+            }
+            self::touch($entry['id']);
+            return (int) $entry['user_id'];
+        }
+
         // Read-only keys may only make safe (read) requests — a write with a read-only
         // key is treated as unauthenticated, so the REST API answers 401 as usual.
-        if (isset($entry['scope']) && $entry['scope'] === 'read'
+        if ($scope === 'read'
             && self::is_write_method(isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET')) {
             return $user_id;
         }
@@ -105,6 +120,23 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
     {
         $method = strtoupper(trim((string) $method));
         return !in_array($method, array('GET', 'HEAD', 'OPTIONS'), true);
+    }
+
+    /**
+     * Pure: does this request target the WP Arzo MCP endpoint (wp-arzo/v1/mcp)?
+     * Matches both pretty permalinks (/wp-json/wp-arzo/v1/mcp) and the plain
+     * `?rest_route=/wp-arzo/v1/mcp` form. Used to confine `mcp`-scoped keys.
+     */
+    public static function is_mcp_request($uri = null, $rest_route = null)
+    {
+        if ($uri === null) {
+            $uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        }
+        if ($rest_route === null) {
+            $rest_route = isset($_GET['rest_route']) ? (string) $_GET['rest_route'] : '';
+        }
+        $needle = 'wp-arzo/v1/mcp';
+        return strpos((string) $uri, $needle) !== false || strpos((string) $rest_route, $needle) !== false;
     }
 
     /** Read the presented key from the enabled transports, or '' if none. */
@@ -174,7 +206,7 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
         $plain  = 'arzo_' . $prefix . $secret;
 
         $expires_days = max(0, (int) $expires_days);
-        $scope = ($scope === 'read') ? 'read' : 'full';
+        $scope = in_array($scope, array('read', 'mcp'), true) ? $scope : 'full';
         $entry = array(
             'id'            => 'rk_' . substr(md5(uniqid('', true)), 0, 12),
             'label'         => sanitize_text_field($label) ?: 'API key',
@@ -185,7 +217,8 @@ class WP_Arzo_Feature_REST_API_Auth extends WP_Arzo_Feature
             'last_used_gmt' => '',
             // Optional auto-expiry — an expired key stops authenticating (never deleted).
             'expires_gmt'   => $expires_days > 0 ? gmdate('Y-m-d H:i:s', time() + $expires_days * DAY_IN_SECONDS) : '',
-            // Access scope: 'full' (default) or 'read' (safe GET/HEAD/OPTIONS only).
+            // Access scope: 'full' (default), 'read' (safe GET/HEAD/OPTIONS only), or
+            // 'mcp' (only authenticates for the WP Arzo MCP endpoint — safe for AI agents).
             'scope'         => $scope,
         );
 

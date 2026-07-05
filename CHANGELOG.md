@@ -4,6 +4,20 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.153.0] — 2026-07-06
+
+### Added — "MCP only" API-key scope
+
+- **New `mcp` scope for REST API keys.** Alongside *Full access* and *Read-only*, you can now issue a
+  key with the **"MCP only"** scope: it authenticates **exclusively** for the WP Arzo MCP endpoint
+  (`wp-arzo/v1/mcp`) and resolves to nobody on every other REST route — read or write. This lets you
+  hand an AI agent a key that can drive the MCP server (Pro) without granting it general REST API write
+  access. Within MCP, write actions remain gated by the MCP "Allow write actions" toggle + per-call
+  confirm; the scope only bounds *where* the key works.
+- Engine: `WP_Arzo_Feature_REST_API_Auth::is_mcp_request()` (pure, harnessed) + an `mcp` branch in
+  `authenticate()` ordered before the read-only branch; `create_key()` accepts the new scope; the REST
+  API Authentication admin adds the "MCP only" option + badge. The Pro MCP page recommends it for agents.
+
 ## [6.152.1] — 2026-07-06
 
 ### Changed
