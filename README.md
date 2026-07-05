@@ -103,7 +103,7 @@ The native **WP Arzo** admin menu is the modern home base:
 | **Custom Login Page** | Brand every login screen — logo, colors, background, custom CSS |
 | **Block User Enumeration** | Stop `?author=N` and REST user enumeration |
 | **Restrict REST API** | Require auth for REST endpoints |
-| **REST API Authentication** | Issue/revoke API keys (Bearer / X‑API‑Key / Basic) with **per‑key read‑only scope**, **auto‑expiry**, and last‑used tracking |
+| **REST API Authentication** | Issue/revoke API keys (Bearer / X‑API‑Key / Basic) with **per‑key scope** (Full / Read‑only / **MCP‑only** — an agent key that drives only the MCP endpoint), **auto‑expiry**, and last‑used tracking |
 | **Role Manager** | Edit role capabilities (grouped by category with a live filter + per‑group toggle‑all); add, clone, and delete roles |
 | **Disable Theme/Plugin Editor** | Remove the in‑admin file editors |
 
