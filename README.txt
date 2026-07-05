@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.154.0
+Stable tag: 6.155.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,13 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.155.0 =
+* Changed: **Enhance List Tables** now makes clear it applies to classic list tables (posts, pages,
+  and custom post types). On WordPress 7.0+, the core Posts/Pages/Media screens use the new React
+  **DataViews** grid, where the classic column hooks do not fire — the ID/thumbnail columns simply
+  don't appear there (a graceful no-op, never a break); custom post types are unaffected. Pairs with
+  the WP Arzo Pro v1.72.0 Admin Branding fix that recolors the whole modern admin/editor/DataViews.
 
 = 6.154.0 =
 * Improved: **Config Import/Export** now round-trips **every** feature's configuration, not just

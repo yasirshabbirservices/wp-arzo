@@ -207,7 +207,7 @@ class WP_Arzo_Feature_Enhance_List_Tables extends WP_Arzo_Feature
     }
     public function description()
     {
-        return 'Add an ID column and a featured-image thumbnail to the posts/pages list tables.';
+        return 'Add an ID column and a featured-image thumbnail to classic list tables (posts, pages, and custom post types).';
     }
     public function group()
     {
@@ -219,8 +219,12 @@ class WP_Arzo_Feature_Enhance_List_Tables extends WP_Arzo_Feature
     }
     public function settings_schema()
     {
+        // WordPress 7.0 converts the core Posts / Pages / Media screens to the React
+        // DataViews grid, where the classic `manage_*_columns` hooks no longer fire — so
+        // these columns apply to classic list tables (custom post types, and Posts/Pages
+        // while still classic). This is a graceful no-op on DataViews screens, never a break.
         return array(
-            array('key' => 'show_id', 'type' => 'toggle', 'label' => 'Show ID column', 'default' => 1),
+            array('key' => 'show_id', 'type' => 'toggle', 'label' => 'Show ID column', 'default' => 1, 'help' => 'Adds a numeric ID column to classic list tables. On WordPress 7.0+ the core Posts/Pages/Media screens use the new DataViews grid, where this does not apply — custom post types are unaffected.'),
             array('key' => 'show_thumb', 'type' => 'toggle', 'label' => 'Show featured image', 'default' => 1),
         );
     }
