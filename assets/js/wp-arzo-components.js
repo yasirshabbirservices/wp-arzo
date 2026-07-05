@@ -77,6 +77,15 @@
     trigger.setAttribute('aria-haspopup', 'listbox');
     trigger.setAttribute('aria-expanded', 'false');
 
+    // Give the enhanced control an accessible name: prefer an explicit aria-label
+    // on the native <select>, else the text of its associated <label for="…">.
+    var accName = native.getAttribute('aria-label') || '';
+    if (!accName && native.id) {
+      var boundLabel = document.querySelector('label[for="' + native.id + '"]');
+      if (boundLabel) { accName = boundLabel.textContent.trim(); }
+    }
+    if (accName) { trigger.setAttribute('aria-label', accName); }
+
     var labelSpan = document.createElement('span');
     labelSpan.className = 'wpa-select__value';
     trigger.appendChild(labelSpan);
@@ -88,6 +97,7 @@
     var menu = document.createElement('ul');
     menu.className = 'wpa-select__menu';
     menu.setAttribute('role', 'listbox');
+    if (accName) { menu.setAttribute('aria-label', accName); }
     menu.hidden = true;
 
     var options = Array.prototype.slice.call(native.options);
@@ -250,6 +260,13 @@
     var noun = opts.noun || 'item';
     var ajaxUrl = opts.ajaxUrl || window.ajaxurl;
     var t, busy = false, seq = 0;
+
+    // Announce page/result-count changes to assistive tech (the info line is the
+    // natural live region — it already reports "Page X of Y · N items").
+    if (opts.info && !opts.info.hasAttribute('aria-live')) {
+      opts.info.setAttribute('aria-live', 'polite');
+      opts.info.setAttribute('role', 'status');
+    }
 
     function body(p) {
       var b = new FormData();

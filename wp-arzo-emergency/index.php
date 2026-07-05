@@ -1275,7 +1275,8 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
                                 style="font-size: 12px; color: var(--muted-text); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Password</label>
                         </div>
                         <input type="password" name="password"
-                            class="form-control" placeholder="Enter your password" required autofocus>
+                            class="form-control" placeholder="Enter your password" required autofocus
+                            autocomplete="current-password">
                         <button type="submit" class="btn"><?php echo arzo_em_icon('shield'); ?> Login</button>
                     </form>
                 <?php endif; ?>

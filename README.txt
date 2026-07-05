@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 6.151.0
+Stable tag: 6.152.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,11 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.152.0 =
+* Changed: accessibility, SEO & token polish — the custom select now has an accessible name
+  (aria-label from its label), AJAX list pagers announce page/count changes via an aria-live region,
+  the emergency recovery login field gained autocomplete, and the toggle knob uses design tokens.
 
 = 6.151.0 =
 * Changed: Roles (the capability editor) is now its own submenu (WP Arzo → Roles) instead of a
