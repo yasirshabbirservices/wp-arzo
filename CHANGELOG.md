@@ -4,6 +4,15 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.152.1] — 2026-07-06
+
+### Changed
+
+- **Tested up to WordPress 7.0.** Verified end-to-end on a live WP 7.0 install — the dashboard,
+  cookieless Analytics, and the Advanced Tools console all work, and (with WP Arzo Pro) the MCP
+  server + the new WP 6.9 Abilities API dual-registration were confirmed against the real
+  `wp-abilities/v1` REST namespace.
+
 ## [6.152.0] — 2026-07-06
 
 ### Changed — accessibility, SEO & token polish (pre-submission wave 4/5)
