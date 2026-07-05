@@ -10,22 +10,20 @@
  * @version 2.4
  */
 
-// Disable error reporting to prevent leakage, unless explicitly enabled
-if (isset($_GET['debug'])) {
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-} else {
-    error_reporting(0);
-}
+// Never leak errors from this public recovery endpoint (no debug switch — a ?debug GET must
+// not be able to turn on display_errors on a public URL).
+error_reporting(0);
 
 // Security headers
 header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block");
 header("X-Content-Type-Options: nosniff");
-// Allow Google Fonts, images, and inline styles/scripts. No 'unsafe-eval' (not needed).
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none';");
+// Self-contained: no external fonts/scripts/styles (icons are inline SVG). Locking the CSP to
+// 'self' also satisfies the "no offloaded assets" expectation.
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none';");
 header("Referrer-Policy: no-referrer");
+// Sensitive admin tool: keep it out of every search/answer engine index.
+header("X-Robots-Tag: noindex, nofollow, noarchive, nosnippet");
 
 // Define constants
 // Read the real plugin version from the main plugin header so the emergency page always
@@ -686,10 +684,11 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <title>WP Arzo - Emergency Recovery</title>
     <!-- Embedded CSS matching Main Plugin -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+        /* No webfont fetch: the system font stack is used (self-contained, no offloaded assets). */
 
         /* Tokens aligned with the plugin design system (assets/css/design-tokens.css).
            Kept inline so the recovery tool stays fully self-contained. */

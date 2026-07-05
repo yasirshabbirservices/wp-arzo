@@ -1,11 +1,12 @@
 === WP Arzo - Maintenance & Administration Suite ===
-Contributors: Yasir Shabbir
-Tags: maintenance, administration, tools, database, file manager
+Contributors: yasirshabbir
+Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
-Tested up to: 6.5
+Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 6.147.0
-License: Proprietary
+Stable tag: 6.148.0
+License: GPLv3 or later
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 One suite to run, secure, optimize, and rescue your WordPress site — replace 20+ single-purpose plugins.
 
@@ -44,6 +45,16 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.148.0 =
+* Changed: WordPress.org submission-readiness (pass 1). Declared GPL-3.0-or-later in the plugin header
+  and readme (was "Proprietary"); retired the in-plugin GitHub self-updater from the .org build via a
+  new .distignore + file_exists() guard; fixed the readme contributor slug, Tested-up-to, and tags.
+* Changed: removed all CDN fonts/icons from public surfaces — the Maintenance/Coming-Soon/Payment page,
+  the Emergency Recovery tool, and wp-arzo.css now use inline SVG icons + the system font stack (no more
+  Font Awesome / Google Fonts requests, no visitor IPs sent to third parties).
+* Security: the Emergency Recovery tool is now noindex (meta + X-Robots-Tag) with a locked-down CSP, and
+  the ?debug switch that could enable display_errors on a public URL was removed.
 
 = 6.147.0 =
 * Changed: the dashboard License card now reflects WP Arzo Pro's update-gating model with three
