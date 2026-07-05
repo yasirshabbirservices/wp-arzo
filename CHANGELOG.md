@@ -4,6 +4,18 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.155.0] — 2026-07-06
+
+### Changed — WP 7.0 DataViews clarity for Enhance List Tables
+
+- **Enhance List Tables** now states it targets classic list tables (posts, pages, and custom post
+  types). WordPress 7.0 converts the core **Posts / Pages / Media** screens to the React **DataViews**
+  grid, where the classic `manage_*_columns` hooks no longer fire — so the ID/thumbnail columns don't
+  appear on those screens (a graceful no-op, never a break). Custom post types keep the columns.
+- Pairs with **WP Arzo Pro v1.72.0**, whose Admin Branding fix recolors the entire modern admin —
+  including the block-editor sidebar, `@wordpress/components`, and DataViews — via the WordPress
+  `--wp-admin-theme-color` token (no more accent leaks on those surfaces).
+
 ## [6.154.0] — 2026-07-06
 
 ### Improved — Config Import/Export now covers every feature's configuration
