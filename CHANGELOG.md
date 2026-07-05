@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.151.0] — 2026-07-05
+
+### Changed — information-architecture cleanup
+
+- **Roles moved to its own submenu.** The Role Manager is a full capability-editor workspace (role
+  list + capability grid + add/clone/delete), so it now lives at **WP Arzo → Roles** in the security
+  band instead of hiding as a config-light Settings tab. Bookmarked `Settings → Roles` links
+  redirect to the new page; the command palette lists **Roles** as a page; its "Configure →" points
+  there. (The Settings hub stays for genuinely config-light things — Login Security, REST API Auth,
+  Import/Export, and the Pro tabs.)
+- **Fixed two submenu-ordering bugs.** The Pro **Site Health** and **Manage License** pages weren't
+  in the order map, so they silently fell to the default position; they're now ranked into the
+  monitor band and just below Settings, respectively.
+- **GA4 / GTM / Google Ads "Configure →"** now opens the Analytics **Google** tab (with its status
+  cards + context) instead of a bare settings drawer.
+
 ## [6.150.0] — 2026-07-05
 
 ### Removed / Changed — dead code & cleanup
