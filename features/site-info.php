@@ -196,7 +196,7 @@ function showSiteInfo()
         <!-- WordPress Information -->
         <div class="info-card">
             <div class="info-card-header">
-                <i class="fab fa-wordpress" style="margin-right: 8px;"></i>
+                <?php echo wp_arzo_icon('globe', ['class' => 'wpa-icon wpa-hicon']); ?>
                 WordPress
             </div>
             <div class="info-card-body">
@@ -248,7 +248,7 @@ function showSiteInfo()
         <!-- PHP Information -->
         <div class="info-card">
             <div class="info-card-header">
-                <i class="fab fa-php" style="margin-right: 8px;"></i>
+                <?php echo wp_arzo_icon('code', ['class' => 'wpa-icon wpa-hicon']); ?>
                 PHP
             </div>
             <div class="info-card-body">
@@ -288,7 +288,7 @@ function showSiteInfo()
         <!-- Server Information -->
         <div class="info-card">
             <div class="info-card-header">
-                <i class="fas fa-server" style="margin-right: 8px;"></i>
+                <?php echo wp_arzo_icon('server', ['class' => 'wpa-icon wpa-hicon']); ?>
                 Server
             </div>
             <div class="info-card-body">
@@ -337,7 +337,7 @@ function showSiteInfo()
         <!-- Database Information -->
         <div class="info-card">
             <div class="info-card-header">
-                <i class="fas fa-database" style="margin-right: 8px;"></i>
+                <?php echo wp_arzo_icon('database', ['class' => 'wpa-icon wpa-hicon']); ?>
                 Database
             </div>
             <div class="info-card-body">
@@ -377,7 +377,7 @@ function showSiteInfo()
         <!-- Theme & Plugins Information -->
         <div class="info-card">
             <div class="info-card-header">
-                <i class="fas fa-paint-brush" style="margin-right: 8px;"></i>
+                <?php echo wp_arzo_icon('theme', ['class' => 'wpa-icon wpa-hicon']); ?>
                 Theme & Plugins
             </div>
             <div class="info-card-body">
@@ -429,7 +429,7 @@ function showSiteInfo()
         <!-- Security & Performance -->
         <div class="info-card">
             <div class="info-card-header">
-                <i class="fas fa-shield-alt" style="margin-right: 8px;"></i>
+                <?php echo wp_arzo_icon('shield', ['class' => 'wpa-icon wpa-hicon']); ?>
                 Security & Performance
             </div>
             <div class="info-card-body">

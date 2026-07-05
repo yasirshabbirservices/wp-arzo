@@ -133,7 +133,7 @@ function handleQuickLogin()
                     <input type="text" id="tl-redirect" class="form-control" placeholder="<?php echo esc_attr(admin_url()); ?>">
                 </div>
             </div>
-            <button type="button" class="btn" id="tl-create" style="margin-top:14px;"><i class="fas fa-link"></i> Generate login link</button>
+            <button type="button" class="btn" id="tl-create" style="margin-top:14px;"><?php echo wp_arzo_icon('link'); ?> Generate login link</button>
             <div id="tl-result" style="display:none; margin-top:14px; padding:12px; background:var(--background-medium); border:1px solid var(--accent-color); border-radius:var(--radius-global);">
                 <strong style="color:var(--accent-color);">Login link ready</strong>
                 <div style="display:flex; gap:8px; margin-top:8px;">

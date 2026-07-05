@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.149.0] — 2026-07-05
+
+### Changed — WordPress.org submission-readiness (compliance pass 2 of 2): console is CDN-free
+
+Completes the "no offloaded assets" work started in 6.148.0. The **Advanced Tools console** no longer
+loads Font Awesome from a CDN — every icon there is now an inline `wp_arzo_icon()` SVG, so the free
+plugin makes **zero external asset requests** anywhere.
+
+- Removed the Font Awesome `<link>` from the console header (`wp-arzo-header.php`).
+- Migrated ~39 Font Awesome glyphs across **Site Info, Users, Site Modes, Extra Options, and Temporary
+  Login** to inline SVG — including icons built inside JavaScript (emergency-mode buttons, the users
+  table, copy/clear actions), which are now injected as SVG at render time.
+- Added console CSS helpers (`.wpa-hicon`, `.wpa-iconbtn`) for consistent icon alignment/sizing and an
+  accessible icon-button pattern (focus ring, hover, `aria-label`).
+
+With 6.148.0 + 6.149.0, the free core has no CDN fonts/icons on any surface (admin, public, or the
+standalone emergency tool) — a WordPress.org submission requirement.
+
 ## [6.148.0] — 2026-07-05
 
 ### Changed — WordPress.org submission-readiness (compliance pass 1 of 2)

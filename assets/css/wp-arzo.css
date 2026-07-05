@@ -1230,3 +1230,27 @@ textarea:focus-visible,
   white-space: nowrap;
   border: 0;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Inline SVG icons (wp_arzo_icon) — replaces the old Font Awesome CDN glyphs. */
+/* Alignment + sensible sizing inside console buttons, headings and rows.      */
+/* -------------------------------------------------------------------------- */
+.container .wpa-icon { vertical-align: -0.15em; }
+.container .btn .wpa-icon,
+.container button .wpa-icon { width: 1.05em; height: 1.05em; margin-right: 2px; }
+.container h1 .wpa-hicon,
+.container h2 .wpa-hicon,
+.container h3 .wpa-hicon { margin-right: 8px; vertical-align: -0.12em; }
+.container .wpa-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: var(--arzo-radius-sm);
+  color: inherit;
+}
+.container .wpa-iconbtn:hover { background: var(--arzo-bg-hover); }
+.container .wpa-iconbtn:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
