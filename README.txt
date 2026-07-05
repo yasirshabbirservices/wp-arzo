@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.153.0
+Stable tag: 6.154.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,14 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.154.0 =
+* Improved: **Config Import/Export** now round-trips **every** feature's configuration, not just
+  schema-based settings. Features that store config in their own option — Site Health, Cron Manager,
+  Redirects, Content Types, Custom Fields, Menu Manager, Notifications — are now included via a new
+  `wp_arzo_config_option_keys` allow-list filter (Pro registers its modules). Import only writes keys
+  on the allow-list, so a config file can never inject an arbitrary option; secrets (backup/OAuth
+  credentials, API keys, 2FA), logs, and analytics/content data are deliberately excluded.
 
 = 6.153.0 =
 * Added: a new **“MCP only”** scope for REST API keys. An MCP-scoped key authenticates *only* for the
