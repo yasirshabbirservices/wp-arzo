@@ -51,6 +51,37 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
 
     /* ------------------------------------------------------------- export */
 
+    /**
+     * Allow-list of dedicated WP Arzo option keys that hold PORTABLE config which is
+     * NOT already covered by the feature-settings map (`wp_arzo_settings`). Features
+     * whose config lives in their own option — Site Health, Cron Manager, Redirects,
+     * Content Types, Custom Fields, Menu Manager, Notifications, … — register their key
+     * via the `wp_arzo_config_option_keys` filter (Pro hooks it for its modules).
+     *
+     * This list is the SECURITY boundary for import: only keys returned here are ever
+     * written, so a config file can never inject an arbitrary `wp_options` row. It
+     * deliberately EXCLUDES secrets/credentials (backup OAuth tokens, REST API keys,
+     * 2FA secrets, license state), logs, and runtime data — those are not portable.
+     *
+     * @return string[]
+     */
+    public static function portable_option_keys()
+    {
+        $keys = array(
+            'wp_arzo_sched_freq', // scheduled-backups frequency (free)
+        );
+        $keys = apply_filters('wp_arzo_config_option_keys', $keys);
+
+        $clean = array();
+        foreach ((array) $keys as $k) {
+            $k = sanitize_key((string) $k);
+            if ($k !== '' && !in_array($k, $clean, true)) {
+                $clean[] = $k;
+            }
+        }
+        return $clean;
+    }
+
     /** Build the export payload from the current WP Arzo state. */
     public static function export_payload()
     {
@@ -58,6 +89,17 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
         $settings    = get_option(WP_Arzo_Feature_Registry::OPT_SETTINGS, array());
         $snippets    = class_exists('WP_Arzo_Snippets') ? WP_Arzo_Snippets::instance()->get_all() : array();
         $connections = get_option('wp_arzo_smtp_connections', array());
+
+        // Per-feature dedicated config options (Site Health, Cron, Redirects, Content
+        // Types, Custom Fields, Menu Manager, Notifications, …) — only the allow-listed
+        // portable keys that actually exist are captured.
+        $options = array();
+        foreach (self::portable_option_keys() as $key) {
+            $val = get_option($key, null);
+            if ($val !== null) {
+                $options[$key] = $val;
+            }
+        }
 
         return array(
             'schema'         => self::SCHEMA,
@@ -68,6 +110,7 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
             'settings'       => is_array($settings) ? $settings : array(),
             'snippets'       => is_array($snippets) ? array_values($snippets) : array(),
             'connections'    => is_array($connections) ? $connections : array(),
+            'options'        => $options,
         );
     }
 
@@ -122,7 +165,21 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
         // re-reads/normalizes it (and only sends via enabled connections).
         $connections = (!empty($data['connections']) && is_array($data['connections'])) ? $data['connections'] : array();
 
-        return array('features' => $features, 'settings' => $settings, 'snippets' => $snippets, 'connections' => $connections);
+        // Per-feature dedicated config options — ONLY keys the CURRENT site allow-lists
+        // (portable_option_keys) are accepted, so an import can never write an option
+        // that isn't a registered WP Arzo config key (option-injection guard).
+        $options = array();
+        if (!empty($data['options']) && is_array($data['options'])) {
+            $allow = array_flip(self::portable_option_keys());
+            foreach ($data['options'] as $key => $val) {
+                $key = sanitize_key((string) $key);
+                if (isset($allow[$key])) {
+                    $options[$key] = $val;
+                }
+            }
+        }
+
+        return array('features' => $features, 'settings' => $settings, 'snippets' => $snippets, 'connections' => $connections, 'options' => $options);
     }
 
     /**
@@ -164,11 +221,21 @@ class WP_Arzo_Feature_Config_IO extends WP_Arzo_Feature
                 ? count($clean['connections']['connections']) : 0;
         }
 
+        // Per-feature dedicated config options (already allow-list-filtered by validate()).
+        $options = 0;
+        if (!empty($clean['options']) && is_array($clean['options'])) {
+            foreach ($clean['options'] as $key => $val) {
+                update_option($key, $val, false);
+                $options++;
+            }
+        }
+
         return array(
             'features'    => count($clean['features']),
             'settings'    => count($clean['settings']),
             'snippets'    => $imported,
             'connections' => $connections,
+            'options'     => $options,
             'snapshot'    => $snapshot,
         );
     }

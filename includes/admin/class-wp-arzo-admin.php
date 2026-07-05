@@ -4876,7 +4876,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                 <div class="wpa-main">
                     <div class="wpa-card" style="margin-bottom:16px;">
                         <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</h2>
-                        <p class="wpa-aside-card__text">Download a JSON file with your feature toggles, feature settings, and code snippets.</p>
+                        <p class="wpa-aside-card__text">Download a JSON file with your feature toggles, feature settings, per-feature configuration (Site Health, Cron, Redirects, Content Types, Custom Fields, Menu Manager, Notifications, …), email connections, and code snippets.</p>
                         <button type="button" id="wpa-config-export" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Download config</button>
                     </div>
                     <div class="wpa-card">
@@ -4890,7 +4890,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                 <aside class="wpa-aside">
                     <div class="wpa-aside-card">
                         <div class="wpa-aside-card__head"><?php echo wp_arzo_icon('info', array('class' => 'wpa-icon')); ?><h3 class="wpa-aside-card__title">What’s included</h3></div>
-                        <p class="wpa-aside-card__text">The feature on/off map, per-feature settings, and code snippets. It does <strong>not</strong> include other plugins’ options or your content/database — use Backups for those.</p>
+                        <p class="wpa-aside-card__text">The feature on/off map, per-feature settings &amp; configuration, email connections, and code snippets. For safety it excludes secrets (backup/OAuth credentials, API keys, 2FA), logs, and analytics/content data — and never other plugins’ options or your database (use Backups for those).</p>
                     </div>
                 </aside>
             </div>
@@ -4927,11 +4927,12 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         $s = WP_Arzo_Feature_Config_IO::apply($clean);
         wp_send_json_success(array(
             'message' => sprintf(
-                'Imported %d feature toggle(s), %d setting group(s), %d snippet(s), %d email connection(s).%s',
+                'Imported %d feature toggle(s), %d setting group(s), %d snippet(s), %d email connection(s), %d feature config(s).%s',
                 $s['features'],
                 $s['settings'],
                 $s['snippets'],
                 isset($s['connections']) ? $s['connections'] : 0,
+                isset($s['options']) ? $s['options'] : 0,
                 $s['snapshot'] ? ' A safety snapshot was taken.' : ''
             ),
         ));

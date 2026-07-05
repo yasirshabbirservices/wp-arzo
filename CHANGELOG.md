@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.154.0] — 2026-07-06
+
+### Improved — Config Import/Export now covers every feature's configuration
+
+- Export/import previously round-tripped the feature toggle-map, schema-driven feature settings,
+  email connections, and snippets — but **not** features that keep their config in their own
+  option. Those are now included via a new **`wp_arzo_config_option_keys`** allow-list filter, so a
+  config file carries **Site Health, Cron Manager, Redirects, Content Types, Custom Fields, Menu
+  Manager, Notifications** (Pro registers these) and the free scheduled-backups frequency.
+- **Security:** import only writes option keys that the current site's allow-list returns, so a
+  crafted file can never inject an arbitrary `wp_options` row. Secrets (backup/OAuth credentials,
+  REST API keys, 2FA), logs, and analytics/content data are deliberately excluded from export.
+- `WP_Arzo_Feature_Config_IO::export_payload()` gains an `options` bucket; `validate()`/`apply()`
+  handle it; the import summary now reports the number of feature configs applied. 18-check harness.
+
 ## [6.153.0] — 2026-07-06
 
 ### Added — "MCP only" API-key scope
