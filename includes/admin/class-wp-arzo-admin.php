@@ -72,6 +72,9 @@ class WP_Arzo_Admin
         // admin_menu:22) have added theirs. The native add_submenu_page $position arg is
         // unreliable across differing hook priorities, so we sort the final array ourselves.
         add_action('admin_menu', array($this, 'order_submenu'), 999);
+        // Roles moved from a Settings tab to its own page (wp-arzo-roles). Redirect any
+        // bookmarked/legacy `…settings&tab=roles` link to the new page.
+        add_action('admin_init', array($this, 'maybe_redirect_legacy_roles_tab'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue'));
         // Command palette: feed WP Arzo destinations into WordPress's native Ctrl/⌘-K
         // palette (core/commands). Enqueued site-wide in admin (not just our pages) so the
@@ -220,6 +223,11 @@ class WP_Arzo_Admin
         if ($this->page_visible(self::PAGE_ACTIVITY)) {
             add_submenu_page(self::PAGE, 'Activity Log', 'Activity Log', 'manage_options', self::PAGE_ACTIVITY, array($this, 'render_activity_log'), 60);
         }
+        // Roles is a full capability-editor workspace (list + capability grid + CRUD), so it
+        // gets its own page in the security band rather than hiding as a config-light Settings tab.
+        if ($this->page_visible(self::PAGE_ROLES)) {
+            add_submenu_page(self::PAGE, 'Roles', 'Roles', 'manage_options', self::PAGE_ROLES, array($this, 'render_roles'), 62);
+        }
 
         // One consolidated Settings hub — Login Security / Roles / REST API Auth / Import-Export
         // (free) plus Two-Factor / Notifications / AI-MCP (Pro, via the wp_arzo_settings_tabs
@@ -254,16 +262,20 @@ class WP_Arzo_Admin
             self::PAGE_ACTIVITY       => 10, // Activity Log — "what's happening"
             self::PAGE_EMAIL          => 12,
             self::PAGE_BACKUPS        => 14,
+            'wp-arzo-health'          => 16, // Pro — Site Health (monitor band; was falling to the 80 default)
             // Content & media
             'wp-arzo-content-types'   => 30, // Pro
             'wp-arzo-custom-fields'   => 32, // Pro
             self::PAGE_MEDIA          => 34,
+            // Security & access
+            self::PAGE_ROLES          => 62, // Role/capability editor workspace
             // Developer
             self::PAGE_SNIPPETS       => 70,
             'wp-arzo-redirects'       => 72, // Pro
             'wp-arzo-cron'            => 74, // Pro
             // Consolidated Settings hub (Security / Access / Integrations / Data as tabs) — near the bottom
             self::PAGE_SETTINGS       => 80,
+            'wp-arzo-pro-manage-license' => 85, // Pro — Manage License (below Settings; was defaulting to 80)
             // Tools (bottom)
             'wp-arzo-tool'            => 95, // Advanced Tools console (opens standalone)
         );
@@ -454,6 +466,7 @@ class WP_Arzo_Admin
             array('id' => 'backups',   'label' => __('Backups', 'wp-arzo'),       'icon' => 'database-export',   'slug' => self::PAGE_BACKUPS),
             array('id' => 'media',     'label' => __('Media Cleanup', 'wp-arzo'), 'icon' => 'format-gallery',    'slug' => self::PAGE_MEDIA),
             array('id' => 'snippets',  'label' => __('Snippets', 'wp-arzo'),      'icon' => 'editor-code',       'slug' => self::PAGE_SNIPPETS),
+            array('id' => 'roles',     'label' => __('Roles', 'wp-arzo'),         'icon' => 'admin-users',       'slug' => self::PAGE_ROLES),
             array('id' => 'settings',  'label' => __('Settings', 'wp-arzo'),      'icon' => 'admin-settings',    'slug' => self::PAGE_SETTINGS, 'always' => true),
         );
         foreach ($pages as $p) {
@@ -999,10 +1012,14 @@ class WP_Arzo_Admin
             'media_cleanup'     => $s . self::PAGE_MEDIA,
             'activity_log'      => $s . self::PAGE_ACTIVITY,
             'limit_login'       => $s . self::PAGE_SETTINGS . '&tab=login_security',
-            'role_manager'      => $s . self::PAGE_SETTINGS . '&tab=roles',
+            'role_manager'      => $s . self::PAGE_ROLES,
             'rest_api_auth'     => $s . self::PAGE_SETTINGS . '&tab=rest_auth',
             'auto_snapshots'    => $s . self::PAGE_BACKUPS,
             'scheduled_backups' => $s . self::PAGE_BACKUPS,
+            // Google tag features surface on the Analytics "Google" tab (richer than a bare drawer).
+            'google_analytics_4' => $s . self::PAGE_ANALYTICS . '&tab=google',
+            'google_tag_manager' => $s . self::PAGE_ANALYTICS . '&tab=google',
+            'google_ads'         => $s . self::PAGE_ANALYTICS . '&tab=google',
         );
         $map = apply_filters('wp_arzo_feature_manage_urls', $map);
         return isset($map[$id]) ? $map[$id] : '';
@@ -2713,9 +2730,8 @@ class WP_Arzo_Admin
         if ($this->page_visible(self::PAGE_LOGIN_SECURITY)) {
             $tabs['login_security'] = array('label' => 'Login Security', 'icon' => 'lock', 'order' => 20, 'cb' => array($this, 'render_login_security'));
         }
-        if ($this->page_visible(self::PAGE_ROLES)) {
-            $tabs['roles'] = array('label' => 'Roles', 'icon' => 'users', 'order' => 30, 'cb' => array($this, 'render_roles'));
-        }
+        // Roles moved to its own submenu page (wp-arzo-roles) — it's a full workspace, not
+        // config-light. Kept out of the Settings hub deliberately.
         if ($this->page_visible(self::PAGE_REST_AUTH)) {
             $tabs['rest_auth'] = array('label' => 'REST API Auth', 'icon' => 'key', 'order' => 32, 'cb' => array($this, 'render_rest_auth'));
         }
@@ -4535,6 +4551,27 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
     }
 
     /* ----------------------------------------------------- Role Manager */
+
+    /**
+     * Redirect the retired `Settings → Roles` tab URL to the standalone Roles page,
+     * so old bookmarks / links keep working. Runs early on admin_init (before output).
+     */
+    public function maybe_redirect_legacy_roles_tab()
+    {
+        if (!is_admin() || !current_user_can('manage_options')) {
+            return;
+        }
+        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        $tab  = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
+        if ($page === self::PAGE_SETTINGS && $tab === 'roles') {
+            $target = admin_url('admin.php?page=' . self::PAGE_ROLES);
+            if (isset($_GET['role'])) {
+                $target = add_query_arg('role', sanitize_key(wp_unslash($_GET['role'])), $target);
+            }
+            wp_safe_redirect($target);
+            exit;
+        }
+    }
 
     public function render_roles()
     {
