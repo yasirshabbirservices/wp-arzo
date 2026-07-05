@@ -142,6 +142,10 @@
    clear a log, revoke a key): reads red (= caution) without a wall of filled buttons. */
 .wpa-btn--danger-soft { --_bg: transparent; --_fg: var(--arzo-error); border-color: var(--arzo-border); }
 .wpa-btn--danger-soft:hover { --_bg: var(--arzo-error); --_fg: var(--arzo-white); border-color: var(--arzo-error); filter: none; }
+/* Warning — amber fill for the primary action inside a cautionary (not destructive) context,
+   e.g. "Activate a license" on the "Updates paused" card. Dark/white on-accent text stays
+   readable on the amber fill in both themes. */
+.wpa-btn--warning { --_bg: var(--arzo-warning); --_fg: var(--arzo-text-on-accent); }
 .wpa-btn--sm { padding: 6px 10px; font-size: var(--arzo-fs-sm); }
 .wpa-btn--lg { padding: 13px 22px; font-size: var(--arzo-fs-lg); }
 .wpa-btn--icon { padding: 8px; }

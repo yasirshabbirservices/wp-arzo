@@ -4,6 +4,22 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.147.0] — 2026-07-05
+
+### Changed — dashboard License card reflects Pro's update-gating model
+
+WP Arzo Pro moved to an **update-gating** model (features work without an active license; the license
+gates automatic updates + support). The dashboard **License card** now shows three honest states:
+
+- **Green "Pro active"** — Pro installed and licensed (features unlocked + receiving updates).
+- **Amber "Updates paused"** — Pro installed, features working, but the license is inactive → an
+  amber (caution, not error) card + a new **`wpa-btn--warning`** "Activate a license" button. Nothing
+  is broken or lost, so it's amber, not red (color = intent).
+- **"Free"** — Pro not installed → the usual upsell.
+
+The card reads a new **`wp_arzo_pro_license_active`** filter that the Pro add-on supplies. Added the
+reusable `.wpa-btn--warning` (amber) and `.wpa-license.is-unlicensed` styles.
+
 ## [6.146.0] — 2026-07-05
 
 ### Changed — File Manager & Database manager are now Pro power-tools (leaner, safer free core)
