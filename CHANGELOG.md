@@ -4,6 +4,21 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.152.0] — 2026-07-06
+
+### Changed — accessibility, SEO & token polish (pre-submission wave 4/5)
+
+- **Enhanced `.wpa-select` now carries an accessible name.** The custom listbox trigger derives
+  its `aria-label` from the native `<select>`'s own `aria-label` or its associated
+  `<label for="…">`, so screen-reader users hear what the control is for.
+- **AJAX list pagers announce changes.** `wpArzo.ajaxList` marks the results/info line as an
+  `aria-live="polite"` status region, so page and result-count changes are announced (Activity/Email
+  logs, remote-backup lists, and every other AJAX list surface).
+- **Emergency recovery tool** — the login password field gained `autocomplete="current-password"`
+  so password managers work on the standalone recovery page.
+- **Zero-hardcoded-value sweep** — the toggle knob in `wp-arzo.css` now uses `var(--arzo-white)` and
+  `var(--arzo-shadow-sm)` instead of a raw `#fff` / shadow literal.
+
 ## [6.151.0] — 2026-07-05
 
 ### Changed — information-architecture cleanup

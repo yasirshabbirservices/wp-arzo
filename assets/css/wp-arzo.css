@@ -173,8 +173,8 @@ h3 {
   width: 18px !important;
   left: 3px !important;
   bottom: 3px !important;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  background-color: var(--arzo-white);
+  box-shadow: var(--arzo-shadow-sm);
   transition: transform var(--arzo-transition);
   border-radius: 50%;
 }
