@@ -103,9 +103,10 @@ function wp_arzo_maintenance_display_mode()
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex, nofollow">
         <title><?php echo esc_html($title . ' - ' . get_bloginfo('name')); ?></title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+            /* No CDN assets: icons are inline SVG (wp_arzo_icon) and the font falls back to the
+               system stack — WordPress.org forbids offloaded fonts/styles, and a public page
+               must not send visitor IPs to Google/Cloudflare. */
 
             /* Dashboard token palette (embedded: this page must stay self-contained). */
             :root {
@@ -158,11 +159,22 @@ function wp_arzo_maintenance_display_mode()
             }
 
             .maintenance-icon {
-                font-size: 4rem;
                 color:
                     <?php echo $colors['primary']; ?>
                 ;
                 margin-bottom: 20px;
+            }
+
+            .maintenance-icon svg {
+                width: 4rem;
+                height: 4rem;
+            }
+
+            .social-contacts h3 svg,
+            .contact-icon svg {
+                width: 1.25rem;
+                height: 1.25rem;
+                vertical-align: middle;
             }
 
             .maintenance-title {
@@ -243,12 +255,13 @@ function wp_arzo_maintenance_display_mode()
             <div class="maintenance-icon">
                 <?php
                 $icons = [
-                    'maintenance' => 'fas fa-tools',
-                    'coming_soon' => 'fas fa-rocket',
-                    'payment_request' => 'fas fa-credit-card'
+                    'maintenance' => 'tools',
+                    'coming_soon' => 'rocket',
+                    'payment_request' => 'credit-card',
                 ];
+                $mode_icon = isset($icons[$active_mode]) ? $icons[$active_mode] : 'tools';
+                echo wp_arzo_icon($mode_icon, ['size' => 64]);
                 ?>
-                <i class="<?php echo $icons[$active_mode]; ?>"></i>
             </div>
 
             <h1 class="maintenance-title"><?php echo esc_html($title); ?></h1>
@@ -256,30 +269,30 @@ function wp_arzo_maintenance_display_mode()
 
             <?php if ($show_social_contacts && ($developer_email || $developer_phone || $developer_whatsapp || $developer_skype)): ?>
                 <div class="social-contacts">
-                    <h3><i class="fas fa-address-book"></i> Contact Information</h3>
+                    <h3><?php echo wp_arzo_icon('users'); ?> Contact Information</h3>
                     <div class="contact-icons">
                         <?php if ($developer_email): ?>
-                            <a href="mailto:<?php echo esc_attr($developer_email); ?>" class="contact-icon" title="Email">
-                                <i class="fas fa-envelope"></i>
+                            <a href="mailto:<?php echo esc_attr($developer_email); ?>" class="contact-icon" title="Email" aria-label="Email">
+                                <?php echo wp_arzo_icon('mail'); ?>
                             </a>
                         <?php endif; ?>
 
                         <?php if ($developer_phone): ?>
-                            <a href="tel:<?php echo esc_attr($developer_phone); ?>" class="contact-icon" title="Phone">
-                                <i class="fas fa-phone"></i>
+                            <a href="tel:<?php echo esc_attr($developer_phone); ?>" class="contact-icon" title="Phone" aria-label="Phone">
+                                <?php echo wp_arzo_icon('phone'); ?>
                             </a>
                         <?php endif; ?>
 
                         <?php if ($developer_whatsapp): ?>
                             <a href="https://wa.me/<?php echo esc_attr(preg_replace('/[^0-9]/', '', $developer_whatsapp)); ?>"
-                                class="contact-icon" title="WhatsApp" target="_blank">
-                                <i class="fab fa-whatsapp"></i>
+                                class="contact-icon" title="WhatsApp" aria-label="WhatsApp" target="_blank" rel="noopener">
+                                <?php echo wp_arzo_icon('chat'); ?>
                             </a>
                         <?php endif; ?>
 
                         <?php if ($developer_skype): ?>
-                            <a href="skype:<?php echo esc_attr($developer_skype); ?>?chat" class="contact-icon" title="Skype">
-                                <i class="fab fa-skype"></i>
+                            <a href="skype:<?php echo esc_attr($developer_skype); ?>?chat" class="contact-icon" title="Skype" aria-label="Skype">
+                                <?php echo wp_arzo_icon('chat'); ?>
                             </a>
                         <?php endif; ?>
                     </div>

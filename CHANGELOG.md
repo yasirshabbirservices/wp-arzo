@@ -4,6 +4,32 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.148.0] — 2026-07-05
+
+### Changed — WordPress.org submission-readiness (compliance pass 1 of 2)
+
+Groundwork so the free core can be listed on WordPress.org. This pass fixes licensing/metadata and
+removes offloaded (CDN) assets from every **public** surface; the Advanced Tools console's Font Awesome
+migration lands in 6.149.0.
+
+- **GPL licensing declared everywhere.** Added `License: GPL-3.0-or-later` + `License URI` to the plugin
+  header and `README.txt` (was the rejection-triggering `License: Proprietary`), matching the bundled
+  GPLv3 `LICENSE`.
+- **In-plugin GitHub self-updater retired from the .org build.** Its `require`/`boot` is now guarded by
+  `file_exists()`, and a new **`.distignore`** strips `includes/class-wp-arzo-updater.php` (plus dev files)
+  from the wp.org SVN deploy — directory-hosted plugins must update only via wp.org, and this also removes
+  the unconsented `api.github.com` update check.
+- **README.txt header fixed** — valid contributor slug, refreshed *Tested up to*, and tags no longer point
+  at the now-Pro File Manager/Database tools.
+- **No more CDN fonts/icons on public surfaces.** Removed Font Awesome + Google Fonts from the public
+  **Maintenance / Coming-Soon / Payment-Required** page (icons are now inline `wp_arzo_icon()` SVG — added
+  `rocket`, `credit-card`, `phone`, `chat`, `save`, `link`, `server`, `login` glyphs), the **Emergency
+  Recovery** tool, and `assets/css/wp-arzo.css`. The system font stack is used instead.
+- **Emergency Recovery tool hardened + de-indexed.** Added `noindex` (meta + `X-Robots-Tag`), tightened
+  its CSP to `'self'`, and removed the `?debug` switch that could enable `display_errors` on a public URL.
+- **Docs:** README console table now states File Manager/Database require Pro (they moved out of free in
+  6.146); removed the stale "bundled" wording.
+
 ## [6.147.0] — 2026-07-05
 
 ### Changed — dashboard License card reflects Pro's update-gating model

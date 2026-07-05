@@ -1,4 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap");
+/*
+ * Font: we rely on the --arzo-font stack ('Lato', 'Segoe UI', system-ui, …) defined in
+ * design-tokens.css. No webfont is fetched — loading fonts from a CDN violates the
+ * WordPress.org "no offloaded assets" rule (and sends visitor IPs to Google on public
+ * pages). Sites that want Lato specifically can enqueue it themselves.
+ */
 
 /*
  * Design tokens (colors, radius, spacing, motion, …) live in design-tokens.css,

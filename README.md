@@ -7,7 +7,7 @@ One dark, modern dashboard to run, secure, optimize, and rescue your site — pl
 break‑glass power‑tools console and a standalone emergency recovery tool for when
 WordPress won't even load.
 
-![Version](https://img.shields.io/badge/version-6.147.0-16e791)
+![Version](https://img.shields.io/badge/version-6.148.0-16e791)
 ![WordPress](https://img.shields.io/badge/WordPress-%E2%89%A5%205.0-21759b)
 ![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%207.2-777bb4)
 ![Admin only](https://img.shields.io/badge/access-administrators%20only-ff4d4f)
@@ -32,7 +32,7 @@ Everything is **administrators‑only** and authenticates with your existing Wor
 session. The optional **WP Arzo Pro** add‑on registers premium modules into the same
 dashboard (shown as locked **PRO** cards until unlocked).
 
-- **Current version:** `6.147.0` — see [CHANGELOG.md](CHANGELOG.md)
+- **Current version:** `6.148.0` — see [CHANGELOG.md](CHANGELOG.md)
 - **Requires:** WordPress ≥ 5.0 · PHP ≥ 7.2
 - **Highlights:** a built‑in **cookieless analytics** engine (no Site Kit needed), multi‑provider
   SMTP with fallback **+ auto‑retry queue**, a CodeMirror **Code Snippets** editor with **smart
@@ -169,8 +169,8 @@ individually from the dashboard):
 |---|---|
 | **Site Info** | WordPress / PHP / MySQL / server / disk usage at a glance |
 | **Users** | Paginated user list; create, delete, and log in as any user |
-| **Database** | Full database manager (**AdminNeo**, bundled) — browse/edit rows, run SQL, export/import — WP‑gated and auto‑connected |
-| **Files** | Full file manager (**elFinder**) rooted at the WordPress install, dark‑skinned |
+| **Database** | Full database manager (**AdminNeo**) — browse/edit rows, run SQL, export/import. **Requires WP Arzo Pro** (moved out of the free core in 6.146 to keep it lean); the free tab shows an upgrade panel |
+| **Files** | Full file manager (**elFinder**) rooted at the WordPress install. **Requires WP Arzo Pro** (moved out of the free core in 6.146); the free tab shows an upgrade panel |
 | **Plugins** | Activate / deactivate via toggle; upload a plugin ZIP |
 | **Themes** | Switch the active theme; upload a theme ZIP |
 | **Debug** | Toggle `WP_DEBUG` / `WP_DEBUG_LOG` / `WP_DEBUG_DISPLAY` / `SCRIPT_DEBUG` / `SAVEQUERIES`; a **live AJAX debug‑log console** (tail depth, auto‑refresh, severity filter, download, clear); and a read‑only **wp‑config.php / .htaccess viewer** with secrets masked |
