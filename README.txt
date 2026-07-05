@@ -2,9 +2,9 @@
 Contributors: yasirshabbir
 Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.152.0
+Stable tag: 6.152.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,10 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.152.1 =
+* Changed: bumped "Tested up to" to WordPress 7.0 (verified end-to-end on a live 7.0 install — dashboard,
+  analytics, Advanced Tools console, and the Pro MCP server + WP 6.9 Abilities API all working).
 
 = 6.152.0 =
 * Changed: accessibility, SEO & token polish — the custom select now has an accessible name
