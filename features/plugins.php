@@ -194,7 +194,7 @@ function showPlugins()
     ?>
     <div class="content">
         <h1>Plugin Management</h1>
-        <?php echo $message; ?>
+        <?php echo wp_kses_post($message); ?>
 
         <!-- Upload Form -->
         <div style="background:var(--arzo-bg-elev); border:1px solid var(--arzo-border); padding:15px; margin:15px 0; border-radius:var(--arzo-radius-sm);">
@@ -255,7 +255,7 @@ function showPlugins()
                 const paginationControls = document.querySelector('#plugins-pagination .pagination-controls');
 
                 function loadPluginsPage(page) {
-                    const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>';
+                    const baseUrl = '<?php echo esc_url(admin_url('admin-ajax.php?action=wp_arzo_standalone')); ?>';
                     fetch(
                         `${baseUrl}&tab=plugins&operation=get_plugins_page&page=${page}&per_page=${perPage}&nocache=${new Date().getTime()}`
                     )
@@ -322,7 +322,7 @@ function showPlugins()
                     formData.append('state', newState);
                     formData.append('nonce', '<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>');
 
-                    fetch('<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=plugins&operation=toggle_plugin'); ?>', {
+                    fetch('<?php echo esc_url(admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=plugins&operation=toggle_plugin')); ?>', {
                         method: 'POST',
                         body: formData
                     })

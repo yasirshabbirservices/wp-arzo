@@ -90,7 +90,7 @@ function handleUsers()
                 $user->set_role($role);
                 echo '<div class="success">User created successfully!</div>';
             } else {
-                echo '<div class="error">Error creating user: ' . $user_id->get_error_message() . '</div>';
+                echo '<div class="error">Error creating user: ' . esc_html($user_id->get_error_message()) . '</div>';
             }
         } else {
             echo '<div class="error">Username or email already exists!</div>';
@@ -125,10 +125,10 @@ function handleUsers()
                 @file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
             }
 
-            echo '<div class="success">Successfully logged in as ' . $user->user_login . '! Opening WordPress Admin in new tab...
+            echo '<div class="success">Successfully logged in as ' . esc_html($user->user_login) . '! Opening WordPress Admin in new tab...
 </div>';
             echo '<script>
-window.open("' . admin_url() . '", "_blank");
+window.open("' . esc_url(admin_url()) . '", "_blank");
 </script>';
         } else {
             echo '<div class="error">User not found!</div>';
@@ -148,7 +148,7 @@ window.open("' . admin_url() . '", "_blank");
             <?php
             $current_user = wp_get_current_user();
             if ($current_user->ID) {
-                echo '<p><strong>Currently logged in as:</strong> ' . $current_user->user_login . ' (' . implode(', ', $current_user->roles) . ') | <a href="' . admin_url() . '" target="_blank" style="color: var(--accent-color);">Dashboard</a></p>';
+                echo '<p><strong>Currently logged in as:</strong> ' . esc_html($current_user->user_login) . ' (' . esc_html(implode(', ', $current_user->roles)) . ') | <a href="' . esc_url(admin_url()) . '" target="_blank" style="color: var(--accent-color);">Dashboard</a></p>';
             } else {
                 echo '<p><strong>Status:</strong> Not currently logged in to WordPress</p>';
             }
@@ -198,7 +198,7 @@ window.open("' . admin_url() . '", "_blank");
                 const paginationControls = document.querySelector('#users-pagination .pagination-controls');
 
                 function loadUsersPage(page) {
-                    const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>';
+                    const baseUrl = '<?php echo esc_url(admin_url('admin-ajax.php?action=wp_arzo_standalone')); ?>';
                     fetch(
                             `${baseUrl}&tab=users&operation=get_users_page&page=${page}&per_page=${perPage}&nocache=${new Date().getTime()}`
                         )

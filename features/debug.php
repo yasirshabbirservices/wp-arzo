@@ -308,13 +308,13 @@ function handleDebug()
 
         <?php if (!file_exists($wp_config_path)): ?>
             <div class="error">
-                <strong>Error:</strong> wp-config.php file not found at: <?php echo $wp_config_path; ?>
+                <strong>Error:</strong> wp-config.php file not found at: <?php echo esc_html($wp_config_path); ?>
             </div>
         <?php elseif (!$config_writable): ?>
             <div class="error">
                 <strong>Warning:</strong> wp-config.php is not writable. You'll need to manually edit the file or change
                 permissions.
-                <br><strong>File location:</strong> <?php echo $wp_config_path; ?>
+                <br><strong>File location:</strong> <?php echo esc_html($wp_config_path); ?>
             </div>
         <?php endif; ?>
 
@@ -334,16 +334,16 @@ function handleDebug()
                             style="display: flex; align-items: center; justify-content: space-between; padding: var(--arzo-space-3) var(--arzo-space-4); background: var(--arzo-bg-input); border-radius: var(--arzo-radius-sm); border: 1px solid var(--arzo-border);">
                             <div style="flex: 1; min-width: 0;">
                                 <label
-                                    style="display: block; margin-bottom: var(--arzo-space-1); font-weight: bold; color: var(--arzo-text-strong); font-size: var(--arzo-fs-md);"><?php echo $setting; ?></label>
+                                    style="display: block; margin-bottom: var(--arzo-space-1); font-weight: bold; color: var(--arzo-text-strong); font-size: var(--arzo-fs-md);"><?php echo esc_html($setting); ?></label>
                                 <p
                                     style="font-size: var(--arzo-fs-xs); color: var(--arzo-text-secondary); margin: 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis;">
-                                    <?php echo $info['description']; ?></p>
+                                    <?php echo esc_html($info['description']); ?></p>
                             </div>
                             <div style="margin-left: 15px; flex-shrink: 0;">
                                 <label class="switch">
-                                    <input type="checkbox" name="<?php echo $setting; ?>" value="true"
+                                    <input type="checkbox" name="<?php echo esc_attr($setting); ?>" value="true"
                                         <?php echo ($info['current'] === 'true') ? 'checked' : ''; ?>
-                                        onchange="logDebugChange('<?php echo $setting; ?>', this.checked)">
+                                        onchange="logDebugChange('<?php echo esc_js($setting); ?>', this.checked)">
                                     <span class="slider round"></span>
                                 </label>
                             </div>
@@ -401,24 +401,24 @@ function handleDebug()
                         </tr>
                         <tr>
                             <td>OPcache: File mtime</td>
-                            <td><?php echo !empty($plugin_debug['opcache_script']['file_mtime']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['file_mtime']) : 'N/A'; ?>
+                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['file_mtime']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['file_mtime']) : 'N/A'); ?>
                             </td>
                         </tr>
                         <tr>
                             <td>OPcache: Compiled Timestamp</td>
-                            <td><?php echo !empty($plugin_debug['opcache_script']['opcache_timestamp']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_timestamp']) : 'N/A'; ?>
+                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['opcache_timestamp']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_timestamp']) : 'N/A'); ?>
                             </td>
                         </tr>
                         <tr>
                             <td>OPcache: Last Used</td>
-                            <td><?php echo !empty($plugin_debug['opcache_script']['opcache_last_used']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_last_used']) : 'N/A'; ?>
+                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['opcache_last_used']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_last_used']) : 'N/A'); ?>
                             </td>
                         </tr>
                     <?php endif; ?>
                 <?php endif; ?>
                 <tr>
                     <td>Debug Log File</td>
-                    <td><?php echo WP_CONTENT_DIR . '/debug.log'; ?></td>
+                    <td><?php echo esc_html(WP_CONTENT_DIR . '/debug.log'); ?></td>
                 </tr>
                 <tr>
                     <td>Log File Exists</td>
@@ -431,7 +431,7 @@ function handleDebug()
                         $log_file = WP_CONTENT_DIR . '/debug.log';
                         if (file_exists($log_file)) {
                             $size = filesize($log_file);
-                            echo $size > 0 ? size_format($size) : '0 bytes';
+                            echo esc_html($size > 0 ? size_format($size) : '0 bytes');
                         } else {
                             echo 'N/A';
                         }
@@ -440,7 +440,7 @@ function handleDebug()
                 </tr>
                 <tr>
                     <td>Error Reporting Level</td>
-                    <td><?php echo error_reporting(); ?></td>
+                    <td><?php echo esc_html(error_reporting()); ?></td>
                 </tr>
                 <tr>
                     <td>Display Errors</td>

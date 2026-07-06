@@ -203,7 +203,7 @@ function showSiteInfo()
                 <div class="info-item">
                     <span class="info-label">Version:</span>
                     <span class="info-value">
-                        <?php echo $wp_version; ?>
+                        <?php echo esc_html($wp_version); ?>
                     </span>
                 </div>
                 <div class="info-item">
@@ -233,13 +233,13 @@ function showSiteInfo()
                 <div class="info-item">
                     <span class="info-label">Site URL:</span>
                     <span class="info-value">
-                        <?php echo home_url(); ?>
+                        <?php echo esc_url(home_url()); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">WordPress Path:</span>
                     <span class="info-value">
-                        <?php echo ABSPATH; ?>
+                        <?php echo esc_html(ABSPATH); ?>
                     </span>
                 </div>
             </div>
@@ -255,31 +255,31 @@ function showSiteInfo()
                 <div class="info-item">
                     <span class="info-label">Version:</span>
                     <span class="info-value">
-                        <?php echo $php_version; ?>
+                        <?php echo esc_html($php_version); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Memory Limit:</span>
                     <span class="info-value">
-                        <?php echo $memory_limit; ?>
+                        <?php echo esc_html($memory_limit); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Max Execution:</span>
                     <span class="info-value">
-                        <?php echo $max_execution_time; ?>s
+                        <?php echo esc_html($max_execution_time); ?>s
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Upload Max:</span>
                     <span class="info-value">
-                        <?php echo $upload_max_filesize; ?>
+                        <?php echo esc_html($upload_max_filesize); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Post Max:</span>
                     <span class="info-value">
-                        <?php echo $post_max_size; ?>
+                        <?php echo esc_html($post_max_size); ?>
                     </span>
                 </div>
             </div>
@@ -295,19 +295,19 @@ function showSiteInfo()
                 <div class="info-item">
                     <span class="info-label">Software:</span>
                     <span class="info-value">
-                        <?php echo $server_software; ?>
+                        <?php echo esc_html($server_software); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Operating System:</span>
                     <span class="info-value">
-                        <?php echo PHP_OS; ?>
+                        <?php echo esc_html(PHP_OS); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">MySQL Version:</span>
                     <span class="info-value">
-                        <?php echo $mysql_version; ?>
+                        <?php echo esc_html($mysql_version); ?>
                     </span>
                 </div>
                 <?php if ($disk_free_space !== false && $disk_total_space !== false):
@@ -319,13 +319,13 @@ function showSiteInfo()
                     <span class="info-value">
                         <div class="disk-usage">
                             <div class="disk-usage-text">
-                                <?php echo formatBytes($disk_used); ?> /
-                                <?php echo formatBytes($disk_total_space); ?>
+                                <?php echo esc_html(formatBytes($disk_used)); ?> /
+                                <?php echo esc_html(formatBytes($disk_total_space)); ?>
                                 (
                                 <?php echo number_format($disk_usage_percent, 1); ?>%)
                             </div>
                             <div class="progress-bar">
-                                <div class="progress-fill" style="width: <?php echo $disk_usage_percent; ?>%;"></div>
+                                <div class="progress-fill" style="width: <?php echo esc_attr($disk_usage_percent); ?>%;"></div>
                             </div>
                         </div>
                     </span>
@@ -344,31 +344,31 @@ function showSiteInfo()
                 <div class="info-item">
                     <span class="info-label">Database Name:</span>
                     <span class="info-value">
-                        <?php echo DB_NAME; ?>
+                        <?php echo esc_html(DB_NAME); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Database Host:</span>
                     <span class="info-value">
-                        <?php echo DB_HOST; ?>
+                        <?php echo esc_html(DB_HOST); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Table Prefix:</span>
                     <span class="info-value">
-                        <?php echo $wpdb->prefix; ?>
+                        <?php echo esc_html($wpdb->prefix); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Charset:</span>
                     <span class="info-value">
-                        <?php echo DB_CHARSET; ?>
+                        <?php echo esc_html(DB_CHARSET); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Collation:</span>
                     <span class="info-value">
-                        <?php echo DB_COLLATE ?: 'Default'; ?>
+                        <?php echo esc_html(DB_COLLATE ?: 'Default'); ?>
                     </span>
                 </div>
             </div>
@@ -384,25 +384,25 @@ function showSiteInfo()
                 <div class="info-item">
                     <span class="info-label">Active Theme:</span>
                     <span class="info-value">
-                        <?php echo $active_theme->get('Name'); ?>
+                        <?php echo esc_html($active_theme->get('Name')); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Theme Version:</span>
                     <span class="info-value">
-                        <?php echo $active_theme->get('Version'); ?>
+                        <?php echo esc_html($active_theme->get('Version')); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Active Plugins:</span>
                     <span class="info-value">
-                        <?php echo $active_plugin_count; ?>
+                        <?php echo esc_html($active_plugin_count); ?>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Total Plugins:</span>
                     <span class="info-value">
-                        <?php echo $total_plugins; ?>
+                        <?php echo esc_html($total_plugins); ?>
                     </span>
                 </div>
                 <div class="info-item">
@@ -410,14 +410,14 @@ function showSiteInfo()
                     <span class="info-value">
                         <div class="disk-usage">
                             <div class="disk-usage-text">
-                                <?php echo $active_plugin_count; ?> /
-                                <?php echo $total_plugins; ?>
+                                <?php echo esc_html($active_plugin_count); ?> /
+                                <?php echo esc_html($total_plugins); ?>
                                 (
                                 <?php echo $total_plugins > 0 ? number_format(($active_plugin_count / $total_plugins) * 100, 1) : 0; ?>%)
                             </div>
                             <div class="progress-bar">
                                 <div class="progress-fill"
-                                    style="width: <?php echo $total_plugins > 0 ? ($active_plugin_count / $total_plugins) * 100 : 0; ?>%;">
+                                    style="width: <?php echo esc_attr($total_plugins > 0 ? ($active_plugin_count / $total_plugins) * 100 : 0); ?>%;">
                                 </div>
                             </div>
                         </div>

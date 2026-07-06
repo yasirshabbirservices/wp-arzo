@@ -105,7 +105,7 @@ function handleQuickLogin()
                     <select id="tl-role" class="wpa-select__native" data-wpa-select>
                         <?php foreach ($roles as $slug => $r) {
                             $sel = ($slug === 'administrator') ? ' selected' : '';
-                            echo '<option value="' . esc_attr($slug) . '"' . $sel . '>' . esc_html($r['name']) . '</option>';
+                            echo '<option value="' . esc_attr($slug) . '"' . esc_attr($sel) . '>' . esc_html($r['name']) . '</option>';
                         } ?>
                     </select>
                 </div>
@@ -175,7 +175,7 @@ function handleQuickLogin()
                     <td>
                         <?php
                         $badge = $status === 'active' ? 'badge-active' : 'badge-inactive';
-                        echo '<span class="badge ' . $badge . '">' . esc_html(strtoupper($status)) . '</span>';
+                        echo '<span class="badge ' . esc_attr($badge) . '">' . esc_html(strtoupper($status)) . '</span>';
                         ?>
                     </td>
                     <td style="white-space:nowrap;">

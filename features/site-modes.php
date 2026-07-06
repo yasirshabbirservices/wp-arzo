@@ -739,7 +739,7 @@ function handleMaintenanceModes()
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
                     <?php wp_arzo_icon_e('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
-                <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
+                <a href="<?php echo esc_url(home_url('/?maintenance_preview=true')); ?>" target="_blank" class="btn-preview">
                     <?php wp_arzo_icon_e('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
@@ -791,7 +791,7 @@ function handleMaintenanceModes()
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
                     <?php wp_arzo_icon_e('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
-                <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
+                <a href="<?php echo esc_url(home_url('/?maintenance_preview=true')); ?>" target="_blank" class="btn-preview">
                     <?php wp_arzo_icon_e('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
@@ -843,7 +843,7 @@ function handleMaintenanceModes()
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
                     <?php wp_arzo_icon_e('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
-                <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
+                <a href="<?php echo esc_url(home_url('/?maintenance_preview=true')); ?>" target="_blank" class="btn-preview">
                     <?php wp_arzo_icon_e('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
@@ -890,8 +890,8 @@ function handleMaintenanceModes()
     <div id="toast" class="toast-notification">Settings saved</div>
 
     <script>
-        const baseUrl = '<?php echo admin_url('admin-ajax.php?action=wp_arzo_standalone'); ?>&tab=site_modes&nonce=<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>';
-        let currentMode = '<?php echo $current_mode; ?>';
+        const baseUrl = '<?php echo esc_url(admin_url('admin-ajax.php?action=wp_arzo_standalone')); ?>&tab=site_modes&nonce=<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>';
+        let currentMode = '<?php echo esc_js($current_mode); ?>';
         const emergencyPrettyUrl = '<?php echo esc_js(home_url('/wp-arzo/emergency/')); ?>';
         const emergencyDirectUrl = '<?php echo esc_js(WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/index.php'); ?>';
 

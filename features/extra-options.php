@@ -267,8 +267,8 @@ function handleExtraOptions()
 
         // Display message
         echo $update_success ?
-            "<div class='success'>{$update_message}. Changes may require server restart to take effect.</div>" :
-            "<div class='error'>{$update_message}. Check file permissions.</div>";
+            "<div class='success'>" . esc_html($update_message) . ". Changes may require server restart to take effect.</div>" :
+            "<div class='error'>" . esc_html($update_message) . ". Check file permissions.</div>";
 
         // Update current values to show defaults
         if ($update_success) {
@@ -413,25 +413,25 @@ function handleExtraOptions()
                 <div class="php-limits-grid">
                     <div class="form-group">
                         <label for="eo-memory">Memory Limit (e.g. 512M)</label>
-                        <input id="eo-memory" type="text" name="memory_limit" value="<?php echo $memory_limit; ?>" class="php-limits-input"
+                        <input id="eo-memory" type="text" name="memory_limit" value="<?php echo esc_attr($memory_limit); ?>" class="php-limits-input"
                             required>
                     </div>
 
                     <div class="form-group">
                         <label for="eo-maxexec">Max Execution Time (seconds)</label>
-                        <input id="eo-maxexec" type="number" name="max_execution_time" value="<?php echo $max_execution_time; ?>"
+                        <input id="eo-maxexec" type="number" name="max_execution_time" value="<?php echo esc_attr($max_execution_time); ?>"
                             class="php-limits-input" required>
                     </div>
 
                     <div class="form-group">
                         <label for="eo-upload">Upload Max Filesize (e.g. 64M)</label>
-                        <input id="eo-upload" type="text" name="upload_max_filesize" value="<?php echo $upload_max_filesize; ?>"
+                        <input id="eo-upload" type="text" name="upload_max_filesize" value="<?php echo esc_attr($upload_max_filesize); ?>"
                             class="php-limits-input" required>
                     </div>
 
                     <div class="form-group">
                         <label for="eo-postmax">Post Max Size (e.g. 64M)</label>
-                        <input id="eo-postmax" type="text" name="post_max_size" value="<?php echo $post_max_size; ?>"
+                        <input id="eo-postmax" type="text" name="post_max_size" value="<?php echo esc_attr($post_max_size); ?>"
                             class="php-limits-input" required>
                     </div>
                 </div>
@@ -498,14 +498,14 @@ function handleExtraOptions()
                                 }
                             }
 
-                            echo '<div style="color: ' . $color . '; margin-bottom: 2px; padding: 2px 8px; border-left: ' . $border_left . '; padding-left: ' . ($border_left !== 'none' ? '12px' : '8px') . ';">' . $line . '</div>';
+                            echo '<div style="color: ' . esc_attr($color) . '; margin-bottom: 2px; padding: 2px 8px; border-left: ' . esc_attr($border_left) . '; padding-left: ' . ($border_left !== 'none' ? '12px' : '8px') . ';">' . esc_html($line) . '</div>';
                         }
                     }
                     ?>
                 </div>
                 <p style="margin-top: 10px; font-size: 12px; color: var(--arzo-text-secondary);">
                     Showing PHP limits related log entries. Full log:
-                    <?php echo WP_CONTENT_DIR . '/debug.log'; ?>
+                    <?php echo esc_html(WP_CONTENT_DIR . '/debug.log'); ?>
                 </p>
             </div>
         <?php endif; ?>
