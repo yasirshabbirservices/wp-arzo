@@ -66,9 +66,12 @@ fi
 if command -v zip >/dev/null 2>&1; then
   ( cd "$OUT" && zip -rqX "$SLUG.zip" "$SLUG" )
 else
-  PYBIN="$(command -v python3 || command -v python)"
+  PYBIN=""
+  for cand in python python3; do
+    if "$cand" --version >/dev/null 2>&1; then PYBIN="$cand"; break; fi
+  done
   if [ -z "$PYBIN" ]; then
-    echo "ERROR: neither 'zip' nor 'python' is available to build the archive" >&2; exit 1
+    echo "ERROR: neither 'zip' nor a working 'python' is available to build the archive" >&2; exit 1
   fi
   "$PYBIN" - "$OUT" "$SLUG" <<'PY'
 import os, sys, zipfile
