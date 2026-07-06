@@ -1,8 +1,26 @@
 # Changelog
 
-All notable changes to **WP Arzo – Maintenance & Administration Suite** are documented
+All notable changes to **WP Arzo – Administration Suite** are documented
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
+
+## [6.157.0] — 2026-07-06
+
+### Changed — WordPress.org readiness: name + reproducible directory build
+
+- **Renamed to "WP Arzo - Administration Suite"** (dropped "Maintenance &" for a tighter title).
+  This stays the display name for the self-distributed build (site download / GitHub / Pro).
+- **WordPress.org build is now a first-class, reproducible step** (`bin/build-wporg.sh` +
+  `.github/workflows/wporg-build.yml`). The directory forbids a name/slug that begins with
+  "WP", so the `.org` build automatically renames the plugin to **"Arzo Administration Suite"**
+  (slug `arzo-administration-suite`), and — per `.distignore` — strips the GitHub self-updater
+  (`includes/class-wp-arzo-updater.php`) plus all dev/AI/CI files. Output is a clean,
+  forward-slash zip; `release.yml` (the GitHub channel) is unchanged and keeps the updater.
+
+### Fixed
+
+- **CI JS-lint step** no longer fails on the empty `wp-arzo-emergency/*.js` glob — the trailing
+  non-matching glob made the whole step exit non-zero, reddening both PHP-version lint jobs.
 
 ## [6.156.0] — 2026-07-06
 

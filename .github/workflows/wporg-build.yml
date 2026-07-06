@@ -1,0 +1,36 @@
+name: Build WordPress.org zip
+
+# Produces the WordPress.org-compliant plugin zip: the display name is stripped
+# of the forbidden "WP" prefix ("Arzo Administration Suite", slug
+# arzo-administration-suite) and the GitHub self-updater + dev/AI/CI files are
+# removed per .distignore (see bin/build-wporg.sh). The zip is uploaded as a
+# build artifact so the .org package is always reproducible and never
+# hand-assembled. NOTE: this does NOT publish — the GitHub channel keeps using
+# release.yml (which retains the updater + "WP Arzo" name). Once the plugin is
+# approved on wordpress.org, an SVN-deploy step (10up/action-wordpress-plugin-deploy,
+# reading .distignore) can be added here, gated on SVN_USERNAME/SVN_PASSWORD secrets.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build .org zip
+        run: bash bin/build-wporg.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arzo-administration-suite
+          path: build/arzo-administration-suite.zip
+          if-no-files-found: error
