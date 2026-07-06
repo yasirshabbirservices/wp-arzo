@@ -297,7 +297,7 @@ class WP_Arzo_Feature_Limit_Login extends WP_Arzo_Feature
         if (get_transient($this->key('lock_'))) {
             return new WP_Error(
                 'wp_arzo_locked_out',
-                __('Too many failed login attempts. Please try again later.', 'wp-arzo')
+                __('Too many failed login attempts. Please try again later.', 'arzo-administration-suite')
             );
         }
         return $user;

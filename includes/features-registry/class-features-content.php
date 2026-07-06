@@ -45,7 +45,7 @@ class WP_Arzo_Feature_Duplicate_Posts extends WP_Arzo_Feature
                 admin_url('admin.php?action=wp_arzo_duplicate&post=' . $post->ID),
                 'wp_arzo_duplicate_' . $post->ID
             );
-            $actions['wp_arzo_duplicate'] = '<a href="' . esc_url($url) . '">' . esc_html__('Duplicate', 'wp-arzo') . '</a>';
+            $actions['wp_arzo_duplicate'] = '<a href="' . esc_url($url) . '">' . esc_html__('Duplicate', 'arzo-administration-suite') . '</a>';
         }
         return $actions;
     }

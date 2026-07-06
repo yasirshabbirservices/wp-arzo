@@ -1490,7 +1490,7 @@ class WP_Arzo_Feature_Analytics extends WP_Arzo_Feature
 
     public function views_column($cols)
     {
-        $cols['wp_arzo_views'] = __('Views', 'wp-arzo');
+        $cols['wp_arzo_views'] = __('Views', 'arzo-administration-suite');
         return $cols;
     }
 

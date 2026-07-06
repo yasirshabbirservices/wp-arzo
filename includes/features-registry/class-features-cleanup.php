@@ -241,12 +241,12 @@ class WP_Arzo_Feature_Enhance_List_Tables extends WP_Arzo_Feature
         $out = array();
         foreach ($cols as $key => $label) {
             if ($key === 'title' && $show_thumb) {
-                $out['wp_arzo_thumb'] = __('Image', 'wp-arzo');
+                $out['wp_arzo_thumb'] = __('Image', 'arzo-administration-suite');
             }
             $out[$key] = $label;
         }
         if ($this->get_setting('show_id', 1)) {
-            $out['wp_arzo_id'] = __('ID', 'wp-arzo');
+            $out['wp_arzo_id'] = __('ID', 'arzo-administration-suite');
         }
         return $out;
     }

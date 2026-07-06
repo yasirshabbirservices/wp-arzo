@@ -431,11 +431,11 @@ class WP_Arzo_Admin
             true
         );
         wp_localize_script('wp-arzo-command-palette', 'wpArzoCommands', array(
-            'group'      => __('WP Arzo', 'wp-arzo'),
+            'group'      => __('WP Arzo', 'arzo-administration-suite'),
             'commands'   => $this->command_palette_items(),
             'ajaxUrl'    => admin_url('admin-ajax.php'),
             'themeNonce' => wp_create_nonce(self::NONCE_TOGGLE),
-            'themeLabel' => __('WP Arzo: toggle light / dark theme', 'wp-arzo'),
+            'themeLabel' => __('WP Arzo: toggle light / dark theme', 'arzo-administration-suite'),
         ));
         // Brand-theme our palette entries: design-tokens.css is pure :root variables
         // (safe admin-wide), so the icon rule below can use the accent token instead
@@ -461,15 +461,15 @@ class WP_Arzo_Admin
 
         // --- Feature pages (verbs a user searches for) -------------------
         $pages = array(
-            array('id' => 'dashboard', 'label' => __('Dashboard', 'wp-arzo'),     'icon' => 'screenoptions',     'slug' => self::PAGE,          'always' => true),
-            array('id' => 'analytics', 'label' => __('Analytics', 'wp-arzo'),     'icon' => 'chart-bar',         'slug' => self::PAGE_ANALYTICS),
-            array('id' => 'activity',  'label' => __('Activity Log', 'wp-arzo'),  'icon' => 'list-view',         'slug' => self::PAGE_ACTIVITY),
-            array('id' => 'email',     'label' => __('Email', 'wp-arzo'),         'icon' => 'email',             'slug' => self::PAGE_EMAIL),
-            array('id' => 'backups',   'label' => __('Backups', 'wp-arzo'),       'icon' => 'database-export',   'slug' => self::PAGE_BACKUPS),
-            array('id' => 'media',     'label' => __('Media Cleanup', 'wp-arzo'), 'icon' => 'format-gallery',    'slug' => self::PAGE_MEDIA),
-            array('id' => 'snippets',  'label' => __('Snippets', 'wp-arzo'),      'icon' => 'editor-code',       'slug' => self::PAGE_SNIPPETS),
-            array('id' => 'roles',     'label' => __('Roles', 'wp-arzo'),         'icon' => 'admin-users',       'slug' => self::PAGE_ROLES),
-            array('id' => 'settings',  'label' => __('Settings', 'wp-arzo'),      'icon' => 'admin-settings',    'slug' => self::PAGE_SETTINGS, 'always' => true),
+            array('id' => 'dashboard', 'label' => __('Dashboard', 'arzo-administration-suite'),     'icon' => 'screenoptions',     'slug' => self::PAGE,          'always' => true),
+            array('id' => 'analytics', 'label' => __('Analytics', 'arzo-administration-suite'),     'icon' => 'chart-bar',         'slug' => self::PAGE_ANALYTICS),
+            array('id' => 'activity',  'label' => __('Activity Log', 'arzo-administration-suite'),  'icon' => 'list-view',         'slug' => self::PAGE_ACTIVITY),
+            array('id' => 'email',     'label' => __('Email', 'arzo-administration-suite'),         'icon' => 'email',             'slug' => self::PAGE_EMAIL),
+            array('id' => 'backups',   'label' => __('Backups', 'arzo-administration-suite'),       'icon' => 'database-export',   'slug' => self::PAGE_BACKUPS),
+            array('id' => 'media',     'label' => __('Media Cleanup', 'arzo-administration-suite'), 'icon' => 'format-gallery',    'slug' => self::PAGE_MEDIA),
+            array('id' => 'snippets',  'label' => __('Snippets', 'arzo-administration-suite'),      'icon' => 'editor-code',       'slug' => self::PAGE_SNIPPETS),
+            array('id' => 'roles',     'label' => __('Roles', 'arzo-administration-suite'),         'icon' => 'admin-users',       'slug' => self::PAGE_ROLES),
+            array('id' => 'settings',  'label' => __('Settings', 'arzo-administration-suite'),      'icon' => 'admin-settings',    'slug' => self::PAGE_SETTINGS, 'always' => true),
         );
         foreach ($pages as $p) {
             if (empty($p['always']) && !$this->page_visible($p['slug'])) {
@@ -487,7 +487,7 @@ class WP_Arzo_Admin
         if ($this->page_visible(self::PAGE_ACTIVITY)) {
             $items[] = array(
                 'id'    => 'activity-sessions',
-                'label' => __('Live Sessions', 'wp-arzo'),
+                'label' => __('Live Sessions', 'arzo-administration-suite'),
                 'icon'  => 'admin-users',
                 'url'   => add_query_arg('tab', 'sessions', $base . self::PAGE_ACTIVITY),
             );
@@ -496,7 +496,7 @@ class WP_Arzo_Admin
         // --- Setup wizard -----------------------------------------------
         $items[] = array(
             'id'    => 'setup-wizard',
-            'label' => __('Setup Wizard', 'wp-arzo'),
+            'label' => __('Setup Wizard', 'arzo-administration-suite'),
             'icon'  => 'admin-generic',
             'url'   => $base . 'wp-arzo-setup',
         );
@@ -508,7 +508,7 @@ class WP_Arzo_Admin
                 'id'    => 'settings-' . $key,
                 'label' => sprintf(
                     /* translators: %s: settings sub-tab name. */
-                    __('Settings: %s', 'wp-arzo'),
+                    __('Settings: %s', 'arzo-administration-suite'),
                     isset($tab['label']) ? $tab['label'] : $key
                 ),
                 'icon'  => 'admin-settings',
@@ -533,7 +533,7 @@ class WP_Arzo_Admin
                 'id'    => 'configure-' . $feature->id(),
                 'label' => sprintf(
                     /* translators: %s: feature name. */
-                    __('Configure: %s', 'wp-arzo'),
+                    __('Configure: %s', 'arzo-administration-suite'),
                     $feature->title()
                 ),
                 'icon'  => 'admin-settings',
@@ -543,16 +543,16 @@ class WP_Arzo_Admin
 
         // --- Standalone console tools (only the enabled ones) ------------
         $console = array(
-            'info'          => array('label' => __('Site Info', 'wp-arzo'),        'icon' => 'info'),
-            'users'         => array('label' => __('Users', 'wp-arzo'),            'icon' => 'admin-users'),
-            'database'      => array('label' => __('Database', 'wp-arzo'),         'icon' => 'database'),
-            'files'         => array('label' => __('File Manager', 'wp-arzo'),     'icon' => 'media-default'),
-            'plugins'       => array('label' => __('Plugins', 'wp-arzo'),          'icon' => 'admin-plugins'),
-            'themes'        => array('label' => __('Themes', 'wp-arzo'),           'icon' => 'admin-appearance'),
-            'debug'         => array('label' => __('Debug', 'wp-arzo'),            'icon' => 'buddicons-replies'),
-            'site_modes'    => array('label' => __('Site Modes', 'wp-arzo'),       'icon' => 'shield'),
-            'extra_options' => array('label' => __('Extra Options', 'wp-arzo'),    'icon' => 'admin-tools'),
-            'login'         => array('label' => __('Temporary Logins', 'wp-arzo'), 'icon' => 'admin-network'),
+            'info'          => array('label' => __('Site Info', 'arzo-administration-suite'),        'icon' => 'info'),
+            'users'         => array('label' => __('Users', 'arzo-administration-suite'),            'icon' => 'admin-users'),
+            'database'      => array('label' => __('Database', 'arzo-administration-suite'),         'icon' => 'database'),
+            'files'         => array('label' => __('File Manager', 'arzo-administration-suite'),     'icon' => 'media-default'),
+            'plugins'       => array('label' => __('Plugins', 'arzo-administration-suite'),          'icon' => 'admin-plugins'),
+            'themes'        => array('label' => __('Themes', 'arzo-administration-suite'),           'icon' => 'admin-appearance'),
+            'debug'         => array('label' => __('Debug', 'arzo-administration-suite'),            'icon' => 'buddicons-replies'),
+            'site_modes'    => array('label' => __('Site Modes', 'arzo-administration-suite'),       'icon' => 'shield'),
+            'extra_options' => array('label' => __('Extra Options', 'arzo-administration-suite'),    'icon' => 'admin-tools'),
+            'login'         => array('label' => __('Temporary Logins', 'arzo-administration-suite'), 'icon' => 'admin-network'),
         );
         $console_available = function_exists('wp_arzo_console_tool_enabled');
         foreach ($console as $tab => $meta) {
@@ -563,7 +563,7 @@ class WP_Arzo_Admin
                 'id'     => 'console-' . $tab,
                 'label'  => sprintf(
                     /* translators: %s: console tool name. */
-                    __('Console: %s', 'wp-arzo'),
+                    __('Console: %s', 'arzo-administration-suite'),
                     $meta['label']
                 ),
                 'icon'   => $meta['icon'],
@@ -625,8 +625,8 @@ class WP_Arzo_Admin
                 <span class="wpa-brandbar__ver">v<?php echo esc_html($ver); ?></span>
                 <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" id="wpa-theme-toggle"
                     aria-pressed="<?php echo self::user_theme() === 'light' ? 'true' : 'false'; ?>"
-                    aria-label="<?php esc_attr_e('Switch between light and dark theme', 'wp-arzo'); ?>"
-                    title="<?php esc_attr_e('Light / dark theme', 'wp-arzo'); ?>">
+                    aria-label="<?php esc_attr_e('Switch between light and dark theme', 'arzo-administration-suite'); ?>"
+                    title="<?php esc_attr_e('Light / dark theme', 'arzo-administration-suite'); ?>">
                     <?php wp_arzo_icon_e('sun', array('class' => 'wpa-icon wpa-icon--sm wpa-theme-ico--sun')); ?>
                     <?php wp_arzo_icon_e('moon', array('class' => 'wpa-icon wpa-icon--sm wpa-theme-ico--moon')); ?>
                 </button>
@@ -1535,7 +1535,7 @@ class WP_Arzo_Admin
                     <label class="wpa-check"><input type="checkbox" class="wpa-backup-component" value="<?php echo esc_attr($key); ?>"> <?php echo esc_html($label); ?></label>
                 <?php endforeach; ?>
                 <span class="wpa-field__help" style="margin:0;">Files over 100&nbsp;MB are skipped (and counted). File snapshots enable the <strong>diff view</strong> and <strong>file restore</strong> — Restore offers database&nbsp;+&nbsp;files (config is never auto-restored).</span>
-                <div class="wpa-progress wpa-progress--indeterminate" id="wpa-backup-progress" hidden aria-label="<?php esc_attr_e('Creating snapshot', 'wp-arzo'); ?>" style="flex:1 1 100%;">
+                <div class="wpa-progress wpa-progress--indeterminate" id="wpa-backup-progress" hidden aria-label="<?php esc_attr_e('Creating snapshot', 'arzo-administration-suite'); ?>" style="flex:1 1 100%;">
                     <div class="wpa-progress__bar"></div>
                 </div>
             </fieldset>
@@ -1769,7 +1769,7 @@ class WP_Arzo_Admin
                             <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--arzo-text-muted);margin-bottom:6px;">
                                 <span>Deliverability</span><span><strong style="color:var(--arzo-text-strong);"><?php echo (int) $pct_sent; ?>%</strong> delivered</span>
                             </div>
-                            <div class="wpa-progress wpa-progress--lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo (int) $pct_sent; ?>" aria-label="<?php esc_attr_e('Deliverability', 'wp-arzo'); ?>">
+                            <div class="wpa-progress wpa-progress--lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo (int) $pct_sent; ?>" aria-label="<?php esc_attr_e('Deliverability', 'arzo-administration-suite'); ?>">
                                 <div class="wpa-progress__bar" style="width:100%;">
                                     <span class="wpa-progress__seg" style="width:<?php echo (int) $pct_sent; ?>%;background:var(--arzo-success);"></span>
                                     <span class="wpa-progress__seg" style="width:<?php echo (int) (100 - $pct_sent); ?>%;background:var(--arzo-error);"></span>

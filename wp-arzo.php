@@ -7,7 +7,7 @@
  * Version: 6.158.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
- * Text Domain: wp-arzo
+ * Text Domain: arzo-administration-suite
  * Requires at least: 5.0
  * Requires PHP: 7.2
  * License: GPL-3.0-or-later

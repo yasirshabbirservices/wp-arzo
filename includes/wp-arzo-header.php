@@ -266,7 +266,7 @@ if ($action === 'wp_arzo_standalone') {
 </head>
 
 <body>
-    <a class="wpa-skip-link" href="#wpa-console-main"><?php esc_html_e('Skip to content', 'wp-arzo'); ?></a>
+    <a class="wpa-skip-link" href="#wpa-console-main"><?php esc_html_e('Skip to content', 'arzo-administration-suite'); ?></a>
     <div class="container">
         <?php // Shared brand bar — identical to the dashboard header (see render_brand_bar()). ?>
         <div class="wpa-brandbar">
@@ -285,7 +285,7 @@ if ($action === 'wp_arzo_standalone') {
             </div>
         </div>
 
-        <nav class="wpa-tabs" aria-label="<?php esc_attr_e('Console tools', 'wp-arzo'); ?>">
+        <nav class="wpa-tabs" aria-label="<?php esc_attr_e('Console tools', 'arzo-administration-suite'); ?>">
             <?php
             // Console nav: Site Info is always present (the home); every other tool
             // appears only while its dashboard toggle is enabled. Shares the dashboard's

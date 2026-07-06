@@ -47,7 +47,7 @@ class WP_Arzo_Feature_Last_Login extends WP_Arzo_Feature
     }
     public function column($cols)
     {
-        $cols['wp_arzo_last_login'] = __('Last Login', 'wp-arzo');
+        $cols['wp_arzo_last_login'] = __('Last Login', 'arzo-administration-suite');
         return $cols;
     }
     public function cell($output, $column, $user_id)

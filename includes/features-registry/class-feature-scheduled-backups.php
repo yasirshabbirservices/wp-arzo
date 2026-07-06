@@ -66,10 +66,10 @@ class WP_Arzo_Feature_Scheduled_Backups extends WP_Arzo_Feature
     public function cron_schedules($schedules)
     {
         if (!isset($schedules['weekly'])) {
-            $schedules['weekly'] = array('interval' => WEEK_IN_SECONDS, 'display' => __('Once Weekly', 'wp-arzo'));
+            $schedules['weekly'] = array('interval' => WEEK_IN_SECONDS, 'display' => __('Once Weekly', 'arzo-administration-suite'));
         }
         if (!isset($schedules['monthly'])) {
-            $schedules['monthly'] = array('interval' => 30 * DAY_IN_SECONDS, 'display' => __('Once Monthly', 'wp-arzo'));
+            $schedules['monthly'] = array('interval' => 30 * DAY_IN_SECONDS, 'display' => __('Once Monthly', 'arzo-administration-suite'));
         }
         return $schedules;
     }
