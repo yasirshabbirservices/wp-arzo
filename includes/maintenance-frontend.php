@@ -134,7 +134,7 @@ function wp_arzo_maintenance_display_mode()
                 --arzo-font: 'Lato', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 --arzo-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
                 /* Semantic accent for the active mode (amber=maintenance, green=coming-soon, red=payment). */
-                --mode-accent: <?php echo $mode_accent; ?>;
+                --mode-accent: <?php echo esc_html($mode_accent); ?>;
             }
 
 
@@ -244,7 +244,10 @@ function wp_arzo_maintenance_display_mode()
                 color: var(--arzo-text-secondary);
             }
 
-            <?php echo wp_strip_all_tags($custom_css); ?>
+            <?php
+            // Admin-supplied (manage_options) custom CSS; tags stripped so it can't break out of <style>.
+            echo wp_strip_all_tags($custom_css); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ?>
         </style>
     </head>
 

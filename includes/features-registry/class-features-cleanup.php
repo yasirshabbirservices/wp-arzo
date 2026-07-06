@@ -256,7 +256,8 @@ class WP_Arzo_Feature_Enhance_List_Tables extends WP_Arzo_Feature
             echo (int) $post_id;
         } elseif ($column === 'wp_arzo_thumb') {
             $thumb = get_the_post_thumbnail((int) $post_id, array(40, 40));
-            echo $thumb ? $thumb : '—';
+            // get_the_post_thumbnail() returns safe, core-generated <img> markup.
+            echo $thumb ? $thumb : '—'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
     }
 }

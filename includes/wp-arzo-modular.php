@@ -145,9 +145,9 @@ if (function_exists('wp_arzo_console_tool_enabled') && !wp_arzo_console_tool_ena
 <!-- External JavaScript -->
 <script>
     var wpArzoConfig = {
-        ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
-        adminUrl: '<?php echo admin_url(); ?>',
-        pluginUrl: '<?php echo WP_ARZO_PLUGIN_URL; ?>',
+        ajaxUrl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
+        adminUrl: '<?php echo esc_url(admin_url()); ?>',
+        pluginUrl: '<?php echo esc_url(WP_ARZO_PLUGIN_URL); ?>',
         nonce: '<?php echo esc_js(wp_create_nonce('wp_arzo_ajax')); ?>'
     };
 </script>

@@ -103,7 +103,7 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
                 background: <?php echo esc_html($form); ?> !important;
                 border: 1px solid rgba(255,255,255,.08) !important;
                 color: <?php echo esc_html($text); ?> !important;
-                border-radius: <?php echo $radius; ?> !important;
+                border-radius: <?php echo esc_html($radius); ?> !important;
                 box-shadow: 0 8px 32px rgba(0,0,0,.45) !important;
             }
             .login form { padding: 26px 24px !important; margin-top: 18px; }
@@ -123,7 +123,7 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
                 background: <?php echo esc_html($input); ?> !important;
                 color: <?php echo esc_html($text); ?> !important;
                 border: 1px solid rgba(255,255,255,.15) !important;
-                border-radius: <?php echo $ir; ?> !important;
+                border-radius: <?php echo esc_html($ir); ?> !important;
                 padding: 10px 12px !important;
                 box-shadow: none !important;
                 transition: border-color .15s ease, box-shadow .15s ease;
@@ -166,7 +166,7 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
                 color: <?php echo esc_html($btext); ?> !important;
                 text-shadow: none !important;
                 box-shadow: none !important;
-                border-radius: <?php echo $ir; ?> !important;
+                border-radius: <?php echo esc_html($ir); ?> !important;
                 padding: 4px 16px !important;
                 font-weight: 600 !important;
                 transition: filter .15s ease, transform .05s ease;
@@ -195,8 +195,12 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
             .login .message, .login .notice { border-left: 4px solid <?php echo esc_html($accent); ?> !important; }
             .login #login_error { border-left: 4px solid #ff4d4f !important; }
 
-            <?php echo $logo_css; ?>
-            <?php echo wp_strip_all_tags($extra); ?>
+            <?php
+            // $logo_css is built entirely from static CSS + esc_url($logo); safe to print as-is.
+            echo $logo_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            // $extra is admin-only (manage_options) custom CSS; tags stripped so it can't break out of <style>.
+            echo wp_strip_all_tags($extra); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ?>
         </style>
         <?php
     }

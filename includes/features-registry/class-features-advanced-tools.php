@@ -221,7 +221,9 @@ function wp_arzo_console_pro_upsell($title, $desc, $icon = 'tools')
         <div style="max-width:560px;margin:8vh auto;text-align:center;padding:var(--arzo-space-8,32px);
             background:var(--arzo-bg-panel);border:1px solid var(--arzo-border);border-radius:var(--arzo-radius-lg,14px);">
             <div style="display:inline-flex;padding:var(--arzo-space-4,16px);border-radius:var(--arzo-radius-pill,999px);
-                background:var(--arzo-accent-soft);color:var(--arzo-accent);margin-bottom:var(--arzo-space-4,16px);"><?php echo $glyph; ?></div>
+                background:var(--arzo-accent-soft);color:var(--arzo-accent);margin-bottom:var(--arzo-space-4,16px);"><?php
+                echo $glyph; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_arzo_icon() returns safe internal SVG markup.
+                ?></div>
             <h1 style="border:0;margin:0 0 var(--arzo-space-2,8px);font-size:var(--arzo-fs-xl,1.4rem);"><?php echo esc_html($title); ?>
                 <span style="font-size:var(--arzo-fs-sm,.8rem);color:var(--arzo-accent);border:1px solid var(--arzo-accent-ring);
                     padding:var(--arzo-space-1,4px) var(--arzo-space-2,8px);border-radius:var(--arzo-radius-pill,999px);vertical-align:middle;margin-left:var(--arzo-space-2,8px);">PRO</span></h1>

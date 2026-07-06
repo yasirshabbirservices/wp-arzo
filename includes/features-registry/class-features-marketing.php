@@ -95,7 +95,8 @@ class WP_Arzo_Feature_Manage_Ads_Txt extends WP_Arzo_Feature
                 $content = trim((string) $this->get_setting('content', ''));
                 if ($content !== '') {
                     header('Content-Type: text/plain; charset=utf-8');
-                    echo $content . "\n";
+                    // ads.txt is a plain-text response of admin-supplied (manage_options) content; HTML escaping would corrupt it.
+                    echo $content . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     exit;
                 }
             }

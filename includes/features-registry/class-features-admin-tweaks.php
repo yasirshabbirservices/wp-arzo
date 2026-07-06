@@ -92,14 +92,16 @@ class WP_Arzo_Feature_Custom_Code extends WP_Arzo_Feature
     }
     public function boot()
     {
+        // Insert-Headers-and-Footers pattern: raw custom code entered by an admin
+        // (manage_options) is output verbatim by design; escaping would defeat the feature.
         add_action('wp_head', function () {
-            echo (string) $this->get_setting('head', '');
+            echo (string) $this->get_setting('head', ''); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }, 99);
         add_action('wp_body_open', function () {
-            echo (string) $this->get_setting('body_open', '');
+            echo (string) $this->get_setting('body_open', ''); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         });
         add_action('wp_footer', function () {
-            echo (string) $this->get_setting('footer', '');
+            echo (string) $this->get_setting('footer', ''); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }, 99);
     }
 }
@@ -146,7 +148,8 @@ class WP_Arzo_Feature_Custom_CSS extends WP_Arzo_Feature
     {
         $css = trim((string) $this->get_setting($key, ''));
         if ($css !== '') {
-            echo "\n<style id='wp-arzo-" . esc_attr($key) . "'>" . wp_strip_all_tags($css) . "</style>\n";
+            // Admin-supplied (manage_options) custom CSS; tags stripped so it can't break out of <style>.
+            echo "\n<style id='wp-arzo-" . esc_attr($key) . "'>" . wp_strip_all_tags($css) . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
     }
 }

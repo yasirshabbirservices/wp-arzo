@@ -98,7 +98,6 @@ class WP_Arzo_Feature_GA4 extends WP_Arzo_Feature
          * `transport_url` here for server-side GTM. @param array $params @param string $id
          */
         $params  = (array) apply_filters('wp_arzo_ga4_config_params', $params, $id);
-        $cfgArgs = $params ? ', ' . wp_json_encode($params) : '';
         ?>
         <!-- WP Arzo: Google Analytics 4 -->
         <script async src="https://<?php echo esc_attr($host); ?>/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
@@ -106,7 +105,7 @@ class WP_Arzo_Feature_GA4 extends WP_Arzo_Feature
             window.dataLayer = window.dataLayer || [];
             function gtag() { dataLayer.push(arguments); }
             gtag('js', new Date());
-            gtag('config', '<?php echo esc_js($id); ?>'<?php echo $cfgArgs; ?>);
+            gtag('config', '<?php echo esc_js($id); ?>'<?php echo $params ? ', ' . wp_json_encode($params) : ''; ?>);
         </script>
         <!-- End Google Analytics 4 -->
         <?php
