@@ -220,11 +220,11 @@ function wp_arzo_console_pro_upsell($title, $desc, $icon = 'tools')
     <div class="content">
         <div style="max-width:560px;margin:8vh auto;text-align:center;padding:var(--arzo-space-8,32px);
             background:var(--arzo-bg-panel);border:1px solid var(--arzo-border);border-radius:var(--arzo-radius-lg,14px);">
-            <div style="display:inline-flex;padding:var(--arzo-space-4,16px);border-radius:999px;
+            <div style="display:inline-flex;padding:var(--arzo-space-4,16px);border-radius:var(--arzo-radius-pill,999px);
                 background:var(--arzo-accent-soft);color:var(--arzo-accent);margin-bottom:var(--arzo-space-4,16px);"><?php echo $glyph; ?></div>
             <h1 style="border:0;margin:0 0 var(--arzo-space-2,8px);font-size:var(--arzo-fs-xl,1.4rem);"><?php echo esc_html($title); ?>
                 <span style="font-size:var(--arzo-fs-sm,.8rem);color:var(--arzo-accent);border:1px solid var(--arzo-accent-ring);
-                    padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px;">PRO</span></h1>
+                    padding:var(--arzo-space-1,4px) var(--arzo-space-2,8px);border-radius:var(--arzo-radius-pill,999px);vertical-align:middle;margin-left:var(--arzo-space-2,8px);">PRO</span></h1>
             <p style="color:var(--arzo-text-secondary);margin:0 0 var(--arzo-space-5,20px);"><?php echo esc_html($desc); ?></p>
             <p style="color:var(--arzo-text-muted);font-size:var(--arzo-fs-sm,.8rem);margin:0 0 var(--arzo-space-5,20px);">
                 This power-tool ships with <strong>WP Arzo Pro</strong> — keeping the heavy library out of the

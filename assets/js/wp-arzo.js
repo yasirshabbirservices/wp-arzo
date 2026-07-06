@@ -260,11 +260,11 @@ function clearDebugLog() {
             .then(data => {
                 if (data.success) {
                     document.getElementById('debug-log-content').innerHTML =
-                        '<div style="color: #28a745; margin-bottom: 2px; padding: 2px 8px; border-left: 3px solid #28a745; padding-left: 12px;">Debug log has been cleared.</div>';
+                        '<div style="color: var(--arzo-success); margin-bottom: var(--arzo-space-1); padding: var(--arzo-space-1) var(--arzo-space-3); border-left: 3px solid var(--arzo-success);">Debug log has been cleared.</div>';
 
                     const message = document.createElement('div');
                     message.textContent = 'Debug log cleared successfully!';
-                    message.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:var(--accent-color);color:#fff;border-radius:3px;z-index:9999;';
+                    message.style.cssText = 'position:fixed;top:var(--arzo-space-5);left:50%;transform:translateX(-50%);padding:var(--arzo-space-3) var(--arzo-space-5);background:var(--accent-color);color:var(--arzo-text-on-accent);border-radius:var(--arzo-radius-sm);z-index:var(--arzo-z-toast);';
                     document.body.appendChild(message);
 
                     setTimeout(function() {
@@ -330,7 +330,7 @@ if (typeof usersPageFunctions !== 'undefined') {
                 <td>${user.user_login}</td>
                 <td>${user.user_email}</td>
                 <td>${user.display_name}</td>
-                <td><span class="badge">${user.roles.join(', ')}</span></td>
+                <td><span class="wpa-badge wpa-badge--neutral">${user.roles.join(', ')}</span></td>
                 <td class="actions">
                     <form method="post" style="display:inline;">
                         <input type="hidden" name="user_id" value="${user.ID}">
@@ -509,7 +509,7 @@ if (typeof pluginsPageFunctions !== 'undefined') {
             row.innerHTML = `
                 <td>${plugin.name}</td>
                 <td>${plugin.version}</td>
-                <td><span class="badge ${plugin.is_active ? 'success' : 'secondary'}">${plugin.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td><span class="wpa-badge ${plugin.is_active ? 'wpa-badge--success' : 'wpa-badge--neutral'}">${plugin.is_active ? 'Active' : 'Inactive'}</span></td>
                 <td class="actions">
                     <form method="post" style="display:inline;">
                         <input type="hidden" name="plugin_file" value="${plugin.file}">

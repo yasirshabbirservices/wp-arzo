@@ -19,6 +19,9 @@ class WP_Arzo_Snippets
 {
     const OPTION = 'wp_arzo_snippets';
 
+    /** Shortcode that renders a snippet on the front end: [wp_arzo_snippet id="…"]. */
+    const SHORTCODE_TAG = 'wp_arzo_snippet';
+
     /** @var WP_Arzo_Snippets|null */
     private static $instance = null;
 
@@ -63,7 +66,7 @@ class WP_Arzo_Snippets
     public function save($data)
     {
         $types  = array('php', 'css', 'js', 'html');
-        $scopes = array('everywhere', 'admin', 'front');
+        $scopes = array('everywhere', 'admin', 'front', 'shortcode');
 
         $snippet = array(
             'id'          => (isset($data['id']) && $data['id'] !== '') ? preg_replace('/[^a-z0-9_]/', '', $data['id']) : $this->generate_id(),
@@ -329,6 +332,10 @@ class WP_Arzo_Snippets
     {
         register_shutdown_function(array($this, 'shutdown_guard'));
 
+        // Any snippet is embeddable via [wp_arzo_snippet id="…"]; a snippet whose scope is
+        // "shortcode" ONLY renders where this shortcode is placed (it never auto-runs).
+        add_shortcode(self::SHORTCODE_TAG, array($this, 'do_shortcode'));
+
         // Run/register snippets in ascending priority order (lower runs first).
         $snippets = $this->get_all();
         usort($snippets, function ($a, $b) {
@@ -364,6 +371,9 @@ class WP_Arzo_Snippets
 
     private function in_scope($scope)
     {
+        if ($scope === 'shortcode') {
+            return false; // shortcode-only: never auto-runs — renders where its shortcode is placed.
+        }
         if ($scope === 'everywhere') {
             return true;
         }
@@ -414,6 +424,55 @@ class WP_Arzo_Snippets
         }
         $this->current_php_id = $prev;
         return $result;
+    }
+
+    /**
+     * Render a snippet where its [wp_arzo_snippet id="…"] shortcode is placed.
+     * HTML outputs as-is; CSS/JS are wrapped in a tag; PHP runs with output buffering
+     * (its echo/return becomes the shortcode output, with $atts + $content available,
+     * mirroring core shortcodes). Only an active snippet whose conditions pass renders.
+     *
+     * @param array|string $atts
+     * @param string|null  $content
+     * @return string
+     */
+    public function do_shortcode($atts, $content = null)
+    {
+        $atts = is_array($atts) ? $atts : array();
+        $id   = preg_replace('/[^a-z0-9_]/', '', isset($atts['id']) ? (string) $atts['id'] : '');
+        if ($id === '') {
+            return '';
+        }
+        $snippet = $this->get($id);
+        if (!$snippet || empty($snippet['active']) || !$this->passes_conditions($snippet)) {
+            return '';
+        }
+
+        $type = isset($snippet['type']) ? $snippet['type'] : 'php';
+        if ($type === 'php') {
+            $code = preg_replace('/^\s*<\?(php)?/i', '', (string) $snippet['code']);
+            $code = preg_replace('/\?>\s*$/', '', $code);
+            $prev = $this->current_php_id;
+            $this->current_php_id = $snippet['id']; // shutdown guard covers uncatchable fatals
+            ob_start();
+            try {
+                eval($code);
+            } catch (\Throwable $e) {
+                ob_end_clean();
+                $this->deactivate_with_error($snippet['id'], $e->getMessage());
+                $this->current_php_id = $prev;
+                return '';
+            }
+            $this->current_php_id = $prev;
+            return (string) ob_get_clean();
+        }
+        if ($type === 'css') {
+            return "<style id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . wp_strip_all_tags($snippet['code']) . "</style>";
+        }
+        if ($type === 'js') {
+            return "<script id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . $snippet['code'] . "</script>";
+        }
+        return (string) $snippet['code']; // html
     }
 
     /** Backstop for uncatchable fatals (memory, timeouts) during a PHP snippet. */

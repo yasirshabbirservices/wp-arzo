@@ -328,15 +328,15 @@ function handleDebug()
                     wp-config.php.</p>
 
                 <div class="debug-settings-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px 15px; margin-bottom: 20px;">
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--arzo-space-4); margin-bottom: var(--arzo-space-5);">
                     <?php foreach ($debug_settings as $setting => $info): ?>
                         <div class="form-group"
-                            style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: var(--arzo-bg-input); border-radius: 5px; border: 1px solid var(--arzo-border);">
+                            style="display: flex; align-items: center; justify-content: space-between; padding: var(--arzo-space-3) var(--arzo-space-4); background: var(--arzo-bg-input); border-radius: var(--arzo-radius-sm); border: 1px solid var(--arzo-border);">
                             <div style="flex: 1; min-width: 0;">
                                 <label
-                                    style="display: block; margin-bottom: 3px; font-weight: bold; color: var(--arzo-text-strong); font-size: 14px;"><?php echo $setting; ?></label>
+                                    style="display: block; margin-bottom: var(--arzo-space-1); font-weight: bold; color: var(--arzo-text-strong); font-size: var(--arzo-fs-md);"><?php echo $setting; ?></label>
                                 <p
-                                    style="font-size: 11px; color: var(--arzo-text-secondary); margin: 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis;">
+                                    style="font-size: var(--arzo-fs-xs); color: var(--arzo-text-secondary); margin: 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis;">
                                     <?php echo $info['description']; ?></p>
                             </div>
                             <div style="margin-left: 15px; flex-shrink: 0;">

@@ -155,9 +155,10 @@ class WP_Arzo_Setup_Wizard
                 'tagline' => 'Track, measure, and grow your traffic.',
                 'icon'    => 'search',
                 'features' => array(
-                    'site_verification', 'manage_robots_txt', 'manage_ads_txt',
+                    'analytics', 'site_verification', 'image_seo', 'manage_robots_txt', 'manage_ads_txt',
                     // Pro (skipped if unavailable):
                     'google_analytics_4', 'google_tag_manager', 'meta_pixel',
+                    'analytics_pro', 'analytics_reports',
                 ),
             ),
             'command_center' => array(
@@ -271,6 +272,7 @@ class WP_Arzo_Setup_Wizard
                             $ids = $this->preset_feature_ids($preset);
                             $available = 0;
                             $locked = 0;
+                            $resolved = array();
                             foreach ($ids as $fid) {
                                 $feature = $registry->get($fid);
                                 if (!$feature) {
@@ -281,6 +283,7 @@ class WP_Arzo_Setup_Wizard
                                 } else {
                                     $locked++;
                                 }
+                                $resolved[] = $feature;
                             }
                             ?>
                             <div class="wpa-wiz__preset" data-preset="<?php echo esc_attr($key); ?>">
@@ -292,6 +295,20 @@ class WP_Arzo_Setup_Wizard
                                         <?php if ($locked) : ?><span class="wpa-badge wpa-badge--warning"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon')); ?> <?php echo (int) $locked; ?> Pro</span><?php endif; ?>
                                     </div>
                                     <p><?php echo esc_html($preset['tagline']); ?></p>
+                                    <?php if (!empty($resolved)) : ?>
+                                        <details class="wpa-wiz__preset-includes">
+                                            <summary><?php echo wp_arzo_icon('eye', array('class' => 'wpa-icon wpa-icon--sm')); ?> See what turns on (<?php echo count($resolved); ?>)</summary>
+                                            <ul class="wpa-wiz__preset-list">
+                                                <?php foreach ($resolved as $f) : ?>
+                                                    <li>
+                                                        <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                                                        <span><?php echo esc_html($f->title()); ?></span>
+                                                        <?php if ($f->tier() === 'pro') : ?><span class="wpa-badge wpa-badge--warning">Pro</span><?php endif; ?>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </details>
+                                    <?php endif; ?>
                                 </div>
                                 <button type="button" class="wpa-btn wpa-btn--primary wpa-btn--sm wpa-wiz-apply" data-preset="<?php echo esc_attr($key); ?>"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Apply</button>
                             </div>

@@ -250,10 +250,10 @@ body.wp-arzo-screen .wrap > h1.wp-heading-inline { display: none; }
 .wpa-feature-card.is-on { box-shadow: inset 3px 0 0 var(--arzo-accent); }
 .wpa-feature-card__icon { width: 34px; height: 34px; }
 .wpa-feature-card__icon .wpa-icon { width: 18px; height: 18px; }
-.wpa-feature-card__title { font-size: 13.5px; }
+.wpa-feature-card__title { font-size: var(--arzo-fs-sm); }
 .wpa-feature-card__desc {
   margin-top: 2px;
-  font-size: 12px;
+  font-size: var(--arzo-fs-xs);
   line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -511,7 +511,7 @@ body.wp-arzo-screen::-webkit-scrollbar-thumb:hover { background: var(--arzo-bord
 }
 .wpa-fm-progress__bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--arzo-accent), #0ea66b);
+  background: linear-gradient(90deg, var(--arzo-accent), var(--arzo-accent-hover));
   border-radius: var(--arzo-radius-pill);
   transition: width .45s ease;
 }
@@ -572,6 +572,43 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
 .wpa-wiz__preset-head h3 { margin: 0; font-size: var(--arzo-fs-md); color: var(--arzo-text-strong); }
 .wpa-wiz__preset-body p { margin: 6px 0 0; color: var(--arzo-text-secondary); font-size: var(--arzo-fs-sm); }
 .wpa-wiz__preset .wpa-btn { align-self: flex-start; margin-top: auto; }
+.wpa-wiz__preset-includes { margin-top: var(--arzo-space-1); }
+.wpa-wiz__preset-includes > summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--arzo-space-1);
+  padding: var(--arzo-space-1) 0;
+  font-size: var(--arzo-fs-sm);
+  font-weight: 600;
+  color: var(--arzo-accent);
+  user-select: none;
+  border-radius: var(--arzo-radius-sm);
+}
+.wpa-wiz__preset-includes > summary::-webkit-details-marker { display: none; }
+.wpa-wiz__preset-includes > summary:focus-visible { outline: none; box-shadow: var(--arzo-focus-ring); }
+.wpa-wiz__preset-list {
+  list-style: none;
+  margin: var(--arzo-space-2) 0 0;
+  padding: var(--arzo-space-3);
+  display: grid;
+  gap: var(--arzo-space-2);
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--arzo-bg-input);
+  border: 1px solid var(--arzo-border);
+  border-radius: var(--arzo-radius-sm);
+}
+.wpa-wiz__preset-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--arzo-space-2);
+  font-size: var(--arzo-fs-sm);
+  color: var(--arzo-text-secondary);
+}
+.wpa-wiz__preset-list li > .wpa-icon { color: var(--arzo-accent); flex-shrink: 0; }
+.wpa-wiz__preset-list li > .wpa-badge { margin-left: auto; }
 
 .wpa-wiz__features { display: flex; flex-direction: column; gap: 22px; }
 .wpa-wiz__group h3 { display: flex; align-items: center; gap: 8px; font-size: var(--arzo-fs-sm); text-transform: uppercase; letter-spacing: .05em; color: var(--arzo-text-muted); margin: 0 0 10px; }
@@ -759,8 +796,8 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
 .wpa-code-app .CodeMirror-gutters { background: var(--arzo-bg-panel); border-right: 1px solid var(--arzo-border); }
 .wpa-code-app .CodeMirror-linenumber { color: var(--arzo-text-muted); }
 .wpa-code-app .CodeMirror-cursor { border-left-color: var(--arzo-accent); }
-.wpa-code-app .CodeMirror-selected { background: rgba(255, 255, 255, 0.08); }
-.wpa-code-app .CodeMirror-activeline-background { background: rgba(255, 255, 255, 0.03); }
+.wpa-code-app .CodeMirror-selected { background: var(--arzo-code-selection); }
+.wpa-code-app .CodeMirror-activeline-background { background: var(--arzo-code-activeline); }
 .wpa-code-app .cm-comment { color: var(--arzo-text-muted); font-style: italic; }
 .wpa-code-app .cm-keyword, .wpa-code-app .cm-builtin { color: var(--arzo-code-keyword); }
 .wpa-code-app .cm-string, .wpa-code-app .cm-string-2 { color: var(--arzo-code-string); }
@@ -786,8 +823,20 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
   border-bottom: 1px solid var(--arzo-border);
   font-weight: 600;
 }
-.wpa-code-app__list-body { max-height: 560px; overflow-y: auto; }
+.wpa-code-app__list-body { max-height: 560px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--arzo-bg-hover) transparent; }
 .wpa-code-app__empty { color: var(--arzo-text-muted); padding: var(--arzo-space-4); margin: 0; }
+.wpa-code-app__search { position: relative; padding: var(--arzo-space-3); border-bottom: 1px solid var(--arzo-border); }
+.wpa-code-app__search > .wpa-icon {
+  position: absolute;
+  left: calc(var(--arzo-space-3) + var(--arzo-space-2));
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--arzo-text-muted);
+  pointer-events: none;
+}
+.wpa-code-app__search .wpa-input { padding-left: var(--arzo-space-8); font-size: var(--arzo-fs-sm); }
+.wpa-code-app__pager { display: flex; align-items: center; justify-content: space-between; gap: var(--arzo-space-2); padding: var(--arzo-space-2) var(--arzo-space-3); border-top: 1px solid var(--arzo-border); }
+.wpa-code-app__pageinfo { font-size: var(--arzo-fs-xs); color: var(--arzo-text-muted); text-align: center; flex: 1; }
 .wpa-code-item {
   display: flex; align-items: center; gap: var(--arzo-space-2);
   padding: var(--arzo-space-2) var(--arzo-space-3);
@@ -808,6 +857,53 @@ body.wp-arzo-wizard { background: var(--arzo-bg-dark) !important; }
   .wpa-code-app { grid-template-columns: 1fr; }
   .wpa-code-app__list { position: static; }
 }
+
+/* ------------------------------------------ Snippets Import / Export drawer */
+.wpa-snip-io__tabs { padding: var(--arzo-space-4) var(--arzo-space-5) 0; }
+.wpa-snip-io__tabs .wpa-tabs { display: flex; width: 100%; margin-bottom: 0; }
+.wpa-snip-io__tabs .wpa-tab { flex: 1; justify-content: center; }
+.wpa-snip-io__selbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--arzo-space-3); margin: var(--arzo-space-3) 0 var(--arzo-space-2);
+}
+.wpa-snip-io__list {
+  list-style: none; margin: 0 0 var(--arzo-space-4); padding: var(--arzo-space-1);
+  display: grid; gap: 2px; max-height: 260px; overflow-y: auto;
+  background: var(--arzo-bg-input); border: 1px solid var(--arzo-border); border-radius: var(--arzo-radius-sm);
+}
+.wpa-checkline {
+  display: flex; align-items: center; gap: var(--arzo-space-2);
+  padding: var(--arzo-space-2); border-radius: var(--arzo-radius-sm);
+  cursor: pointer; font-size: var(--arzo-fs-sm); color: var(--arzo-text-primary);
+}
+.wpa-snip-io__list .wpa-checkline:hover { background: var(--arzo-bg-hover); }
+.wpa-snip-io__title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wpa-snip-io__list .wpa-badge { flex-shrink: 0; }
+
+.wpa-dropzone {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--arzo-space-2); text-align: center;
+  padding: var(--arzo-space-6) var(--arzo-space-5); margin-bottom: var(--arzo-space-4);
+  background: var(--arzo-bg-input);
+  border: 2px dashed var(--arzo-border-strong); border-radius: var(--arzo-radius);
+  color: var(--arzo-text-secondary); cursor: pointer;
+  transition: border-color var(--arzo-transition), background var(--arzo-transition);
+}
+.wpa-dropzone:hover, .wpa-dropzone.is-drag { border-color: var(--arzo-accent); background: var(--arzo-accent-soft); }
+.wpa-dropzone.has-file { border-style: solid; border-color: var(--arzo-accent); }
+.wpa-dropzone > .wpa-icon { width: 28px; height: 28px; color: var(--arzo-accent); }
+.wpa-dropzone__text { display: flex; flex-direction: column; gap: 2px; }
+.wpa-dropzone__text > strong { color: var(--arzo-accent); font-size: var(--arzo-fs-sm); }
+.wpa-dropzone__text > span { color: var(--arzo-text-muted); font-size: var(--arzo-fs-xs); }
+.wpa-dropzone__file { font-size: var(--arzo-fs-sm); color: var(--arzo-text-strong); font-weight: 600; word-break: break-all; }
+.wpa-dropzone input[type="file"] { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); border: 0; }
+
+/* Auto-generated snippet shortcode (editor) */
+.wpa-snip-shortcode { margin: 0 0 var(--arzo-space-4); }
+.wpa-snip-shortcode__row { display: flex; gap: var(--arzo-space-2); align-items: stretch; margin-top: var(--arzo-space-1); }
+.wpa-snip-shortcode__row .wpa-input { font-family: var(--arzo-font-mono); font-size: var(--arzo-fs-sm); color: var(--arzo-accent); }
+.wpa-snip-shortcode__row .wpa-btn { flex-shrink: 0; }
 
 /* ---------------------------------------------- Snippet conditional logic
    The "Smart Conditional Logic" builder inside the snippet editor form. */

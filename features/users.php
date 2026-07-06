@@ -250,7 +250,7 @@ window.open("' . admin_url() . '", "_blank");
                             html += `<input type="hidden" name="wp_arzo_user_nonce" value="${userActionNonce}">`;
                             html += `<input type="hidden" name="user_id" value="${user.id}">`;
                             html +=
-                                `<button type="submit" name="quick_login" class="btn btn-success" title="Login as ${user.username}" style="background: var(--success-color); border: none; padding: 5px 10px; font-size: 12px;"><?php echo wp_arzo_icon('login', ['size' => 14]); ?> Login</button>`;
+                                `<button type="submit" name="quick_login" class="btn btn-sm btn-success" title="Login as ${user.username}"><?php echo wp_arzo_icon('login', ['size' => 14]); ?> Login</button>`;
                             html += `</form>`;
                         } else {
                             html +=
@@ -263,7 +263,7 @@ window.open("' . admin_url() . '", "_blank");
                             html += `<input type="hidden" name="wp_arzo_user_nonce" value="${userActionNonce}">`;
                             html += `<input type="hidden" name="user_id" value="${user.id}">`;
                             html +=
-                                `<button type="submit" name="delete_user" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete user: ${user.username}?');" title="Delete ${user.username}" style="background: var(--danger-color); border: none; padding: 5px 10px; font-size: 12px;"><?php echo wp_arzo_icon('trash', ['size' => 14]); ?> Delete</button>`;
+                                `<button type="submit" name="delete_user" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete user: ${user.username}?');" title="Delete ${user.username}"><?php echo wp_arzo_icon('trash', ['size' => 14]); ?> Delete</button>`;
                             html += `</form>`;
                         } else {
                             html +=
