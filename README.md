@@ -1,400 +1,228 @@
-# Introducing WP Arzo: The Ultimate WordPress Maintenance & Administration Suite
+<div align="center">
 
-![Version](https://img.shields.io/badge/version-5.1-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue.svg)
-![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)
+# 🛠️ WP Arzo — Maintenance & Administration Suite
 
-A comprehensive WordPress maintenance and system administration tool designed for developers, system administrators, and site owners who need advanced control over their WordPress installations.
+**The all‑in‑one administration + site‑enhancement suite for WordPress.**
+One dark, modern dashboard to run, secure, optimize, and rescue your site — plus a
+break‑glass power‑tools console and a standalone emergency recovery tool for when
+WordPress won't even load.
 
+![Version](https://img.shields.io/badge/version-6.156.0-16e791)
+![WordPress](https://img.shields.io/badge/WordPress-%E2%89%A5%205.0-21759b)
+![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%207.2-777bb4)
+![Admin only](https://img.shields.io/badge/access-administrators%20only-ff4d4f)
+![Features](https://img.shields.io/badge/features%20%26%20tools-80%2B-16e791)
 
-[![Watch the video](https://github.com/yasirshabbirservices/wp-arzo/blob/main/wp-arzo.png)](https://video.yasirshabbir.com/recordings/dIng2Kod7xx5Y35VCXlg)
-
-## 🚀 Features
-
-### 🔐 Security & Access Control
-- **Secure Access Key Protection**: Configurable access key prevents unauthorized usage
-- **Emergency Login Options**: Multiple methods to regain admin access
-- **Session Management**: Proper WordPress authentication handling
-
-### 📊 System Information
-- **Site Overview**: Complete WordPress installation details
-- **Server Information**: PHP version, memory limits, and server configuration
-- **Database Status**: Connection details and basic statistics
-- **Performance Metrics**: Memory usage and execution time monitoring
-- **PHP Limits Configuration**: Modify and reset PHP memory limits, execution time, upload size, and post size
-
-### 👥 User Management
-- **User Listing**: View all WordPress users with roles and details
-  - **Ajax Pagination**: Smooth navigation through user lists with dynamic loading
-  - **Scrollable Interface**: Convenient scrollbar for browsing large user lists
-- **Quick Login**: Login as any existing user instantly with dropdown user selection
-- **Temporary Admin Creation**: Generate temporary administrator accounts
-- **Direct Admin Access**: Create secure bypass links for emergency access
-- **User Role Management**: View and understand user permissions
-- **Real-time Updates**: Cache-busting technology ensures data is always current
-
-### 🗄️ Database Operations
-- **Database Information**: View database name, size, and table count
-- **Connection Testing**: Verify database connectivity
-- **Table Overview**: List all database tables with sizes
-  - **Ajax Pagination**: Smooth navigation through database tables with dynamic loading
-  - **Scrollable Interface**: Convenient scrollbar for browsing large table lists
-- **Query Execution**: Basic database query capabilities
-- **Real-time Updates**: Cache-busting technology ensures database information is always current
-
-### 📁 Advanced File Manager
-- **File Browser**: Navigate through WordPress directory structure
-- **File Viewer**: Preview files with syntax highlighting
-- **File Editor**: Edit text files directly in the browser
-- **File Upload**: Upload files to any directory
-- **File Download**: Download files from the server
-- **File Operations**: Delete, rename, and manage files
-- **Binary File Support**: Preview images and handle binary files
-- **Security Checks**: Validate file types and permissions
-
-### 🔌 Plugin Management
-- **Plugin Listing**: View all installed plugins
-  - **Ajax Pagination**: Smooth navigation through plugin lists with dynamic loading
-  - **Scrollable Interface**: Convenient scrollbar for browsing large plugin lists
-- **Plugin Control**: Activate/deactivate plugins with real-time status updates
-- **Plugin Information**: Version details and status
-- **Bulk Operations**: Manage multiple plugins efficiently
-- **Real-time Updates**: Cache-busting technology ensures plugin status is always current
-
-### 🎨 Theme Management
-- **Theme Overview**: List all installed themes
-- **Active Theme Detection**: Identify currently active theme
-- **Theme Information**: Version and status details
-- **Theme Switching**: Quick theme activation
-
-### 🚧 Maintenance Modes
-- **Multiple Mode Options**: Choose from maintenance, coming soon, or payment request modes
-- **Custom Messaging**: Personalized titles and messages for each mode
-- **Social Contact Integration**: Display developer contact information (email, phone, WhatsApp, Skype)
-- **SEO-Friendly**: Proper HTTP status codes and noindex meta tags
-- **Bypass Access**: Administrators and bypass URL users can access the site normally
-- **Custom CSS Support**: Add custom styling to maintenance pages
-- **Real-time Preview**: Live preview and management of active modes
-
-#### Available Modes:
-- **🔧 Maintenance Mode**: Display maintenance message with 503 status code (temporary unavailable)
-- **🚀 Coming Soon Mode**: Show coming soon page with 200 status code and email collection
-- **💰 Payment Request Mode**: Display payment request message with 402 status code for unpaid projects
-
-### 🔧 Debug Management
-- **Visual Debug Controls**: Interactive interface to enable/disable WordPress debug settings
-- **Real-time Debug Status**: Live monitoring of WP_DEBUG, WP_DEBUG_LOG, WP_DEBUG_DISPLAY, SCRIPT_DEBUG, and SAVEQUERIES
-- **Debug Log Viewer**: Built-in viewer for recent debug log entries with real-time monitoring
-- **wp-config.php Auto-editing**: Safe automatic modification of WordPress configuration
-- **Debug Information Panel**: Comprehensive debug environment details and file status
-- **Debug Settings Guide**: Built-in documentation and recommended configurations
-
-### ⚙️ Extra Options & PHP Configuration
-- **PHP Limits Management**: Modify memory limit, execution time, upload size, and post size
-- **Multi-file Configuration**: Update settings in wp-config.php, .htaccess, or php.ini
-- **One-Click Reset**: Restore default PHP configuration values with a single click
-- **Real-time Feedback**: Visual confirmation of successful updates and changes
-- **Server-Specific Options**: Tailor PHP settings to your specific hosting environment
-
-### 🎨 User Interface & Experience
-- **Ajax Pagination**: Smooth, dynamic loading of data without full page refreshes
-- **Scrollable Interfaces**: Convenient scrollbars for browsing large data lists
-- **Real-time Data Updates**: Cache-busting technology ensures information is always current
-- **Font Awesome Icons**: Professional icon system with 6.4.0 CDN integration
-- **Branding Color Variables**: Consistent design system with CSS custom properties
-- **Interactive Lightbox Modals**: Enhanced user experience for complex instructions
-- **Responsive Design**: Mobile-friendly interface with modern styling
-- **Visual Feedback**: Clear status indicators and error messages with contextual icons
-- **Enhanced User Selection**: Dropdown fields for quick user selection
-
-### 🎯 Emergency Features
-- **Locked Out Recovery**: Multiple methods to regain access
-- **Maintenance Mode**: Safe system maintenance capabilities with multiple mode options
-- **System Diagnostics**: Troubleshoot common WordPress issues
-- **Frontend Installation Guide**: Interactive lightbox with detailed setup instructions
-- **Visual Error Indicators**: Clear warnings with Font Awesome icons for missing components
-
-## 📋 Requirements
-
-- **PHP**: 7.4 or higher
-- **WordPress**: 5.0 or higher
-- **Server**: Apache/Nginx with mod_rewrite
-- **Permissions**: Write access to WordPress directory
-- **Memory**: Minimum 128MB PHP memory limit
-
-## 🛠️ Installation
-
-1. **Download the Tool**
-   ```bash
-   wget https://github.com/yasirshabbirservices/wp-arzo/archive/refs/heads/main.zip
-   unzip main.zip
-   ```
-
-2. **Upload to WordPress Root**
-   - Upload `wp-arzo.php` to your WordPress root directory
-   - Ensure it's in the same directory as `wp-config.php`
-
-3. **Configure Security Key**
-   ```php
-   // Edit line 11 in wp-arzo.php
-   define('ACCESS_KEY', 'your-unique-secure-key-here');
-   ```
-
-4. **Set Permissions**
-   ```bash
-   chmod 644 wp-arzo.php
-   ```
-
-5. **Access the Tool**
-   ```
-   https://yoursite.com/wp-arzo.php?key=your-unique-secure-key-here
-   ```
-
-## 🔧 Configuration
-
-### Security Key Setup
-The tool uses a secure access key to prevent unauthorized access:
-
-```php
-define('ACCESS_KEY', 'YS_maint_7x9K2pQ8vL4nB6wE3rT5uA1cF8dG');
-```
-
-**Important**: Change this to a unique, complex string before deployment.
-
-### WordPress Integration
-The tool automatically detects WordPress installation in these locations:
-- Same directory as the tool
-- Parent directory
-- Two levels up
-
-### File Permissions
-Ensure proper file permissions for full functionality:
-- Read access: View files and directories
-- Write access: Edit, upload, and delete files
-- Execute access: Navigate directories
-
-## 🚦 Usage
-
-### Basic Access
-
-1. Navigate to `https://yoursite.com/wp-arzo.php?key=YOUR_ACCESS_KEY`
-2. Use the navigation menu to access different features
-3. Each section provides specific functionality for WordPress management
-
-### Maintenance Modes Usage
-
-#### Mode Features
-- **🔧 Maintenance Mode**: Perfect for scheduled maintenance, updates, or repairs
-  - Returns HTTP 503 status (Service Unavailable)
-  - Includes noindex meta tag to prevent search engine indexing
-  - Shows maintenance message with estimated completion time
-
-- **🚀 Coming Soon Mode**: Ideal for new websites under development
-  - Returns HTTP 200 status (OK)
-  - Includes noindex meta tag and email collection form
-  - Professional coming soon page with social contact options
-
-- **💰 Payment Request Mode**: For projects with pending payments
-  - Returns HTTP 402 status (Payment Required)
-  - Includes noindex meta tag and contact information
-  - Clear payment request message with developer contact details
-
-#### Bypass Access
-- **Administrator Access**: Logged-in administrators can always access the site
-- **Bypass URL**: Use `?maintenance_bypass=YOUR_ACCESS_KEY` to view the normal site
-- **Preview Mode**: Real-time preview of maintenance pages before activation
-
-### Emergency Access
-If locked out of WordPress admin:
-1. Go to the "Quick Login" tab
-2. Choose from three recovery methods:
-   - Login as existing user
-   - Create temporary admin
-   - Generate direct admin access link
-
-### File Management
-1. Navigate to the "Files" tab
-2. Browse directories using the file manager
-3. Click file icons to view, edit, or download
-4. Use upload form to add new files
-
-### System Monitoring
-1. Check "Site Info" for system overview
-2. Monitor "Database" for connection status
-3. Review "Users" for account management
-
-### Debug Management
-1. Navigate to the "Debug" tab
-2. View current debug settings status with color-coded indicators
-3. Enable/disable debug settings using the interactive form
-4. Monitor debug log file size and recent entries
-5. Use the built-in guide for recommended configurations
-
-### PHP Limits Configuration
-1. Navigate to the "Extra Options" tab
-2. Select the target configuration file (wp-config.php, .htaccess, or php.ini)
-3. Set custom values for Memory Limit, Max Execution Time, Upload Max Filesize, and Post Max Size
-4. Click "Update PHP Limits" to apply changes
-5. Use "Reset to Defaults" to restore standard values (Memory: 128M, Execution: 30s, Upload/Post: 64M)
-
-## ⚠️ Security Considerations
-
-### Access Control
-- **Always use a strong, unique access key**
-- **Remove the tool after maintenance is complete**
-- **Never leave the tool accessible on production sites**
-- **Use HTTPS for all access to prevent key interception**
-
-### File Permissions
-- **Limit write permissions to necessary directories only**
-- **Regularly audit file changes made through the tool**
-- **Monitor access logs for unauthorized usage**
-
-### Emergency Procedures
-- **Document your access key in a secure location**
-- **Test emergency access methods before needed**
-- **Have backup restoration procedures ready**
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**"WordPress not found" Error**
-- Ensure the tool is in the correct directory
-- Check WordPress installation paths
-- Verify file permissions
-
-**"File not found" Error**
-- Verify the access key is correct
-- Check URL parameters
-- Ensure the tool file exists
-
-**File Upload Failures**
-- Check PHP upload limits
-- Verify directory permissions
-- Review server error logs
-
-**Database Connection Issues**
-- Verify wp-config.php settings
-- Check database server status
-- Review MySQL/MariaDB logs
-
-### Debug Mode
-Use the built-in Debug Management feature to easily configure WordPress debug settings:
-1. Go to the "Debug" tab
-2. Use the visual interface to enable/disable debug options
-3. Monitor debug logs in real-time
-4. The tool automatically updates wp-config.php with proper settings
-
-Alternatively, manually enable debug mode:
-```php
-define('WP_DEBUG', true);
-define('WP_DEBUG_LOG', true);
-```
-
-## 🤝 Contributing
-
-We welcome contributions to improve the WordPress Maintenance Tool!
-
-### How to Contribute
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-- Follow WordPress coding standards
-- Add comments for complex functionality
-- Test all features thoroughly
-- Update documentation for new features
-
-### Reporting Issues
-- Use the GitHub issue tracker
-- Provide detailed reproduction steps
-- Include system information
-- Attach relevant error logs
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### MIT License Summary
-
-**Permissions:**
-- ✅ Commercial use
-- ✅ Modification
-- ✅ Distribution
-- ✅ Private use
-
-**Conditions:**
-- 📋 License and copyright notice
-
-**Limitations:**
-- ❌ Liability
-- ❌ Warranty
-
-## 👨‍💻 Author
-
-**Yasir Shabbir**
-- Website: [yasirshabbir.com](https://yasirshabbir.com)
-- Email: [contact@yasirshabbir.com](mailto:contact@yasirshabbir.com)
-- GitHub: [@yasirshabbirservices](https://github.com/yasirshabbirservices/wp-arzo)
-
-## 🙏 Acknowledgments
-
-- WordPress community for excellent documentation
-- PHP community for robust language features
-- Open source contributors for inspiration
-- Security researchers for best practices
-
-## 📚 Additional Resources
-
-- [WordPress Developer Handbook](https://developer.wordpress.org/)
-- [PHP Security Best Practices](https://www.php.net/manual/en/security.php)
-- [WordPress Security Guide](https://wordpress.org/support/article/hardening-wordpress/)
-- [GPL License Guide](https://www.gnu.org/licenses/gpl-3.0.en.html)
-
-## 🔄 Changelog
-
-### Version 5.1 (Current)
-- **NEW: PHP Limits Reset Functionality** - One-click reset of PHP configuration limits to default values
-- **IMPROVED: Extra Options Interface** - Enhanced PHP limits configuration with reset capability
-
-### Version 5.0
-- **NEW: Ajax Pagination System** - Smooth, dynamic loading for Users, Database Tables, and Plugins
-- **NEW: Scrollable Interfaces** - Convenient scrollbars for browsing large data lists
-- **NEW: Cache-Busting Technology** - Real-time data updates without browser caching issues
-- **NEW: User Selection Dropdown** - Enhanced Quick Login with user selection field
-- **NEW: Debug Management System** - Visual interface for WordPress debug settings
-- **NEW: Real-time Debug Monitoring** - Live status of all debug constants
-- **NEW: Debug Log Viewer** - Built-in viewer for debug.log with recent entries
-- **NEW: wp-config.php Auto-editing** - Safe automatic configuration updates
-- **NEW: Enhanced Frontend Installation Guide** - Interactive lightbox modal with step-by-step instructions
-- **NEW: Font Awesome Icons Integration** - Professional icon system throughout the interface
-- **NEW: Branding Color Variables** - Consistent design system with customizable color scheme
-- **NEW: Maintenance Modes System** - Complete maintenance mode functionality with multiple options
-  - 🔧 Maintenance Mode (HTTP 503) for scheduled maintenance
-  - 🚀 Coming Soon Mode (HTTP 200) for new websites
-  - 💰 Payment Request Mode (HTTP 402) for pending payments
-  - Social contact integration (email, phone, WhatsApp, Skype)
-  - Custom messaging and CSS styling support
-  - SEO-friendly with proper status codes and noindex tags
-  - Administrator and bypass URL access
-- Enhanced file management system with improved performance
-- Advanced user authentication and management capabilities
-- Optimized database operations and monitoring
-- Comprehensive plugin and theme management with real-time status updates
-- Multiple emergency access recovery methods
-- Modern responsive UI with better UX
-- Enhanced security hardening and access controls
-- Improved system diagnostics and troubleshooting
-- Better error handling and user feedback
-- Streamlined codebase with performance optimizations
+</div>
 
 ---
 
-**⚠️ Important Notice**: This tool provides powerful administrative capabilities. Use responsibly and always maintain proper backups before making system changes.
+## ✨ What is WP Arzo?
 
-**🔒 Security Reminder**: Remove this tool from production servers after maintenance is complete to prevent unauthorized access.
+WP Arzo replaces a drawer full of single‑purpose plugins with **one cohesive suite**. It's
+built around three surfaces:
+
+| Surface | What it's for |
+|---|---|
+| 🎛️ **Feature Manager** | A native, full‑dark dashboard: a searchable, category‑filtered **toggle grid** of ~50 site‑enhancement features, each with schema‑driven settings — enable only what you need. |
+| 🧰 **Advanced Tools console** | A standalone dark console of hands‑on power tools: Site Info, Users, Plugins, Themes, Debug, Site Modes, Extra Options, Temporary Logins — plus a full **File Manager** and **Database manager** with [WP Arzo Pro](https://yasirshabbir.com/wp-arzo/). |
+| 🚑 **Emergency Recovery** | A self‑contained recovery script that works even when WordPress is fully down (WSOD, fatal plugin conflict) — deactivate plugins, switch themes, create an admin, fix URLs, and more. |
+
+Everything is **administrators‑only** and authenticates with your existing WordPress
+session. The optional **WP Arzo Pro** add‑on registers premium modules into the same
+dashboard (shown as locked **PRO** cards until unlocked).
+
+- **Current version:** `6.156.0` — see [CHANGELOG.md](CHANGELOG.md)
+- **Requires:** WordPress ≥ 5.0 · PHP ≥ 7.2
+- **Highlights:** a built‑in **cookieless analytics** engine (no Site Kit needed), multi‑provider
+  SMTP with fallback **+ auto‑retry queue**, a CodeMirror **Code Snippets** editor with **smart
+  conditional logic**, local **+ scheduled backups** with file snapshots & diff, **REST API
+  authentication**, a **role/capability editor**, and dozens of performance, security, and admin
+  refinements. Heavy power‑tools (File Manager, Database manager) ship with **WP Arzo Pro** to keep
+  the free core lean.
+
+---
+
+## 🎛️ Feature Manager & Setup Wizard
+
+The native **WP Arzo** admin menu is the modern home base:
+
+- A grouped, searchable **toggle grid** — flip features on/off with modern switches; each
+  carries its own schema‑driven settings panel and a real SVG icon.
+- A **left sidebar** for page navigation (Dashboard, Email, Backups, Snippets, Media
+  Cleanup, Activity Log, Content Types, Login Security, Advanced Tools…) and a live
+  **category filter** that scopes the grid.
+- A **⌘/Ctrl‑K command palette** (WordPress‑native) with every WP Arzo destination.
+- A **light / dark theme** toggle (dark by default), WCAG 2.2 AA throughout.
+- A **Setup Wizard** that applies curated presets in one click (it only *enables* — it
+  never disables what you've set):
+  **Essentials · Velocity · Fortress · Creator · Growth · Command Center · The Works.**
+
+---
+
+## 📦 Complete feature list (free core)
+
+> ~50 toggleable features, organized by group. Enable only what you need; everything is off
+> until you turn it on.
+
+### 🧑‍💼 Utilities & Admin
+| Feature | What it does |
+|---|---|
+| **Hide Admin Bar** | Hide the front‑end toolbar for a chosen audience |
+| **Disable Dashboard Widgets** | Remove default dashboard widgets for a cleaner home screen |
+| **Last Login Column** | Record and show each user's last login in the Users list |
+| **Login / Logout Redirects** | Send users to a custom URL after login or logout |
+| **Clean Up Admin Bar** | Strip WordPress/branding clutter from the toolbar |
+| **Enhance List Tables** | Featured‑image column, IDs, and other list‑table quality‑of‑life |
+| **Page & Post Duplication** | One‑click duplicate any post/page/CPT |
+| **Content Order (drag & drop)** | Manually order posts/pages/CPTs by dragging |
+
+### ⚙️ Core Controls
+| Feature | What it does |
+|---|---|
+| **Disable Comments** | Turn off comments site‑wide (or per type) |
+| **Disable Gutenberg** | Restore the Classic Editor |
+| **Disable RSS Feeds** | Disable all RSS/Atom feeds |
+| **Disable Embeds** | Remove oEmbed discovery & the embed script |
+| **Disable Emojis** | Drop the emoji script/styles for speed |
+| **Disable Self Pingbacks** | Stop self‑ping notifications |
+| **Disable XML‑RPC** | Close the XML‑RPC attack surface |
+| **Disable Application Passwords** | Turn off WP application passwords |
+| **Disable All Updates** | Freeze core/plugin/theme auto‑updates |
+| **Disable Archives** | Disable author/date/tag archives |
+| **Disable Front Dashicons** | Stop loading Dashicons for logged‑out visitors |
+| **Remove jQuery Migrate** | Drop the legacy jQuery Migrate script |
+| **Revisions Control** | Cap or disable post revisions |
+| **Heartbeat Control** | Throttle or disable the WordPress Heartbeat API |
+
+### 🔒 Security & Access
+| Feature | What it does |
+|---|---|
+| **Limit Login Attempts** | Lock out an IP after repeated failed logins, with a live lockouts dashboard |
+| **Custom Login URL** | Move `wp-login.php` to a secret slug (ASE‑style, warning‑free) |
+| **Custom Login Page** | Brand every login screen — logo, colors, background, custom CSS |
+| **Block User Enumeration** | Stop `?author=N` and REST user enumeration |
+| **Restrict REST API** | Require auth for REST endpoints |
+| **REST API Authentication** | Issue/revoke API keys (Bearer / X‑API‑Key / Basic) with **per‑key scope** (Full / Read‑only / **MCP‑only** — an agent key that drives only the MCP endpoint), **auto‑expiry**, and last‑used tracking |
+| **Role Manager** | Edit role capabilities (grouped by category with a live filter + per‑group toggle‑all); add, clone, and delete roles |
+| **Disable Theme/Plugin Editor** | Remove the in‑admin file editors |
+
+### ✍️ Content & Developer
+| Feature | What it does |
+|---|---|
+| **Code Snippets** | A CodeMirror editor for PHP/CSS/JS/HTML snippets, fatal‑guarded (auto‑disables a snippet that errors), with **Smart Conditional Logic** (run only on chosen roles / post types / page types / URLs / devices / schedules) and Import/Export |
+| **Custom CSS** | Site‑wide custom CSS without touching the theme |
+| **Header / Body / Footer Code** | Inject scripts/markup into `<head>`, after `<body>`, or the footer |
+| **Custom Body Class** | Add custom classes to `<body>` |
+
+### 🖼️ Media
+| Feature | What it does |
+|---|---|
+| **Auto WebP / WebM Conversion** | Convert uploads to WebP (and video to WebM via ffmpeg) on upload |
+| **SVG Upload** | Safely allow sanitized SVG uploads |
+| **Image SEO** | Auto‑fill alt/title from filenames |
+| **Prevent Duplicate Uploads** | Detect and block duplicate media by hash |
+| **Media Cleanup** | Scan for unreferenced attachments and reclaim space (batched, with a reclaimable‑space summary and confirmed delete) |
+| **Missed Schedule Fix** | Publish posts that missed their scheduled time |
+
+### 📈 Marketing & SEO
+| Feature | What it does |
+|---|---|
+| **Manage robots.txt** | Edit a virtual `robots.txt` from the dashboard |
+| **Manage ads.txt** | Edit a virtual `ads.txt` |
+| **Site Verification** | Add Google/Bing/Pinterest/Yandex/Baidu verification tags |
+| **Crawl Optimizations** | Trim crawl bloat (shortlinks, RSD, WLW, generator, etc.) |
+
+### 📊 Analytics
+| Feature | What it does |
+|---|---|
+| **Built‑in Analytics** _(cookieless)_ | Privacy‑first, first‑party website analytics recorded **entirely in your own database** — no cookies, no external services, no personal data at rest (GDPR/CCPA‑friendly). A **WP Arzo → Analytics** dashboard shows pageviews, unique visitors, sessions, bounce rate, avg. visit and views/session, a **traffic chart**, and reports for **Top pages, Referrers, Countries, Devices/Browsers/OS, Landing & Exit pages, 404s and on‑site Search terms**, over Today / 7 / 30 / 90‑day ranges with **CSV export**. Plus a **dashboard widget**, an **admin‑bar “today” peek**, and a **Views column** in the Posts list. Bot filtering, admin/role/IP exclusion, Do‑Not‑Track respect, and automatic data retention. _No Site Kit or Independent Analytics needed._ |
+| **Google Analytics 4 / Tag Manager / Ads tags** | Insert Google's tags without another plugin — GA4 (gtag.js + IP anonymization), GTM (container + body noscript), and Google Ads — managed from one **Google** tab, each with an “exclude signed‑in admins” option. |
+
+### ✉️ Email
+| Feature | What it does |
+|---|---|
+| **Email Delivery (SMTP & API)** | A SureMail‑style **connections manager**: pick a provider (Custom SMTP, Gmail, Outlook, Zoho, Yahoo, Fastmail, Amazon SES, Mailjet, **SMTP2GO, SparkPost, MailerSend, Elastic Email**, SendGrid, Mailgun, Postmark, Brevo — 16 providers), configure multiple named connections with a **primary + ordered fallback**, per‑connection test send, and an **auto‑retry queue** that re‑sends failed messages with backoff |
+| **Email Log** | Every sent/failed email with recipient, subject, connection, resend, CSV export, and a deliverability meter — plus a **Stats** tab (7/30/60‑day per‑connection volume + deliverability trend chart) and an **Engagement** column (opens/clicks) when Pro Email Tracking is active |
+
+### 💾 Backup & Config
+| Feature | What it does |
+|---|---|
+| **Local Backups** | Streaming database snapshots (options or full DB) with one‑click restore (safety‑snapshot‑first), plus **file snapshots** (uploads/plugins/themes/config) with a **Compare/diff** drawer and **file restore** |
+| **Scheduled Backups** | Automatic daily/weekly/monthly snapshots with scope + retention |
+| **Automated Snapshots** | Take a safety snapshot automatically before any feature toggle |
+| **Config Import / Export** | Move your whole WP Arzo setup (features + settings + snippets) between sites as versioned JSON, safety‑snapshot before import |
+
+### 📋 Operations
+| Feature | What it does |
+|---|---|
+| **Activity Log** | A full audit trail — logins & password resets, user/role/profile changes, content edits/deletes, media, comments, plugin/theme/core installs & updates, and settings changes |
+
+---
+
+## 🧰 Advanced Tools console
+
+A standalone, dark‑themed console for hands‑on maintenance (each tab can be enabled/disabled
+individually from the dashboard):
+
+| Tab | What it does |
+|---|---|
+| **Site Info** | WordPress / PHP / MySQL / server / disk usage at a glance |
+| **Users** | Paginated user list; create, delete, and log in as any user |
+| **Database** | Full database manager (**AdminNeo**) — browse/edit rows, run SQL, export/import. **Requires WP Arzo Pro** (moved out of the free core in 6.146 to keep it lean); the free tab shows an upgrade panel |
+| **Files** | Full file manager (**elFinder**) rooted at the WordPress install. **Requires WP Arzo Pro** (moved out of the free core in 6.146); the free tab shows an upgrade panel |
+| **Plugins** | Activate / deactivate via toggle; upload a plugin ZIP |
+| **Themes** | Switch the active theme; upload a theme ZIP |
+| **Debug** | Toggle `WP_DEBUG` / `WP_DEBUG_LOG` / `WP_DEBUG_DISPLAY` / `SCRIPT_DEBUG` / `SAVEQUERIES`; a **live AJAX debug‑log console** (tail depth, auto‑refresh, severity filter, download, clear); and a read‑only **wp‑config.php / .htaccess viewer** with secrets masked |
+| **Site Modes** | Maintenance (503) / Coming Soon (200 + noindex) / Payment Required (402) pages with social contacts, plus the Emergency Recovery toggle |
+| **Extra Options** | Set PHP limits via `wp-config.php`, `.htaccess`, or `php.ini` |
+| **Temporary Logins** | Passwordless, time‑limited, revocable login links for support/clients/devs |
+
+## 🚑 Emergency Recovery
+
+A standalone script (`/wp-arzo/emergency/` — bookmarkable, and works via a direct file URL
+even when rewrites are down) that runs **without loading WordPress**. Password‑protected and
+throttled. It can: deactivate all plugins (safe mode), toggle individual plugins, switch/
+upload themes, create an administrator, reset any user's password, fix the site URL, restore
+a default `.htaccess`, and clear transients — enough to bring a white‑screened site back.
+
+---
+
+## 💎 WP Arzo Pro
+
+The optional Pro add‑on registers these modules into the same dashboard:
+
+| Group | Pro modules |
+|---|---|
+| **Marketing & Tracking** | Meta (Facebook) Pixel · TikTok Pixel · LinkedIn Insight Tag · Pinterest Tag · Snapchat Pixel · X (Twitter) Pixel · Microsoft/Bing UET _(GA4 · Tag Manager · Google Ads are now **free** — see Analytics)_ |
+| **Analytics** | Analytics Pro — a **UTM Campaigns** report and a live **Real-time** visitor view on top of the free built-in engine _(more coming: click/event/form tracking, email reports, eCommerce, GA4 in‑dashboard reporting)_ |
+| **Content Modeling** | Content Types (CPT/CCT builder) · Custom Fields (meta‑box builder) |
+| **Media** | Media Folders (nestable library folders + filters) |
+| **Branding** | Admin Branding & Custom Dashboard · Text Replacement (white‑label) |
+| **Security** | Two‑Factor Authentication (TOTP + recovery codes) |
+| **Ops & Monitoring** | Redirects & 404 Monitor · Advanced Cron Manager · Advanced Audit Log (DB‑backed) · Notifications (Slack/Discord/n8n/webhook) · Site Health Monitor (checks + uptime + status endpoint) · AI / MCP Server |
+| **Off‑site Backups** | FTP · Google Drive · pCloud (auto‑upload + retention + remote restore) |
+
+---
+
+## 🚀 Installation
+
+1. Upload the plugin folder to `/wp-content/plugins/` (or install the `wp-arzo.zip` release).
+2. Activate **WP Arzo** from the *Plugins* screen.
+3. Open **WP Arzo** in the admin menu — run the **Setup Wizard**, or start flipping features on.
+4. Reach the power tools from **WP Arzo → Advanced Tools**.
+
+Updates are delivered in‑plugin (from GitHub releases) like any normal WordPress update.
+
+## 🔐 Security model
+
+WP Arzo can edit files, run SQL, switch plugins/themes, create admins, and rewrite server
+config — so every entry point is gated to `manage_options`, every state‑changing action is
+**CSRF‑protected with a WordPress nonce**, input is sanitized early and output escaped late,
+file‑manager paths are confined to the WordPress install, and all SQL is prepared. The
+Emergency tool adds its own password + brute‑force throttle + strict CSP.
+
+## 📄 License
+
+Proprietary. See [LICENSE](LICENSE). WP Arzo is developed by
+[Yasir Shabbir](https://yasirshabbir.com).

@@ -1,0 +1,25 @@
+# Files excluded from the WordPress.org build (used by 10up/action-wordpress-plugin-deploy).
+# Everything listed here is stripped from the SVN-deployed zip that wp.org hosts.
+
+# Version control / CI
+.git
+.github
+.gitignore
+.gitattributes
+.distignore
+
+# AI / dev docs (never ship to .org — see the "no AI docs on public repo" rule)
+.claude
+CLAUDE.md
+AI_RULES.md
+
+# Tooling
+node_modules
+build
+scratchpad
+*.map
+
+# The in-plugin GitHub self-updater is forbidden on directory-hosted plugins:
+# wp.org serves updates via SVN, so this file must not exist in the .org build.
+# wp-arzo.php guards its require with file_exists(), so stripping it is safe.
+includes/class-wp-arzo-updater.php

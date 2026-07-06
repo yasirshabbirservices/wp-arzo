@@ -1,0 +1,65 @@
+name: CI
+
+# Quality gate on every push/PR: PHP syntax across supported PHP versions,
+# JS syntax on our own scripts, and the official WordPress Plugin Check
+# (wp.org guideline compliance). This is the unattended safety net the
+# AI-maintenance pipeline relies on before anything is tagged or released.
+
+on:
+  push:
+    branches: [wp-plugin]
+  pull_request:
+    branches: [wp-plugin]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: PHP syntax check (plugin code, not vendored libs)
+        run: |
+          find . -name '*.php' \
+            -not -path './assets/libs/*' \
+            -not -path './node_modules/*' \
+            -print0 | xargs -0 -n1 -P4 php -l > /dev/null
+
+      - name: JS syntax check (our scripts only)
+        run: |
+          status=0
+          for f in assets/js/*.js wp-arzo-emergency/*.js; do
+            [ -f "$f" ] || continue          # skip a glob that matched nothing
+            node --check "$f" || status=1     # record a real syntax error
+          done
+          exit $status
+
+  plugin-check:
+    name: WordPress Plugin Check
+    runs-on: ubuntu-latest
+    # Advisory for now: vendored libs (elFinder, AdminNeo) produce findings we
+    # triage over time. Flip to blocking once the baseline is clean.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run plugin check
+        uses: WordPress/plugin-check-action@v1
+        with:
+          exclude-directories: |
+            assets/libs
+          categories: |
+            security
+            plugin_repo

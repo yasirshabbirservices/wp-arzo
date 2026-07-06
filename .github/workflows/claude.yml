@@ -1,0 +1,66 @@
+name: Claude
+
+# AI maintenance: mention @claude on any issue or PR and Claude Code will
+# investigate, answer, or open a fix PR (a human always merges). A nightly
+# run triages the open-issue backlog (labels, duplicates, repro questions).
+#
+# SETUP (one-time): add the ANTHROPIC_API_KEY repository secret
+# (Settings → Secrets and variables → Actions). Until then, runs no-op/fail
+# harmlessly.
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened]
+  schedule:
+    - cron: '17 3 * * *' # nightly backlog triage (03:17 UTC)
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  mention:
+    # Respond when @claude is mentioned in an issue, comment, or review comment.
+    if: |
+      github.event_name != 'schedule' && (
+        contains(github.event.comment.body || '', '@claude') ||
+        contains(github.event.issue.body || '', '@claude')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+  triage:
+    # Nightly: label and triage open issues; draft (never auto-post) responses.
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Triage this repository's open GitHub issues (newest first, max 10 this run):
+            1. Reproduce/verify against the codebase where possible (read the code, don't guess).
+            2. Apply labels: bug / enhancement / question / needs-info / duplicate.
+            3. For clear, small bugs: create a branch, fix it following the repo conventions
+               (bump the version in wp-arzo.php header + WP_ARZO_VERSION, add a CHANGELOG.md
+               entry, keep README.txt "Stable tag" in sync), and open a PR referencing the
+               issue. NEVER merge or tag — a human reviews every PR.
+            4. For feature requests: comment with a short feasibility assessment and
+               whether it fits the plugin's anti-bloat bar (reliable, low-maintenance, real value).
+            5. Post a one-comment summary per issue; be concise and technical.
+          claude_args: '--max-turns 60'

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 100 100" fill="none" role="img" aria-label="WP Arzo">
+  <path d="M50 25 L29 74" stroke="#ffffff" stroke-width="8" stroke-linecap="round"></path>
+  <path d="M50 25 L71 74" stroke="#ffffff" stroke-width="8" stroke-linecap="round"></path>
+  <rect x="30" y="49" width="40" height="17" rx="8.5" fill="#16e791"></rect>
+  <text x="35" y="61.5" font-family="Arial, &#39;Helvetica Neue&#39;, Helvetica, sans-serif" font-weight="900" font-size="12" letter-spacing="-0.5" fill="#0c0c0c">WP</text>
+  <circle cx="61" cy="57.5" r="5.5" fill="#0c0c0c"></circle>
+</svg>
