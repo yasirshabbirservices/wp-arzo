@@ -14,6 +14,7 @@ CLAUDE.md
 AI_RULES.md
 
 # Tooling
+bin
 node_modules
 build
 scratchpad
