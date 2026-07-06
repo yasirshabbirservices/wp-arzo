@@ -32,7 +32,7 @@ if (isset($_GET['operation'])) {
         $log_file = WP_CONTENT_DIR . '/debug.log';
         if (file_exists($log_file)) {
             // Clear the debug log file by writing an empty string to it
-            if (file_put_contents($log_file, '') !== false) {
+            if (file_put_contents($log_file, '') !== false) { // phpcs:ignore PluginCheck.CodeAnalysis.WriteFile.PluginDirectoryWrite -- writes to WP_CONTENT_DIR/debug.log (the WordPress debug log), not the plugin directory.
                 $response = ['success' => true, 'message' => 'Debug log cleared successfully'];
             } else {
                 $response = ['success' => false, 'message' => 'Failed to clear debug log'];
@@ -63,7 +63,7 @@ if (isset($_GET['operation'])) {
 
             // Write to debug log file
             $log_file = WP_CONTENT_DIR . '/debug.log';
-            if (file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX) !== false) {
+            if (file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX) !== false) { // phpcs:ignore PluginCheck.CodeAnalysis.WriteFile.PluginDirectoryWrite -- writes to WP_CONTENT_DIR/debug.log (the WordPress debug log), not the plugin directory.
                 $response = ['success' => true, 'message' => 'Debug change logged successfully'];
             } else {
                 $response = ['success' => false, 'message' => 'Failed to write to debug log'];
@@ -74,7 +74,7 @@ if (isset($_GET['operation'])) {
 
             // Write to debug log file
             $log_file = WP_CONTENT_DIR . '/debug.log';
-            if (file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX) !== false) {
+            if (file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX) !== false) { // phpcs:ignore PluginCheck.CodeAnalysis.WriteFile.PluginDirectoryWrite -- writes to WP_CONTENT_DIR/debug.log (the WordPress debug log), not the plugin directory.
                 $response = ['success' => true, 'message' => 'Debug change logged successfully'];
             } else {
                 $response = ['success' => false, 'message' => 'Failed to write to debug log'];

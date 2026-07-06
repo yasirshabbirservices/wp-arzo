@@ -122,7 +122,7 @@ function handleUsers()
             $log_entry = "[{$timestamp}] Quick login performed for user: {$user->user_login} (ID: {$user_id})\n";
             $log_file = WP_CONTENT_DIR . '/debug.log';
             if (wp_is_writable($log_file) || (!file_exists($log_file) && wp_is_writable(WP_CONTENT_DIR))) {
-                @file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+                @file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX); // phpcs:ignore PluginCheck.CodeAnalysis.WriteFile.PluginDirectoryWrite -- appends to WP_CONTENT_DIR/debug.log, not the plugin directory.
             }
 
             echo '<div class="success">Successfully logged in as ' . esc_html($user->user_login) . '! Opening WordPress Admin in new tab...

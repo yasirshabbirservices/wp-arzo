@@ -133,7 +133,7 @@ function showPlugins()
                             wp_delete_file($zip_path);
                         } else {
                             // Unzip
-                            $result = unzip_file($zip_path, $to);
+                            $result = unzip_file($zip_path, $to); // phpcs:ignore PluginCheck.CodeAnalysis.WriteFile.PluginDirectoryWrite -- extracts an admin-uploaded plugin ZIP into WP_PLUGIN_DIR (the plugin-installer feature, mirroring core).
                             if (is_wp_error($result)) {
                                 $message = '<div class="alert alert-error">Unzip failed: ' . $result->get_error_message() . '</div>';
                             } else {

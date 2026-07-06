@@ -3412,9 +3412,9 @@ class WP_Arzo_Admin
     /** Human "Jun 3 – Jul 3, 2026" label for the active window (site timezone). */
     private function analytics_range_label($from, $to)
     {
-        $same_year = wp_date('Y', $from) === wp_date('Y', $to);
+        $same_year = date_i18n('Y', $from) === date_i18n('Y', $to);
         $from_fmt  = $same_year ? 'M j' : 'M j, Y';
-        return wp_date($from_fmt, $from) . ' – ' . wp_date('M j, Y', $to);
+        return date_i18n($from_fmt, $from) . ' – ' . date_i18n('M j, Y', $to);
     }
 
     private function fmt_duration($seconds)

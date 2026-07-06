@@ -54,7 +54,7 @@ class WP_Arzo_Feature_Last_Login extends WP_Arzo_Feature
     {
         if ($column === 'wp_arzo_last_login') {
             $time = (int) get_user_meta($user_id, 'wp_arzo_last_login', true);
-            return $time ? esc_html(wp_date('Y-m-d H:i', $time)) : '—';
+            return $time ? esc_html(date_i18n('Y-m-d H:i', $time)) : '—';
         }
         return $output;
     }

@@ -511,10 +511,9 @@ class WP_Arzo_Analytics
     {
         global $wpdb;
         $t   = $this->table();
-        $cols = 'path, ref_host, utm_source, utm_medium, utm_campaign, country';
-        $row = $wpdb->get_row($wpdb->prepare("SELECT {$cols} FROM {$t} WHERE session = %s ORDER BY ts ASC LIMIT 1", $session), ARRAY_A);
+        $row = $wpdb->get_row($wpdb->prepare("SELECT path, ref_host, utm_source, utm_medium, utm_campaign, country FROM {$t} WHERE session = %s ORDER BY ts ASC LIMIT 1", $session), ARRAY_A);
         if (!$row) {
-            $row = $wpdb->get_row($wpdb->prepare("SELECT {$cols} FROM {$t} WHERE visitor = %s ORDER BY ts ASC LIMIT 1", $visitor), ARRAY_A);
+            $row = $wpdb->get_row($wpdb->prepare("SELECT path, ref_host, utm_source, utm_medium, utm_campaign, country FROM {$t} WHERE visitor = %s ORDER BY ts ASC LIMIT 1", $visitor), ARRAY_A);
         }
         return array(
             'ref_host'     => isset($row['ref_host']) ? $row['ref_host'] : '',
@@ -883,7 +882,9 @@ class WP_Arzo_Analytics
         }
         global $wpdb;
         $t = $this->table();
+        // $col is a fixed column name validated against a whitelist by allowed_dimension() above.
         return (array) $wpdb->get_results($wpdb->prepare(
+            // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- $col is whitelisted by allowed_dimension().
             "SELECT {$col} label, COUNT(*) views, COUNT(DISTINCT visitor) visitors
              FROM {$t} WHERE ts BETWEEN %d AND %d AND {$col} <> '' GROUP BY {$col} ORDER BY views DESC LIMIT %d",
             (int) $from,
