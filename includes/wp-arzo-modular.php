@@ -161,6 +161,7 @@ foreach ($wp_arzo_scripts as $wp_arzo_script) {
     $wp_arzo_js_url = function_exists('wp_arzo_get_asset_url')
         ? wp_arzo_get_asset_url($wp_arzo_script)
         : WP_ARZO_PLUGIN_URL . $wp_arzo_script;
+    // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- the standalone Advanced Tools console is a self-built HTML document served via admin-ajax, not a themed WP page, so wp_enqueue_script() does not apply.
     echo '<script src="' . esc_url($wp_arzo_js_url) . '"></script>' . "\n";
 }
 ?>

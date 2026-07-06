@@ -100,7 +100,7 @@ class WP_Arzo_Feature_GA4 extends WP_Arzo_Feature
         $params  = (array) apply_filters('wp_arzo_ga4_config_params', $params, $id);
         ?>
         <!-- WP Arzo: Google Analytics 4 -->
-        <script async src="https://<?php echo esc_attr($host); ?>/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
+        <?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- Google's gtag.js must be injected inline in the document head per the GA4 install spec, with the inline config script immediately after; it cannot be wp_enqueue'd with that ordering. ?><script async src="https://<?php echo esc_attr($host); ?>/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag() { dataLayer.push(arguments); }
@@ -245,7 +245,7 @@ class WP_Arzo_Feature_Google_Ads extends WP_Arzo_Feature
         $host = wp_arzo_google_tag_host();
         ?>
         <!-- WP Arzo: Google Ads -->
-        <script async src="https://<?php echo esc_attr($host); ?>/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
+        <?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- Google's gtag.js must be injected inline in the document head per the Google Ads/gtag install spec; it cannot be wp_enqueue'd with the required inline config ordering. ?><script async src="https://<?php echo esc_attr($host); ?>/gtag/js?id=<?php echo esc_attr($id); ?>"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag() { dataLayer.push(arguments); }

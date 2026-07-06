@@ -264,6 +264,7 @@ if ($action === 'wp_arzo_standalone') {
         $wp_arzo_css_url = function_exists('wp_arzo_get_asset_url')
             ? wp_arzo_get_asset_url($wp_arzo_style)
             : WP_ARZO_PLUGIN_URL . $wp_arzo_style;
+        // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the standalone Advanced Tools console is a self-built HTML document served via admin-ajax, not a themed WP page, so wp_enqueue_style() does not apply.
         echo '<link rel="stylesheet" href="' . esc_url($wp_arzo_css_url) . '">' . "\n    ";
     }
     ?>
