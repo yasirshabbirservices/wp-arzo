@@ -9,6 +9,9 @@
 *.json
 /bit-file-manager
 
+# Generated wp.org build output (bin/build-wporg.sh) — never commit build artifacts
+/build/
+
 # AI / agent dev docs (architecture, roadmap, skills, working agreement) live ONLY in the
 # PRIVATE wp-arzo-pro repo (under its .claude/). They are intentionally NOT published on
 # this public repo — both to avoid leaking internal docs and so the plugin is not perceived
