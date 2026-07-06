@@ -224,11 +224,27 @@ if (!function_exists('wp_arzo_get_plugin_debug_info')) {
 }
 
 /**
+ * Whether the standalone emergency-recovery tool ships in this build.
+ *
+ * The tool deliberately bypasses WordPress (direct DB access, PHP sessions) so it
+ * works when WP itself is broken. That design is incompatible with the WordPress.org
+ * directory guidelines, so `.distignore` strips `wp-arzo-emergency/` from the .org
+ * build; it remains in the self-hosted / GitHub / Pro build. All of its wiring is
+ * gated on this check so the .org build simply doesn't expose the endpoint.
+ */
+function wp_arzo_has_emergency_tool()
+{
+    return file_exists(WP_ARZO_PLUGIN_DIR . 'wp-arzo-emergency/index.php');
+}
+
+/**
  * Add rewrite rule for emergency script
  */
 function wp_arzo_add_rewrite_rules()
 {
-    add_rewrite_rule('^wp-arzo/emergency/?$', 'index.php?wp_arzo_emergency=1', 'top');
+    if (wp_arzo_has_emergency_tool()) {
+        add_rewrite_rule('^wp-arzo/emergency/?$', 'index.php?wp_arzo_emergency=1', 'top');
+    }
 }
 add_action('init', 'wp_arzo_add_rewrite_rules');
 
@@ -247,7 +263,7 @@ add_filter('query_vars', 'wp_arzo_register_query_vars');
  */
 function wp_arzo_template_redirect()
 {
-    if (get_query_var('wp_arzo_emergency')) {
+    if (get_query_var('wp_arzo_emergency') && wp_arzo_has_emergency_tool()) {
         include(WP_ARZO_PLUGIN_DIR . 'wp-arzo-emergency/index.php');
         exit;
     }

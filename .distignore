@@ -29,3 +29,12 @@ includes/class-wp-arzo-updater.php
 # filters, which Plugin Check flags as a forbidden update-modification. Stripped
 # from the .org build; its registration in wp-arzo.php is file_exists()-guarded.
 includes/features-registry/class-feature-disable-updates.php
+
+# Standalone emergency-recovery tool. It deliberately bypasses WordPress (direct
+# mysqli, PHP sessions, plugin-dir writes) so it can run when WP itself is broken —
+# a design fundamentally incompatible with the WordPress.org guidelines and Plugin
+# Check. Stripped from the .org build; remains in the self-hosted / GitHub / Pro
+# build. All wiring is gated on wp_arzo_has_emergency_tool() (wp-arzo.php) + a
+# file_exists() include guard (features/site-modes.php), so the .org build never
+# exposes the endpoint or the Emergency Mode UI.
+wp-arzo-emergency
