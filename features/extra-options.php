@@ -228,7 +228,6 @@ function handleExtraOptions()
         $target_file = in_array($_POST['target_file'] ?? '', $allowed_targets, true) ? $_POST['target_file'] : '';
 
         // Log the reset action
-        error_log("PHP Limits reset requested. Target file: {$target_file}");
 
         $update_success = false;
         $update_message = '';
@@ -263,7 +262,6 @@ function handleExtraOptions()
         }
 
         // Log the result
-        error_log("PHP Limits reset result: {$update_message}");
 
         // Display message
         echo $update_success ?
@@ -295,8 +293,6 @@ function handleExtraOptions()
 
         if (empty($skip_update)) {
             // Log the action
-            error_log("PHP Limits update requested. Target file: {$target_file}");
-            error_log("New values - Memory: {$new_memory_limit}, Execution: {$new_max_execution_time}, Upload: {$new_upload_max_filesize}, Post: {$new_post_max_size}");
 
             $update_success = false;
             $update_message = '';
@@ -335,7 +331,6 @@ function handleExtraOptions()
             }
 
             // Log the result
-            error_log("PHP Limits update result: {$update_message}");
 
             // Display message
             echo $update_success ?

@@ -440,7 +440,7 @@ function handleDebug()
                 </tr>
                 <tr>
                     <td>Error Reporting Level</td>
-                    <td><?php echo esc_html(error_reporting()); ?></td>
+                    <td><?php echo esc_html(error_reporting()); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting -- read-only display of the current level in the admin debug panel; does not change it. ?></td>
                 </tr>
                 <tr>
                     <td>Display Errors</td>

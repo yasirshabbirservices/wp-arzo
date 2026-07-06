@@ -1174,6 +1174,7 @@ class WP_Arzo_Analytics
         $ph  = implode(',', array_fill(0, count($sessions), '%s'));
         $ev  = array();
         $evq = $wpdb->get_results($wpdb->prepare(
+            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- $ph is a comma list of %s placeholders (one per session); the values are passed via the $sessions array arg.
             "SELECT session, COUNT(*) c FROM {$this->events_table()} WHERE session IN ({$ph}) GROUP BY session",
             $sessions
         ), ARRAY_A);
@@ -1182,6 +1183,7 @@ class WP_Arzo_Analytics
         }
         $od  = array();
         $odq = $wpdb->get_results($wpdb->prepare(
+            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- $ph is a comma list of %s placeholders (one per session); the values are passed via the $sessions array arg.
             "SELECT session, COUNT(*) c, COALESCE(SUM(revenue),0) r, MAX(currency) cur FROM {$this->orders_table()} WHERE session IN ({$ph}) GROUP BY session",
             $sessions
         ), ARRAY_A);
