@@ -90,7 +90,7 @@ class WP_Arzo_Feature_Manage_Ads_Txt extends WP_Arzo_Feature
     public function boot()
     {
         add_action('init', function () {
-            $path = isset($_SERVER['REQUEST_URI']) ? parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) : '';
+            $path = isset($_SERVER['REQUEST_URI']) ? wp_parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) : '';
             if ($path === '/ads.txt') {
                 $content = trim((string) $this->get_setting('content', ''));
                 if ($content !== '') {

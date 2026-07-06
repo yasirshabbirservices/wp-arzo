@@ -77,12 +77,12 @@ if (isset($_GET['download'])) {
         header('Content-Length: ' . $file_size);
 
         // Read file in chunks to handle large files
-        $handle = fopen($file_path, 'rb');
+        $handle = fopen($file_path, 'rb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streams a file download in fixed-size chunks; WP_Filesystem loads whole files into memory.
         while (!feof($handle)) {
-            echo fread($handle, 8192); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- streaming raw file bytes for a binary download; escaping would corrupt the file.
+            echo fread($handle, 8192); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions.file_system_operations_fread -- streaming raw file bytes for a binary download; escaping would corrupt it and WP_Filesystem has no streaming API.
             flush();
         }
-        fclose($handle);
+        fclose($handle); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streams a file download in fixed-size chunks; WP_Filesystem loads whole files into memory.
         exit;
     }
 }
@@ -125,9 +125,9 @@ function isBinaryFile($file_path)
     }
 
     // Check file content for binary data
-    $handle = fopen($file_path, 'rb');
-    $chunk = fread($handle, 1024);
-    fclose($handle);
+    $handle = fopen($file_path, 'rb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- reads the first bytes to detect whether a local file is binary; WP_Filesystem has no streaming read.
+    $chunk = fread($handle, 1024); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- reads the first bytes to detect whether a local file is binary; WP_Filesystem has no streaming read.
+    fclose($handle); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- reads the first bytes to detect whether a local file is binary; WP_Filesystem has no streaming read.
 
     return strpos($chunk, "\0") !== false;
 }

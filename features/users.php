@@ -118,10 +118,10 @@ function handleUsers()
 
             // Create log entry (only if the log directory is writable, so we don't
             // emit a PHP warning into the response on read-only hosts).
-            $timestamp = date('Y-m-d H:i:s');
+            $timestamp = gmdate('Y-m-d H:i:s');
             $log_entry = "[{$timestamp}] Quick login performed for user: {$user->user_login} (ID: {$user_id})\n";
             $log_file = WP_CONTENT_DIR . '/debug.log';
-            if (is_writable($log_file) || (!file_exists($log_file) && is_writable(WP_CONTENT_DIR))) {
+            if (wp_is_writable($log_file) || (!file_exists($log_file) && wp_is_writable(WP_CONTENT_DIR))) {
                 @file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
             }
 

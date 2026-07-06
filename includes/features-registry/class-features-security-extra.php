@@ -80,8 +80,8 @@ class WP_Arzo_Feature_Custom_Login_URL extends WP_Arzo_Feature
     private function request_path()
     {
         $uri  = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
-        $path = trim((string) parse_url($uri, PHP_URL_PATH), '/');
-        $home = trim((string) parse_url(home_url(), PHP_URL_PATH), '/');
+        $path = trim((string) wp_parse_url($uri, PHP_URL_PATH), '/');
+        $home = trim((string) wp_parse_url(home_url(), PHP_URL_PATH), '/');
         if ($home !== '' && strpos($path, $home) === 0) {
             $path = trim(substr($path, strlen($home)), '/');
         }

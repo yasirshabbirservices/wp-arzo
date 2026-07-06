@@ -102,12 +102,12 @@ class WP_Arzo_Backup_Manager
 
         $use_gz = $this->gz_available();
         $data_path = $dir . '/data.jsonl' . ($use_gz ? '.gz' : '');
-        $fh = $use_gz ? gzopen($data_path, 'wb9') : fopen($data_path, 'wb');
+        $fh = $use_gz ? gzopen($data_path, 'wb9') : fopen($data_path, 'wb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         if (!$fh) {
             return new WP_Error('wp_arzo_backup_open', 'Could not open the snapshot file for writing.');
         }
         $write = function ($line) use ($fh, $use_gz) {
-            $use_gz ? gzwrite($fh, $line . "\n") : fwrite($fh, $line . "\n");
+            $use_gz ? gzwrite($fh, $line . "\n") : fwrite($fh, $line . "\n"); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         };
 
         $write(wp_json_encode(array('type' => 'meta', 'scope' => $scope, 'prefix' => $wpdb->prefix, 'format' => 1)));
@@ -140,7 +140,7 @@ class WP_Arzo_Backup_Manager
             }
         }
 
-        $use_gz ? gzclose($fh) : fclose($fh);
+        $use_gz ? gzclose($fh) : fclose($fh); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
 
         file_put_contents($dir . '/db-summary.json', wp_json_encode(array(
             'format'  => 1,
@@ -239,18 +239,18 @@ class WP_Arzo_Backup_Manager
         $zip_path = $dir . '/files.zip';
         $use_gz   = $this->gz_available();
         $mf_path  = $dir . '/files-manifest.jsonl' . ($use_gz ? '.gz' : '');
-        $mf       = $use_gz ? gzopen($mf_path, 'wb9') : fopen($mf_path, 'wb');
+        $mf       = $use_gz ? gzopen($mf_path, 'wb9') : fopen($mf_path, 'wb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         if (!$mf) {
             $info['error'] = 'Could not open the file manifest for writing.';
             return $info;
         }
         $mwrite = function ($line) use ($mf, $use_gz) {
-            $use_gz ? gzwrite($mf, $line . "\n") : fwrite($mf, $line . "\n");
+            $use_gz ? gzwrite($mf, $line . "\n") : fwrite($mf, $line . "\n"); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         };
 
         $zip = new ZipArchive();
         if ($zip->open($zip_path, ZipArchive::CREATE) !== true) {
-            $use_gz ? gzclose($mf) : fclose($mf);
+            $use_gz ? gzclose($mf) : fclose($mf); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
             $info['error'] = 'Could not create files.zip.';
             return $info;
         }
@@ -319,7 +319,7 @@ class WP_Arzo_Backup_Manager
         }
 
         $zip->close();
-        $use_gz ? gzclose($mf) : fclose($mf);
+        $use_gz ? gzclose($mf) : fclose($mf); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         $info['zip_bytes'] = (int) (file_exists($zip_path) ? filesize($zip_path) : 0);
         return $info;
     }
@@ -347,7 +347,7 @@ class WP_Arzo_Backup_Manager
         if ($path === '') {
             return null;
         }
-        $fh = (substr($path, -3) === '.gz') ? gzopen($path, 'rb') : fopen($path, 'rb');
+        $fh = (substr($path, -3) === '.gz') ? gzopen($path, 'rb') : fopen($path, 'rb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         if (!$fh) {
             return null;
         }
@@ -363,7 +363,7 @@ class WP_Arzo_Backup_Manager
                 $map[$row['c'] . '/' . $row['p']] = (string) $row['h'];
             }
         }
-        $isgz ? gzclose($fh) : fclose($fh);
+        $isgz ? gzclose($fh) : fclose($fh); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         return $map;
     }
 
@@ -535,7 +535,7 @@ class WP_Arzo_Backup_Manager
             return new WP_Error('wp_arzo_backup_data', 'Snapshot data file is missing.');
         }
 
-        $fh = $use_gz ? gzopen($data_path, 'rb') : fopen($data_path, 'rb');
+        $fh = $use_gz ? gzopen($data_path, 'rb') : fopen($data_path, 'rb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         if (!$fh) {
             return new WP_Error('wp_arzo_backup_open', 'Could not open the snapshot data file.');
         }
@@ -557,7 +557,7 @@ class WP_Arzo_Backup_Manager
                 $table = $entry['name'];
                 $exists = (bool) $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
                 if (!$exists && !empty($entry['create'])) {
-                    $wpdb->query($entry['create']);
+                    $wpdb->query($entry['create']); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- runs a CREATE TABLE statement from a plugin-generated backup manifest during restore; DDL is not parameterizable.
                 } elseif ($exists) {
                     $wpdb->query("TRUNCATE TABLE `$table`");
                 }
@@ -570,7 +570,7 @@ class WP_Arzo_Backup_Manager
             }
         }
 
-        $use_gz ? gzclose($fh) : fclose($fh);
+        $use_gz ? gzclose($fh) : fclose($fh); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
         $wpdb->suppress_errors($suppress);
 
         if (function_exists('wp_cache_flush')) {
@@ -676,23 +676,23 @@ class WP_Arzo_Backup_Manager
             }
             // Write beside, then swap — never leave a half-written live file.
             $tmp   = $target . '.wpa-tmp';
-            $outfh = @fopen($tmp, 'wb');
+            $outfh = @fopen($tmp, 'wb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
             if (!$outfh) {
-                fclose($in);
+                fclose($in); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
                 $out['failed']++;
                 continue;
             }
             stream_copy_to_stream($in, $outfh);
-            fclose($in);
-            fclose($outfh);
-            if (!@rename($tmp, $target)) {
+            fclose($in); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
+            fclose($outfh); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming JSONL backup I/O within the plugin's own uploads backup dir; WP_Filesystem has no streaming API.
+            if (!@rename($tmp, $target)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- atomically renames a temp backup file to its final name within the plugin's uploads backup dir.
                 // Windows can refuse rename-over-existing; fall back to copy.
                 if (!@copy($tmp, $target)) {
-                    @unlink($tmp);
+                    wp_delete_file($tmp);
                     $out['failed']++;
                     continue;
                 }
-                @unlink($tmp);
+                wp_delete_file($tmp);
             }
             $out['restored']++;
         }
@@ -828,9 +828,9 @@ class WP_Arzo_Backup_Manager
         }
         foreach (array_diff(scandir($dir), array('.', '..')) as $item) {
             $path = $dir . '/' . $item;
-            is_dir($path) ? $this->rrmdir($path) : @unlink($path);
+            is_dir($path) ? $this->rrmdir($path) : wp_delete_file($path);
         }
-        return @rmdir($dir);
+        return @rmdir($dir); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- removes a temporary extraction dir within the plugin's uploads backup dir.
     }
 
     public function total_size()

@@ -58,7 +58,7 @@ if (isset($_GET['operation'])) {
             $value = sanitize_text_field($_POST['new_value']);
 
             // Create log entry
-            $timestamp = date('Y-m-d H:i:s');
+            $timestamp = gmdate('Y-m-d H:i:s');
             $log_entry = "[{$timestamp}] Debug setting '{$setting}' changed to: " . ($value == '1' ? 'enabled' : 'disabled') . "\n";
 
             // Write to debug log file
@@ -126,7 +126,7 @@ if (isset($_GET['operation'])) {
         header('Content-Type: text/plain; charset=utf-8');
         header('Content-Disposition: attachment; filename="debug-log-' . gmdate('Ymd-His') . '.txt"');
         header('Content-Length: ' . filesize($file));
-        readfile($file);
+        readfile($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- reads/serves the WordPress debug.log at a fixed server path (never user input).
         exit;
     }
 
@@ -194,7 +194,7 @@ function wp_arzo_debug_tail($file, $lines)
         return array('lines' => array(), 'size' => 0, 'partial' => false);
     }
     $size = (int) filesize($file);
-    $f    = @fopen($file, 'rb');
+    $f    = @fopen($file, 'rb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- reads/serves the WordPress debug.log at a fixed server path (never user input).
     if (!$f) {
         return array('lines' => array(), 'size' => $size, 'partial' => false);
     }
@@ -205,7 +205,7 @@ function wp_arzo_debug_tail($file, $lines)
         fseek($f, $start);
     }
     $data = stream_get_contents($f);
-    fclose($f);
+    fclose($f); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- reads/serves the WordPress debug.log at a fixed server path (never user input).
     if ($partial) {
         $nl = strpos($data, "\n"); // drop the (likely partial) first line
         if ($nl !== false) {
@@ -229,7 +229,7 @@ function handleDebug()
     // Check if wp-config.php is readable and writable
     if (file_exists($wp_config_path)) {
         $config_content = file_get_contents($wp_config_path);
-        $config_writable = is_writable($wp_config_path);
+        $config_writable = wp_is_writable($wp_config_path);
 
         // Parse current debug settings
         $debug_settings = [
@@ -401,17 +401,17 @@ function handleDebug()
                         </tr>
                         <tr>
                             <td>OPcache: File mtime</td>
-                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['file_mtime']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['file_mtime']) : 'N/A'); ?>
+                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['file_mtime']) ? gmdate('Y-m-d H:i:s', $plugin_debug['opcache_script']['file_mtime']) : 'N/A'); ?>
                             </td>
                         </tr>
                         <tr>
                             <td>OPcache: Compiled Timestamp</td>
-                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['opcache_timestamp']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_timestamp']) : 'N/A'); ?>
+                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['opcache_timestamp']) ? gmdate('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_timestamp']) : 'N/A'); ?>
                             </td>
                         </tr>
                         <tr>
                             <td>OPcache: Last Used</td>
-                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['opcache_last_used']) ? date('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_last_used']) : 'N/A'); ?>
+                            <td><?php echo esc_html(!empty($plugin_debug['opcache_script']['opcache_last_used']) ? gmdate('Y-m-d H:i:s', $plugin_debug['opcache_script']['opcache_last_used']) : 'N/A'); ?>
                             </td>
                         </tr>
                     <?php endif; ?>

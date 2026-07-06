@@ -428,7 +428,7 @@ function wp_arzo_uninstall()
     // Remove emergency config file if present.
     $config_file = WP_ARZO_PLUGIN_DIR . 'arzo-safe.php';
     if (file_exists($config_file)) {
-        @unlink($config_file);
+        wp_delete_file($config_file);
     }
 
     // (The AdminNeo database manager — and its runtime-generated adminneo-config.php that
@@ -436,13 +436,13 @@ function wp_arzo_uninstall()
     // config from an older free build is removed here for good measure.)
     $adminneo_config = WP_ARZO_PLUGIN_DIR . 'assets/libs/adminneo/adminneo-config.php';
     if (file_exists($adminneo_config)) {
-        @unlink($adminneo_config);
+        wp_delete_file($adminneo_config);
     }
 
     // Remove the emergency-tool brute-force throttle file if present.
     $throttle_file = WP_ARZO_PLUGIN_DIR . '.arzo-throttle.json';
     if (file_exists($throttle_file)) {
-        @unlink($throttle_file);
+        wp_delete_file($throttle_file);
     }
 
     // Final rewrite flush for emergency route cleanup.

@@ -387,7 +387,7 @@ class WP_Arzo_Snippets
 
         $this->current_php_id = $snippet['id'];
         try {
-            eval($code);
+            eval($code); // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- executes admin-authored (manage_options) PHP snippet code -- the purpose of the Code Snippets feature.
         } catch (\Throwable $e) {
             $this->deactivate_with_error($snippet['id'], $e->getMessage());
         }
@@ -417,7 +417,7 @@ class WP_Arzo_Snippets
         $prev = $this->current_php_id;
         $this->current_php_id = $snippet['id']; // shutdown guard covers uncatchable fatals
         try {
-            eval($code);
+            eval($code); // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- executes admin-authored (manage_options) PHP snippet code -- the purpose of the Code Snippets feature.
             $result = array('ok' => true, 'message' => 'Ran OK');
         } catch (\Throwable $e) {
             $result = array('ok' => false, 'message' => $e->getMessage());
@@ -456,7 +456,7 @@ class WP_Arzo_Snippets
             $this->current_php_id = $snippet['id']; // shutdown guard covers uncatchable fatals
             ob_start();
             try {
-                eval($code);
+                eval($code); // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- executes admin-authored (manage_options) PHP snippet code -- the purpose of the Code Snippets feature.
             } catch (\Throwable $e) {
                 ob_end_clean();
                 $this->deactivate_with_error($snippet['id'], $e->getMessage());

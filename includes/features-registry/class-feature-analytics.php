@@ -230,7 +230,7 @@ class WP_Arzo_Analytics
         if ($ref === '') {
             return '';
         }
-        $h = function_exists('wp_parse_url') ? wp_parse_url($ref, PHP_URL_HOST) : parse_url($ref, PHP_URL_HOST);
+        $h = function_exists('wp_parse_url') ? wp_parse_url($ref, PHP_URL_HOST) : wp_parse_url($ref, PHP_URL_HOST);
         return $h ? preg_replace('/^www\./', '', strtolower($h)) : '';
     }
 

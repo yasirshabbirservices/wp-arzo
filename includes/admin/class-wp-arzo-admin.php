@@ -2101,7 +2101,7 @@ class WP_Arzo_Admin
                 $r['status'] ?? 'sent', $r['error'] ?? '',
             ));
         }
-        fclose($out);
+        fclose($out); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- closes the php://output stream used to emit a CSV download.
         exit;
     }
 
@@ -2123,7 +2123,7 @@ class WP_Arzo_Admin
                 $sev, $r['ul'] ?? '', $meta[0], $r['o'] ?? '', $r['ip'] ?? '',
             ));
         }
-        fclose($out);
+        fclose($out); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- closes the php://output stream used to emit a CSV download.
         exit;
     }
 
@@ -3919,7 +3919,7 @@ class WP_Arzo_Admin
                 fputcsv($out, array($report, $r['label'], (int) $r['views'], (int) $r['visitors']));
             }
         }
-        fclose($out);
+        fclose($out); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- closes the php://output stream used to emit a CSV download.
         exit;
     }
 

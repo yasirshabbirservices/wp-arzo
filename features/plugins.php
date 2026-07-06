@@ -126,11 +126,11 @@ function showPlugins()
                     if (false === ($creds = request_filesystem_credentials(site_url()))) {
                         // If we don't have credentials, we can't proceed.
                         $message = '<div class="alert alert-error">Filesystem credentials required.</div>';
-                        unlink($zip_path);
+                        wp_delete_file($zip_path);
                     } else {
                         if (!WP_Filesystem($creds)) {
                             $message = '<div class="alert alert-error">Filesystem initialization failed.</div>';
-                            unlink($zip_path);
+                            wp_delete_file($zip_path);
                         } else {
                             // Unzip
                             $result = unzip_file($zip_path, $to);
@@ -180,7 +180,7 @@ function showPlugins()
                                     }
                                 }
                                 // Cleanup zip
-                                unlink($zip_path);
+                                wp_delete_file($zip_path);
                             }
                         }
                     }

@@ -39,7 +39,7 @@ function wp_arzo_validate_php_limits($memory_limit, $max_execution_time, $upload
 // Function to update PHP limits in wp-config.php
 function updateWpConfigPhpLimits($wp_config_path, $memory_limit, $max_execution_time, $upload_max_filesize, $post_max_size)
 {
-    if (!file_exists($wp_config_path) || !is_writable($wp_config_path)) {
+    if (!file_exists($wp_config_path) || !wp_is_writable($wp_config_path)) {
         return false;
     }
 
@@ -99,10 +99,10 @@ function updateHtaccessPhpLimits(
 ) {
     // Create file if it doesn't exist
     if (!file_exists($htaccess_path)) {
-        @touch($htaccess_path);
+        @touch($htaccess_path); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_touch -- creates a server config file (php.ini/.htaccess) the admin is editing; it must exist before writing.
     }
 
-    if (!is_writable($htaccess_path)) {
+    if (!wp_is_writable($htaccess_path)) {
         return false;
     }
 
@@ -139,10 +139,10 @@ function updatePhpIniLimits($php_ini_path, $memory_limit, $max_execution_time, $
 {
     // Create file if it doesn't exist
     if (!file_exists($php_ini_path)) {
-        @touch($php_ini_path);
+        @touch($php_ini_path); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_touch -- creates a server config file (php.ini/.htaccess) the admin is editing; it must exist before writing.
     }
 
-    if (!is_writable($php_ini_path)) {
+    if (!wp_is_writable($php_ini_path)) {
         return false;
     }
 
@@ -185,17 +185,17 @@ function handleExtraOptions()
 
     // Check if files exist and are writable
     $wp_config_exists = file_exists($wp_config_path);
-    $wp_config_writable = $wp_config_exists && is_writable($wp_config_path);
+    $wp_config_writable = $wp_config_exists && wp_is_writable($wp_config_path);
     $htaccess_exists = file_exists($htaccess_path);
-    $htaccess_writable = $htaccess_exists && is_writable($htaccess_path);
+    $htaccess_writable = $htaccess_exists && wp_is_writable($htaccess_path);
     $php_ini_exists = file_exists($php_ini_path);
-    $php_ini_writable = $php_ini_exists && is_writable($php_ini_path);
+    $php_ini_writable = $php_ini_exists && wp_is_writable($php_ini_path);
 
     // If php.ini doesn't exist, create an empty one
     if (!$php_ini_exists) {
-        @touch($php_ini_path);
+        @touch($php_ini_path); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_touch -- creates a server config file (php.ini/.htaccess) the admin is editing; it must exist before writing.
         $php_ini_exists = file_exists($php_ini_path);
-        $php_ini_writable = $php_ini_exists && is_writable($php_ini_path);
+        $php_ini_writable = $php_ini_exists && wp_is_writable($php_ini_path);
     }
 
     // Get current PHP limits

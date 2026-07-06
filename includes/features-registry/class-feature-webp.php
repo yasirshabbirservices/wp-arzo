@@ -136,7 +136,7 @@ class WP_Arzo_Feature_WebP extends WP_Arzo_Feature
         );
         @exec($cmd, $out, $code);
         if ($code !== 0 || !file_exists($dest) || filesize($dest) < 1) {
-            @unlink($dest);
+            wp_delete_file($dest);
             return $upload;
         }
         return $this->replace($upload, $dest, 'video/webm', '/\.[A-Za-z0-9]+$/', '.webm');
@@ -145,7 +145,7 @@ class WP_Arzo_Feature_WebP extends WP_Arzo_Feature
     private function replace($upload, $dest, $mime, $url_pattern, $url_ext)
     {
         if (!$this->get_setting('keep_original', 0)) {
-            @unlink($upload['file']);
+            wp_delete_file($upload['file']);
         }
         $upload['file'] = $dest;
         $upload['url']  = preg_replace($url_pattern, $url_ext, $upload['url']);
@@ -244,7 +244,9 @@ class WP_Arzo_Feature_WebP extends WP_Arzo_Feature
             ? 'Convert the uploaded media (images → WebP, videos → WebM)?'
             : 'Convert the uploaded image(s) to WebP?';
         $msg = esc_js($msg);
-        $js  = <<<JS
+        // A regular double-quoted string (not a heredoc — Plugin Check disallows heredoc/nowdoc).
+        // Only interpolation is {$msg}; the regex "$/i" stays literal (no valid var name follows $).
+        $js  = "
 (function () {
   function patch() {
     if (!window.wp || !wp.Uploader) return false;
@@ -272,7 +274,7 @@ class WP_Arzo_Feature_WebP extends WP_Arzo_Feature
     var n = 0, t = setInterval(function () { if (patch() || ++n > 50) clearInterval(t); }, 100);
   }
 })();
-JS;
+";
         wp_add_inline_script('wp-plupload', $js);
     }
 }
