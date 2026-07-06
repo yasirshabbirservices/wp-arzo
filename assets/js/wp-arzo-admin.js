@@ -1033,8 +1033,14 @@
 
   // -------------------------------------------------- Snippets
   function bindSnippets() {
-    document.querySelectorAll('.wpa-snippet-toggle').forEach(function (input) {
-      input.addEventListener('change', function () {
+    var listRoot = document.getElementById('wpa-snip-list');
+
+    if (listRoot) {
+      // Row actions are delegated on the (persistent) list container, so rows swapped
+      // in by the AJAX pager keep working.
+      listRoot.addEventListener('change', function (e) {
+        var input = e.target.closest && e.target.closest('.wpa-snippet-toggle');
+        if (!input) { return; }
         var body = new FormData();
         body.append('action', 'wp_arzo_snippet_toggle');
         body.append('nonce', cfg.snippetNonce || '');
@@ -1050,11 +1056,11 @@
           })
           .catch(function () { input.disabled = false; input.checked = !input.checked; toast('Request failed', 'error'); });
       });
-    });
 
-    document.querySelectorAll('.wpa-snippet-delete').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        if (!confirm('Delete this snippet permanently?')) return;
+      listRoot.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('.wpa-snippet-delete');
+        if (!btn) { return; }
+        if (!confirm('Delete this snippet permanently?')) { return; }
         btn.disabled = true;
         var body = new FormData();
         body.append('action', 'wp_arzo_snippet_delete');
@@ -1072,7 +1078,25 @@
           })
           .catch(function () { btn.disabled = false; toast('Request failed', 'error'); });
       });
-    });
+
+      // Sidebar search + AJAX pagination (the first page is server-rendered).
+      var pager = document.getElementById('wpa-snip-pager');
+      if (pager && window.wpArzo && wpArzo.ajaxList) {
+        wpArzo.ajaxList({
+          endpoint: 'wp_arzo_snippets_list',
+          nonce: pager.dataset.nonce || '',
+          ajaxUrl: cfg.ajaxUrl,
+          noun: 'snippet',
+          tbody: listRoot,
+          pager: pager,
+          info: document.getElementById('wpa-snip-pageinfo'),
+          prev: document.getElementById('wpa-snip-prev'),
+          next: document.getElementById('wpa-snip-next'),
+          extra: function () { return { current: listRoot.dataset.current || '' }; },
+          filters: [{ el: document.getElementById('wpa-snip-search'), key: 'q', on: 'input' }]
+        });
+      }
+    }
 
     bindSnippetEditor();
   }
@@ -1336,7 +1360,7 @@
         var reveal = document.getElementById('wpa-rest-reveal');
         var newkey = document.getElementById('wpa-rest-newkey');
         if (newkey) newkey.textContent = d.plain;
-        if (reveal) reveal.hidden = false;
+        if (reveal) reveal.style.display = 'flex';
         if (labelEl) labelEl.value = '';
         // Insert a row so the new key shows in the table without losing the one-time secret.
         var tbody = document.querySelector('#wpa-rest-table tbody');

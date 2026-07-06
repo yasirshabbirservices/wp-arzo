@@ -397,7 +397,7 @@ function handleExtraOptions()
                 <?php wp_nonce_field('wp_arzo_php_limits', 'wp_arzo_php_nonce'); ?>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label for="eo-target">Target Configuration File</label>
-                    <select id="eo-target" name="target_file" class="modern-select" data-wpa-select required>
+                    <select id="eo-target" name="target_file" class="wpa-select" data-wpa-select required>
                         <option value="wp-config" <?php echo $wp_config_writable ? '' : 'disabled'; ?>>wp-config.php
                             <?php echo $wp_config_writable ? '' : '(Not writable)'; ?>
                         </option>
@@ -437,12 +437,9 @@ function handleExtraOptions()
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="submit" name="update_php_limits" class="btn" style="flex: 1;"><?php echo wp_arzo_icon('save'); ?> Update Limits</button>
-                    <button type="submit" name="reset_php_limits" class="btn"
-                        style="background-color: transparent; border: 1px solid var(--arzo-border-strong); color: var(--arzo-text-secondary); flex:1;"
-                        onclick="return confirm('Are you sure you want to reset to default PHP limits?');"
-                        onmouseover="this.style.borderColor='var(--arzo-border-strong)'; this.style.color='var(--arzo-text-strong)';"
-                        onmouseout="this.style.borderColor='var(--arzo-border)'; this.style.color='var(--arzo-text-secondary)';">
+                    <button type="submit" name="update_php_limits" class="wpa-btn wpa-btn--primary" style="flex:1;"><?php echo wp_arzo_icon('save'); ?> Update Limits</button>
+                    <button type="submit" name="reset_php_limits" class="wpa-btn wpa-btn--ghost" style="flex:1;"
+                        onclick="return confirm('Are you sure you want to reset to default PHP limits?');">
                         <?php echo wp_arzo_icon('refresh'); ?> Reset to Defaults
                     </button>
                 </div>

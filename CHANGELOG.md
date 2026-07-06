@@ -4,6 +4,55 @@ All notable changes to **WP Arzo – Maintenance & Administration Suite** are do
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.156.0] — 2026-07-06
+
+### Added — Code Snippets: front-end shortcodes, tabbed Import/Export drawer, searchable list
+
+- **Auto-generated shortcode per snippet** — every snippet is embeddable on the front end with
+  `[wp_arzo_snippet id="…"]`, shown as a **copyable field** in the editor. New **"Shortcode only"**
+  run-location renders a snippet *only* where its shortcode is placed (never auto-runs). Renders by
+  type — HTML as-is, CSS/JS wrapped in a tag, **PHP via output-buffering** (`$atts`/`$content`
+  available, same fatal-guard as automatic execution); only active snippets whose conditions pass.
+- **Import/Export moved from a centered modal to the shared `.wpa-drawer`**, reorganized into
+  **Export / Import tabs** with a **pinned action footer** (the button never scrolls out of view,
+  no matter how many snippets). Export is a **selectable checklist** (per-snippet or all) with a
+  live count; **per-row Export** icon on each snippet; drag-and-drop import dropzone. Export/import
+  now **round-trips conditional logic** (`conditions` + `cond_mode`), previously dropped. Full
+  WAI-ARIA a11y: `tablist`/`tab`/`tabpanel`, roving tabindex + arrow-key nav, focus trap, focus
+  moved in on open and returned to the trigger on close, Escape to close.
+- **Sidebar search + AJAX pagination** — the snippet list gains a leading-icon **search box** and
+  **server-side AJAX paging** (`wpArzo.ajaxList`, 15/page; first page server-rendered), with a
+  styled thin scrollbar. Row actions are event-delegated so toggle/delete/export keep working on
+  AJAX-swapped rows.
+
+### Changed — Setup Wizard clarity
+
+- Each preset now has a **"See what turns on (N)"** expander listing the exact feature names it
+  enables (Pro items badged), so **Apply** is no longer a black box.
+- The **Growth** preset now includes the flagship built-in **Analytics** (plus Image SEO and the
+  Pro Analytics modules), so it delivers on "track, measure, and grow your traffic."
+
+### Fixed — Surface Consistency Pass (whole product) + Site Modes
+
+- **Fixed the REST API key one-time-reveal box being permanently visible** — it carried both the
+  `hidden` attribute and an inline `display:flex` (inline wins), so the "shown once" secret box
+  showed on every load. Now toggled via `style.display`.
+- **Site Modes:** the *View Active Mode* button's icon/label are now vertically centered; the
+  **Payment Required** card no longer renders blank inputs — the active-mode fields fall back to
+  their default title/message (mirroring the public page) when no custom text is saved.
+- **Maintenance / Coming-Soon / Payment public page:** the mode accent is now a design token
+  (`--mode-accent`), the embedded token block is fully tokenized, and **contact icons no longer
+  render danger-red in Payment mode** (they use the brand accent — a neutral action shouldn't read
+  as destructive).
+- **Console, Emergency tool, and design system** brought to Consistency-Bar parity: inputs sink to
+  `--arzo-bg-input`; off-brand bootstrap reds/greens/ambers → brand `--arzo-error`/`--arzo-accent`/
+  `--arzo-warning`; hardcoded hex/px/shadow/radius/motion → tokens; console status pills use
+  `.wpa-badge`; temp-login row actions are icon-first; the PHP-limits reset button uses
+  `.wpa-btn--ghost` with real states. New tokens: `--arzo-scrim`, `--arzo-code-selection`,
+  `--arzo-code-activeline` (all with light-mode overrides) + a `.wpa-color-input` component.
+- **Convention:** new import/export, configuration, and detail surfaces should use the side
+  **`.wpa-drawer`**, not a centered modal/popup.
+
 ## [6.155.0] — 2026-07-06
 
 ### Changed — WP 7.0 DataViews clarity for Enhance List Tables

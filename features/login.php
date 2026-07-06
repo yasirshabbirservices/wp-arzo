@@ -179,10 +179,10 @@ function handleQuickLogin()
                         ?>
                     </td>
                     <td style="white-space:nowrap;">
-                        <button type="button" class="btn btn-sm" title="Copy link" onclick="tlCopy('<?php echo esc_js($t['login_url']); ?>', this)">Copy</button>
-                        <button type="button" class="btn btn-sm tl-invite" title="Email a branded invitation with this link">Email invite</button>
-                        <button type="button" class="btn btn-sm tl-toggle" data-status="<?php echo $t['status'] === 'active' ? 'disabled' : 'active'; ?>"><?php echo $t['status'] === 'active' ? 'Disable' : 'Enable'; ?></button>
-                        <button type="button" class="btn btn-sm btn-danger tl-delete">Delete</button>
+                        <button type="button" class="btn btn-sm" title="Copy link" onclick="tlCopy('<?php echo esc_js($t['login_url']); ?>', this)"><?php echo wp_arzo_icon('copy'); ?> Copy</button>
+                        <button type="button" class="btn btn-sm tl-invite" title="Email a branded invitation with this link"><?php echo wp_arzo_icon('mail'); ?> Email invite</button>
+                        <button type="button" class="btn btn-sm tl-toggle" data-status="<?php echo $t['status'] === 'active' ? 'disabled' : 'active'; ?>"><?php echo wp_arzo_icon($t['status'] === 'active' ? 'lock' : 'unlock'); ?> <?php echo $t['status'] === 'active' ? 'Disable' : 'Enable'; ?></button>
+                        <button type="button" class="btn btn-sm btn-danger tl-delete"><?php echo wp_arzo_icon('trash'); ?> Delete</button>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>

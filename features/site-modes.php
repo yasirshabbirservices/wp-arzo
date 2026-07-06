@@ -435,20 +435,22 @@ function handleMaintenanceModes()
         /* Preview Button */
         .btn-preview {
             display: none;
+            align-items: center;
+            justify-content: center;
+            gap: var(--arzo-space-2);
             width: 100%;
             padding: 10px;
             background: transparent;
             border: 1px solid var(--arzo-border-strong);
             color: var(--arzo-text-secondary);
-            border-radius: 4px;
-            font-size: 12px;
+            border-radius: var(--arzo-radius-sm);
+            font-size: var(--arzo-fs-xs);
             cursor: pointer;
-            text-align: center;
             text-decoration: none;
         }
 
         .mode-card.active .btn-preview {
-            display: block;
+            display: flex;
         }
 
         .btn-preview:hover {
@@ -713,13 +715,13 @@ function handleMaintenanceModes()
                 <div class="form-group">
                     <label>Page Title</label>
                     <input type="text" class="form-control auto-save" data-option="maintenance_tool_custom_title"
-                        value="<?php echo $current_mode === 'maintenance' ? esc_attr($custom_title) : 'Site Under Maintenance'; ?>">
+                        value="<?php echo esc_attr($current_mode === 'maintenance' && $custom_title !== '' ? $custom_title : 'Site Under Maintenance'); ?>">
                 </div>
 
                 <div class="form-group">
                     <label>Message</label>
                     <textarea class="form-control auto-save" rows="3"
-                        data-option="maintenance_tool_custom_message"><?php echo $current_mode === 'maintenance' ? esc_textarea($custom_message) : 'We are currently performing scheduled maintenance. Please check back soon.'; ?></textarea>
+                        data-option="maintenance_tool_custom_message"><?php echo esc_textarea($current_mode === 'maintenance' && $custom_message !== '' ? $custom_message : 'We are currently performing scheduled maintenance. Please check back soon.'); ?></textarea>
                 </div>
 
                 <div class="switch-wrapper">
@@ -765,13 +767,13 @@ function handleMaintenanceModes()
                 <div class="form-group">
                     <label>Page Title</label>
                     <input type="text" class="form-control auto-save" data-option="maintenance_tool_custom_title"
-                        value="<?php echo $current_mode === 'coming_soon' ? esc_attr($custom_title) : 'Coming Soon'; ?>">
+                        value="<?php echo esc_attr($current_mode === 'coming_soon' && $custom_title !== '' ? $custom_title : 'Coming Soon'); ?>">
                 </div>
 
                 <div class="form-group">
                     <label>Message</label>
                     <textarea class="form-control auto-save" rows="3"
-                        data-option="maintenance_tool_custom_message"><?php echo $current_mode === 'coming_soon' ? esc_textarea($custom_message) : 'Something amazing is coming soon! Stay tuned for updates.'; ?></textarea>
+                        data-option="maintenance_tool_custom_message"><?php echo esc_textarea($current_mode === 'coming_soon' && $custom_message !== '' ? $custom_message : 'Something amazing is coming soon! Stay tuned for updates.'); ?></textarea>
                 </div>
 
                 <div class="switch-wrapper">
@@ -817,13 +819,13 @@ function handleMaintenanceModes()
                 <div class="form-group">
                     <label>Page Title</label>
                     <input type="text" class="form-control auto-save" data-option="maintenance_tool_custom_title"
-                        value="<?php echo $current_mode === 'payment_request' ? esc_attr($custom_title) : 'Payment Required'; ?>">
+                        value="<?php echo esc_attr($current_mode === 'payment_request' && $custom_title !== '' ? $custom_title : 'Payment Required'); ?>">
                 </div>
 
                 <div class="form-group">
                     <label>Message</label>
                     <textarea class="form-control auto-save" rows="3"
-                        data-option="maintenance_tool_custom_message"><?php echo $current_mode === 'payment_request' ? esc_textarea($custom_message) : 'This website has been completed but payment is still pending.'; ?></textarea>
+                        data-option="maintenance_tool_custom_message"><?php echo esc_textarea($current_mode === 'payment_request' && $custom_message !== '' ? $custom_message : 'This website has been completed but payment is still pending.'); ?></textarea>
                 </div>
 
                 <div class="switch-wrapper">

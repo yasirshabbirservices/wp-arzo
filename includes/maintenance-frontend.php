@@ -85,14 +85,14 @@ function wp_arzo_maintenance_display_mode()
     $title = $custom_title ?: $default_titles[$active_mode];
     $message = $custom_message ?: $default_messages[$active_mode];
 
-    // Color schemes for different modes
-    $color_schemes = [
-        'maintenance' => ['primary' => '#faad14', 'bg' => '#121212', 'text' => '#ffffff'],
-        'coming_soon' => ['primary' => '#16e791', 'bg' => '#121212', 'text' => '#ffffff'],
-        'payment_request' => ['primary' => '#ff4d4f', 'bg' => '#121212', 'text' => '#ffffff']
+    // Each mode's accent maps to a semantic design token (never a raw hex) so the page stays
+    // on-brand and theme-consistent. Background/text are always the dashboard dark surface.
+    $mode_accents = [
+        'maintenance'     => 'var(--arzo-warning)',
+        'coming_soon'     => 'var(--arzo-accent)',
+        'payment_request' => 'var(--arzo-error)',
     ];
-
-    $colors = $color_schemes[$active_mode];
+    $mode_accent = isset($mode_accents[$active_mode]) ? $mode_accents[$active_mode] : 'var(--arzo-accent)';
 
     ?>
     <!DOCTYPE html>
@@ -123,6 +123,18 @@ function wp_arzo_maintenance_display_mode()
                 --arzo-warning: #faad14;
                 --arzo-error: #ff4d4f;
                 --arzo-success: #16e791;
+                --arzo-radius: 8px;
+                --arzo-radius-lg: 14px;
+                --arzo-radius-pill: 999px;
+                --arzo-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+                --arzo-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+                --arzo-space-5: 20px;
+                --arzo-space-6: 24px;
+                --arzo-space-8: 32px;
+                --arzo-font: 'Lato', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                --arzo-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+                /* Semantic accent for the active mode (amber=maintenance, green=coming-soon, red=payment). */
+                --mode-accent: <?php echo $mode_accent; ?>;
             }
 
 
@@ -133,13 +145,9 @@ function wp_arzo_maintenance_display_mode()
             }
 
             body {
-                font-family: 'Lato', sans-serif;
-                background:
-                    <?php echo $colors['bg']; ?>
-                ;
-                color:
-                    <?php echo $colors['text']; ?>
-                ;
+                font-family: var(--arzo-font);
+                background: var(--arzo-bg-dark);
+                color: var(--arzo-text-strong);
                 min-height: 100vh;
                 display: flex;
                 align-items: center;
@@ -153,16 +161,14 @@ function wp_arzo_maintenance_display_mode()
                 text-align: center;
                 background: var(--arzo-bg-panel);
                 border: 1px solid var(--arzo-border);
-                border-radius: 14px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-                margin: 20px;
+                border-radius: var(--arzo-radius-lg);
+                box-shadow: var(--arzo-shadow-lg);
+                margin: var(--arzo-space-5);
             }
 
             .maintenance-icon {
-                color:
-                    <?php echo $colors['primary']; ?>
-                ;
-                margin-bottom: 20px;
+                color: var(--mode-accent);
+                margin-bottom: var(--arzo-space-5);
             }
 
             .maintenance-icon svg {
@@ -180,10 +186,8 @@ function wp_arzo_maintenance_display_mode()
             .maintenance-title {
                 font-size: 2.5rem;
                 font-weight: 700;
-                color:
-                    <?php echo $colors['primary']; ?>
-                ;
-                margin-bottom: 20px;
+                color: var(--mode-accent);
+                margin-bottom: var(--arzo-space-5);
             }
 
             .maintenance-message {
@@ -194,17 +198,15 @@ function wp_arzo_maintenance_display_mode()
 
             .social-contacts {
                 background: var(--arzo-bg-elev);
-                padding: 30px;
-                border-radius: 8px;
-                margin-top: 30px;
+                padding: var(--arzo-space-6);
+                border-radius: var(--arzo-radius);
+                margin-top: var(--arzo-space-6);
                 border: 1px solid var(--arzo-border);
             }
 
             .social-contacts h3 {
-                color:
-                    <?php echo $colors['primary']; ?>
-                ;
-                margin-bottom: 20px;
+                color: var(--mode-accent);
+                margin-bottom: var(--arzo-space-5);
             }
 
             .contact-icons {
@@ -220,19 +222,17 @@ function wp_arzo_maintenance_display_mode()
                 justify-content: center;
                 width: 60px;
                 height: 60px;
-                background:
-                    <?php echo $colors['primary']; ?>
-                ;
-                color: var(--arzo-text-strong);
+                background: var(--arzo-accent);
+                color: var(--arzo-bg-dark);
                 border-radius: 50%;
                 text-decoration: none;
                 font-size: 24px;
-                transition: all 0.3s ease;
+                transition: var(--arzo-transition);
             }
 
             .contact-icon:hover {
                 transform: translateY(-3px);
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                box-shadow: var(--arzo-shadow);
                 opacity: 0.9;
             }
 

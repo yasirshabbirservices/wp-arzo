@@ -58,6 +58,10 @@
     --arzo-code-keyword: #c792ea;
     --arzo-code-string: #c3e88d;
     --arzo-code-number: #f78c6c;
+    --arzo-code-selection: rgba(255, 255, 255, 0.08);
+    --arzo-code-activeline: rgba(255, 255, 255, 0.03);
+    /* Modal / drawer backdrop scrim. */
+    --arzo-scrim: rgba(0, 0, 0, 0.55);
     --arzo-code-property: #82aaff;
     --arzo-code-tag: #f07178;
     --arzo-code-attr: #ffcb6b;
@@ -185,6 +189,9 @@ body.wpa-theme-light {
     --arzo-code-keyword: #7c3aed;
     --arzo-code-string: #15803d;
     --arzo-code-number: #c2410c;
+    --arzo-code-selection: rgba(16, 24, 32, 0.10);
+    --arzo-code-activeline: rgba(16, 24, 32, 0.04);
+    --arzo-scrim: rgba(16, 24, 32, 0.45);
     --arzo-code-property: #1d4ed8;
     --arzo-code-tag: #be123c;
     --arzo-code-attr: #a16207;

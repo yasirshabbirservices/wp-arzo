@@ -712,10 +712,15 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             --danger-color: #ff4d4f;
             --danger-soft: rgba(255, 77, 79, 0.15);
             --success-color: #16e791;
+            --success-soft: rgba(22, 231, 145, 0.15);
+            --neutral-soft: rgba(153, 153, 153, 0.18);
             --radius-global: 8px;
+            --radius-md: 10px;
             --radius-lg: 14px;
             --radius-sm: 4px;
             --radius-pill: 999px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
         }
 
         body {
@@ -740,7 +745,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             background: var(--background-medium);
             padding: 20px;
             border-radius: var(--radius-global);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow);
         }
 
         h1 {
@@ -777,7 +782,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             background: transparent;
             color: var(--muted-text);
             border: none;
-            border-radius: 10px;
+            border-radius: var(--radius-md);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -872,13 +877,13 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .alert-success {
-            background: rgba(40, 167, 69, 0.2);
+            background: var(--success-soft);
             border: 1px solid var(--success-color);
             color: var(--success-color);
         }
 
         .alert-error {
-            background: rgba(220, 53, 69, 0.2);
+            background: var(--danger-soft);
             border: 1px solid var(--danger-color);
             color: var(--danger-color);
         }
@@ -962,12 +967,12 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 
         .btn-danger {
             background: var(--danger-color);
-            color: #fff;
+            color: var(--primary-text);
         }
 
         .btn-danger:hover {
             background: var(--danger-color);
-            color: #fff;
+            color: var(--primary-text);
             filter: brightness(1.08);
         }
 
@@ -1010,7 +1015,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
 
         .badge {
             padding: 3px 8px;
-            border-radius: 10px;
+            border-radius: var(--radius-pill);
             font-size: 11px;
             font-weight: bold;
         }
@@ -1021,7 +1026,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         }
 
         .badge-inactive {
-            background: rgba(108, 117, 125, 0.2);
+            background: var(--neutral-soft);
             color: var(--muted-text);
         }
 
@@ -1036,11 +1041,11 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             padding: 12px 18px;
             background: var(--background-medium);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-global);
             margin-bottom: 20px;
         }
         .wpa-brandbar__id { display: flex; align-items: center; gap: 12px; }
-        .wpa-brandbar__logo { width: 38px; height: 38px; border-radius: 8px; object-fit: contain; background: var(--background-light); padding: 4px; }
+        .wpa-brandbar__logo { width: 38px; height: 38px; border-radius: var(--radius-global); object-fit: contain; background: var(--background-light); padding: 4px; }
         .wpa-brandbar__name { font-size: 16px; font-weight: 700; color: var(--primary-text); line-height: 1.1; }
         .wpa-brandbar__email { font-size: 13px; color: var(--secondary-text); text-decoration: none; }
         .wpa-brandbar__email:hover { color: var(--accent-color); }
@@ -1119,7 +1124,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             bottom: 0;
             background-color: var(--border-light);
             transition: .4s;
-            border-radius: 18px;
+            border-radius: var(--radius-pill);
         }
 
         .slider:before {
@@ -1129,7 +1134,7 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
             width: 15px !important;
             left: 5px !important;
             bottom: 5px !important;
-            background-color: white;
+            background-color: var(--primary-text);
             transition: .4s;
             border-radius: 50%;
         }
@@ -1161,8 +1166,8 @@ if ($is_authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['
         .login-card {
             background: var(--background-medium);
             padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border-radius: var(--radius-global);
+            box-shadow: var(--shadow-lg);
             width: 100%;
             max-width: 400px;
             text-align: center;

@@ -236,7 +236,7 @@
   height: 18px;
   background: var(--arzo-white);
   border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--arzo-shadow-sm);
   transition: transform var(--arzo-transition);
 }
 .wpa-toggle__input:checked + .wpa-toggle__track { background: var(--arzo-accent); }
@@ -593,6 +593,18 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 }
 .wpa-input:focus-visible { outline: none; border-color: var(--arzo-accent); box-shadow: var(--arzo-focus-ring); }
 
+/* Native color-swatch input, themed to match the dashboard input treatment. */
+.wpa-color-input {
+  width: 64px;
+  height: 40px;
+  padding: var(--arzo-space-1);
+  background: var(--arzo-bg-input);
+  border: 1px solid var(--arzo-border-strong);
+  border-radius: var(--arzo-radius-sm);
+  cursor: pointer;
+}
+.wpa-color-input:focus-visible { outline: none; border-color: var(--arzo-accent); box-shadow: var(--arzo-focus-ring); }
+
 /* ============================ Toast =================================== */
 .wpa-toast-region {
   position: fixed;
@@ -647,7 +659,7 @@ body.wpa-theme-light .wpa-theme-ico--sun  { display: none; }
 .wpa-modal__backdrop,
 .wpa-drawer__backdrop {
   position: absolute; inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--arzo-scrim);
   animation: wpa-fade-in var(--arzo-transition) ease;
 }
 .wpa-modal__panel {

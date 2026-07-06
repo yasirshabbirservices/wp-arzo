@@ -43,6 +43,7 @@ class WP_Arzo_Admin
     const NONCE_BACKUPS = 'wp_arzo_backups';
     const NONCE_EMAIL = 'wp_arzo_email_log';
     const NONCE_SNIPPETS = 'wp_arzo_snippets';
+    const SNIPPETS_PER_PAGE = 15;
     const NONCE_TEST_EMAIL = 'wp_arzo_test_email';
     const NONCE_MEDIA = 'wp_arzo_media';
     const NONCE_ACTIVITY = 'wp_arzo_activity';
@@ -101,6 +102,7 @@ class WP_Arzo_Admin
         add_action('wp_ajax_wp_arzo_email_log_query', array($this, 'ajax_email_log_query'));
         add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
         add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
+        add_action('wp_ajax_wp_arzo_snippets_list', array($this, 'ajax_snippets_list'));
         add_action('wp_ajax_wp_arzo_send_test_email', array($this, 'ajax_send_test_email'));
         add_action('wp_ajax_wp_arzo_email_resend', array($this, 'ajax_email_resend'));
         add_action('wp_ajax_wp_arzo_email_queue_retry', array($this, 'ajax_email_queue_retry'));
@@ -1178,7 +1180,7 @@ class WP_Arzo_Admin
                 echo '<textarea class="wpa-input" id="' . $fid . '" name="' . $name . '" rows="5">' . esc_textarea((string) $value) . '</textarea>';
                 break;
             case 'code':
-                echo '<textarea class="wpa-input wpa-code" id="' . $fid . '" name="' . $name . '" rows="8" spellcheck="false" autocomplete="off" style="font-family:var(--arzo-font-mono);font-size:13px;line-height:1.5;">' . esc_textarea((string) $value) . '</textarea>';
+                echo '<textarea class="wpa-input wpa-code" id="' . $fid . '" name="' . $name . '" rows="8" spellcheck="false" autocomplete="off" style="font-family:var(--arzo-font-mono);font-size:var(--arzo-fs-sm);line-height:1.5;">' . esc_textarea((string) $value) . '</textarea>';
                 break;
             case 'test_email':
                 echo '<div style="display:flex;gap:8px;align-items:center;">';
@@ -1206,7 +1208,7 @@ class WP_Arzo_Admin
                 break;
             case 'color':
                 $cval = ($value !== '' && $value !== null) ? $value : (isset($field['default']) ? $field['default'] : '#16e791');
-                echo '<input type="color" style="width:64px;height:40px;padding:4px;background:var(--arzo-bg-input);border:1px solid var(--arzo-border-strong);border-radius:var(--arzo-radius-sm);" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $cval) . '">';
+                echo '<input type="color" class="wpa-color-input" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $cval) . '">';
                 break;
             case 'password':
                 // Never echo the stored secret; blank submit keeps the saved value.
@@ -2041,8 +2043,8 @@ class WP_Arzo_Admin
                                     <strong><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($label); ?></strong>
                                     <span style="color:var(--arzo-text-muted);"><?php echo (int) $count; ?> · <?php echo (int) $share; ?>%</span>
                                 </div>
-                                <div style="height:8px;background:var(--arzo-bg-input);border-radius:var(--arzo-radius-pill);overflow:hidden;">
-                                    <div style="height:100%;width:<?php echo (int) $w; ?>%;background:var(--arzo-accent);border-radius:var(--arzo-radius-pill);"></div>
+                                <div class="wpa-progress" role="progressbar" aria-valuenow="<?php echo (int) $share; ?>" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="wpa-progress__bar" style="width:<?php echo (int) $w; ?>%;"></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -2118,12 +2120,31 @@ class WP_Arzo_Admin
     /** Export all snippets as a portable JSON file. */
     public function handle_snippets_export()
     {
-        if (!current_user_can('manage_options') || !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), self::NONCE_SNIPPETS)) {
+        // Nonce may arrive via GET (per-row / export-all links) or POST (the drawer's selected export).
+        $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : '';
+        if (!current_user_can('manage_options') || !wp_verify_nonce($nonce, self::NONCE_SNIPPETS)) {
             wp_die('Security check failed', '', array('response' => 403));
         }
+
+        // Optional selection — export specific snippet(s): a single ?id= or a list of ids[].
+        $wanted = array();
+        if (isset($_REQUEST['id']) && $_REQUEST['id'] !== '') {
+            $wanted[] = sanitize_text_field(wp_unslash($_REQUEST['id']));
+        } elseif (isset($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
+            foreach (wp_unslash($_REQUEST['ids']) as $i) {
+                $i = sanitize_text_field($i);
+                if ($i !== '') {
+                    $wanted[] = $i;
+                }
+            }
+        }
+
         $snips  = class_exists('WP_Arzo_Snippets') ? WP_Arzo_Snippets::instance()->get_all() : array();
         $export = array();
         foreach ((array) $snips as $s) {
+            if (!empty($wanted) && !in_array((string) ($s['id'] ?? ''), $wanted, true)) {
+                continue;
+            }
             $export[] = array(
                 'title'       => $s['title'] ?? '',
                 'description' => $s['description'] ?? '',
@@ -2132,11 +2153,23 @@ class WP_Arzo_Admin
                 'priority'    => (int) ($s['priority'] ?? 10),
                 'code'        => $s['code'] ?? '',
                 'active'      => (int) ($s['active'] ?? 0),
+                // Round-trip the conditional logic so an exported snippet keeps its rules.
+                'cond_mode'   => (isset($s['cond_mode']) && $s['cond_mode'] === 'any') ? 'any' : 'all',
+                'conditions'  => (isset($s['conditions']) && is_array($s['conditions'])) ? array_values($s['conditions']) : array(),
             );
         }
+
+        // Friendlier filename when exporting exactly one snippet.
+        if (count($export) === 1) {
+            $slug     = sanitize_title($export[0]['title'] !== '' ? $export[0]['title'] : 'snippet');
+            $filename = 'wp-arzo-snippet-' . ($slug !== '' ? $slug : 'snippet') . '-' . gmdate('Ymd-His') . '.json';
+        } else {
+            $filename = 'wp-arzo-snippets-' . gmdate('Ymd-His') . '.json';
+        }
+
         nocache_headers();
         header('Content-Type: application/json; charset=utf-8');
-        header('Content-Disposition: attachment; filename=wp-arzo-snippets-' . gmdate('Ymd-His') . '.json');
+        header('Content-Disposition: attachment; filename=' . $filename);
         echo wp_json_encode(array('plugin' => 'wp-arzo', 'type' => 'snippets', 'version' => WP_ARZO_VERSION, 'snippets' => $export), JSON_PRETTY_PRINT);
         exit;
     }
@@ -2171,6 +2204,8 @@ class WP_Arzo_Admin
                 'scope'       => isset($s['scope']) ? $s['scope'] : 'everywhere',
                 'priority'    => isset($s['priority']) ? (int) $s['priority'] : 10,
                 'code'        => $s['code'],
+                'cond_mode'   => (isset($s['cond_mode']) && $s['cond_mode'] === 'any') ? 'any' : 'all',
+                'conditions'  => (isset($s['conditions']) && is_array($s['conditions'])) ? $s['conditions'] : array(),
                 'active'      => 0, // imported disabled — review before enabling
             ));
             $count++;
@@ -3945,7 +3980,7 @@ class WP_Arzo_Admin
         }
 
         $types  = array('php' => 'PHP', 'css' => 'CSS', 'js' => 'JavaScript', 'html' => 'HTML');
-        $scopes = array('everywhere' => 'Everywhere', 'admin' => 'Admin only', 'front' => 'Front-end only');
+        $scopes = array('everywhere' => 'Everywhere', 'admin' => 'Admin only', 'front' => 'Front-end only', 'shortcode' => 'Shortcode only');
         $base   = admin_url('admin.php?page=' . self::PAGE_SNIPPETS);
 
         echo '<div class="wrap wpa-admin">';
@@ -3962,47 +3997,173 @@ class WP_Arzo_Admin
             </div>
         </div>
 
-        <?php // Import / Export — consolidated into one modal so the header stays clean. ?>
-        <div class="wpa-modal" id="wpa-snip-io" hidden>
-            <div class="wpa-modal__backdrop" data-snip-close></div>
-            <div class="wpa-modal__panel" role="dialog" aria-modal="true" aria-labelledby="wpa-snip-io-title" style="max-width:520px;">
-                <div class="wpa-modal__head">
-                    <h2 id="wpa-snip-io-title"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import / Export snippets</h2>
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-snip-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+        <?php // Import / Export — a tabbed slide-in drawer with a pinned action footer. ?>
+        <div class="wpa-drawer" id="wpa-snip-io" hidden>
+            <div class="wpa-drawer__backdrop" data-snip-close></div>
+            <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="wpa-snip-io-title">
+                <div class="wpa-drawer__head">
+                    <h2 id="wpa-snip-io-title"><?php echo wp_arzo_icon('exchange', array('class' => 'wpa-icon')); ?> <span>Import / Export snippets</span></h2>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-snip-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
                 </div>
-                <div style="padding:var(--arzo-space-5);display:grid;gap:var(--arzo-space-5);">
-                    <div>
-                        <h3 style="margin:0 0 6px;font-size:var(--arzo-fs-md);color:var(--arzo-text-strong);">Export</h3>
-                        <p style="margin:0 0 12px;font-size:var(--arzo-fs-sm);color:var(--arzo-text-secondary);">Download every snippet as a portable JSON file you can import elsewhere.</p>
+                <div class="wpa-snip-io__tabs">
+                    <nav class="wpa-tabs" role="tablist" aria-label="Import or export snippets">
+                        <button type="button" class="wpa-tab is-active" role="tab" id="wpa-snip-tab-export" aria-controls="wpa-snip-panel-export" aria-selected="true" data-snip-tab="export"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</button>
+                        <button type="button" class="wpa-tab" role="tab" id="wpa-snip-tab-import" aria-controls="wpa-snip-panel-import" aria-selected="false" tabindex="-1" data-snip-tab="import"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</button>
+                    </nav>
+                </div>
+                <div class="wpa-drawer__body">
+                    <section class="wpa-tabpanel" role="tabpanel" id="wpa-snip-panel-export" aria-labelledby="wpa-snip-tab-export" data-snip-panel="export" tabindex="0">
                         <?php if (!empty($snippets)) : ?>
-                            <a class="wpa-btn wpa-btn--secondary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_snippets_export'), self::NONCE_SNIPPETS)); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export <?php echo (int) count($snippets); ?> snippet(s)</a>
+                            <p class="wpa-field__help">Choose which snippets to download as a portable JSON file — each keeps its settings and conditional rules.</p>
+                            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="wpa-snip-export-form">
+                                <input type="hidden" name="action" value="wp_arzo_snippets_export">
+                                <?php wp_nonce_field(self::NONCE_SNIPPETS); ?>
+                                <div class="wpa-snip-io__selbar">
+                                    <label class="wpa-checkline"><input type="checkbox" id="wpa-snip-selall" checked> <span>Select all</span></label>
+                                    <span class="wpa-field__help" id="wpa-snip-selcount" aria-live="polite"></span>
+                                </div>
+                                <ul class="wpa-snip-io__list" role="group" aria-label="Snippets to export">
+                                    <?php foreach ($snippets as $s) : ?>
+                                        <li>
+                                            <label class="wpa-checkline">
+                                                <input type="checkbox" name="ids[]" value="<?php echo esc_attr($s['id']); ?>" class="wpa-snip-exp" checked>
+                                                <span class="wpa-badge wpa-badge--neutral"><?php echo esc_html(strtoupper($s['type'])); ?></span>
+                                                <span class="wpa-snip-io__title"><?php echo esc_html($s['title'] !== '' ? $s['title'] : '[Untitled]'); ?></span>
+                                                <?php if (!empty($s['active'])) : ?><span class="wpa-badge wpa-badge--success">On</span><?php endif; ?>
+                                            </label>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </form>
                         <?php else : ?>
-                            <p style="margin:0;font-size:var(--arzo-fs-sm);color:var(--arzo-text-muted);">No snippets to export yet.</p>
+                            <p class="wpa-field__help">No snippets to export yet — create one first.</p>
                         <?php endif; ?>
-                    </div>
-                    <div style="border-top:1px solid var(--arzo-border);padding-top:var(--arzo-space-5);">
-                        <h3 style="margin:0 0 6px;font-size:var(--arzo-fs-md);color:var(--arzo-text-strong);">Import</h3>
-                        <p style="margin:0 0 12px;font-size:var(--arzo-fs-sm);color:var(--arzo-text-secondary);">Upload a WP Arzo snippets JSON. Imported snippets are added <strong>disabled</strong> — review, then enable them.</p>
-                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data" style="display:grid;gap:12px;">
+                    </section>
+                    <section class="wpa-tabpanel" role="tabpanel" id="wpa-snip-panel-import" aria-labelledby="wpa-snip-tab-import" data-snip-panel="import" tabindex="0" hidden>
+                        <p class="wpa-field__help">Upload a WP Arzo snippets JSON (one or many). Imported snippets arrive <strong>disabled</strong> — review, then switch them on.</p>
+                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data" id="wpa-snip-import-form">
                             <input type="hidden" name="action" value="wp_arzo_snippets_import">
                             <?php wp_nonce_field('wp_arzo_snippets_import'); ?>
-                            <input type="file" name="snippets_file" accept="application/json,.json" required class="wpa-input" style="padding:8px;">
-                            <div><button type="submit" class="wpa-btn wpa-btn--primary"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import snippets</button></div>
+                            <label class="wpa-dropzone" id="wpa-snip-drop">
+                                <?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon')); ?>
+                                <span class="wpa-dropzone__text"><strong>Choose a .json file</strong><span>or drag &amp; drop it here</span></span>
+                                <span class="wpa-dropzone__file" id="wpa-snip-file" hidden></span>
+                                <input type="file" name="snippets_file" accept="application/json,.json" required id="wpa-snip-fileinput">
+                            </label>
                         </form>
-                    </div>
+                    </section>
+                </div>
+                <div class="wpa-drawer__foot">
+                    <button type="button" class="wpa-btn wpa-btn--ghost" data-snip-close><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')); ?> Cancel</button>
+                    <?php if (!empty($snippets)) : ?>
+                        <button type="submit" form="wpa-snip-export-form" class="wpa-btn wpa-btn--primary" id="wpa-snip-export-btn" data-snip-foot="export"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export <span id="wpa-snip-export-n"><?php echo (int) count($snippets); ?></span></button>
+                    <?php endif; ?>
+                    <button type="submit" form="wpa-snip-import-form" class="wpa-btn wpa-btn--primary" id="wpa-snip-import-btn" data-snip-foot="import" disabled hidden><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</button>
                 </div>
             </div>
         </div>
         <script>
             (function () {
                 var openBtn = document.getElementById('wpa-snip-io-open'),
-                    modal = document.getElementById('wpa-snip-io');
-                if (!openBtn || !modal) { return; }
-                function show() { modal.hidden = false; }
-                function hide() { modal.hidden = true; }
+                    drawer = document.getElementById('wpa-snip-io');
+                if (!openBtn || !drawer) { return; }
+                var lastFocus = null;
+
+                function focusables() {
+                    var sel = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+                    return Array.prototype.filter.call(drawer.querySelectorAll(sel), function (el) {
+                        return !el.hidden && (el.offsetWidth > 0 || el.offsetHeight > 0);
+                    });
+                }
+                function show() {
+                    lastFocus = document.activeElement;
+                    drawer.hidden = false;
+                    document.body.style.overflow = 'hidden';
+                    var first = drawer.querySelector('.wpa-tab.is-active') || drawer.querySelector('[data-snip-close]');
+                    if (first) { first.focus(); }
+                }
+                function hide() {
+                    drawer.hidden = true;
+                    document.body.style.overflow = '';
+                    if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
+                }
                 openBtn.addEventListener('click', show);
-                modal.addEventListener('click', function (e) { if (e.target.closest('[data-snip-close]')) { hide(); } });
-                document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) { hide(); } });
+                drawer.addEventListener('click', function (e) { if (e.target.closest('[data-snip-close]')) { hide(); } });
+                document.addEventListener('keydown', function (e) {
+                    if (drawer.hidden) { return; }
+                    if (e.key === 'Escape') { hide(); return; }
+                    if (e.key === 'Tab') { // focus trap (WCAG 2.4.3)
+                        var list = focusables();
+                        if (!list.length) { return; }
+                        var first = list[0], last = list[list.length - 1];
+                        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                    }
+                });
+
+                // Tabs — WAI-ARIA pattern: click + arrow keys, roving tabindex, footer action swap.
+                var tabs = Array.prototype.slice.call(drawer.querySelectorAll('.wpa-tab')),
+                    footBtns = Array.prototype.slice.call(drawer.querySelectorAll('[data-snip-foot]'));
+                function activate(name, focusTab) {
+                    tabs.forEach(function (t) {
+                        var on = t.getAttribute('data-snip-tab') === name;
+                        t.classList.toggle('is-active', on);
+                        t.setAttribute('aria-selected', on ? 'true' : 'false');
+                        t.tabIndex = on ? 0 : -1;
+                        if (on && focusTab) { t.focus(); }
+                    });
+                    drawer.querySelectorAll('[data-snip-panel]').forEach(function (p) { p.hidden = (p.getAttribute('data-snip-panel') !== name); });
+                    footBtns.forEach(function (b) { b.hidden = (b.getAttribute('data-snip-foot') !== name); });
+                }
+                tabs.forEach(function (t, i) {
+                    t.addEventListener('click', function () { activate(t.getAttribute('data-snip-tab')); });
+                    t.addEventListener('keydown', function (e) {
+                        var idx = i;
+                        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { idx = (i + 1) % tabs.length; }
+                        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { idx = (i - 1 + tabs.length) % tabs.length; }
+                        else if (e.key === 'Home') { idx = 0; }
+                        else if (e.key === 'End') { idx = tabs.length - 1; }
+                        else { return; }
+                        e.preventDefault();
+                        activate(tabs[idx].getAttribute('data-snip-tab'), true);
+                    });
+                });
+
+                // Export selection — select-all, live count, and disable the button when none picked.
+                var selAll = document.getElementById('wpa-snip-selall'),
+                    boxes = Array.prototype.slice.call(drawer.querySelectorAll('.wpa-snip-exp')),
+                    countEl = document.getElementById('wpa-snip-selcount'),
+                    nEl = document.getElementById('wpa-snip-export-n'),
+                    expBtn = document.getElementById('wpa-snip-export-btn');
+                function syncExport() {
+                    var n = boxes.filter(function (b) { return b.checked; }).length;
+                    if (nEl) { nEl.textContent = (n === boxes.length) ? ('all ' + n) : String(n); }
+                    if (countEl) { countEl.textContent = n + ' of ' + boxes.length + ' selected'; }
+                    if (expBtn) { expBtn.disabled = (n === 0); }
+                    if (selAll) { selAll.checked = (n === boxes.length); selAll.indeterminate = (n > 0 && n < boxes.length); }
+                }
+                if (selAll) { selAll.addEventListener('change', function () { boxes.forEach(function (b) { b.checked = selAll.checked; }); syncExport(); }); }
+                boxes.forEach(function (b) { b.addEventListener('change', syncExport); });
+                syncExport();
+
+                // Import dropzone — reflect the chosen file, enable the button, drag styling.
+                var drop = document.getElementById('wpa-snip-drop'),
+                    fileInput = document.getElementById('wpa-snip-fileinput'),
+                    fileEl = document.getElementById('wpa-snip-file'),
+                    impBtn = document.getElementById('wpa-snip-import-btn');
+                function reflectFile() {
+                    var f = fileInput && fileInput.files && fileInput.files[0];
+                    if (fileEl) { fileEl.hidden = !f; fileEl.textContent = f ? f.name : ''; }
+                    if (impBtn) { impBtn.disabled = !f; }
+                    if (drop) { drop.classList.toggle('has-file', !!f); }
+                }
+                if (fileInput) { fileInput.addEventListener('change', reflectFile); }
+                if (drop) {
+                    ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-drag'); }); });
+                    ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('is-drag'); }); });
+                    drop.addEventListener('drop', function (e) { if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length && fileInput) { fileInput.files = e.dataTransfer.files; reflectFile(); } });
+                }
+                reflectFile();
             })();
         </script>
         <?php if ($saved) : ?>
@@ -4062,6 +4223,28 @@ class WP_Arzo_Admin
                         <input class="wpa-input" type="text" id="snp-desc" name="snippet_description" value="<?php echo esc_attr(isset($current['description']) ? $current['description'] : ''); ?>" placeholder="Optional — what this snippet does">
                     </div>
                 </div>
+
+                <?php if ($current['id'] !== '') : $sc = '[' . WP_Arzo_Snippets::SHORTCODE_TAG . ' id="' . $current['id'] . '"]'; ?>
+                    <div class="wpa-snip-shortcode">
+                        <label class="wpa-field__label" for="wpa-snip-sc"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> Shortcode</label>
+                        <div class="wpa-snip-shortcode__row">
+                            <input type="text" class="wpa-input" id="wpa-snip-sc" readonly value="<?php echo esc_attr($sc); ?>" onclick="this.select();" aria-describedby="wpa-snip-sc-help">
+                            <button type="button" class="wpa-btn wpa-btn--secondary" id="wpa-snip-sc-copy" aria-label="Copy shortcode"><?php echo wp_arzo_icon('copy', array('class' => 'wpa-icon wpa-icon--sm')); ?> <span>Copy</span></button>
+                        </div>
+                        <p class="wpa-field__help" id="wpa-snip-sc-help">Place this in any post, page, or widget to output this snippet. Set <strong>Run on → Shortcode only</strong> for a snippet that should render <em>only</em> where placed.</p>
+                    </div>
+                    <script>
+                        (function () {
+                            var b = document.getElementById('wpa-snip-sc-copy'), inp = document.getElementById('wpa-snip-sc');
+                            if (!b || !inp) { return; }
+                            b.addEventListener('click', function () {
+                                var done = function () { var s = b.querySelector('span'); if (s) { var o = s.textContent; s.textContent = 'Copied!'; setTimeout(function () { s.textContent = o; }, 1400); } };
+                                if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(inp.value).then(done, function () { inp.select(); try { document.execCommand('copy'); } catch (e) {} done(); }); }
+                                else { inp.select(); try { document.execCommand('copy'); } catch (e) {} done(); }
+                            });
+                        })();
+                    </script>
+                <?php endif; ?>
 
                 <?php if (!empty($current['last_error'])) : ?>
                     <div class="wpa-toast wpa-toast--error" style="position:static;margin:0 0 10px;display:inline-flex;"><?php echo wp_arzo_icon('alert', array('class' => 'wpa-icon wpa-icon--sm')); ?> Auto-disabled after an error: <?php echo esc_html($current['last_error']); ?></div>
@@ -4198,29 +4381,27 @@ class WP_Arzo_Admin
             </form>
 
             <!-- Snippet list -->
+            <?php
+            $snip_total = count($snippets);
+            $snip_pages = max(1, (int) ceil($snip_total / self::SNIPPETS_PER_PAGE));
+            $snip_nonce = wp_create_nonce(self::NONCE_SNIPPETS);
+            ?>
             <aside class="wpa-code-app__list">
                 <div class="wpa-code-app__list-head">
                     <span>Snippets</span>
                     <a class="wpa-btn wpa-btn--ghost wpa-btn--icon" href="<?php echo esc_url($base); ?>" title="New snippet"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
                 </div>
-                <div class="wpa-code-app__list-body">
-                    <?php if (empty($snippets)) : ?>
-                        <p class="wpa-code-app__empty">No snippets yet. Write one and hit Save.</p>
-                    <?php else : foreach ($snippets as $s) :
-                        $is_current = ($s['id'] === $current['id'] && $current['id'] !== '');
-                        ?>
-                        <div class="wpa-code-item<?php echo $is_current ? ' is-active' : ''; ?>" data-snippet="<?php echo esc_attr($s['id']); ?>">
-                            <a class="wpa-code-item__main" href="<?php echo esc_url(add_query_arg('id', $s['id'], $base)); ?>">
-                                <span class="wpa-code-item__type wpa-badge wpa-badge--neutral"><?php echo esc_html(strtoupper($s['type'])); ?></span>
-                                <span class="wpa-code-item__title"><?php echo esc_html($s['title'] !== '' ? $s['title'] : '[Untitled]'); ?><?php echo !empty($s['last_error']) ? ' ' . wp_arzo_icon('alert', array('class' => 'wpa-icon wpa-icon--xs', 'style' => 'color:var(--arzo-error)')) : ''; ?></span>
-                            </a>
-                            <label class="wpa-toggle wpa-toggle--sm" title="Active">
-                                <input type="checkbox" class="wpa-toggle__input wpa-snippet-toggle" role="switch" data-id="<?php echo esc_attr($s['id']); ?>" <?php checked(!empty($s['active'])); ?>>
-                                <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
-                            </label>
-                            <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
-                        </div>
-                    <?php endforeach; endif; ?>
+                <div class="wpa-code-app__search">
+                    <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                    <input type="search" id="wpa-snip-search" class="wpa-input" placeholder="Search snippets…" aria-label="Search snippets" autocomplete="off">
+                </div>
+                <div class="wpa-code-app__list-body" id="wpa-snip-list" data-current="<?php echo esc_attr($current['id']); ?>">
+                    <?php echo $this->render_snippet_list_rows(array_slice($snippets, 0, self::SNIPPETS_PER_PAGE), $current['id']); // rows are individually escaped in the helper ?>
+                </div>
+                <div class="wpa-code-app__pager" id="wpa-snip-pager" data-nonce="<?php echo esc_attr($snip_nonce); ?>" data-paged="1" data-pages="<?php echo (int) $snip_pages; ?>" style="display:<?php echo $snip_pages > 1 ? 'flex' : 'none'; ?>;">
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-btn--sm" id="wpa-snip-prev" aria-label="Newer snippets" disabled><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm', 'style' => 'transform:rotate(180deg)')); ?></button>
+                    <span class="wpa-code-app__pageinfo" id="wpa-snip-pageinfo" aria-live="polite"><?php echo $snip_pages > 1 ? 'Page 1 of ' . (int) $snip_pages . ' · ' . (int) $snip_total . ' snippets' : ''; ?></span>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-btn--sm" id="wpa-snip-next" aria-label="Older snippets" <?php echo $snip_pages <= 1 ? 'disabled' : ''; ?>><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                 </div>
             </aside>
         </div>
@@ -4285,6 +4466,64 @@ class WP_Arzo_Admin
         $id = isset($_POST['id']) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
         WP_Arzo_Snippets::instance()->delete($id);
         wp_send_json_success(array('message' => 'Snippet deleted.'));
+    }
+
+    /** Snippets sidebar — server-side AJAX search + pagination (mirrors wpArzo.ajaxList). */
+    public function ajax_snippets_list()
+    {
+        $this->verify_snippet_request();
+        $per   = self::SNIPPETS_PER_PAGE;
+        $paged = isset($_POST['paged']) ? max(1, (int) $_POST['paged']) : 1;
+        $q     = isset($_POST['q']) ? sanitize_text_field(wp_unslash($_POST['q'])) : '';
+        $curr  = isset($_POST['current']) ? sanitize_text_field(wp_unslash($_POST['current'])) : '';
+
+        $all = WP_Arzo_Snippets::instance()->get_all();
+        if ($q !== '') {
+            $needle = strtolower($q);
+            $all = array_values(array_filter($all, function ($s) use ($needle) {
+                $hay = strtolower(($s['title'] ?? '') . ' ' . ($s['description'] ?? '') . ' ' . ($s['type'] ?? ''));
+                return strpos($hay, $needle) !== false;
+            }));
+        }
+        $total = count($all);
+        $pages = max(1, (int) ceil($total / $per));
+        $paged = min($paged, $pages);
+        $slice = array_slice($all, ($paged - 1) * $per, $per);
+
+        wp_send_json_success(array(
+            'html'  => $this->render_snippet_list_rows($slice, $curr, $q !== ''),
+            'paged' => $paged,
+            'pages' => $pages,
+            'total' => $total,
+        ));
+    }
+
+    /** Render the snippet sidebar rows (shared by the first paint and the AJAX pager). */
+    private function render_snippet_list_rows(array $snippets, $current_id, $is_search = false)
+    {
+        if (empty($snippets)) {
+            return '<p class="wpa-code-app__empty">' . ($is_search ? 'No snippets match your search.' : 'No snippets yet. Write one and hit Save.') . '</p>';
+        }
+        $base = admin_url('admin.php?page=' . self::PAGE_SNIPPETS);
+        ob_start();
+        foreach ($snippets as $s) {
+            $is_current = ($s['id'] === $current_id && $current_id !== '');
+            ?>
+            <div class="wpa-code-item<?php echo $is_current ? ' is-active' : ''; ?>" data-snippet="<?php echo esc_attr($s['id']); ?>">
+                <a class="wpa-code-item__main" href="<?php echo esc_url(add_query_arg('id', $s['id'], $base)); ?>">
+                    <span class="wpa-code-item__type wpa-badge wpa-badge--neutral"><?php echo esc_html(strtoupper($s['type'])); ?></span>
+                    <span class="wpa-code-item__title"><?php echo esc_html($s['title'] !== '' ? $s['title'] : '[Untitled]'); ?><?php echo !empty($s['last_error']) ? ' ' . wp_arzo_icon('alert', array('class' => 'wpa-icon wpa-icon--xs', 'style' => 'color:var(--arzo-error)')) : ''; ?></span>
+                </a>
+                <label class="wpa-toggle wpa-toggle--sm" title="Active">
+                    <input type="checkbox" class="wpa-toggle__input wpa-snippet-toggle" role="switch" data-id="<?php echo esc_attr($s['id']); ?>" <?php checked(!empty($s['active'])); ?>>
+                    <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
+                </label>
+                <a class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-snippet-export" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_snippets_export&id=' . $s['id']), self::NONCE_SNIPPETS)); ?>" aria-label="Export this snippet" title="Export this snippet"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
+                <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+            </div>
+            <?php
+        }
+        return ob_get_clean();
     }
 
     /* ---------------------------------------------------- Media Cleanup */
@@ -4451,7 +4690,7 @@ class WP_Arzo_Admin
                         <?php echo wp_arzo_icon('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Generate key
                     </button>
                 </div>
-                <div id="wpa-rest-reveal" class="wpa-toast wpa-toast--success" hidden style="position:static;margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <div id="wpa-rest-reveal" class="wpa-toast wpa-toast--success" style="position:static;margin-top:var(--arzo-space-3);gap:var(--arzo-space-2);align-items:center;flex-wrap:wrap;display:none;">
                     <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                     <span>Copy this key now — it won’t be shown again:</span>
                     <code id="wpa-rest-newkey" style="user-select:all;font-weight:700;"></code>
@@ -4506,7 +4745,7 @@ class WP_Arzo_Admin
             <div class="wpa-card" style="margin-top:16px;">
                 <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> How to call</h2>
                 <p class="wpa-aside-card__text">Send the key with any REST request using one of these (HTTPS recommended):</p>
-                <pre style="margin:0;padding:14px;background:var(--arzo-bg-input);border:1px solid var(--arzo-border-strong);border-radius:var(--arzo-radius-sm);overflow:auto;font-family:var(--arzo-font-mono);font-size:12.5px;line-height:1.6;color:var(--arzo-text-primary);"><code>curl -H "Authorization: Bearer arzo_…" <?php echo esc_html($example); ?>
+                <pre style="margin:0;padding:var(--arzo-space-4);background:var(--arzo-bg-input);border:1px solid var(--arzo-border-strong);border-radius:var(--arzo-radius-sm);overflow:auto;font-family:var(--arzo-font-mono);font-size:var(--arzo-fs-sm);line-height:1.6;color:var(--arzo-text-primary);"><code>curl -H "Authorization: Bearer arzo_…" <?php echo esc_html($example); ?>
 
 curl -H "X-API-Key: arzo_…" <?php echo esc_html($example); ?>
 
