@@ -40,9 +40,12 @@ jobs:
 
       - name: JS syntax check (our scripts only)
         run: |
+          status=0
           for f in assets/js/*.js wp-arzo-emergency/*.js; do
-            [ -f "$f" ] && node --check "$f"
+            [ -f "$f" ] || continue          # skip a glob that matched nothing
+            node --check "$f" || status=1     # record a real syntax error
           done
+          exit $status
 
   plugin-check:
     name: WordPress Plugin Check
