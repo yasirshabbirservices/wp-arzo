@@ -151,3 +151,28 @@ if (!function_exists('wp_arzo_icon')) {
         );
     }
 }
+
+/**
+ * Echo a WP Arzo icon.
+ *
+ * Companion to wp_arzo_icon() (which RETURNS the markup for use in attributes,
+ * concatenation, JSON, etc.). Use this at output sites so there is no bare
+ * `echo wp_arzo_icon()` for the escaping sniff to flag.
+ *
+ * The markup is safe by construction: the inner geometry is static, hardcoded
+ * SVG from wp_arzo_icon_paths() (no user input), and the only dynamic pieces
+ * (class, size, aria-label) are integer-cast or esc_attr()'d inside
+ * wp_arzo_icon(). wp_kses() is deliberately NOT used because it lowercases the
+ * `viewBox` attribute, which breaks SVG scaling.
+ *
+ * @param string $name  Icon key.
+ * @param array  $attrs Optional attrs (class/size/width/height/aria-label).
+ * @return void
+ */
+if (!function_exists('wp_arzo_icon_e')) {
+    function wp_arzo_icon_e($name, $attrs = [])
+    {
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static internal SVG; dynamic attrs are esc_attr()'d in wp_arzo_icon(). wp_kses() would corrupt viewBox.
+        echo wp_arzo_icon($name, $attrs);
+    }
+}

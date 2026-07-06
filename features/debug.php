@@ -351,7 +351,7 @@ function handleDebug()
                     <?php endforeach; ?>
                 </div>
 
-                <button type="submit" name="update_debug_settings" class="btn" style="margin-top: 15px;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Update Debug
+                <button type="submit" name="update_debug_settings" class="btn" style="margin-top: 15px;"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Update Debug
                     Settings</button>
             </form>
         <?php endif; ?>
@@ -474,10 +474,10 @@ function handleDebug()
                         <option value="warning">Warnings</option>
                         <option value="notice">Notices</option>
                     </select>
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-dbg-refresh"><?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Refresh</button>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-dbg-refresh"><?php wp_arzo_icon_e('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Refresh</button>
                     <label class="wpa-toggle" style="margin:0;"><input class="wpa-toggle__input" type="checkbox" role="switch" id="wpa-dbg-auto"><span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span><span class="wpa-toggle__label" style="font-size:.85em;">Auto</span></label>
-                    <a class="wpa-btn wpa-btn--secondary wpa-btn--sm" id="wpa-dbg-download" href="<?php echo esc_url($wpa_dbg_dl); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Download</a>
-                    <button type="button" class="wpa-btn wpa-btn--danger wpa-btn--sm" id="wpa-dbg-clear"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear</button>
+                    <a class="wpa-btn wpa-btn--secondary wpa-btn--sm" id="wpa-dbg-download" href="<?php echo esc_url($wpa_dbg_dl); ?>"><?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Download</a>
+                    <button type="button" class="wpa-btn wpa-btn--danger wpa-btn--sm" id="wpa-dbg-clear"><?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear</button>
                 </div>
             </div>
             <pre id="wpa-dbg-log" style="margin:0;max-height:420px;overflow:auto;padding:14px 18px;font-family:var(--arzo-font-mono,monospace);font-size:12px;line-height:1.5;background:var(--arzo-bg-input);white-space:pre-wrap;word-break:break-word;color:var(--arzo-text-secondary);">Loading…</pre>
@@ -556,7 +556,7 @@ function handleDebug()
         <?php $wpa_cfg_nonce = wp_create_nonce('wp_arzo_ajax'); $wpa_cfg_ajax = admin_url('admin-ajax.php'); ?>
         <div class="wpa-card" id="wpa-cfg" data-nonce="<?php echo esc_attr($wpa_cfg_nonce); ?>" data-ajax="<?php echo esc_url($wpa_cfg_ajax); ?>" style="margin-top:20px;padding:0;overflow:hidden;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--arzo-border);">
-                <h3 style="margin:0;"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configuration files <span style="color:var(--arzo-text-secondary);font-weight:400;font-size:.8em;">read-only · secrets masked</span></h3>
+                <h3 style="margin:0;"><?php wp_arzo_icon_e('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configuration files <span style="color:var(--arzo-text-secondary);font-weight:400;font-size:.8em;">read-only · secrets masked</span></h3>
                 <select class="wpa-select" data-wpa-select id="wpa-cfg-file" aria-label="Configuration file to view">
                     <option value="wpconfig">wp-config.php</option>
                     <option value="htaccess">.htaccess</option>

@@ -766,7 +766,7 @@ function wp_arzo_redirect_page()
                 <?php endif; ?>
                 <h1 class="wpa-launch__title">Advanced Tools</h1>
                 <p class="wpa-launch__msg" id="wpa-launch-msg"><span class="wpa-launch__spin" id="wpa-launch-spin" aria-hidden="true"></span>Opening the standalone power-tools console in a new browser tab&hellip;</p>
-                <a href="<?php echo esc_url($tool_url); ?>" target="_blank" rel="noopener" class="wpa-launch__btn" id="wpa-launch-btn"><?php echo wp_arzo_icon('external', array()); ?> Open Advanced Tools</a>
+                <a href="<?php echo esc_url($tool_url); ?>" target="_blank" rel="noopener" class="wpa-launch__btn" id="wpa-launch-btn"><?php wp_arzo_icon_e('external', array()); ?> Open Advanced Tools</a>
                 <p class="wpa-launch__status" id="wpa-launch-status"></p>
                 <p class="wpa-launch__foot"><a href="<?php echo esc_url($dash_url); ?>">&larr; Back to the WP Arzo dashboard</a></p>
             </div>

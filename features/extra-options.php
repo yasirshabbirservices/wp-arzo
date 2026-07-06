@@ -437,10 +437,10 @@ function handleExtraOptions()
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="submit" name="update_php_limits" class="wpa-btn wpa-btn--primary" style="flex:1;"><?php echo wp_arzo_icon('save'); ?> Update Limits</button>
+                    <button type="submit" name="update_php_limits" class="wpa-btn wpa-btn--primary" style="flex:1;"><?php wp_arzo_icon_e('save'); ?> Update Limits</button>
                     <button type="submit" name="reset_php_limits" class="wpa-btn wpa-btn--ghost" style="flex:1;"
                         onclick="return confirm('Are you sure you want to reset to default PHP limits?');">
-                        <?php echo wp_arzo_icon('refresh'); ?> Reset to Defaults
+                        <?php wp_arzo_icon_e('refresh'); ?> Reset to Defaults
                     </button>
                 </div>
             </form>
@@ -452,9 +452,9 @@ function handleExtraOptions()
                 <h3>PHP Limits Update Log</h3>
                 <div style="position: absolute; top: 20px; right: 20px;">
                     <button type="button" class="wpa-iconbtn" onclick="copyDebugLog()"
-                        style="margin-right: 6px; color: var(--accent-color);" title="Copy debug log" aria-label="Copy debug log"><?php echo wp_arzo_icon('copy'); ?></button>
+                        style="margin-right: 6px; color: var(--accent-color);" title="Copy debug log" aria-label="Copy debug log"><?php wp_arzo_icon_e('copy'); ?></button>
                     <button type="button" class="wpa-iconbtn" onclick="clearDebugLog()" style="color: var(--danger-color);"
-                        title="Clear debug log" aria-label="Clear debug log"><?php echo wp_arzo_icon('trash'); ?></button>
+                        title="Clear debug log" aria-label="Clear debug log"><?php wp_arzo_icon_e('trash'); ?></button>
                 </div>
                 <div id="debug-log-content"
                     style="background: var(--arzo-bg-input); padding: 15px; border-radius: var(--radius-global); max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.4;">

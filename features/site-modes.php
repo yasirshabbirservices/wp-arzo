@@ -663,7 +663,7 @@ function handleMaintenanceModes()
 
         <!-- Social Contact Settings -->
         <div class="settings-box">
-            <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 16px;"><?php echo wp_arzo_icon('users', ['class' => 'wpa-icon wpa-hicon']); ?> Social
+            <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 16px;"><?php wp_arzo_icon_e('users', ['class' => 'wpa-icon wpa-hicon']); ?> Social
                 Contact Settings</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                 <div class="form-group">
@@ -698,7 +698,7 @@ function handleMaintenanceModes()
                 <div class="status-badge">ACTIVE</div>
 
                 <div class="card-header">
-                    <?php echo wp_arzo_icon('tools', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
+                    <?php wp_arzo_icon_e('tools', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
                     <h3>Maintenance Mode</h3>
                 </div>
 
@@ -734,13 +734,13 @@ function handleMaintenanceModes()
                 </div>
 
                 <button type="button" class="btn-mode btn-activate" onclick="toggleMode('maintenance')">
-                    <?php echo wp_arzo_icon('check', ['size' => 15]); ?> Activate Mode
+                    <?php wp_arzo_icon_e('check', ['size' => 15]); ?> Activate Mode
                 </button>
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
-                    <?php echo wp_arzo_icon('x', ['size' => 15]); ?> Deactivate Mode
+                    <?php wp_arzo_icon_e('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
                 <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
-                    <?php echo wp_arzo_icon('eye', ['size' => 15]); ?> View Active Mode
+                    <?php wp_arzo_icon_e('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
 
@@ -750,7 +750,7 @@ function handleMaintenanceModes()
                 <div class="status-badge">ACTIVE</div>
 
                 <div class="card-header">
-                    <?php echo wp_arzo_icon('rocket', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
+                    <?php wp_arzo_icon_e('rocket', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
                     <h3>Coming Soon Mode</h3>
                 </div>
 
@@ -786,13 +786,13 @@ function handleMaintenanceModes()
                 </div>
 
                 <button type="button" class="btn-mode btn-activate" onclick="toggleMode('coming_soon')">
-                    <?php echo wp_arzo_icon('check', ['size' => 15]); ?> Activate Mode
+                    <?php wp_arzo_icon_e('check', ['size' => 15]); ?> Activate Mode
                 </button>
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
-                    <?php echo wp_arzo_icon('x', ['size' => 15]); ?> Deactivate Mode
+                    <?php wp_arzo_icon_e('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
                 <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
-                    <?php echo wp_arzo_icon('eye', ['size' => 15]); ?> View Active Mode
+                    <?php wp_arzo_icon_e('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
 
@@ -802,7 +802,7 @@ function handleMaintenanceModes()
                 <div class="status-badge">ACTIVE</div>
 
                 <div class="card-header">
-                    <?php echo wp_arzo_icon('credit-card', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
+                    <?php wp_arzo_icon_e('credit-card', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
                     <h3>Payment Required</h3>
                 </div>
 
@@ -838,13 +838,13 @@ function handleMaintenanceModes()
                 </div>
 
                 <button type="button" class="btn-mode btn-activate" onclick="toggleMode('payment_request')">
-                    <?php echo wp_arzo_icon('check', ['size' => 15]); ?> Activate Mode
+                    <?php wp_arzo_icon_e('check', ['size' => 15]); ?> Activate Mode
                 </button>
                 <button type="button" class="btn-mode btn-deactivate" onclick="deactivateMode()">
-                    <?php echo wp_arzo_icon('x', ['size' => 15]); ?> Deactivate Mode
+                    <?php wp_arzo_icon_e('x', ['size' => 15]); ?> Deactivate Mode
                 </button>
                 <a href="<?php echo home_url('/?maintenance_preview=true'); ?>" target="_blank" class="btn-preview">
-                    <?php echo wp_arzo_icon('eye', ['size' => 15]); ?> View Active Mode
+                    <?php wp_arzo_icon_e('eye', ['size' => 15]); ?> View Active Mode
                 </a>
             </div>
 
@@ -852,7 +852,7 @@ function handleMaintenanceModes()
             <div class="mode-card mode-emergency <?php echo $emergency_configured ? 'active' : ''; ?>" id="card-emergency">
                 <div class="emergency-head">
                     <div class="card-header">
-                        <?php echo wp_arzo_icon('heartbeat', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
+                        <?php wp_arzo_icon_e('heartbeat', ['class' => 'wpa-icon mode-icon', 'size' => 28]); ?>
                         <h3>Emergency Mode</h3>
                         <span class="emergency-badge" id="emergency-badge"<?php echo $emergency_configured ? '' : ' style="display:none;"'; ?>>ACTIVE</span>
                     </div>
@@ -869,17 +869,17 @@ function handleMaintenanceModes()
                 <div class="emergency-body" id="emergency-body"<?php echo $emergency_configured ? '' : ' style="display:none;"'; ?>>
                     <div class="active-controls" id="emergency-active-controls">
                         <button type="button" class="btn-action" onclick="copyToClipboard('<?php echo esc_js(home_url('/wp-arzo/emergency/')); ?>', this)">
-                            <?php echo wp_arzo_icon('link', ['size' => 15]); ?> Copy Link
+                            <?php wp_arzo_icon_e('link', ['size' => 15]); ?> Copy Link
                         </button>
                         <button type="button" class="btn-action" title="Works even when WordPress rewrites are down" onclick="copyToClipboard('<?php echo esc_js(WP_ARZO_PLUGIN_URL . 'wp-arzo-emergency/index.php'); ?>', this)">
-                            <?php echo wp_arzo_icon('shield', ['size' => 15]); ?> Copy Direct Link
+                            <?php wp_arzo_icon_e('shield', ['size' => 15]); ?> Copy Direct Link
                         </button>
                         <button type="button" class="btn-action" onclick="resetEmergencyPassword(this)">
-                            <?php echo wp_arzo_icon('key', ['size' => 15]); ?> Reset Password
+                            <?php wp_arzo_icon_e('key', ['size' => 15]); ?> Reset Password
                         </button>
                     </div>
                     <p class="emergency-note">
-                        <?php echo wp_arzo_icon('shield', ['class' => 'wpa-icon wpa-hicon']); ?> <strong>Direct Link</strong> is the file URL — bookmark it. It keeps working even when WordPress is fully down (WSOD) and the pretty <code>/wp-arzo/emergency/</code> rewrite can't load.
+                        <?php wp_arzo_icon_e('shield', ['class' => 'wpa-icon wpa-hicon']); ?> <strong>Direct Link</strong> is the file URL — bookmark it. It keeps working even when WordPress is fully down (WSOD) and the pretty <code>/wp-arzo/emergency/</code> rewrite can't load.
                     </p>
                 </div>
             </div>

@@ -627,11 +627,11 @@ class WP_Arzo_Admin
                     aria-pressed="<?php echo self::user_theme() === 'light' ? 'true' : 'false'; ?>"
                     aria-label="<?php esc_attr_e('Switch between light and dark theme', 'wp-arzo'); ?>"
                     title="<?php esc_attr_e('Light / dark theme', 'wp-arzo'); ?>">
-                    <?php echo wp_arzo_icon('sun', array('class' => 'wpa-icon wpa-icon--sm wpa-theme-ico--sun')); ?>
-                    <?php echo wp_arzo_icon('moon', array('class' => 'wpa-icon wpa-icon--sm wpa-theme-ico--moon')); ?>
+                    <?php wp_arzo_icon_e('sun', array('class' => 'wpa-icon wpa-icon--sm wpa-theme-ico--sun')); ?>
+                    <?php wp_arzo_icon_e('moon', array('class' => 'wpa-icon wpa-icon--sm wpa-theme-ico--moon')); ?>
                 </button>
                 <a class="wpa-brandbar__gh" href="https://github.com/yasirshabbirservices/wp-arzo" target="_blank" rel="noopener">
-                    <?php echo wp_arzo_icon('github', array('class' => 'wpa-icon wpa-icon--sm')); ?> GitHub
+                    <?php wp_arzo_icon_e('github', array('class' => 'wpa-icon wpa-icon--sm')); ?> GitHub
                 </a>
             </div>
         </div>
@@ -724,7 +724,7 @@ class WP_Arzo_Admin
         <?php $wpa_pct = $total ? (int) round($enabled / $total * 100) : 0; ?>
         <div class="wpa-admin__bar wpa-fm-hero">
             <div class="wpa-fm-hero__info">
-                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('tools', array('class' => 'wpa-icon')); ?> Feature Manager</h1>
+                <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('tools', array('class' => 'wpa-icon')); ?> Feature Manager</h1>
                 <p class="wpa-admin__subtitle">Enable only what you need — everything is off until you turn it on.</p>
                 <div class="wpa-fm-progress" role="progressbar" aria-valuemin="0" aria-valuemax="<?php echo (int) $total; ?>" aria-valuenow="<?php echo (int) $enabled; ?>">
                     <div class="wpa-fm-progress__bar" style="width:<?php echo (int) $wpa_pct; ?>%"></div>
@@ -733,7 +733,7 @@ class WP_Arzo_Admin
             </div>
             <div class="wpa-fm-hero__actions">
                 <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url(admin_url('admin.php?page=' . WP_Arzo_Setup_Wizard::PAGE)); ?>">
-                    <?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Setup Wizard
+                    <?php wp_arzo_icon_e('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Setup Wizard
                 </a>
             </div>
         </div>
@@ -742,11 +742,11 @@ class WP_Arzo_Admin
             <div class="wpa-main">
                 <div style="display:flex;gap:var(--arzo-space-3,12px);align-items:center;flex-wrap:wrap;margin-bottom:var(--arzo-space-4,16px);">
                     <div class="wpa-fm-searchbar" role="search" style="flex:1 1 240px;margin-bottom:0;">
-                        <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon')); ?>
+                        <?php wp_arzo_icon_e('search', array('class' => 'wpa-icon')); ?>
                         <input type="search" id="wpa-feature-search" placeholder="Search all features…" aria-label="Search features">
                     </div>
                     <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-btn--icon wpa-has-tip" id="wpa-config-filter" aria-pressed="false" aria-label="Show only configurable features" data-wpa-tip="Show only configurable features">
-                        <?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                        <?php wp_arzo_icon_e('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                     </button>
                 </div>
                 <div id="wpa-feature-grid">
@@ -767,7 +767,7 @@ class WP_Arzo_Admin
                         <section class="wpa-group" id="group-<?php echo esc_attr($group_key); ?>" data-group="<?php echo esc_attr($group_key); ?>">
                             <div class="wpa-group__bar">
                                 <h2 class="wpa-group__title">
-                                    <?php echo wp_arzo_icon($registry->group_icon($group_key), array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                                    <?php wp_arzo_icon_e($registry->group_icon($group_key), array('class' => 'wpa-icon wpa-icon--sm')); ?>
                                     <?php echo esc_html($registry->group_label($group_key)); ?>
                                 </h2>
                                 <?php if ($grp_avail > 0) : ?>
@@ -821,8 +821,8 @@ class WP_Arzo_Admin
             <div class="wpa-drawer__backdrop" data-settings-close></div>
             <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="wpa-settings-drawer-title">
                 <div class="wpa-drawer__head">
-                    <h2 id="wpa-settings-drawer-title"><?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon')); ?> <span>Configure</span></h2>
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-settings-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                    <h2 id="wpa-settings-drawer-title"><?php wp_arzo_icon_e('sliders', array('class' => 'wpa-icon')); ?> <span>Configure</span></h2>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-settings-close aria-label="Close"><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon')); ?></button>
                 </div>
                 <form class="wpa-drawer__body" id="wpa-settings-drawer-form">
                     <input type="hidden" name="feature" id="wpa-settings-drawer-feature" value="">
@@ -830,7 +830,7 @@ class WP_Arzo_Admin
                 </form>
                 <div class="wpa-drawer__foot">
                     <button type="button" class="wpa-btn wpa-btn--ghost" data-settings-close>Cancel</button>
-                    <button type="submit" form="wpa-settings-drawer-form" class="wpa-btn wpa-btn--primary" id="wpa-settings-drawer-save"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save settings</button>
+                    <button type="submit" form="wpa-settings-drawer-form" class="wpa-btn wpa-btn--primary" id="wpa-settings-drawer-save"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save settings</button>
                 </div>
             </div>
         </div>
@@ -877,7 +877,7 @@ class WP_Arzo_Admin
         ?>
         <div class="wpa-aside-card wpa-license<?php echo $card; ?>">
             <div class="wpa-aside-card__head">
-                <?php echo wp_arzo_icon($icon, array('class' => 'wpa-icon')); ?>
+                <?php wp_arzo_icon_e($icon, array('class' => 'wpa-icon')); ?>
                 <h3 class="wpa-aside-card__title">License</h3>
                 <span class="wpa-badge <?php echo esc_attr($badge_class); ?>"><?php echo esc_html($badge); ?></span>
             </div>
@@ -886,7 +886,7 @@ class WP_Arzo_Admin
                 <?php if ($manage) : ?>
                     <div class="wpa-license__actions">
                         <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($manage); ?>">
-                            <?php echo wp_arzo_icon('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Manage license
+                            <?php wp_arzo_icon_e('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Manage license
                         </a>
                     </div>
                 <?php endif; ?>
@@ -895,7 +895,7 @@ class WP_Arzo_Admin
                 <?php if ($manage) : ?>
                     <div class="wpa-license__actions">
                         <a class="wpa-btn wpa-btn--warning wpa-btn--sm" href="<?php echo esc_url($manage); ?>">
-                            <?php echo wp_arzo_icon('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Activate a license
+                            <?php wp_arzo_icon_e('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Activate a license
                         </a>
                     </div>
                 <?php endif; ?>
@@ -906,12 +906,12 @@ class WP_Arzo_Admin
                 <div class="wpa-license__actions">
                     <?php if ($manage) : ?>
                         <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url($manage); ?>">
-                            <?php echo wp_arzo_icon('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Activate a license
+                            <?php wp_arzo_icon_e('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Activate a license
                         </a>
                         <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener">Get Pro</a>
                     <?php else : ?>
                         <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener">
-                            <?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Get WP Arzo Pro
+                            <?php wp_arzo_icon_e('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Get WP Arzo Pro
                         </a>
                     <?php endif; ?>
                 </div>
@@ -960,7 +960,7 @@ class WP_Arzo_Admin
         ?>
         <section class="wpa-promos" aria-labelledby="wpa-promos-title">
             <div class="wpa-promos__head">
-                <span class="wpa-promos__eyebrow"><?php echo wp_arzo_icon('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Spotlight</span>
+                <span class="wpa-promos__eyebrow"><?php wp_arzo_icon_e('sparkles', array('class' => 'wpa-icon wpa-icon--sm')); ?> Spotlight</span>
                 <h2 id="wpa-promos-title" class="wpa-promos__title">More from Yasir Shabbir</h2>
                 <p class="wpa-promos__sub">Hand-picked tools &amp; services — separate from this plugin.</p>
             </div>
@@ -976,7 +976,7 @@ class WP_Arzo_Admin
                     // Whole card is one external link (single click target, keyboard focusable).
                     ?>
                     <a class="wpa-promo" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer">
-                        <span class="wpa-promo__icon"><?php echo wp_arzo_icon($icon, array('class' => 'wpa-icon')); ?></span>
+                        <span class="wpa-promo__icon"><?php wp_arzo_icon_e($icon, array('class' => 'wpa-icon')); ?></span>
                         <span class="wpa-promo__body">
                             <span class="wpa-promo__head">
                                 <span class="wpa-promo__title"><?php echo esc_html($title); ?></span>
@@ -985,7 +985,7 @@ class WP_Arzo_Admin
                             <span class="wpa-promo__desc"><?php echo esc_html($desc); ?></span>
                             <span class="wpa-promo__cta">
                                 <?php echo esc_html($cta); ?>
-                                <?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                                <?php wp_arzo_icon_e('external', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                                 <span class="wpa-sr-only">(opens in a new tab)</span>
                             </span>
                         </span>
@@ -1055,7 +1055,7 @@ class WP_Arzo_Admin
             data-feature-card="<?php echo esc_attr($id); ?>"
             data-configurable="<?php echo $manage !== '' ? '1' : '0'; ?>"
             data-search="<?php echo esc_attr($search); ?>">
-            <div class="wpa-feature-card__icon"><?php echo wp_arzo_icon($feature->icon(), array('class' => 'wpa-icon')); ?></div>
+            <div class="wpa-feature-card__icon"><?php wp_arzo_icon_e($feature->icon(), array('class' => 'wpa-icon')); ?></div>
             <div class="wpa-feature-card__body">
                 <div class="wpa-feature-card__head">
                     <h3 class="wpa-feature-card__title"><?php echo esc_html($feature->title()); ?></h3>
@@ -1073,7 +1073,7 @@ class WP_Arzo_Admin
                         href="<?php echo esc_url($manage); ?>"
                         <?php if ($is_drawer) : ?>data-config-drawer="<?php echo esc_attr($id); ?>"<?php endif; ?>
                         aria-label="<?php echo esc_attr('Configure ' . $feature->title()); ?>">
-                        <?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configure
+                        <?php wp_arzo_icon_e('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Configure
                     </a>
                 <?php endif; ?>
                 <?php if ($available) : ?>
@@ -1086,7 +1086,7 @@ class WP_Arzo_Admin
                 <?php else :
                     $upgrade = function_exists('wp_arzo_pro_upgrade_url') ? wp_arzo_pro_upgrade_url() : '#';
                     ?>
-                    <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</a>
+                    <a class="wpa-btn wpa-btn--primary wpa-btn--sm" href="<?php echo esc_url($upgrade); ?>" target="_blank" rel="noopener"><?php wp_arzo_icon_e('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -1104,10 +1104,10 @@ class WP_Arzo_Admin
         <div class="wpa-admin__bar">
             <div>
                 <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE)); ?>">
-                    <?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> Back to dashboard
+                    <?php wp_arzo_icon_e('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> Back to dashboard
                 </a>
                 <h1 class="wpa-admin__title" style="margin-top:10px;">
-                    <?php echo wp_arzo_icon($feature->icon(), array('class' => 'wpa-icon')); ?>
+                    <?php wp_arzo_icon_e($feature->icon(), array('class' => 'wpa-icon')); ?>
                     <?php echo esc_html($feature->title()); ?> settings
                 </h1>
             </div>
@@ -1115,7 +1115,7 @@ class WP_Arzo_Admin
 
         <?php if ($saved) : ?>
             <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;">
-                <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Settings saved.
+                <?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Settings saved.
             </div>
         <?php endif; ?>
 
@@ -1128,7 +1128,7 @@ class WP_Arzo_Admin
             ?>
             <div style="margin-top:20px;">
                 <button type="submit" name="wp_arzo_save_settings" class="wpa-btn wpa-btn--primary">
-                    <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save settings
+                    <?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save settings
                 </button>
             </div>
         </form>
@@ -1510,7 +1510,7 @@ class WP_Arzo_Admin
         ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('database', array('class' => 'wpa-icon')); ?> Backups</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('database', array('class' => 'wpa-icon')); ?> Backups</h1>
                     <p class="wpa-admin__subtitle"><strong><?php echo count($snapshots); ?></strong> snapshot(s) · <?php echo esc_html($total); ?> on disk · database snapshots (v1)</p>
                 </div>
                 <div class="wpa-backup-create">
@@ -1520,10 +1520,10 @@ class WP_Arzo_Admin
                     </select>
                     <button type="button" id="wpa-backup-create" class="wpa-btn wpa-btn--primary"
                         data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_BACKUPS)); ?>">
-                        <?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Create snapshot
+                        <?php wp_arzo_icon_e('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Create snapshot
                     </button>
                     <button type="button" id="wpa-backup-compare" class="wpa-btn wpa-btn--ghost" <?php disabled(count($snapshots) < 2); ?>>
-                        <?php echo wp_arzo_icon('list', array('class' => 'wpa-icon wpa-icon--sm')); ?> Compare
+                        <?php wp_arzo_icon_e('list', array('class' => 'wpa-icon wpa-icon--sm')); ?> Compare
                     </button>
                 </div>
             </div>
@@ -1566,7 +1566,7 @@ class WP_Arzo_Admin
             <div class="wpa-drawer" id="wpa-diff-drawer" hidden>
                 <div class="wpa-drawer__backdrop" data-close></div>
                 <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="wpa-diff-title">
-                    <div class="wpa-drawer__head"><h2 id="wpa-diff-title">Compare snapshots</h2><button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button></div>
+                    <div class="wpa-drawer__head"><h2 id="wpa-diff-title">Compare snapshots</h2><button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-close aria-label="Close"><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon')); ?></button></div>
                     <div class="wpa-drawer__body">
                         <div class="wpa-field">
                             <label class="wpa-field__label" for="wpa-diff-a">Base (older)</label>
@@ -1584,7 +1584,7 @@ class WP_Arzo_Admin
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div style="margin-bottom:var(--arzo-space-4);"><button type="button" class="wpa-btn wpa-btn--primary" id="wpa-diff-run"><?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?> Compare</button></div>
+                        <div style="margin-bottom:var(--arzo-space-4);"><button type="button" class="wpa-btn wpa-btn--primary" id="wpa-diff-run"><?php wp_arzo_icon_e('search', array('class' => 'wpa-icon wpa-icon--sm')); ?> Compare</button></div>
                         <div id="wpa-diff-result" aria-live="polite"></div>
                     </div>
                 </div>
@@ -1615,10 +1615,10 @@ class WP_Arzo_Admin
             <td><?php echo esc_html($s['created_gmt'] ?? ''); ?></td>
             <td class="wpa-backup-actions">
                 <button type="button" class="wpa-btn wpa-btn--secondary wpa-btn--sm wpa-backup-restore" data-id="<?php echo esc_attr($s['id']); ?>">
-                    <?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Restore
+                    <?php wp_arzo_icon_e('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Restore
                 </button>
                 <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-backup-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snapshot">
-                    <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                    <?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                 </button>
             </td>
         </tr>
@@ -1739,12 +1739,12 @@ class WP_Arzo_Admin
         ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Email Log</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon')); ?> Email Log</h1>
                     <p class="wpa-admin__subtitle">
-                        <span class="wpa-badge wpa-badge--success"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon')); ?> <?php echo (int) $sent_count; ?> sent</span>
-                        <span class="wpa-badge wpa-badge--error" style="margin-left:6px;"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?> <?php echo (int) $failed_count; ?> failed</span>
+                        <span class="wpa-badge wpa-badge--success"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon')); ?> <?php echo (int) $sent_count; ?> sent</span>
+                        <span class="wpa-badge wpa-badge--error" style="margin-left:6px;"><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon')); ?> <?php echo (int) $failed_count; ?> failed</span>
                         <?php if ($has_tracking) : ?>
-                            <span class="wpa-badge wpa-badge--neutral" style="margin-left:6px;" title="Total opens · clicks across logged emails"><?php echo wp_arzo_icon('eye', array('class' => 'wpa-icon')); ?> <?php echo (int) $open_total; ?> · <?php echo wp_arzo_icon('external', array('class' => 'wpa-icon')); ?> <?php echo (int) $click_total; ?></span>
+                            <span class="wpa-badge wpa-badge--neutral" style="margin-left:6px;" title="Total opens · clicks across logged emails"><?php wp_arzo_icon_e('eye', array('class' => 'wpa-icon')); ?> <?php echo (int) $open_total; ?> · <?php wp_arzo_icon_e('external', array('class' => 'wpa-icon')); ?> <?php echo (int) $click_total; ?></span>
                         <?php endif; ?>
                         <?php echo $enabled ? '' : ' · logging is OFF (enable “Email Log” on the dashboard)'; ?>
                     </p>
@@ -1752,10 +1752,10 @@ class WP_Arzo_Admin
                 <?php if (!empty($log)) : ?>
                     <div style="display:flex;gap:8px;">
                         <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_email_log_export'), self::NONCE_EMAIL)); ?>">
-                            <?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
+                            <?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
                         </a>
                         <button type="button" id="wpa-email-clear" class="wpa-btn wpa-btn--danger-soft" data-nonce="<?php echo esc_attr($email_nonce); ?>">
-                            <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
+                            <?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
                         </button>
                     </div>
                 <?php endif; ?>
@@ -1781,7 +1781,7 @@ class WP_Arzo_Admin
                         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
                             <?php foreach ($by_conn as $label => $c) : ?>
                                 <span class="wpa-badge wpa-badge--neutral" title="<?php echo esc_attr(sprintf('%d sent · %d failed', $c['sent'], $c['failed'])); ?>">
-                                    <?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?>
+                                    <?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon')); ?>
                                     <?php echo esc_html($label); ?>
                                     <strong style="margin-left:4px;color:var(--arzo-success);"><?php echo (int) $c['sent']; ?></strong>
                                     <?php if ($c['failed']) : ?><strong style="margin-left:2px;color:var(--arzo-error);">/ <?php echo (int) $c['failed']; ?></strong><?php endif; ?>
@@ -1837,13 +1837,13 @@ class WP_Arzo_Admin
                     <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-label="Email details">
                         <div class="wpa-drawer__head">
                             <h2 id="wpa-emaillog-drawer-title">Email details</h2>
-                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-maillog-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-maillog-close aria-label="Close"><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon')); ?></button>
                         </div>
                         <div class="wpa-drawer__body" id="wpa-emaillog-detail"><!-- filled by JS --></div>
                         <div class="wpa-drawer__foot">
                             <button type="button" class="wpa-btn wpa-btn--ghost" data-maillog-close>Close</button>
                             <button type="button" class="wpa-btn wpa-btn--primary wpa-email-resend" id="wpa-emaillog-resend" data-id="" data-nonce="<?php echo esc_attr($email_nonce); ?>">
-                                <?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Resend
+                                <?php wp_arzo_icon_e('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Resend
                             </button>
                         </div>
                     </div>
@@ -1882,14 +1882,14 @@ class WP_Arzo_Admin
                 <td style="color:var(--arzo-text-muted);"><?php echo $conn !== '' ? esc_html($conn) : '—'; ?></td>
                 <td>
                     <span class="wpa-badge <?php echo $failed ? 'wpa-badge--error' : 'wpa-badge--success'; ?>">
-                        <?php echo wp_arzo_icon($failed ? 'x' : 'check', array('class' => 'wpa-icon')); ?>
+                        <?php wp_arzo_icon_e($failed ? 'x' : 'check', array('class' => 'wpa-icon')); ?>
                         <?php echo $failed ? 'Failed' : 'Sent'; ?>
                     </span>
                 </td>
                 <?php if ($has_tracking) : ?>
                     <td style="white-space:nowrap;color:var(--arzo-text-muted);font-size:.9em;" title="<?php echo esc_attr($opens . ' open' . ($opens === 1 ? '' : 's') . ' · ' . $clicks . ' click' . ($clicks === 1 ? '' : 's')); ?>">
-                        <span style="color:<?php echo $opens ? 'var(--arzo-success)' : 'inherit'; ?>;"><?php echo wp_arzo_icon('eye', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $opens; ?></span>
-                        <span style="margin-left:8px;color:<?php echo $clicks ? 'var(--arzo-accent)' : 'inherit'; ?>;"><?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $clicks; ?></span>
+                        <span style="color:<?php echo $opens ? 'var(--arzo-success)' : 'inherit'; ?>;"><?php wp_arzo_icon_e('eye', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $opens; ?></span>
+                        <span style="margin-left:8px;color:<?php echo $clicks ? 'var(--arzo-accent)' : 'inherit'; ?>;"><?php wp_arzo_icon_e('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo (int) $clicks; ?></span>
                     </td>
                 <?php endif; ?>
             </tr>
@@ -1996,7 +1996,7 @@ class WP_Arzo_Admin
         ?>
         <div class="wpa-admin__bar">
             <div>
-                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('route', array('class' => 'wpa-icon')); ?> Email Stats</h1>
+                <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('route', array('class' => 'wpa-icon')); ?> Email Stats</h1>
                 <p class="wpa-admin__subtitle">Per-connection volume &amp; deliverability over time — daily aggregates kept for <?php echo (int) WP_Arzo_Feature_Email_Log::STATS_DAYS; ?> days, independent of the capped log.</p>
             </div>
             <nav class="wpa-tabs" aria-label="Range" style="margin:0;">
@@ -2008,7 +2008,7 @@ class WP_Arzo_Admin
 
         <?php if ($total === 0) : ?>
             <div class="wpa-card" style="text-align:center;padding:30px 20px;">
-                <?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?>
+                <?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon')); ?>
                 <p style="margin:10px auto 0;color:var(--arzo-text-muted);max-width:480px;">No email activity in this window yet. As emails send through your connections, daily volume and deliverability will chart here.</p>
             </div>
         <?php else : ?>
@@ -2040,7 +2040,7 @@ class WP_Arzo_Admin
                             $share = $sent > 0 ? round($count / $sent * 100) : 0; ?>
                             <div>
                                 <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:4px;">
-                                    <strong><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($label); ?></strong>
+                                    <strong><?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($label); ?></strong>
                                     <span style="color:var(--arzo-text-muted);"><?php echo (int) $count; ?> · <?php echo (int) $share; ?>%</span>
                                 </div>
                                 <div class="wpa-progress" role="progressbar" aria-valuenow="<?php echo (int) $share; ?>" aria-valuemin="0" aria-valuemax="100">
@@ -2343,7 +2343,7 @@ class WP_Arzo_Admin
         ?>
         <div class="wpa-admin__bar">
             <div>
-                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon')); ?> Retry Queue</h1>
+                <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('refresh', array('class' => 'wpa-icon')); ?> Retry Queue</h1>
                 <p class="wpa-admin__subtitle">
                     <?php if (empty($items)) : ?>
                         Messages that every connection failed to send are queued here and re-tried automatically (5m → 15m → 1h → 6h, up to 4 tries).
@@ -2355,16 +2355,16 @@ class WP_Arzo_Admin
             <?php if (!empty($items)) : ?>
                 <div style="display:flex;gap:8px;align-items:center;">
                     <?php if ($pending > 0) : ?>
-                        <button type="button" id="wpa-eq-retry-all" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Retry all now</button>
+                        <button type="button" id="wpa-eq-retry-all" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php wp_arzo_icon_e('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Retry all now</button>
                     <?php endif; ?>
-                    <button type="button" id="wpa-eq-clear" class="wpa-btn wpa-btn--danger-soft" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear queue</button>
+                    <button type="button" id="wpa-eq-clear" class="wpa-btn wpa-btn--danger-soft" data-nonce="<?php echo esc_attr($nonce); ?>"><?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear queue</button>
                 </div>
             <?php endif; ?>
         </div>
 
         <?php if (empty($items)) : ?>
             <div class="wpa-card" style="text-align:center;padding:40px;">
-                <?php echo wp_arzo_icon('check-circle', array('class' => 'wpa-icon wpa-icon--xl', 'style' => 'color:var(--arzo-accent)')); ?>
+                <?php wp_arzo_icon_e('check-circle', array('class' => 'wpa-icon wpa-icon--xl', 'style' => 'color:var(--arzo-accent)')); ?>
                 <p style="margin:12px 0 0;color:var(--arzo-text-secondary);">The queue is empty — every email has gone out.</p>
             </div>
         <?php else : ?>
@@ -2385,8 +2385,8 @@ class WP_Arzo_Admin
                         <td><?php echo $is_failed ? '—' : esc_html($it['next_gmt']); ?></td>
                         <td style="max-width:280px;"><span style="color:var(--arzo-text-secondary);font-size:var(--arzo-fs-sm);"><?php echo esc_html($it['last_error']); ?></span></td>
                         <td class="wpa-backup-actions" style="white-space:nowrap;">
-                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-eq-retry" data-id="<?php echo esc_attr($it['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Retry</button>
-                            <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-btn--sm wpa-eq-del" data-id="<?php echo esc_attr($it['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>" aria-label="Delete from queue"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                            <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-eq-retry" data-id="<?php echo esc_attr($it['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>"><?php wp_arzo_icon_e('refresh', array('class' => 'wpa-icon wpa-icon--sm')); ?> Retry</button>
+                            <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-btn--sm wpa-eq-del" data-id="<?php echo esc_attr($it['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>" aria-label="Delete from queue"><?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -2481,12 +2481,12 @@ class WP_Arzo_Admin
         ?>
         <div class="wpa-admin__bar">
             <div>
-                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('settings', array('class' => 'wpa-icon')); ?> Email settings</h1>
+                <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('settings', array('class' => 'wpa-icon')); ?> Email settings</h1>
                 <p class="wpa-admin__subtitle">Delivery is configured under <strong>Connections</strong>; these are the failure alerts.</p>
             </div>
         </div>
         <?php if ($saved) : ?>
-            <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Settings saved.</div>
+            <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Settings saved.</div>
         <?php endif; ?>
         <form method="post" class="wpa-card">
             <?php wp_nonce_field(self::NONCE_SETTINGS, 'wp_arzo_settings_nonce'); ?>
@@ -2494,7 +2494,7 @@ class WP_Arzo_Admin
                 $this->render_field($feature, $field);
             } ?>
             <div style="margin-top:20px;">
-                <button type="submit" name="wp_arzo_save_settings" class="wpa-btn wpa-btn--primary"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save settings</button>
+                <button type="submit" name="wp_arzo_save_settings" class="wpa-btn wpa-btn--primary"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save settings</button>
             </div>
         </form>
         <?php
@@ -2534,10 +2534,10 @@ class WP_Arzo_Admin
         ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?> Connections</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon')); ?> Connections</h1>
                     <p class="wpa-admin__subtitle"><strong><?php echo count($connections); ?></strong> connection(s)<?php echo $enabled ? '' : ' · the “Email Delivery” feature is OFF, so nothing is routed (enable it on the dashboard)'; ?></p>
                 </div>
-                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-add"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add connection</button>
+                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-add"><?php wp_arzo_icon_e('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add connection</button>
             </div>
 
             <?php if (empty($connections)) : ?>
@@ -2555,14 +2555,14 @@ class WP_Arzo_Admin
                         <!-- Step 1: choose a provider -->
                         <section data-step="provider">
                             <div class="wpa-ewiz__center" style="margin-bottom:22px;">
-                                <span class="wpa-ewiz__hero"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?></span>
+                                <span class="wpa-ewiz__hero"><?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon')); ?></span>
                                 <h2 style="margin:0 0 6px;">Connect your first email provider</h2>
                                 <p style="color:var(--arzo-text-muted);margin:0;">Route WordPress email through a reliable provider — Gmail, Outlook, Amazon SES, SendGrid and more. Pick one to get started; you can add fallbacks later.</p>
                             </div>
                             <div class="wpa-provider-grid" style="padding:0;">
                                 <?php foreach ($providers as $key => $def) : ?>
                                     <button type="button" class="wpa-provider-card wpa-ewiz-provider" data-provider="<?php echo esc_attr($key); ?>">
-                                        <span class="wpa-provider-card__icon"><?php echo wp_arzo_icon($def['icon'], array('class' => 'wpa-icon')); ?></span>
+                                        <span class="wpa-provider-card__icon"><?php wp_arzo_icon_e($def['icon'], array('class' => 'wpa-icon')); ?></span>
                                         <span class="wpa-provider-card__name"><?php echo esc_html($def['label']); ?></span>
                                         <?php if (!empty($def['badge'])) : ?><span class="wpa-badge wpa-badge--<?php echo $def['badge'] === 'Recommended' ? 'success' : 'neutral'; ?> wpa-provider-card__badge"><?php echo esc_html($def['badge']); ?></span><?php endif; ?>
                                     </button>
@@ -2577,14 +2577,14 @@ class WP_Arzo_Admin
                             <form class="wpa-ewiz__form" id="wpa-ewiz-form"><!-- fields injected by JS --></form>
                             <div class="wpa-ewiz__foot">
                                 <button type="button" class="wpa-btn wpa-btn--ghost" data-ewiz-back>Back</button>
-                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-save"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save &amp; continue</button>
+                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-save"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save &amp; continue</button>
                             </div>
                         </section>
 
                         <!-- Step 3: send a test -->
                         <section data-step="test" hidden>
                             <div class="wpa-ewiz__center">
-                                <span class="wpa-ewiz__hero"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon')); ?></span>
+                                <span class="wpa-ewiz__hero"><?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon')); ?></span>
                                 <h2 style="margin:0 0 6px;">Send a test email</h2>
                                 <p style="color:var(--arzo-text-muted);margin:0 0 18px;">Confirm the connection works by sending a test message.</p>
                                 <div class="wpa-field" style="text-align:left;max-width:360px;margin:0 auto;">
@@ -2595,17 +2595,17 @@ class WP_Arzo_Admin
                             </div>
                             <div class="wpa-ewiz__foot">
                                 <button type="button" class="wpa-btn wpa-btn--ghost" data-ewiz-skip-test>Skip</button>
-                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-test-btn"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> Send test</button>
+                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-test-btn"><?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> Send test</button>
                             </div>
                         </section>
 
                         <!-- Step 4: done -->
                         <section data-step="done" hidden>
                             <div class="wpa-ewiz__center">
-                                <span class="wpa-ewiz__hero" style="background:var(--arzo-success-soft);color:var(--arzo-success);"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon')); ?></span>
+                                <span class="wpa-ewiz__hero" style="background:var(--arzo-success-soft);color:var(--arzo-success);"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon')); ?></span>
                                 <h2 style="margin:0 0 6px;">You're all set</h2>
                                 <p style="color:var(--arzo-text-muted);margin:0 0 20px;">Your first connection is live and now sends your site's email. Add more providers to build an automatic fallback chain.</p>
-                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-finish"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> View connections</button>
+                                <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-ewiz-finish"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> View connections</button>
                             </div>
                         </section>
                     </div>
@@ -2619,24 +2619,24 @@ class WP_Arzo_Admin
                                 $pdef = isset($providers[$c['provider']]) ? $providers[$c['provider']] : array('label' => $c['provider'], 'icon' => 'mail');
                                 ?>
                                 <tr data-conn="<?php echo esc_attr($c['id']); ?>">
-                                    <td style="width:34px;color:var(--arzo-accent);"><?php echo wp_arzo_icon($pdef['icon'], array('class' => 'wpa-icon')); ?></td>
+                                    <td style="width:34px;color:var(--arzo-accent);"><?php wp_arzo_icon_e($pdef['icon'], array('class' => 'wpa-icon')); ?></td>
                                     <td><strong style="color:var(--arzo-text-strong);"><?php echo esc_html($c['title']); ?></strong></td>
                                     <td><?php echo esc_html($pdef['label']); ?></td>
                                     <td style="color:var(--arzo-text-muted);"><?php echo esc_html(!empty($c['from_email']) ? $c['from_email'] : '—'); ?></td>
                                     <td>
                                         <?php if ($i === 0) : ?>
-                                            <span class="wpa-badge wpa-badge--success"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon')); ?> Primary</span>
+                                            <span class="wpa-badge wpa-badge--success"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon')); ?> Primary</span>
                                         <?php else : ?>
                                             <span class="wpa-badge wpa-badge--neutral">Fallback <?php echo (int) $i; ?></span>
                                         <?php endif; ?>
                                     </td>
                                     <td class="wpa-backup-actions" style="white-space:nowrap;">
-                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-test" data-id="<?php echo esc_attr($c['id']); ?>"><?php echo wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> Test</button>
+                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-test" data-id="<?php echo esc_attr($c['id']); ?>"><?php wp_arzo_icon_e('mail', array('class' => 'wpa-icon wpa-icon--sm')); ?> Test</button>
                                         <?php if ($i !== 0) : ?>
                                             <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-primary" data-id="<?php echo esc_attr($c['id']); ?>">Make primary</button>
                                         <?php endif; ?>
-                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-edit" data-id="<?php echo esc_attr($c['id']); ?>"><?php echo wp_arzo_icon('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
-                                        <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-conn-delete" data-id="<?php echo esc_attr($c['id']); ?>" aria-label="Delete connection"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-conn-edit" data-id="<?php echo esc_attr($c['id']); ?>"><?php wp_arzo_icon_e('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                        <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-conn-delete" data-id="<?php echo esc_attr($c['id']); ?>" aria-label="Delete connection"><?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -2652,12 +2652,12 @@ class WP_Arzo_Admin
                 <div class="wpa-modal__panel" role="dialog" aria-modal="true" aria-label="Choose an email provider">
                     <div class="wpa-modal__head">
                         <h2>Choose a provider</h2>
-                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-conn-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-conn-close aria-label="Close"><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon')); ?></button>
                     </div>
                     <div class="wpa-provider-grid">
                         <?php foreach ($providers as $key => $def) : ?>
                             <button type="button" class="wpa-provider-card" data-provider="<?php echo esc_attr($key); ?>">
-                                <span class="wpa-provider-card__icon"><?php echo wp_arzo_icon($def['icon'], array('class' => 'wpa-icon')); ?></span>
+                                <span class="wpa-provider-card__icon"><?php wp_arzo_icon_e($def['icon'], array('class' => 'wpa-icon')); ?></span>
                                 <span class="wpa-provider-card__name"><?php echo esc_html($def['label']); ?></span>
                                 <?php if (!empty($def['badge'])) : ?><span class="wpa-badge wpa-badge--<?php echo $def['badge'] === 'Recommended' ? 'success' : 'neutral'; ?> wpa-provider-card__badge"><?php echo esc_html($def['badge']); ?></span><?php endif; ?>
                             </button>
@@ -2672,12 +2672,12 @@ class WP_Arzo_Admin
                 <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-label="Configure connection">
                     <div class="wpa-drawer__head">
                         <h2 id="wpa-conn-drawer-title">Configure</h2>
-                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-conn-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                        <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-conn-close aria-label="Close"><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon')); ?></button>
                     </div>
                     <form class="wpa-drawer__body" id="wpa-conn-form"><!-- fields injected here --></form>
                     <div class="wpa-drawer__foot">
                         <button type="button" class="wpa-btn wpa-btn--ghost" data-conn-back>Back</button>
-                        <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-save"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save connection</button>
+                        <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-conn-save"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save connection</button>
                     </div>
                 </div>
             </div>
@@ -2840,19 +2840,19 @@ class WP_Arzo_Admin
             <?php $this->render_shell_open('login_security'); ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?> Login Security</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('shield', array('class' => 'wpa-icon')); ?> Login Security</h1>
                     <p class="wpa-admin__subtitle"><strong><?php echo count($lockouts); ?></strong> active lockout(s)<?php echo $enabled ? '' : ' · “Limit Login Attempts” is OFF (enable it on the dashboard)'; ?></p>
                 </div>
                 <?php if (!empty($lockouts)) : ?>
                     <form method="post" onsubmit="return confirm('Lift all active lockouts?');">
                         <?php wp_nonce_field(self::NONCE_LOGIN_SECURITY, 'wp_arzo_ls_nonce'); ?>
                         <input type="hidden" name="ls_action" value="clear_all">
-                        <button type="submit" class="wpa-btn wpa-btn--ghost"><?php echo wp_arzo_icon('unlock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock all</button>
+                        <button type="submit" class="wpa-btn wpa-btn--ghost"><?php wp_arzo_icon_e('unlock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock all</button>
                     </form>
                 <?php endif; ?>
             </div>
             <?php if ($notice) : ?>
-                <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($notice); ?></div>
+                <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($notice); ?></div>
             <?php endif; ?>
 
             <div class="wpa-card" style="padding:0;overflow:hidden;">
@@ -2874,7 +2874,7 @@ class WP_Arzo_Admin
                                         <?php wp_nonce_field(self::NONCE_LOGIN_SECURITY, 'wp_arzo_ls_nonce'); ?>
                                         <input type="hidden" name="ls_action" value="unlock">
                                         <input type="hidden" name="hash" value="<?php echo esc_attr($l['hash']); ?>">
-                                        <button type="submit" class="wpa-btn wpa-btn--ghost wpa-btn--sm"><?php echo wp_arzo_icon('unlock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</button>
+                                        <button type="submit" class="wpa-btn wpa-btn--ghost wpa-btn--sm"><?php wp_arzo_icon_e('unlock', array('class' => 'wpa-icon wpa-icon--sm')); ?> Unlock</button>
                                     </form>
                                 </td>
                             </tr>
@@ -2999,7 +2999,7 @@ class WP_Arzo_Admin
         ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('users', array('class' => 'wpa-icon')); ?> Live Sessions</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('users', array('class' => 'wpa-icon')); ?> Live Sessions</h1>
                     <p class="wpa-admin__subtitle">
                         <span class="wpa-badge wpa-badge--info"><?php echo (int) $active; ?> active</span>
                         across <?php echo (int) count($users); ?> user<?php echo count($users) === 1 ? '' : 's'; ?> · terminate a session to force that device to sign out
@@ -3033,9 +3033,9 @@ class WP_Arzo_Admin
                                 <td><span title="<?php echo esc_attr($s['ua']); ?>"><?php echo esc_html($client); ?></span></td>
                                 <td style="text-align:right;">
                                     <?php if ($s['is_current']) : ?>
-                                        <button type="button" class="wpa-btn wpa-btn--icon" disabled aria-label="Your current session cannot be terminated" title="Your current session"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                        <button type="button" class="wpa-btn wpa-btn--icon" disabled aria-label="Your current session cannot be terminated" title="Your current session"><?php wp_arzo_icon_e('lock', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                                     <?php else : ?>
-                                        <button type="button" class="wpa-btn wpa-btn--icon wpa-btn--danger-soft wpa-session-kill" aria-label="Terminate this session" title="Terminate session"><?php echo wp_arzo_icon('x-circle', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                        <button type="button" class="wpa-btn wpa-btn--icon wpa-btn--danger-soft wpa-session-kill" aria-label="Terminate this session" title="Terminate session"><?php wp_arzo_icon_e('x-circle', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -3133,7 +3133,7 @@ class WP_Arzo_Admin
         ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?> Activity Log</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('shield', array('class' => 'wpa-icon')); ?> Activity Log</h1>
                     <p class="wpa-admin__subtitle">
                         <span class="wpa-badge wpa-badge--info"><?php echo (int) $stats['total']; ?> recorded</span>
                         <?php echo $enabled ? '' : ' · logging is OFF (enable “Activity Log” on the dashboard)'; ?>
@@ -3142,10 +3142,10 @@ class WP_Arzo_Admin
                 <?php if (!empty($log)) : ?>
                     <div style="display:flex;gap:8px;align-items:center;">
                         <a class="wpa-btn wpa-btn--ghost" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_activity_export'), self::NONCE_ACTIVITY)); ?>">
-                            <?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
+                            <?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV
                         </a>
                         <button type="button" id="wpa-activity-clear" class="wpa-btn wpa-btn--danger-soft" data-nonce="<?php echo esc_attr($nonce); ?>">
-                            <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
+                            <?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Clear log
                         </button>
                     </div>
                 <?php endif; ?>
@@ -3155,7 +3155,7 @@ class WP_Arzo_Admin
                 <?php foreach ($tiles as $t) : ?>
                     <div style="display:flex;align-items:center;gap:var(--arzo-space-3,12px);">
                         <span class="wpa-badge wpa-badge--<?php echo esc_attr($t[0]); ?>" style="width:2.25rem;height:2.25rem;padding:0;justify-content:center;border-radius:var(--arzo-radius,10px);flex:0 0 auto;">
-                            <?php echo wp_arzo_icon($t[1], array('class' => 'wpa-icon')); ?>
+                            <?php wp_arzo_icon_e($t[1], array('class' => 'wpa-icon')); ?>
                         </span>
                         <span style="display:flex;flex-direction:column;line-height:1.2;">
                             <strong style="font-size:1.4rem;"><?php echo (int) $t[2]; ?></strong>
@@ -3190,7 +3190,7 @@ class WP_Arzo_Admin
                     <input class="wpa-input" type="search" id="wpa-act-q" placeholder="detail, user or IP…" autocomplete="off">
                 </div>
                 <div style="display:flex;gap:var(--arzo-space-2,8px);">
-                    <button type="button" id="wpa-act-reset" class="wpa-btn wpa-btn--ghost wpa-btn--sm" aria-label="Clear all filters" hidden><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')); ?> Reset</button>
+                    <button type="button" id="wpa-act-reset" class="wpa-btn wpa-btn--ghost wpa-btn--sm" aria-label="Clear all filters" hidden><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon wpa-icon--sm')); ?> Reset</button>
                 </div>
             </div>
             <?php endif; ?>
@@ -3249,10 +3249,10 @@ class WP_Arzo_Admin
             ?>
             <tr data-action="<?php echo esc_attr($a); ?>" data-sev="<?php echo esc_attr($sevkey); ?>" data-search="<?php echo esc_attr($search); ?>">
                 <td style="white-space:nowrap;"><?php echo esc_html(gmdate('Y-m-d H:i:s', (int) ($row['t'] ?? 0))); ?></td>
-                <td><span class="wpa-badge wpa-badge--<?php echo esc_attr($sm[1]); ?>"><?php echo wp_arzo_icon($sm[2], array('class' => 'wpa-icon')); ?> <?php echo esc_html($sm[0]); ?></span></td>
+                <td><span class="wpa-badge wpa-badge--<?php echo esc_attr($sm[1]); ?>"><?php wp_arzo_icon_e($sm[2], array('class' => 'wpa-icon')); ?> <?php echo esc_html($sm[0]); ?></span></td>
                 <td>
                     <span class="wpa-badge wpa-badge--<?php echo esc_attr($meta[1]); ?>">
-                        <?php echo wp_arzo_icon($meta[2], array('class' => 'wpa-icon')); ?>
+                        <?php wp_arzo_icon_e($meta[2], array('class' => 'wpa-icon')); ?>
                         <?php echo esc_html($meta[0]); ?>
                     </span>
                 </td>
@@ -3508,7 +3508,7 @@ class WP_Arzo_Admin
         ob_start();
         ?>
         <div class="wpa-card" style="padding:0;overflow:hidden;">
-            <div style="padding:var(--arzo-space-3,12px) var(--arzo-space-4,16px);font-weight:600;"><?php echo wp_arzo_icon($icon, array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($title); ?></div>
+            <div style="padding:var(--arzo-space-3,12px) var(--arzo-space-4,16px);font-weight:600;"><?php wp_arzo_icon_e($icon, array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($title); ?></div>
             <table class="wpa-backup-table">
                 <thead><tr><th><?php echo esc_html($labelType === 'country' ? 'Country' : 'Name'); ?></th><th style="text-align:right;">Views</th><th style="text-align:right;">Visitors</th></tr></thead>
                 <tbody>
@@ -3592,7 +3592,7 @@ class WP_Arzo_Admin
         ob_start();
         ?>
         <div class="wpa-card" style="margin-bottom:var(--arzo-space-4,16px);display:flex;gap:var(--arzo-space-3,12px);align-items:flex-start;">
-            <?php echo wp_arzo_icon('info', array('class' => 'wpa-icon', 'style' => 'flex:0 0 auto;color:var(--arzo-accent);')); ?>
+            <?php wp_arzo_icon_e('info', array('class' => 'wpa-icon', 'style' => 'flex:0 0 auto;color:var(--arzo-accent);')); ?>
             <p style="margin:0;color:var(--arzo-text-muted);">Insert Google’s tags without another plugin. These forward data to Google and work alongside — or instead of — the built-in cookieless engine. <em>GA4 report data inside this dashboard, Consent Mode, and server-side GTM arrive with WP Arzo Pro.</em></p>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--arzo-space-4,16px);">
@@ -3608,7 +3608,7 @@ class WP_Arzo_Admin
                 ?>
                 <div class="wpa-card">
                     <div style="display:flex;align-items:center;gap:var(--arzo-space-3,12px);margin-bottom:var(--arzo-space-3,12px);">
-                        <span class="wpa-badge wpa-badge--info" style="width:2.25rem;height:2.25rem;padding:0;justify-content:center;border-radius:var(--arzo-radius,10px);flex:0 0 auto;"><?php echo wp_arzo_icon($meta['icon'], array('class' => 'wpa-icon')); ?></span>
+                        <span class="wpa-badge wpa-badge--info" style="width:2.25rem;height:2.25rem;padding:0;justify-content:center;border-radius:var(--arzo-radius,10px);flex:0 0 auto;"><?php wp_arzo_icon_e($meta['icon'], array('class' => 'wpa-icon')); ?></span>
                         <div>
                             <strong style="display:block;"><?php echo esc_html($feature->title()); ?></strong>
                             <span class="wpa-badge wpa-badge--<?php echo $enabled ? 'success' : 'neutral'; ?>"><?php echo $enabled ? 'Enabled' : 'Disabled'; ?></span>
@@ -3621,7 +3621,7 @@ class WP_Arzo_Admin
                     <?php if ($enabled && $configured) : ?>
                         <p style="margin:0 0 var(--arzo-space-3,12px);"><code><?php echo esc_html($value); ?></code></p>
                     <?php endif; ?>
-                    <a class="wpa-btn wpa-btn--secondary wpa-btn--sm" href="<?php echo esc_url($config_url); ?>"><?php echo wp_arzo_icon('settings', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo $enabled ? 'Configure' : 'Enable & configure'; ?></a>
+                    <a class="wpa-btn wpa-btn--secondary wpa-btn--sm" href="<?php echo esc_url($config_url); ?>"><?php wp_arzo_icon_e('settings', array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo $enabled ? 'Configure' : 'Enable & configure'; ?></a>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -3642,7 +3642,7 @@ class WP_Arzo_Admin
         if ((int) $o['views'] === 0) {
             ?>
             <div class="wpa-card" style="text-align:center;padding:var(--arzo-space-6,32px);">
-                <?php echo wp_arzo_icon('chart', array('class' => 'wpa-icon', 'style' => 'width:2.5rem;height:2.5rem;color:var(--arzo-text-muted);')); ?>
+                <?php wp_arzo_icon_e('chart', array('class' => 'wpa-icon', 'style' => 'width:2.5rem;height:2.5rem;color:var(--arzo-text-muted);')); ?>
                 <h2 style="margin:.5rem 0;">No visits recorded in this range yet</h2>
                 <p style="color:var(--arzo-text-muted);max-width:44ch;margin:0 auto;">Analytics records new visits as they happen — cookieless, in your own database. Logged-in admins aren’t counted by default (change that in the feature’s settings). Open your site in a private window to generate a test hit.</p>
             </div>
@@ -3663,7 +3663,7 @@ class WP_Arzo_Admin
             <?php foreach ($tiles as $t) : ?>
                 <div style="display:flex;align-items:center;gap:var(--arzo-space-3,12px);">
                     <span class="wpa-badge wpa-badge--info" style="width:2.25rem;height:2.25rem;padding:0;justify-content:center;border-radius:var(--arzo-radius,10px);flex:0 0 auto;">
-                        <?php echo wp_arzo_icon($t[2], array('class' => 'wpa-icon')); ?>
+                        <?php wp_arzo_icon_e($t[2], array('class' => 'wpa-icon')); ?>
                     </span>
                     <span style="display:flex;flex-direction:column;line-height:1.2;">
                         <strong style="font-size:1.4rem;"><?php echo esc_html($t[1]); ?></strong>
@@ -3677,7 +3677,7 @@ class WP_Arzo_Admin
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--arzo-space-4,16px);">
             <div class="wpa-card" style="padding:0;overflow:hidden;">
-                <div style="padding:var(--arzo-space-3,12px) var(--arzo-space-4,16px);font-weight:600;"><?php echo wp_arzo_icon('file', array('class' => 'wpa-icon wpa-icon--sm')); ?> Top pages</div>
+                <div style="padding:var(--arzo-space-3,12px) var(--arzo-space-4,16px);font-weight:600;"><?php wp_arzo_icon_e('file', array('class' => 'wpa-icon wpa-icon--sm')); ?> Top pages</div>
                 <table class="wpa-backup-table">
                     <thead><tr><th>Page</th><th style="text-align:right;">Views</th><th style="text-align:right;">Visitors</th></tr></thead>
                     <tbody>
@@ -3694,7 +3694,7 @@ class WP_Arzo_Admin
                 </table>
             </div>
             <div class="wpa-card" style="padding:0;overflow:hidden;">
-                <div style="padding:var(--arzo-space-3,12px) var(--arzo-space-4,16px);font-weight:600;"><?php echo wp_arzo_icon('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> Top referrers</div>
+                <div style="padding:var(--arzo-space-3,12px) var(--arzo-space-4,16px);font-weight:600;"><?php wp_arzo_icon_e('external', array('class' => 'wpa-icon wpa-icon--sm')); ?> Top referrers</div>
                 <table class="wpa-backup-table">
                     <thead><tr><th>Source</th><th style="text-align:right;">Views</th><th style="text-align:right;">Visitors</th></tr></thead>
                     <tbody>
@@ -3739,7 +3739,7 @@ class WP_Arzo_Admin
         ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('chart', array('class' => 'wpa-icon')); ?> Analytics</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('chart', array('class' => 'wpa-icon')); ?> Analytics</h1>
                     <p class="wpa-admin__subtitle">Cookieless, first-party traffic — recorded in your own database, no external services.</p>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:var(--arzo-space-2,8px);align-items:flex-end;">
@@ -3749,10 +3749,10 @@ class WP_Arzo_Admin
                                 <a class="wpa-tab<?php echo $key === $range ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo $key === $range ? 'true' : 'false'; ?>" href="<?php echo esc_url(add_query_arg(array('view' => $tab, 'range' => $key), $base)); ?>" data-range="<?php echo esc_attr($key); ?>"><span><?php echo esc_html($label); ?></span></a>
                             <?php endforeach; ?>
                         </nav>
-                        <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-an-export" href="<?php echo esc_url(add_query_arg(array('view' => $tab, 'range' => $range), $export_base)); ?>" data-base="<?php echo esc_url($export_base); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV</a>
+                        <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-an-export" href="<?php echo esc_url(add_query_arg(array('view' => $tab, 'range' => $range), $export_base)); ?>" data-base="<?php echo esc_url($export_base); ?>"><?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export CSV</a>
                     </div>
                     <p style="margin:0;display:flex;align-items:center;gap:var(--arzo-space-2,6px);color:var(--arzo-text-muted);font-size:var(--arzo-fs-sm,.8rem);">
-                        <?php echo wp_arzo_icon('clock', array('class' => 'wpa-icon wpa-icon--sm', 'style' => 'color:var(--arzo-text-muted);')); ?>
+                        <?php wp_arzo_icon_e('clock', array('class' => 'wpa-icon wpa-icon--sm', 'style' => 'color:var(--arzo-text-muted);')); ?>
                         <span>Showing <strong style="color:var(--arzo-text-secondary);font-weight:600;" id="wpa-an-span"><?php echo esc_html($this->analytics_range_label($from, $to)); ?></strong></span>
                     </p>
                 </div>
@@ -3761,7 +3761,7 @@ class WP_Arzo_Admin
             <div class="wpa-vnav-layout">
                 <nav class="wpa-vnav" role="tablist" aria-orientation="vertical" aria-label="Reports" id="wpa-an-views" data-nonce="<?php echo esc_attr($nonce); ?>">
                     <?php foreach ($tabs as $key => $t) : ?>
-                        <a class="wpa-tab<?php echo $key === $tab ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo $key === $tab ? 'true' : 'false'; ?>" href="<?php echo esc_url(add_query_arg(array('view' => $key, 'range' => $range), $base)); ?>" data-view="<?php echo esc_attr($key); ?>"><?php echo wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')); ?><span><?php echo esc_html($t['label']); ?></span></a>
+                        <a class="wpa-tab<?php echo $key === $tab ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo $key === $tab ? 'true' : 'false'; ?>" href="<?php echo esc_url(add_query_arg(array('view' => $key, 'range' => $range), $base)); ?>" data-view="<?php echo esc_attr($key); ?>"><?php wp_arzo_icon_e($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')); ?><span><?php echo esc_html($t['label']); ?></span></a>
                     <?php endforeach; ?>
                 </nav>
 
@@ -3988,12 +3988,12 @@ class WP_Arzo_Admin
         ?>
         <div class="wpa-admin__bar">
             <div>
-                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon')); ?> Code Snippets</h1>
+                <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('code', array('class' => 'wpa-icon')); ?> Code Snippets</h1>
                 <p class="wpa-admin__subtitle"><strong><?php echo count($snippets); ?></strong> snippet(s)<?php echo $enabled ? '' : ' · the “Code Snippets” feature is OFF, so nothing runs (enable it on the dashboard)'; ?></p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-                <button type="button" class="wpa-btn wpa-btn--ghost" id="wpa-snip-io-open" aria-haspopup="dialog"><?php echo wp_arzo_icon('exchange', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import / Export</button>
-                <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url($base); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> New snippet</a>
+                <button type="button" class="wpa-btn wpa-btn--ghost" id="wpa-snip-io-open" aria-haspopup="dialog"><?php wp_arzo_icon_e('exchange', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import / Export</button>
+                <a class="wpa-btn wpa-btn--primary" href="<?php echo esc_url($base); ?>"><?php wp_arzo_icon_e('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> New snippet</a>
             </div>
         </div>
 
@@ -4002,13 +4002,13 @@ class WP_Arzo_Admin
             <div class="wpa-drawer__backdrop" data-snip-close></div>
             <div class="wpa-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="wpa-snip-io-title">
                 <div class="wpa-drawer__head">
-                    <h2 id="wpa-snip-io-title"><?php echo wp_arzo_icon('exchange', array('class' => 'wpa-icon')); ?> <span>Import / Export snippets</span></h2>
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-snip-close aria-label="Close"><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon')); ?></button>
+                    <h2 id="wpa-snip-io-title"><?php wp_arzo_icon_e('exchange', array('class' => 'wpa-icon')); ?> <span>Import / Export snippets</span></h2>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon" data-snip-close aria-label="Close"><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon')); ?></button>
                 </div>
                 <div class="wpa-snip-io__tabs">
                     <nav class="wpa-tabs" role="tablist" aria-label="Import or export snippets">
-                        <button type="button" class="wpa-tab is-active" role="tab" id="wpa-snip-tab-export" aria-controls="wpa-snip-panel-export" aria-selected="true" data-snip-tab="export"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</button>
-                        <button type="button" class="wpa-tab" role="tab" id="wpa-snip-tab-import" aria-controls="wpa-snip-panel-import" aria-selected="false" tabindex="-1" data-snip-tab="import"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</button>
+                        <button type="button" class="wpa-tab is-active" role="tab" id="wpa-snip-tab-export" aria-controls="wpa-snip-panel-export" aria-selected="true" data-snip-tab="export"><?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</button>
+                        <button type="button" class="wpa-tab" role="tab" id="wpa-snip-tab-import" aria-controls="wpa-snip-panel-import" aria-selected="false" tabindex="-1" data-snip-tab="import"><?php wp_arzo_icon_e('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</button>
                     </nav>
                 </div>
                 <div class="wpa-drawer__body">
@@ -4045,7 +4045,7 @@ class WP_Arzo_Admin
                             <input type="hidden" name="action" value="wp_arzo_snippets_import">
                             <?php wp_nonce_field('wp_arzo_snippets_import'); ?>
                             <label class="wpa-dropzone" id="wpa-snip-drop">
-                                <?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon')); ?>
+                                <?php wp_arzo_icon_e('upload', array('class' => 'wpa-icon')); ?>
                                 <span class="wpa-dropzone__text"><strong>Choose a .json file</strong><span>or drag &amp; drop it here</span></span>
                                 <span class="wpa-dropzone__file" id="wpa-snip-file" hidden></span>
                                 <input type="file" name="snippets_file" accept="application/json,.json" required id="wpa-snip-fileinput">
@@ -4054,11 +4054,11 @@ class WP_Arzo_Admin
                     </section>
                 </div>
                 <div class="wpa-drawer__foot">
-                    <button type="button" class="wpa-btn wpa-btn--ghost" data-snip-close><?php echo wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')); ?> Cancel</button>
+                    <button type="button" class="wpa-btn wpa-btn--ghost" data-snip-close><?php wp_arzo_icon_e('x', array('class' => 'wpa-icon wpa-icon--sm')); ?> Cancel</button>
                     <?php if (!empty($snippets)) : ?>
-                        <button type="submit" form="wpa-snip-export-form" class="wpa-btn wpa-btn--primary" id="wpa-snip-export-btn" data-snip-foot="export"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export <span id="wpa-snip-export-n"><?php echo (int) count($snippets); ?></span></button>
+                        <button type="submit" form="wpa-snip-export-form" class="wpa-btn wpa-btn--primary" id="wpa-snip-export-btn" data-snip-foot="export"><?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export <span id="wpa-snip-export-n"><?php echo (int) count($snippets); ?></span></button>
                     <?php endif; ?>
-                    <button type="submit" form="wpa-snip-import-form" class="wpa-btn wpa-btn--primary" id="wpa-snip-import-btn" data-snip-foot="import" disabled hidden><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</button>
+                    <button type="submit" form="wpa-snip-import-form" class="wpa-btn wpa-btn--primary" id="wpa-snip-import-btn" data-snip-foot="import" disabled hidden><?php wp_arzo_icon_e('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</button>
                 </div>
             </div>
         </div>
@@ -4167,7 +4167,7 @@ class WP_Arzo_Admin
             })();
         </script>
         <?php if ($saved) : ?>
-            <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Snippet saved.</div>
+            <div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Snippet saved.</div>
         <?php endif; ?>
         <?php
         if (isset($_GET['import'])) {
@@ -4194,7 +4194,7 @@ class WP_Arzo_Admin
                         <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
                         <span class="wpa-toggle__label">Active</span>
                     </label>
-                    <button type="submit" name="wp_arzo_save_snippet" class="wpa-btn wpa-btn--primary"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save</button>
+                    <button type="submit" name="wp_arzo_save_snippet" class="wpa-btn wpa-btn--primary"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save</button>
                 </div>
 
                 <div class="wpa-code-app__meta">
@@ -4226,10 +4226,10 @@ class WP_Arzo_Admin
 
                 <?php if ($current['id'] !== '') : $sc = '[' . WP_Arzo_Snippets::SHORTCODE_TAG . ' id="' . $current['id'] . '"]'; ?>
                     <div class="wpa-snip-shortcode">
-                        <label class="wpa-field__label" for="wpa-snip-sc"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> Shortcode</label>
+                        <label class="wpa-field__label" for="wpa-snip-sc"><?php wp_arzo_icon_e('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> Shortcode</label>
                         <div class="wpa-snip-shortcode__row">
                             <input type="text" class="wpa-input" id="wpa-snip-sc" readonly value="<?php echo esc_attr($sc); ?>" onclick="this.select();" aria-describedby="wpa-snip-sc-help">
-                            <button type="button" class="wpa-btn wpa-btn--secondary" id="wpa-snip-sc-copy" aria-label="Copy shortcode"><?php echo wp_arzo_icon('copy', array('class' => 'wpa-icon wpa-icon--sm')); ?> <span>Copy</span></button>
+                            <button type="button" class="wpa-btn wpa-btn--secondary" id="wpa-snip-sc-copy" aria-label="Copy shortcode"><?php wp_arzo_icon_e('copy', array('class' => 'wpa-icon wpa-icon--sm')); ?> <span>Copy</span></button>
                         </div>
                         <p class="wpa-field__help" id="wpa-snip-sc-help">Place this in any post, page, or widget to output this snippet. Set <strong>Run on → Shortcode only</strong> for a snippet that should render <em>only</em> where placed.</p>
                     </div>
@@ -4247,7 +4247,7 @@ class WP_Arzo_Admin
                 <?php endif; ?>
 
                 <?php if (!empty($current['last_error'])) : ?>
-                    <div class="wpa-toast wpa-toast--error" style="position:static;margin:0 0 10px;display:inline-flex;"><?php echo wp_arzo_icon('alert', array('class' => 'wpa-icon wpa-icon--sm')); ?> Auto-disabled after an error: <?php echo esc_html($current['last_error']); ?></div>
+                    <div class="wpa-toast wpa-toast--error" style="position:static;margin:0 0 10px;display:inline-flex;"><?php wp_arzo_icon_e('alert', array('class' => 'wpa-icon wpa-icon--sm')); ?> Auto-disabled after an error: <?php echo esc_html($current['last_error']); ?></div>
                 <?php endif; ?>
 
                 <div class="wpa-code-app__code" data-snippet-type="<?php echo esc_attr($current['type']); ?>">
@@ -4262,7 +4262,7 @@ class WP_Arzo_Admin
                 ?>
                 <div class="wpa-cond" id="wpa-cond">
                     <div class="wpa-cond__head">
-                        <div class="wpa-cond__title"><?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Smart Conditional Logic</div>
+                        <div class="wpa-cond__title"><?php wp_arzo_icon_e('sliders', array('class' => 'wpa-icon wpa-icon--sm')); ?> Smart Conditional Logic</div>
                         <div class="wpa-cond__mode" role="radiogroup" aria-label="Match mode">
                             <span>Run when</span>
                             <span class="wpa-seg">
@@ -4275,7 +4275,7 @@ class WP_Arzo_Admin
                         </div>
                     </div>
                     <div class="wpa-cond__rows" id="wpa-cond-rows"></div>
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-cond-add"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add rule</button>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm" id="wpa-cond-add"><?php wp_arzo_icon_e('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add rule</button>
                     <p class="wpa-field__help" id="wpa-cond-empty" style="margin-top:8px;">No rules — this snippet runs everywhere (within its “Run on” scope).</p>
                     <input type="hidden" name="snippet_conditions" id="wpa-cond-json" value="">
                 </div>
@@ -4389,19 +4389,19 @@ class WP_Arzo_Admin
             <aside class="wpa-code-app__list">
                 <div class="wpa-code-app__list-head">
                     <span>Snippets</span>
-                    <a class="wpa-btn wpa-btn--ghost wpa-btn--icon" href="<?php echo esc_url($base); ?>" title="New snippet"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
+                    <a class="wpa-btn wpa-btn--ghost wpa-btn--icon" href="<?php echo esc_url($base); ?>" title="New snippet"><?php wp_arzo_icon_e('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
                 </div>
                 <div class="wpa-code-app__search">
-                    <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                    <?php wp_arzo_icon_e('search', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                     <input type="search" id="wpa-snip-search" class="wpa-input" placeholder="Search snippets…" aria-label="Search snippets" autocomplete="off">
                 </div>
                 <div class="wpa-code-app__list-body" id="wpa-snip-list" data-current="<?php echo esc_attr($current['id']); ?>">
                     <?php echo $this->render_snippet_list_rows(array_slice($snippets, 0, self::SNIPPETS_PER_PAGE), $current['id']); // rows are individually escaped in the helper ?>
                 </div>
                 <div class="wpa-code-app__pager" id="wpa-snip-pager" data-nonce="<?php echo esc_attr($snip_nonce); ?>" data-paged="1" data-pages="<?php echo (int) $snip_pages; ?>" style="display:<?php echo $snip_pages > 1 ? 'flex' : 'none'; ?>;">
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-btn--sm" id="wpa-snip-prev" aria-label="Newer snippets" disabled><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm', 'style' => 'transform:rotate(180deg)')); ?></button>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-btn--sm" id="wpa-snip-prev" aria-label="Newer snippets" disabled><?php wp_arzo_icon_e('chevron-right', array('class' => 'wpa-icon wpa-icon--sm', 'style' => 'transform:rotate(180deg)')); ?></button>
                     <span class="wpa-code-app__pageinfo" id="wpa-snip-pageinfo" aria-live="polite"><?php echo $snip_pages > 1 ? 'Page 1 of ' . (int) $snip_pages . ' · ' . (int) $snip_total . ' snippets' : ''; ?></span>
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-btn--sm" id="wpa-snip-next" aria-label="Older snippets" <?php echo $snip_pages <= 1 ? 'disabled' : ''; ?>><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-btn--sm" id="wpa-snip-next" aria-label="Older snippets" <?php echo $snip_pages <= 1 ? 'disabled' : ''; ?>><?php wp_arzo_icon_e('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                 </div>
             </aside>
         </div>
@@ -4518,8 +4518,8 @@ class WP_Arzo_Admin
                     <input type="checkbox" class="wpa-toggle__input wpa-snippet-toggle" role="switch" data-id="<?php echo esc_attr($s['id']); ?>" <?php checked(!empty($s['active'])); ?>>
                     <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
                 </label>
-                <a class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-snippet-export" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_snippets_export&id=' . $s['id']), self::NONCE_SNIPPETS)); ?>" aria-label="Export this snippet" title="Export this snippet"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
-                <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                <a class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-snippet-export" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wp_arzo_snippets_export&id=' . $s['id']), self::NONCE_SNIPPETS)); ?>" aria-label="Export this snippet" title="Export this snippet"><?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
+                <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-snippet-delete" data-id="<?php echo esc_attr($s['id']); ?>" aria-label="Delete snippet"><?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
             </div>
             <?php
         }
@@ -4539,11 +4539,11 @@ class WP_Arzo_Admin
             <?php $this->render_shell_open('media'); ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('image', array('class' => 'wpa-icon')); ?> Media Cleanup</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('image', array('class' => 'wpa-icon')); ?> Media Cleanup</h1>
                     <p class="wpa-admin__subtitle"><strong><?php echo (int) $total; ?></strong> attachment(s). Scan to find files with no detectable references.</p>
                 </div>
                 <button type="button" id="wpa-media-scan" class="wpa-btn wpa-btn--primary" data-total="<?php echo (int) $total; ?>" data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_MEDIA)); ?>">
-                    <?php echo wp_arzo_icon('search', array('class' => 'wpa-icon wpa-icon--sm')); ?> Scan media
+                    <?php wp_arzo_icon_e('search', array('class' => 'wpa-icon wpa-icon--sm')); ?> Scan media
                 </button>
             </div>
 
@@ -4587,7 +4587,7 @@ class WP_Arzo_Admin
                 </div>
                 <div style="margin-top:14px;display:flex;gap:10px;align-items:center;">
                     <button type="button" id="wpa-media-delete" class="wpa-btn wpa-btn--danger" data-nonce="<?php echo esc_attr(wp_create_nonce(self::NONCE_MEDIA)); ?>" disabled>
-                        <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Delete selected
+                        <?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Delete selected
                     </button>
                     <span class="wpa-backup-meta" id="wpa-media-selcount"></span>
                 </div>
@@ -4645,7 +4645,7 @@ class WP_Arzo_Admin
             <?php $this->render_shell_open('rest_auth'); ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('key', array('class' => 'wpa-icon')); ?> REST API Authentication</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('key', array('class' => 'wpa-icon')); ?> REST API Authentication</h1>
                     <p class="wpa-admin__subtitle">
                         <span class="wpa-badge wpa-badge--info"><?php echo count($keys); ?> key(s)</span>
                         <?php echo $enabled ? '' : ' · the “REST API Authentication” feature is OFF (enable it on the dashboard) — keys won’t authenticate'; ?>
@@ -4654,7 +4654,7 @@ class WP_Arzo_Admin
             </div>
 
             <div class="wpa-card" style="margin-bottom:16px;">
-                <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Generate a key</h2>
+                <h2 class="wpa-group__title" style="margin-top:0;"><?php wp_arzo_icon_e('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Generate a key</h2>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
                     <div class="wpa-field" style="flex:1;min-width:200px;margin:0;">
                         <label class="wpa-field__label" for="wpa-rest-label">Label</label>
@@ -4687,11 +4687,11 @@ class WP_Arzo_Admin
                         </select>
                     </div>
                     <button type="button" id="wpa-rest-create" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>">
-                        <?php echo wp_arzo_icon('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Generate key
+                        <?php wp_arzo_icon_e('key', array('class' => 'wpa-icon wpa-icon--sm')); ?> Generate key
                     </button>
                 </div>
                 <div id="wpa-rest-reveal" class="wpa-toast wpa-toast--success" style="position:static;margin-top:var(--arzo-space-3);gap:var(--arzo-space-2);align-items:center;flex-wrap:wrap;display:none;">
-                    <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                    <?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                     <span>Copy this key now — it won’t be shown again:</span>
                     <code id="wpa-rest-newkey" style="user-select:all;font-weight:700;"></code>
                 </div>
@@ -4733,7 +4733,7 @@ class WP_Arzo_Admin
                                 ?></td>
                                 <td class="wpa-backup-actions">
                                     <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--sm wpa-rest-revoke" data-id="<?php echo esc_attr($k['id']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>">
-                                        <?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Revoke
+                                        <?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?> Revoke
                                     </button>
                                 </td>
                             </tr>
@@ -4743,7 +4743,7 @@ class WP_Arzo_Admin
             </div>
 
             <div class="wpa-card" style="margin-top:16px;">
-                <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> How to call</h2>
+                <h2 class="wpa-group__title" style="margin-top:0;"><?php wp_arzo_icon_e('code', array('class' => 'wpa-icon wpa-icon--sm')); ?> How to call</h2>
                 <p class="wpa-aside-card__text">Send the key with any REST request using one of these (HTTPS recommended):</p>
                 <pre style="margin:0;padding:var(--arzo-space-4);background:var(--arzo-bg-input);border:1px solid var(--arzo-border-strong);border-radius:var(--arzo-radius-sm);overflow:auto;font-family:var(--arzo-font-mono);font-size:var(--arzo-fs-sm);line-height:1.6;color:var(--arzo-text-primary);"><code>curl -H "Authorization: Bearer arzo_…" <?php echo esc_html($example); ?>
 
@@ -4850,12 +4850,12 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         ?>
         <div class="wpa-admin__bar">
             <div>
-                <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('users', array('class' => 'wpa-icon')); ?> Role Manager</h1>
+                <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('users', array('class' => 'wpa-icon')); ?> Role Manager</h1>
                 <p class="wpa-admin__subtitle"><strong><?php echo count($roles); ?></strong> role(s)<?php echo $enabled ? '' : ' · the “Role Manager” feature is OFF (enable it on the dashboard)'; ?></p>
             </div>
         </div>
         <div class="wpa-card" style="margin-bottom:16px;">
-            <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add a role</h2>
+            <h2 class="wpa-group__title" style="margin-top:0;"><?php wp_arzo_icon_e('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add a role</h2>
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
                 <div class="wpa-field" style="flex:1;min-width:160px;margin:0;">
                     <label class="wpa-field__label" for="wpa-role-name">Display name</label>
@@ -4874,7 +4874,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                         } ?>
                     </select>
                 </div>
-                <button type="button" id="wpa-role-add" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add role</button>
+                <button type="button" id="wpa-role-add" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php wp_arzo_icon_e('plus', array('class' => 'wpa-icon wpa-icon--sm')); ?> Add role</button>
             </div>
         </div>
 
@@ -4892,9 +4892,9 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
                             <td><?php echo (int) $r['users']; ?></td>
                             <td><?php echo (int) $r['caps']; ?></td>
                             <td class="wpa-backup-actions">
-                                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($edit); ?>"><?php echo wp_arzo_icon('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?> Edit caps</a>
+                                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url($edit); ?>"><?php wp_arzo_icon_e('edit', array('class' => 'wpa-icon wpa-icon--sm')); ?> Edit caps</a>
                                 <?php if (!$r['is_builtin']) : ?>
-                                    <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-role-delete" data-slug="<?php echo esc_attr($r['slug']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>" aria-label="Delete role"><?php echo wp_arzo_icon('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                                    <button type="button" class="wpa-btn wpa-btn--danger-soft wpa-btn--icon wpa-role-delete" data-slug="<?php echo esc_attr($r['slug']); ?>" data-nonce="<?php echo esc_attr($nonce); ?>" aria-label="Delete role"><?php wp_arzo_icon_e('trash', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -4917,13 +4917,13 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
         ?>
         <div class="wpa-admin__bar">
             <div>
-                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_SETTINGS . '&tab=roles')); ?>"><?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> All roles</a>
-                <h1 class="wpa-admin__title" style="margin-top:10px;"><?php echo wp_arzo_icon('users', array('class' => 'wpa-icon')); ?> <?php echo esc_html($name); ?> <code style="font-size:13px;"><?php echo esc_html($slug); ?></code></h1>
+                <a class="wpa-btn wpa-btn--ghost wpa-btn--sm" href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_SETTINGS . '&tab=roles')); ?>"><?php wp_arzo_icon_e('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?> All roles</a>
+                <h1 class="wpa-admin__title" style="margin-top:10px;"><?php wp_arzo_icon_e('users', array('class' => 'wpa-icon')); ?> <?php echo esc_html($name); ?> <code style="font-size:13px;"><?php echo esc_html($slug); ?></code></h1>
             </div>
-            <button type="button" id="wpa-role-save" class="wpa-btn wpa-btn--primary" data-slug="<?php echo esc_attr($slug); ?>" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save capabilities</button>
+            <button type="button" id="wpa-role-save" class="wpa-btn wpa-btn--primary" data-slug="<?php echo esc_attr($slug); ?>" data-nonce="<?php echo esc_attr($nonce); ?>"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Save capabilities</button>
         </div>
         <?php if ($is_admin_role) : ?>
-            <div class="wpa-card" style="margin-bottom:16px;"><p class="wpa-aside-card__text" style="margin:0;"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon wpa-icon--sm')); ?> This is the administrator role — <code>manage_options</code> is locked on to prevent lockout.</p></div>
+            <div class="wpa-card" style="margin-bottom:16px;"><p class="wpa-aside-card__text" style="margin:0;"><?php wp_arzo_icon_e('shield', array('class' => 'wpa-icon wpa-icon--sm')); ?> This is the administrator role — <code>manage_options</code> is locked on to prevent lockout.</p></div>
         <?php endif; ?>
         <?php
         // Group the (long, flat) capability list into categories with a live filter,
@@ -4961,7 +4961,7 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
             <div class="wpa-card wpa-cap-section" data-group="<?php echo esc_attr($gkey); ?>" style="margin-bottom:14px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
                     <h2 class="wpa-group__title" style="margin:0;"><?php echo esc_html($glabel); ?> <span style="color:var(--arzo-text-muted);font-weight:400;font-size:.85em;">(<span class="wpa-cap-gcount"><?php echo (int) $g_granted; ?></span>/<?php echo count($gcaps); ?>)</span></h2>
-                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-cap-toggle-all"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Toggle all</button>
+                    <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--sm wpa-cap-toggle-all"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Toggle all</button>
                 </div>
                 <div class="wpa-caps-grid">
                     <?php foreach ($gcaps as $cap) :
@@ -5107,28 +5107,28 @@ curl -u "any:arzo_…" <?php echo esc_html($example); ?></code></pre>
             <?php $this->render_shell_open('config'); ?>
             <div class="wpa-admin__bar">
                 <div>
-                    <h1 class="wpa-admin__title"><?php echo wp_arzo_icon('sliders', array('class' => 'wpa-icon')); ?> Config Import / Export</h1>
+                    <h1 class="wpa-admin__title"><?php wp_arzo_icon_e('sliders', array('class' => 'wpa-icon')); ?> Config Import / Export</h1>
                     <p class="wpa-admin__subtitle">Move your WP Arzo setup between sites.</p>
                 </div>
             </div>
             <div class="wpa-layout">
                 <div class="wpa-main">
                     <div class="wpa-card" style="margin-bottom:16px;">
-                        <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</h2>
+                        <h2 class="wpa-group__title" style="margin-top:0;"><?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Export</h2>
                         <p class="wpa-aside-card__text">Download a JSON file with your feature toggles, feature settings, per-feature configuration (Site Health, Cron, Redirects, Content Types, Custom Fields, Menu Manager, Notifications, …), email connections, and code snippets.</p>
-                        <button type="button" id="wpa-config-export" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Download config</button>
+                        <button type="button" id="wpa-config-export" class="wpa-btn wpa-btn--primary" data-nonce="<?php echo esc_attr($nonce); ?>"><?php wp_arzo_icon_e('download', array('class' => 'wpa-icon wpa-icon--sm')); ?> Download config</button>
                     </div>
                     <div class="wpa-card">
-                        <h2 class="wpa-group__title" style="margin-top:0;"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</h2>
+                        <h2 class="wpa-group__title" style="margin-top:0;"><?php wp_arzo_icon_e('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import</h2>
                         <p class="wpa-aside-card__text">Importing <strong>overwrites</strong> your current feature toggles and settings, and merges snippets. A safety snapshot of the options table is taken first.</p>
                         <input type="file" id="wpa-config-file" accept="application/json,.json" class="wpa-input" style="margin-bottom:10px;">
-                        <button type="button" id="wpa-config-import" class="wpa-btn wpa-btn--danger" data-nonce="<?php echo esc_attr($nonce); ?>"><?php echo wp_arzo_icon('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import config</button>
+                        <button type="button" id="wpa-config-import" class="wpa-btn wpa-btn--danger" data-nonce="<?php echo esc_attr($nonce); ?>"><?php wp_arzo_icon_e('upload', array('class' => 'wpa-icon wpa-icon--sm')); ?> Import config</button>
                         <p class="wpa-field__help" id="wpa-config-msg"></p>
                     </div>
                 </div>
                 <aside class="wpa-aside">
                     <div class="wpa-aside-card">
-                        <div class="wpa-aside-card__head"><?php echo wp_arzo_icon('info', array('class' => 'wpa-icon')); ?><h3 class="wpa-aside-card__title">What’s included</h3></div>
+                        <div class="wpa-aside-card__head"><?php wp_arzo_icon_e('info', array('class' => 'wpa-icon')); ?><h3 class="wpa-aside-card__title">What’s included</h3></div>
                         <p class="wpa-aside-card__text">The feature on/off map, per-feature settings &amp; configuration, email connections, and code snippets. For safety it excludes secrets (backup/OAuth credentials, API keys, 2FA), logs, and analytics/content data — and never other plugins’ options or your database (use Backups for those).</p>
                     </div>
                 </aside>

@@ -260,7 +260,7 @@ function wp_arzo_maintenance_display_mode()
                     'payment_request' => 'credit-card',
                 ];
                 $mode_icon = isset($icons[$active_mode]) ? $icons[$active_mode] : 'tools';
-                echo wp_arzo_icon($mode_icon, ['size' => 64]);
+                wp_arzo_icon_e($mode_icon, ['size' => 64]);
                 ?>
             </div>
 
@@ -269,30 +269,30 @@ function wp_arzo_maintenance_display_mode()
 
             <?php if ($show_social_contacts && ($developer_email || $developer_phone || $developer_whatsapp || $developer_skype)): ?>
                 <div class="social-contacts">
-                    <h3><?php echo wp_arzo_icon('users'); ?> Contact Information</h3>
+                    <h3><?php wp_arzo_icon_e('users'); ?> Contact Information</h3>
                     <div class="contact-icons">
                         <?php if ($developer_email): ?>
                             <a href="mailto:<?php echo esc_attr($developer_email); ?>" class="contact-icon" title="Email" aria-label="Email">
-                                <?php echo wp_arzo_icon('mail'); ?>
+                                <?php wp_arzo_icon_e('mail'); ?>
                             </a>
                         <?php endif; ?>
 
                         <?php if ($developer_phone): ?>
                             <a href="tel:<?php echo esc_attr($developer_phone); ?>" class="contact-icon" title="Phone" aria-label="Phone">
-                                <?php echo wp_arzo_icon('phone'); ?>
+                                <?php wp_arzo_icon_e('phone'); ?>
                             </a>
                         <?php endif; ?>
 
                         <?php if ($developer_whatsapp): ?>
                             <a href="https://wa.me/<?php echo esc_attr(preg_replace('/[^0-9]/', '', $developer_whatsapp)); ?>"
                                 class="contact-icon" title="WhatsApp" aria-label="WhatsApp" target="_blank" rel="noopener">
-                                <?php echo wp_arzo_icon('chat'); ?>
+                                <?php wp_arzo_icon_e('chat'); ?>
                             </a>
                         <?php endif; ?>
 
                         <?php if ($developer_skype): ?>
                             <a href="skype:<?php echo esc_attr($developer_skype); ?>?chat" class="contact-icon" title="Skype" aria-label="Skype">
-                                <?php echo wp_arzo_icon('chat'); ?>
+                                <?php wp_arzo_icon_e('chat'); ?>
                             </a>
                         <?php endif; ?>
                     </div>

@@ -237,7 +237,7 @@ class WP_Arzo_Setup_Wizard
                     <img class="wpa-wiz__logo" src="<?php echo esc_url($logo); ?>" alt="WP Arzo">
                     <span>WP Arzo Setup</span>
                 </div>
-                <a class="wpa-wiz__exit" href="<?php echo esc_url($dashboard); ?>" id="wpa-wiz-exit">Skip setup <?php echo wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
+                <a class="wpa-wiz__exit" href="<?php echo esc_url($dashboard); ?>" id="wpa-wiz-exit">Skip setup <?php wp_arzo_icon_e('x', array('class' => 'wpa-icon wpa-icon--sm')); ?></a>
             </header>
             <div class="wpa-wiz__progress"><div class="wpa-wiz__bar" id="wpa-wiz-bar"></div></div>
 
@@ -249,12 +249,12 @@ class WP_Arzo_Setup_Wizard
                         <h1>Welcome to WP Arzo</h1>
                         <p class="wpa-wiz__welcome-sub">Your all-in-one maintenance &amp; administration suite — performance, security, backups, email, a full database manager, and dozens of one-click tweaks. Let’s set up your site in under a minute.</p>
                         <div class="wpa-wiz__highlights">
-                            <div class="wpa-wiz__highlight"><?php echo wp_arzo_icon('bolt', array('class' => 'wpa-icon')); ?><strong>Faster</strong><span>Trim bloat &amp; control Heartbeat</span></div>
-                            <div class="wpa-wiz__highlight"><?php echo wp_arzo_icon('shield', array('class' => 'wpa-icon')); ?><strong>Safer</strong><span>2FA, login limits, REST keys</span></div>
-                            <div class="wpa-wiz__highlight"><?php echo wp_arzo_icon('database', array('class' => 'wpa-icon')); ?><strong>In control</strong><span>Backups, DB manager, snippets</span></div>
+                            <div class="wpa-wiz__highlight"><?php wp_arzo_icon_e('bolt', array('class' => 'wpa-icon')); ?><strong>Faster</strong><span>Trim bloat &amp; control Heartbeat</span></div>
+                            <div class="wpa-wiz__highlight"><?php wp_arzo_icon_e('shield', array('class' => 'wpa-icon')); ?><strong>Safer</strong><span>2FA, login limits, REST keys</span></div>
+                            <div class="wpa-wiz__highlight"><?php wp_arzo_icon_e('database', array('class' => 'wpa-icon')); ?><strong>In control</strong><span>Backups, DB manager, snippets</span></div>
                         </div>
                         <div class="wpa-wiz__cta">
-                            <button type="button" class="wpa-btn wpa-btn--primary wpa-btn--lg" data-goto="2"><?php echo wp_arzo_icon('bolt', array('class' => 'wpa-icon wpa-icon--sm')); ?> Get started</button>
+                            <button type="button" class="wpa-btn wpa-btn--primary wpa-btn--lg" data-goto="2"><?php wp_arzo_icon_e('bolt', array('class' => 'wpa-icon wpa-icon--sm')); ?> Get started</button>
                             <button type="button" class="wpa-btn wpa-btn--ghost" data-goto="3">I’ll configure manually</button>
                         </div>
                         <p class="wpa-wiz__by">Built by <a href="https://yasirshabbir.com" target="_blank" rel="noopener">Yasir Shabbir</a> · bespoke WordPress plugins &amp; performance work</p>
@@ -287,21 +287,21 @@ class WP_Arzo_Setup_Wizard
                             }
                             ?>
                             <div class="wpa-wiz__preset" data-preset="<?php echo esc_attr($key); ?>">
-                                <div class="wpa-wiz__preset-icon"><?php echo wp_arzo_icon($preset['icon'], array('class' => 'wpa-icon')); ?></div>
+                                <div class="wpa-wiz__preset-icon"><?php wp_arzo_icon_e($preset['icon'], array('class' => 'wpa-icon')); ?></div>
                                 <div class="wpa-wiz__preset-body">
                                     <div class="wpa-wiz__preset-head">
                                         <h3><?php echo esc_html($preset['name']); ?></h3>
                                         <span class="wpa-badge wpa-badge--info"><?php echo (int) $available; ?> features</span>
-                                        <?php if ($locked) : ?><span class="wpa-badge wpa-badge--warning"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon')); ?> <?php echo (int) $locked; ?> Pro</span><?php endif; ?>
+                                        <?php if ($locked) : ?><span class="wpa-badge wpa-badge--warning"><?php wp_arzo_icon_e('lock', array('class' => 'wpa-icon')); ?> <?php echo (int) $locked; ?> Pro</span><?php endif; ?>
                                     </div>
                                     <p><?php echo esc_html($preset['tagline']); ?></p>
                                     <?php if (!empty($resolved)) : ?>
                                         <details class="wpa-wiz__preset-includes">
-                                            <summary><?php echo wp_arzo_icon('eye', array('class' => 'wpa-icon wpa-icon--sm')); ?> See what turns on (<?php echo count($resolved); ?>)</summary>
+                                            <summary><?php wp_arzo_icon_e('eye', array('class' => 'wpa-icon wpa-icon--sm')); ?> See what turns on (<?php echo count($resolved); ?>)</summary>
                                             <ul class="wpa-wiz__preset-list">
                                                 <?php foreach ($resolved as $f) : ?>
                                                     <li>
-                                                        <?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?>
+                                                        <?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?>
                                                         <span><?php echo esc_html($f->title()); ?></span>
                                                         <?php if ($f->tier() === 'pro') : ?><span class="wpa-badge wpa-badge--warning">Pro</span><?php endif; ?>
                                                     </li>
@@ -310,7 +310,7 @@ class WP_Arzo_Setup_Wizard
                                         </details>
                                     <?php endif; ?>
                                 </div>
-                                <button type="button" class="wpa-btn wpa-btn--primary wpa-btn--sm wpa-wiz-apply" data-preset="<?php echo esc_attr($key); ?>"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Apply</button>
+                                <button type="button" class="wpa-btn wpa-btn--primary wpa-btn--sm wpa-wiz-apply" data-preset="<?php echo esc_attr($key); ?>"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Apply</button>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -331,12 +331,12 @@ class WP_Arzo_Setup_Wizard
                     </div>
                     <div class="wpa-wiz__nav wpa-wiz__nav--top">
                         <button type="button" class="wpa-btn wpa-btn--ghost" data-goto="2">Back</button>
-                        <button type="button" class="wpa-btn wpa-btn--primary" data-goto="4">Continue <?php echo wp_arzo_icon('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
+                        <button type="button" class="wpa-btn wpa-btn--primary" data-goto="4">Continue <?php wp_arzo_icon_e('chevron-right', array('class' => 'wpa-icon wpa-icon--sm')); ?></button>
                     </div>
                     <div class="wpa-wiz__features">
                         <?php foreach ($grouped as $gk => $features) : ?>
                             <section class="wpa-wiz__group">
-                                <h3><?php echo wp_arzo_icon($registry->group_icon($gk), array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($registry->group_label($gk)); ?></h3>
+                                <h3><?php wp_arzo_icon_e($registry->group_icon($gk), array('class' => 'wpa-icon wpa-icon--sm')); ?> <?php echo esc_html($registry->group_label($gk)); ?></h3>
                                 <div class="wpa-wiz__grid">
                                     <?php foreach ($features as $feature) :
                                         $fid = $feature->id();
@@ -344,7 +344,7 @@ class WP_Arzo_Setup_Wizard
                                         $avail = apply_filters('wp_arzo_feature_is_available', true, $feature);
                                         ?>
                                         <div class="wpa-wiz__feature<?php echo $en ? ' is-on' : ''; ?>" data-feature-card="<?php echo esc_attr($fid); ?>">
-                                            <div class="wpa-wiz__feature-icon"><?php echo wp_arzo_icon($feature->icon(), array('class' => 'wpa-icon wpa-icon--sm')); ?></div>
+                                            <div class="wpa-wiz__feature-icon"><?php wp_arzo_icon_e($feature->icon(), array('class' => 'wpa-icon wpa-icon--sm')); ?></div>
                                             <div class="wpa-wiz__feature-body">
                                                 <strong><?php echo esc_html($feature->title()); ?><?php echo $feature->tier() === 'pro' ? ' <span class="wpa-badge wpa-badge--warning">PRO</span>' : ''; ?></strong>
                                                 <span><?php echo esc_html($feature->description()); ?></span>
@@ -355,7 +355,7 @@ class WP_Arzo_Setup_Wizard
                                                     <span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>
                                                 </label>
                                             <?php else : ?>
-                                                <span class="wpa-badge wpa-badge--neutral"><?php echo wp_arzo_icon('lock', array('class' => 'wpa-icon')); ?></span>
+                                                <span class="wpa-badge wpa-badge--neutral"><?php wp_arzo_icon_e('lock', array('class' => 'wpa-icon')); ?></span>
                                             <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>
@@ -388,7 +388,7 @@ class WP_Arzo_Setup_Wizard
                         <button type="button" class="wpa-btn wpa-btn--ghost" data-goto="2">Back</button>
                         <div class="wpa-wiz__nav-right">
                             <button type="button" class="wpa-btn wpa-btn--secondary" data-goto="5">Skip</button>
-                            <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-lead-submit"><?php echo wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Submit &amp; finish</button>
+                            <button type="button" class="wpa-btn wpa-btn--primary" id="wpa-lead-submit"><?php wp_arzo_icon_e('check', array('class' => 'wpa-icon wpa-icon--sm')); ?> Submit &amp; finish</button>
                         </div>
                     </div>
                 </section>
@@ -396,11 +396,11 @@ class WP_Arzo_Setup_Wizard
                 <!-- Step 5: Finish -->
                 <section class="wpa-wiz__step" data-step="5">
                     <div class="wpa-wiz__hero">
-                        <div class="wpa-wiz__hero-icon wpa-wiz__hero-icon--ok"><?php echo wp_arzo_icon('check-circle', array('class' => 'wpa-icon')); ?></div>
+                        <div class="wpa-wiz__hero-icon wpa-wiz__hero-icon--ok"><?php wp_arzo_icon_e('check-circle', array('class' => 'wpa-icon')); ?></div>
                         <h1>You’re all set!</h1>
                         <p>WP Arzo is ready. Head to your dashboard to fine-tune features, run backups, manage logins and more.</p>
                         <div class="wpa-wiz__cta">
-                            <a class="wpa-btn wpa-btn--primary wpa-btn--lg" href="<?php echo esc_url($dashboard); ?>" id="wpa-wiz-finish"><?php echo wp_arzo_icon('settings', array('class' => 'wpa-icon wpa-icon--sm')); ?> Go to dashboard</a>
+                            <a class="wpa-btn wpa-btn--primary wpa-btn--lg" href="<?php echo esc_url($dashboard); ?>" id="wpa-wiz-finish"><?php wp_arzo_icon_e('settings', array('class' => 'wpa-icon wpa-icon--sm')); ?> Go to dashboard</a>
                         </div>
                     </div>
                 </section>

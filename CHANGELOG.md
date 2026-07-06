@@ -8,6 +8,11 @@ and [Semantic Versioning](https://semver.org/).
 
 ### Changed — WordPress.org Plugin Check hardening (in progress)
 
+- **Icon output escaping.** Added `wp_arzo_icon_e()` — an echoing companion to `wp_arzo_icon()`
+  — and converted 218 bare `echo wp_arzo_icon(...)` sites to it, clearing the bulk of the
+  `EscapeOutput.OutputNotEscaped` findings. The icon SVG is static internal markup with
+  `esc_attr()`'d attributes (a genuine false-positive); `wp_kses()` is intentionally avoided
+  because it lowercases `viewBox` and breaks SVG scaling. Rendering is unchanged.
 - **"Disable All Updates" is excluded from the wp.org build.** The feature hooks the update
   transients / auto-update filters, which Plugin Check flags as a forbidden update-modification
   (`plugin_updater_detected`). It moved to its own file

@@ -133,7 +133,7 @@ function handleQuickLogin()
                     <input type="text" id="tl-redirect" class="form-control" placeholder="<?php echo esc_attr(admin_url()); ?>">
                 </div>
             </div>
-            <button type="button" class="btn" id="tl-create" style="margin-top:14px;"><?php echo wp_arzo_icon('link'); ?> Generate login link</button>
+            <button type="button" class="btn" id="tl-create" style="margin-top:14px;"><?php wp_arzo_icon_e('link'); ?> Generate login link</button>
             <div id="tl-result" style="display:none; margin-top:14px; padding:12px; background:var(--background-medium); border:1px solid var(--accent-color); border-radius:var(--radius-global);">
                 <strong style="color:var(--accent-color);">Login link ready</strong>
                 <div style="display:flex; gap:8px; margin-top:8px;">
@@ -179,10 +179,10 @@ function handleQuickLogin()
                         ?>
                     </td>
                     <td style="white-space:nowrap;">
-                        <button type="button" class="btn btn-sm" title="Copy link" onclick="tlCopy('<?php echo esc_js($t['login_url']); ?>', this)"><?php echo wp_arzo_icon('copy'); ?> Copy</button>
-                        <button type="button" class="btn btn-sm tl-invite" title="Email a branded invitation with this link"><?php echo wp_arzo_icon('mail'); ?> Email invite</button>
-                        <button type="button" class="btn btn-sm tl-toggle" data-status="<?php echo $t['status'] === 'active' ? 'disabled' : 'active'; ?>"><?php echo wp_arzo_icon($t['status'] === 'active' ? 'lock' : 'unlock'); ?> <?php echo $t['status'] === 'active' ? 'Disable' : 'Enable'; ?></button>
-                        <button type="button" class="btn btn-sm btn-danger tl-delete"><?php echo wp_arzo_icon('trash'); ?> Delete</button>
+                        <button type="button" class="btn btn-sm" title="Copy link" onclick="tlCopy('<?php echo esc_js($t['login_url']); ?>', this)"><?php wp_arzo_icon_e('copy'); ?> Copy</button>
+                        <button type="button" class="btn btn-sm tl-invite" title="Email a branded invitation with this link"><?php wp_arzo_icon_e('mail'); ?> Email invite</button>
+                        <button type="button" class="btn btn-sm tl-toggle" data-status="<?php echo $t['status'] === 'active' ? 'disabled' : 'active'; ?>"><?php wp_arzo_icon_e($t['status'] === 'active' ? 'lock' : 'unlock'); ?> <?php echo $t['status'] === 'active' ? 'Disable' : 'Enable'; ?></button>
+                        <button type="button" class="btn btn-sm btn-danger tl-delete"><?php wp_arzo_icon_e('trash'); ?> Delete</button>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
