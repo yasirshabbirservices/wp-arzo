@@ -60,6 +60,27 @@ if ! grep -q "^ \* Plugin Name: ${ORG_NAME}\$" "$STAGE/wp-arzo.php"; then
 fi
 
 # 5) Zip with forward slashes, no extra attributes, slug as the root folder.
-( cd "$OUT" && zip -rqX "$SLUG.zip" "$SLUG" )
+#    Prefer the `zip` binary (CI); fall back to Python's zipfile so the build also
+#    works in environments without `zip` (e.g. Git Bash on Windows). NEVER use
+#    PowerShell's Compress-Archive — it writes backslash paths, invalid on Linux.
+if command -v zip >/dev/null 2>&1; then
+  ( cd "$OUT" && zip -rqX "$SLUG.zip" "$SLUG" )
+else
+  PYBIN="$(command -v python3 || command -v python)"
+  if [ -z "$PYBIN" ]; then
+    echo "ERROR: neither 'zip' nor 'python' is available to build the archive" >&2; exit 1
+  fi
+  "$PYBIN" - "$OUT" "$SLUG" <<'PY'
+import os, sys, zipfile
+out, slug = sys.argv[1], sys.argv[2]
+root = os.path.join(out, slug)
+with zipfile.ZipFile(os.path.join(out, slug + '.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+    for dp, dn, fn in os.walk(root):
+        for f in sorted(fn):
+            full = os.path.join(dp, f)
+            arc = os.path.relpath(full, out).replace(os.sep, '/')
+            z.write(full, arc)
+PY
+fi
 
 echo "Built $OUT/$SLUG.zip (name: '$ORG_NAME', slug: '$SLUG')"

@@ -4,6 +4,40 @@ All notable changes to **WP Arzo – Administration Suite** are documented
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.159.0] — 2026-07-06
+
+### Changed — WordPress.org Plugin Check hardening (complete: 0 errors)
+
+Cleared **all 343 Plugin Check errors** on the `.org` build (from the 2026-07-06 report).
+Warnings that remain are advisory (nonce/sanitize hints on capability-gated admin/console
+handlers, and `$wpdb` interpolation of internal table/column names) and do not block the
+directory; the automated scan already passed with them.
+
+- **Text domain → `arzo-administration-suite`.** Renamed the i18n text domain to match the
+  wp.org slug across every translation call + the plugin header (40 `TextDomainMismatch`).
+  The admin page slug, page-prefix check, and snippet-export identifier keep their `wp-arzo`
+  literals.
+- **Output escaping (204 findings).** Wrapped scalar/URL/attribute echoes in
+  `esc_html()`/`esc_url()`/`esc_attr()`/`esc_js()`, routed console status HTML through
+  `wp_kses_post()`, and split embedded icons to `wp_arzo_icon_e()`. Registered
+  `wp_arzo_icon()` as an auto-escaping function (it returns static, pre-escaped SVG) for the
+  files that compose it into markup. Admin-authored code (Insert-Headers-and-Footers, Custom
+  CSS, Code Snippets) and the binary file-download stream carry justified `phpcs:ignore`s.
+- **File operations.** Swapped to WP wrappers where they exist (`wp_is_writable()`,
+  `wp_delete_file()`, `wp_parse_url()`); justified `phpcs:ignore`s for legitimate streaming /
+  download / temp-file / config-file I/O (backup writer, file download, `debug.log`, CSV
+  export) that `WP_Filesystem` can't express.
+- **Misc.** `date()` → `gmdate()`, `wp_date()` → `date_i18n()` (keeps the WP 5.0 floor),
+  converted the WebP heredoc to a plain string, removed 5 leftover `error_log()` debug traces,
+  and added justified ignores for the inline Google analytics tags + the standalone console's
+  self-built `<script>`/`<link>` (not a themed page, so `wp_enqueue_*` doesn't apply).
+- **Emergency-recovery tool excluded from the `.org` build.** The standalone tool deliberately
+  bypasses WordPress (direct `mysqli`, PHP sessions, plugin-directory writes) so it can run when
+  WP is down — a design incompatible with the directory guidelines. It's stripped via
+  `.distignore`, and all wiring is gated on `wp_arzo_has_emergency_tool()` + `file_exists()`
+  guards, so the `.org` build never exposes the endpoint or the Emergency Mode UI. The feature
+  is unchanged in the self-hosted / GitHub / Pro build.
+
 ## [6.158.0] — 2026-07-06
 
 ### Changed — WordPress.org Plugin Check hardening (in progress)
