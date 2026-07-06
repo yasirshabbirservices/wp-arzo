@@ -4,6 +4,17 @@ All notable changes to **WP Arzo – Administration Suite** are documented
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.158.0] — 2026-07-06
+
+### Changed — WordPress.org Plugin Check hardening (in progress)
+
+- **"Disable All Updates" is excluded from the wp.org build.** The feature hooks the update
+  transients / auto-update filters, which Plugin Check flags as a forbidden update-modification
+  (`plugin_updater_detected`). It moved to its own file
+  (`includes/features-registry/class-feature-disable-updates.php`), is stripped from the `.org`
+  build via `.distignore`, and its registration is now `file_exists()`-guarded so its absence is
+  graceful. The feature is unchanged in the self-hosted / GitHub / Pro build.
+
 ## [6.157.0] — 2026-07-06
 
 ### Changed — WordPress.org readiness: name + reproducible directory build

@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.157.0
+ * Version: 6.158.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: wp-arzo
@@ -30,7 +30,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.157.0');
+    define('WP_ARZO_VERSION', '6.158.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -543,7 +543,7 @@ function wp_arzo_bootstrap_features()
         'disable_gutenberg'         => array('WP_Arzo_Feature_Disable_Gutenberg', 'class-features-core.php'),
         'disable_feeds'             => array('WP_Arzo_Feature_Disable_Feeds', 'class-features-core.php'),
         'disable_embeds'            => array('WP_Arzo_Feature_Disable_Embeds', 'class-features-core.php'),
-        'disable_updates'           => array('WP_Arzo_Feature_Disable_Updates', 'class-features-admin-tweaks.php'),
+        'disable_updates'           => array('WP_Arzo_Feature_Disable_Updates', 'class-feature-disable-updates.php'),
 
         // Content & media (Media Folders is a Pro feature — advertised via the catalog placeholder)
         'duplicate_posts'           => array('WP_Arzo_Feature_Duplicate_Posts', 'class-features-content.php'),
@@ -612,6 +612,14 @@ function wp_arzo_bootstrap_features()
         'scheduled_backups'         => array('WP_Arzo_Feature_Scheduled_Backups', 'class-feature-scheduled-backups.php'),
     );
     foreach ($lazy_features as $fid => $meta) {
+        // The wordpress.org build strips guideline-sensitive feature files (e.g. the
+        // "Disable All Updates" feature — see .distignore / bin/build-wporg.sh). When a
+        // feature's class file is absent, skip its registration so that build simply
+        // doesn't offer it (no phantom card, no missing-class error). All files are
+        // present in the self-hosted / GitHub / Pro build, so nothing changes there.
+        if (!file_exists($features_dir . $meta[1])) {
+            continue;
+        }
         $registry->register_lazy($fid, $meta[0], $features_dir . $meta[1]);
     }
 

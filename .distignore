@@ -24,3 +24,8 @@ scratchpad
 # wp.org serves updates via SVN, so this file must not exist in the .org build.
 # wp-arzo.php guards its require with file_exists(), so stripping it is safe.
 includes/class-wp-arzo-updater.php
+
+# "Disable All Updates" feature — hooks the update transients / auto-update
+# filters, which Plugin Check flags as a forbidden update-modification. Stripped
+# from the .org build; its registration in wp-arzo.php is file_exists()-guarded.
+includes/features-registry/class-feature-disable-updates.php
