@@ -13,6 +13,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// wp_arzo_icon() returns pre-escaped, static internal SVG markup (see includes/wp-arzo-icons.php),
+// so register it as an auto-escaping function for the output-escaping sniff.
+// phpcs:set WordPress.Security.EscapeOutput customAutoEscapedFunctions[] wp_arzo_icon
+
 // Load WordPress admin functions
 if (!function_exists('wp_delete_user')) {
     require_once(ABSPATH . 'wp-admin/includes/user.php');
@@ -75,7 +79,7 @@ if (isset($_GET['download'])) {
         // Read file in chunks to handle large files
         $handle = fopen($file_path, 'rb');
         while (!feof($handle)) {
-            echo fread($handle, 8192);
+            echo fread($handle, 8192); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- streaming raw file bytes for a binary download; escaping would corrupt the file.
             flush();
         }
         fclose($handle);
@@ -308,8 +312,11 @@ if ($action === 'wp_arzo_standalone') {
                 }
                 $wp_arzo_nav_is_active = ($action === $wp_arzo_nav_tab || ($wp_arzo_nav_tab === 'site_modes' && $action === 'maintenance'));
                 $wp_arzo_nav_url = admin_url('admin-ajax.php?action=wp_arzo_standalone&tab=' . $wp_arzo_nav_tab);
-                $wp_arzo_nav_icon = function_exists('wp_arzo_icon') ? wp_arzo_icon($wp_arzo_nav_item[1], array('class' => 'wpa-icon wpa-icon--sm')) : '';
-                echo '<a class="wpa-tab' . ($wp_arzo_nav_is_active ? ' is-active' : '') . '" href="' . esc_url($wp_arzo_nav_url) . '"' . ($wp_arzo_nav_is_active ? ' aria-current="page"' : '') . '>' . $wp_arzo_nav_icon . '<span>' . esc_html($wp_arzo_nav_item[0]) . '</span></a>';
+                echo '<a class="wpa-tab' . ($wp_arzo_nav_is_active ? ' is-active' : '') . '" href="' . esc_url($wp_arzo_nav_url) . '"' . ($wp_arzo_nav_is_active ? ' aria-current="page"' : '') . '>';
+                if (function_exists('wp_arzo_icon')) {
+                    wp_arzo_icon_e($wp_arzo_nav_item[1], array('class' => 'wpa-icon wpa-icon--sm'));
+                }
+                echo '<span>' . esc_html($wp_arzo_nav_item[0]) . '</span></a>';
             }
             ?>
         </nav>
@@ -320,12 +327,12 @@ if ($action === 'wp_arzo_standalone') {
         if ($login_message) {
             $message_parts = explode('|', $login_message);
             $message_type = $message_parts[0];
-            $message_text = $message_parts[1];
-            echo '<div class="' . $message_type . '">' . $message_text . '</div>';
+            $message_text = isset($message_parts[1]) ? $message_parts[1] : '';
+            echo '<div class="' . esc_attr($message_type) . '">' . esc_html($message_text) . '</div>';
         }
 
         // Add redirect script if needed
         if ($login_redirect) {
-            echo '<script>setTimeout(function() { window.open("' . $login_redirect . '", "_blank"); }, 1000);</script>';
+            echo '<script>setTimeout(function() { window.open("' . esc_url($login_redirect) . '", "_blank"); }, 1000);</script>';
         }
         ?>

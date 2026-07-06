@@ -14,6 +14,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// wp_arzo_icon() returns pre-escaped, static internal SVG markup (fixed geometry +
+// esc_attr'd attributes — see includes/wp-arzo-icons.php), so register it as an
+// auto-escaping function for the output-escaping sniff.
+// phpcs:set WordPress.Security.EscapeOutput customAutoEscapedFunctions[] wp_arzo_icon
+
 class WP_Arzo_Admin
 {
     /** @var WP_Arzo_Admin|null */
@@ -146,11 +151,11 @@ class WP_Arzo_Admin
     public function menu_icon_style()
     {
         echo '<style id="wp-arzo-menu-icon">'
-            . '#adminmenu .toplevel_page_' . self::PAGE . ' .wp-menu-image img{'
+            . '#adminmenu .toplevel_page_' . esc_attr(self::PAGE) . ' .wp-menu-image img{'
             . 'width:20px;height:20px;padding:7px 0 0;object-fit:contain;opacity:.85}'
-            . '#adminmenu .toplevel_page_' . self::PAGE . ':hover .wp-menu-image img,'
-            . '#adminmenu .toplevel_page_' . self::PAGE . '.current .wp-menu-image img,'
-            . '#adminmenu .toplevel_page_' . self::PAGE . '.wp-has-current-submenu .wp-menu-image img{opacity:1}'
+            . '#adminmenu .toplevel_page_' . esc_attr(self::PAGE) . ':hover .wp-menu-image img,'
+            . '#adminmenu .toplevel_page_' . esc_attr(self::PAGE) . '.current .wp-menu-image img,'
+            . '#adminmenu .toplevel_page_' . esc_attr(self::PAGE) . '.wp-has-current-submenu .wp-menu-image img{opacity:1}'
             . '</style>';
     }
 
@@ -684,14 +689,14 @@ class WP_Arzo_Admin
         if (!empty($categories)) {
             echo '<nav class="wpa-sidenav__group" aria-label="Browse features by group">';
             echo '<div class="wpa-sidenav__label">Browse</div>';
-            echo '<a class="wpa-sidenav__item wpa-cat-filter is-active" href="#wpa-feature-grid" data-group-filter="*" title="All features">'
-                . wp_arzo_icon('grid', array('class' => 'wpa-icon wpa-icon--sm'))
-                . '<span class="wpa-sidenav__text">All features</span>'
+            echo '<a class="wpa-sidenav__item wpa-cat-filter is-active" href="#wpa-feature-grid" data-group-filter="*" title="All features">';
+            wp_arzo_icon_e('grid', array('class' => 'wpa-icon wpa-icon--sm'));
+            echo '<span class="wpa-sidenav__text">All features</span>'
                 . '<span class="wpa-sidenav__count">' . (int) $total . '</span></a>';
             foreach ($categories as $c) {
-                echo '<a class="wpa-sidenav__item wpa-cat-filter" href="#group-' . esc_attr($c['key']) . '" data-group-filter="' . esc_attr($c['key']) . '" title="' . esc_attr($c['label']) . '">'
-                    . wp_arzo_icon($c['icon'], array('class' => 'wpa-icon wpa-icon--sm'))
-                    . '<span class="wpa-sidenav__text">' . esc_html($c['label']) . '</span>'
+                echo '<a class="wpa-sidenav__item wpa-cat-filter" href="#group-' . esc_attr($c['key']) . '" data-group-filter="' . esc_attr($c['key']) . '" title="' . esc_attr($c['label']) . '">';
+                wp_arzo_icon_e($c['icon'], array('class' => 'wpa-icon wpa-icon--sm'));
+                echo '<span class="wpa-sidenav__text">' . esc_html($c['label']) . '</span>'
                     . '<span class="wpa-sidenav__count">' . (int) $c['count'] . '</span></a>';
             }
             echo '</nav>';
@@ -875,7 +880,7 @@ class WP_Arzo_Admin
             $badge = 'Free';
         }
         ?>
-        <div class="wpa-aside-card wpa-license<?php echo $card; ?>">
+        <div class="wpa-aside-card wpa-license<?php echo esc_attr($card); ?>">
             <div class="wpa-aside-card__head">
                 <?php wp_arzo_icon_e($icon, array('class' => 'wpa-icon')); ?>
                 <h3 class="wpa-aside-card__title">License</h3>
@@ -1170,22 +1175,25 @@ class WP_Arzo_Admin
             }
         }
 
-        echo '<div class="wpa-field"' . $showif . '>';
+        // $showif is either '' or a fully-formed, esc_attr'd data attribute built above.
+        echo '<div class="wpa-field"' . $showif . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         if ($type !== 'toggle') {
-            echo '<label class="wpa-field__label" for="' . $fid . '">' . esc_html($label) . '</label>';
+            echo '<label class="wpa-field__label" for="' . esc_attr($fid) . '">' . esc_html($label) . '</label>';
         }
 
         switch ($type) {
             case 'textarea':
-                echo '<textarea class="wpa-input" id="' . $fid . '" name="' . $name . '" rows="5">' . esc_textarea((string) $value) . '</textarea>';
+                echo '<textarea class="wpa-input" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" rows="5">' . esc_textarea((string) $value) . '</textarea>';
                 break;
             case 'code':
-                echo '<textarea class="wpa-input wpa-code" id="' . $fid . '" name="' . $name . '" rows="8" spellcheck="false" autocomplete="off" style="font-family:var(--arzo-font-mono);font-size:var(--arzo-fs-sm);line-height:1.5;">' . esc_textarea((string) $value) . '</textarea>';
+                echo '<textarea class="wpa-input wpa-code" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" rows="8" spellcheck="false" autocomplete="off" style="font-family:var(--arzo-font-mono);font-size:var(--arzo-fs-sm);line-height:1.5;">' . esc_textarea((string) $value) . '</textarea>';
                 break;
             case 'test_email':
                 echo '<div style="display:flex;gap:8px;align-items:center;">';
                 echo '<input class="wpa-input" type="email" id="wpa-test-email" placeholder="recipient@example.com" style="flex:1;">';
-                echo '<button type="button" class="wpa-btn wpa-btn--secondary" id="wpa-test-email-btn" data-nonce="' . esc_attr(wp_create_nonce(self::NONCE_TEST_EMAIL)) . '">' . wp_arzo_icon('mail', array('class' => 'wpa-icon wpa-icon--sm')) . ' Send test</button>';
+                echo '<button type="button" class="wpa-btn wpa-btn--secondary" id="wpa-test-email-btn" data-nonce="' . esc_attr(wp_create_nonce(self::NONCE_TEST_EMAIL)) . '">';
+                wp_arzo_icon_e('mail', array('class' => 'wpa-icon wpa-icon--sm'));
+                echo ' Send test</button>';
                 echo '</div>';
                 echo '<p class="wpa-field__help" id="wpa-test-email-msg">Sends a test message using the current (saved) settings.</p>';
                 break;
@@ -1197,34 +1205,36 @@ class WP_Arzo_Admin
                 $bicon  = isset($field['button_icon']) ? $field['button_icon'] : 'bolt';
                 if ($act !== '') {
                     $href = wp_nonce_url(admin_url('admin-post.php?action=' . $act), $act);
-                    echo '<a class="wpa-btn wpa-btn--secondary" href="' . esc_url($href) . '">' . wp_arzo_icon($bicon, array('class' => 'wpa-icon wpa-icon--sm')) . ' ' . esc_html($btn) . '</a>';
+                    echo '<a class="wpa-btn wpa-btn--secondary" href="' . esc_url($href) . '">';
+                    wp_arzo_icon_e($bicon, array('class' => 'wpa-icon wpa-icon--sm'));
+                    echo ' ' . esc_html($btn) . '</a>';
                 }
                 break;
             case 'number':
-                echo '<input class="wpa-input" type="number" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
+                echo '<input class="wpa-input" type="number" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" value="' . esc_attr((string) $value) . '">';
                 break;
             case 'email':
-                echo '<input class="wpa-input" type="email" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
+                echo '<input class="wpa-input" type="email" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" value="' . esc_attr((string) $value) . '">';
                 break;
             case 'color':
                 $cval = ($value !== '' && $value !== null) ? $value : (isset($field['default']) ? $field['default'] : '#16e791');
-                echo '<input type="color" class="wpa-color-input" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $cval) . '">';
+                echo '<input type="color" class="wpa-color-input" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" value="' . esc_attr((string) $cval) . '">';
                 break;
             case 'password':
                 // Never echo the stored secret; blank submit keeps the saved value.
                 $has = ($value !== '' && $value !== null);
-                echo '<input class="wpa-input" type="password" autocomplete="new-password" id="' . $fid . '" name="' . $name . '" value="" placeholder="' . ($has ? '••••••••  (leave blank to keep current)' : '') . '">';
+                echo '<input class="wpa-input" type="password" autocomplete="new-password" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" value="" placeholder="' . ($has ? '••••••••  (leave blank to keep current)' : '') . '">';
                 break;
             case 'select':
                 $options = isset($field['options']) && is_array($field['options']) ? $field['options'] : array();
-                echo '<select class="wpa-input" id="' . $fid . '" name="' . $name . '" data-wpa-select>';
+                echo '<select class="wpa-input" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" data-wpa-select>';
                 foreach ($options as $oval => $olabel) {
                     echo '<option value="' . esc_attr($oval) . '" ' . selected((string) $value, (string) $oval, false) . '>' . esc_html($olabel) . '</option>';
                 }
                 echo '</select>';
                 break;
             case 'toggle':
-                echo '<label class="wpa-toggle"><input type="checkbox" class="wpa-toggle__input" role="switch" id="' . $fid . '" name="' . $name . '" value="1" ' . checked((bool) $value, true, false) . '>';
+                echo '<label class="wpa-toggle"><input type="checkbox" class="wpa-toggle__input" role="switch" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" value="1" ' . checked((bool) $value, true, false) . '>';
                 echo '<span class="wpa-toggle__track"><span class="wpa-toggle__thumb"></span></span>';
                 echo '<span class="wpa-toggle__label">' . esc_html($label) . '</span></label>';
                 break;
@@ -1234,13 +1244,13 @@ class WP_Arzo_Admin
                 echo '<div class="wpa-checks">';
                 foreach ($options as $oval => $olabel) {
                     $ck = in_array((string) $oval, $sel, true) ? ' checked' : '';
-                    echo '<label class="wpa-check"><input type="checkbox" name="' . $name . '[]" value="' . esc_attr($oval) . '"' . $ck . '> ' . esc_html($olabel) . '</label>';
+                    echo '<label class="wpa-check"><input type="checkbox" name="' . esc_attr($name) . '[]" value="' . esc_attr($oval) . '"' . esc_attr($ck) . '> ' . esc_html($olabel) . '</label>';
                 }
                 echo '</div>';
                 break;
             case 'text':
             default:
-                echo '<input class="wpa-input" type="text" id="' . $fid . '" name="' . $name . '" value="' . esc_attr((string) $value) . '">';
+                echo '<input class="wpa-input" type="text" id="' . esc_attr($fid) . '" name="' . esc_attr($name) . '" value="' . esc_attr((string) $value) . '">';
                 break;
         }
 
@@ -2024,7 +2034,7 @@ class WP_Arzo_Admin
                     <span style="color:var(--arzo-text-muted);font-size:.82rem;"><span style="color:var(--arzo-success);">■</span> sent&nbsp;&nbsp;<span style="color:var(--arzo-error);">■</span> failed</span>
                 </div>
                 <svg viewBox="0 0 100 40" preserveAspectRatio="none" width="100%" height="120" role="img" aria-label="Daily email volume, sent and failed" style="margin-top:12px;display:block;">
-                    <?php echo $bars; // rects built above, values escaped ?>
+                    <?php echo $bars; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG <rect> markup built above from (int)-cast values. ?>
                 </svg>
             </div>
 
@@ -2301,7 +2311,7 @@ class WP_Arzo_Admin
                 $key === $tab ? ' aria-current="page"' : '',
                 wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')),
                 esc_html($t['label']),
-                $badge
+                $badge // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- safe HTML built above with an (int) cast.
             );
         }
         echo '</nav>';
@@ -2965,7 +2975,7 @@ class WP_Arzo_Admin
                 $key === $tab ? ' aria-current="page"' : '',
                 wp_arzo_icon($t['icon'], array('class' => 'wpa-icon wpa-icon--sm')),
                 esc_html($t['label']),
-                $badge
+                $badge // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- safe HTML built above with an (int) cast.
             );
         }
         echo '</nav>';
@@ -3673,7 +3683,7 @@ class WP_Arzo_Admin
             <?php endforeach; ?>
         </div>
 
-        <?php echo $this->analytics_chart($o['series']); ?>
+        <?php echo $this->analytics_chart($o['series']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- returns internally-built, escaped SVG chart markup. ?>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--arzo-space-4,16px);">
             <div class="wpa-card" style="padding:0;overflow:hidden;">
@@ -3765,7 +3775,7 @@ class WP_Arzo_Admin
                     <?php endforeach; ?>
                 </nav>
 
-                <div id="wpa-an-body"><?php echo $this->analytics_body($from, $to, $tab); ?></div>
+                <div id="wpa-an-body"><?php echo $this->analytics_body($from, $to, $tab); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- returns internally-escaped report HTML. ?></div>
             </div>
 
             <script>
@@ -4174,7 +4184,7 @@ class WP_Arzo_Admin
             $imp = sanitize_key(wp_unslash($_GET['import']));
             if ($imp === 'ok') {
                 $n = isset($_GET['n']) ? (int) $_GET['n'] : 0;
-                echo '<div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;">' . wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')) . ' Imported ' . $n . ' snippet(s) — added disabled; review and enable them.</div>';
+                echo '<div class="wpa-toast wpa-toast--success" style="position:static;margin-bottom:16px;display:inline-flex;">' . wp_arzo_icon('check', array('class' => 'wpa-icon wpa-icon--sm')) . ' Imported ' . (int) $n . ' snippet(s) — added disabled; review and enable them.</div>';
             } else {
                 echo '<div class="wpa-toast wpa-toast--error" style="position:static;margin-bottom:16px;display:inline-flex;">' . wp_arzo_icon('x', array('class' => 'wpa-icon wpa-icon--sm')) . ' ' . ($imp === 'nofile' ? 'No file selected.' : 'That file isn’t a valid WP Arzo snippets export.') . '</div>';
             }
@@ -4396,7 +4406,7 @@ class WP_Arzo_Admin
                     <input type="search" id="wpa-snip-search" class="wpa-input" placeholder="Search snippets…" aria-label="Search snippets" autocomplete="off">
                 </div>
                 <div class="wpa-code-app__list-body" id="wpa-snip-list" data-current="<?php echo esc_attr($current['id']); ?>">
-                    <?php echo $this->render_snippet_list_rows(array_slice($snippets, 0, self::SNIPPETS_PER_PAGE), $current['id']); // rows are individually escaped in the helper ?>
+                    <?php echo $this->render_snippet_list_rows(array_slice($snippets, 0, self::SNIPPETS_PER_PAGE), $current['id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper returns individually-escaped row markup. ?>
                 </div>
                 <div class="wpa-code-app__pager" id="wpa-snip-pager" data-nonce="<?php echo esc_attr($snip_nonce); ?>" data-paged="1" data-pages="<?php echo (int) $snip_pages; ?>" style="display:<?php echo $snip_pages > 1 ? 'flex' : 'none'; ?>;">
                     <button type="button" class="wpa-btn wpa-btn--ghost wpa-btn--icon wpa-btn--sm" id="wpa-snip-prev" aria-label="Newer snippets" disabled><?php wp_arzo_icon_e('chevron-right', array('class' => 'wpa-icon wpa-icon--sm', 'style' => 'transform:rotate(180deg)')); ?></button>

@@ -499,33 +499,38 @@ class WP_Arzo_Snippets
             if ($front) {
                 add_action('wp_head', function () use ($snippet) {
                     if (!$this->passes_conditions($snippet)) return;
-                    echo "\n<style id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . wp_strip_all_tags($snippet['code']) . "</style>\n";
+                    // Admin-authored (manage_options) snippet CSS; tags stripped so it can't break out of <style>.
+                    echo "\n<style id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . wp_strip_all_tags($snippet['code']) . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 }, $prio);
             }
             if ($admin) {
                 add_action('admin_head', function () use ($snippet) {
                     if (!$this->passes_conditions($snippet)) return;
-                    echo "\n<style id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . wp_strip_all_tags($snippet['code']) . "</style>\n";
+                    // Admin-authored (manage_options) snippet CSS; tags stripped so it can't break out of <style>.
+                    echo "\n<style id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . wp_strip_all_tags($snippet['code']) . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 }, $prio);
             }
         } elseif ($snippet['type'] === 'js') {
             if ($front) {
                 add_action('wp_footer', function () use ($snippet) {
                     if (!$this->passes_conditions($snippet)) return;
-                    echo "\n<script id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . $snippet['code'] . "</script>\n";
+                    // Admin-authored (manage_options) JS snippet; output verbatim by design (Code-Snippets pattern).
+                    echo "\n<script id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . $snippet['code'] . "</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 }, $prio);
             }
             if ($admin) {
                 add_action('admin_footer', function () use ($snippet) {
                     if (!$this->passes_conditions($snippet)) return;
-                    echo "\n<script id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . $snippet['code'] . "</script>\n";
+                    // Admin-authored (manage_options) JS snippet; output verbatim by design (Code-Snippets pattern).
+                    echo "\n<script id='wpa-snippet-" . esc_attr($snippet['id']) . "'>" . $snippet['code'] . "</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 }, $prio);
             }
         } else { // html
             if ($front) {
                 add_action('wp_footer', function () use ($snippet) {
                     if (!$this->passes_conditions($snippet)) return;
-                    echo "\n" . $snippet['code'] . "\n";
+                    // Admin-authored (manage_options) HTML snippet; output verbatim by design.
+                    echo "\n" . $snippet['code'] . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 }, $prio);
             }
         }
