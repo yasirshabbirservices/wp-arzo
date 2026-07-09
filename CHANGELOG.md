@@ -21,9 +21,9 @@ positioned as **PRO-tier** power tools (alongside the File Manager + Database ma
   fatals. Both remain fully functional in the self-hosted / Pro build.
 - **Advertised as locked PRO cards** in the free dashboard via the placeholder catalog
   (`code_snippets`, `custom_code`), so `.org` users see the upsell.
-- **Retired `wparzo.com`** — the Pro upgrade/buy link now points to
-  `https://yasirshabbir.com/wp-arzo/` (filterable via `wp_arzo_pro_upgrade_url`); scrubbed from
-  all git history in both repos.
+- **Retired the old product domain** — the Pro upgrade/buy link now points to
+  `https://yasirshabbir.com/wp-arzo/` (filterable via `wp_arzo_pro_upgrade_url`); the previous
+  domain was scrubbed from all git history in both repos.
 
 ## [6.159.0] — 2026-07-06
 
