@@ -4,6 +4,27 @@ All notable changes to **WP Arzo – Administration Suite** are documented
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.160.0] — 2026-07-09
+
+### Changed — Code Snippets + Custom Code moved out of the WordPress.org build
+
+WordPress.org **rejected** the 6.156.0 submission as a "script-insertion plugin" — not for
+code quality (Plugin Check was clean) but because the directory does not accept plugins that
+let an admin run arbitrary PHP (**Code Snippets**) or inject arbitrary HTML/JS
+(**Header / Body / Footer Code**). Both features are now excluded from the `.org` build and
+positioned as **PRO-tier** power tools (alongside the File Manager + Database manager).
+
+- **Stripped from the `.org` build** via `.distignore`: `class-wp-arzo-snippets.php`,
+  `class-feature-snippets.php`, and the extracted `class-feature-custom-code.php`. The engine
+  `require` is `file_exists()`-guarded, the admin hooks + Snippets submenu are
+  `class_exists('WP_Arzo_Snippets')`-guarded, so the `.org` build never exposes them and never
+  fatals. Both remain fully functional in the self-hosted / Pro build.
+- **Advertised as locked PRO cards** in the free dashboard via the placeholder catalog
+  (`code_snippets`, `custom_code`), so `.org` users see the upsell.
+- **Retired `wparzo.com`** — the Pro upgrade/buy link now points to
+  `https://yasirshabbir.com/wp-arzo/` (filterable via `wp_arzo_pro_upgrade_url`); scrubbed from
+  all git history in both repos.
+
 ## [6.159.0] — 2026-07-06
 
 ### Changed — WordPress.org Plugin Check hardening (complete: 0 errors)
