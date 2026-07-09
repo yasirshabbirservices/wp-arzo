@@ -216,7 +216,9 @@ class WP_Arzo_Admin
         // Feature pages appear only while their feature is enabled (see page_visible()).
         // Explicit positions give a deliberate order and leave gaps (20–25, 40, 55) for the
         // Pro add-on's pages (Content Types, Custom Fields, Redirects, Cron) to slot in.
-        if ($this->page_visible(self::PAGE_SNIPPETS)) {
+        // The Snippets page only exists when the engine ships (it is stripped from the
+        // WordPress.org build, where snippets are a locked PRO placeholder).
+        if (class_exists('WP_Arzo_Snippets') && $this->page_visible(self::PAGE_SNIPPETS)) {
             add_submenu_page(self::PAGE, 'Snippets', 'Snippets', 'manage_options', self::PAGE_SNIPPETS, array($this, 'render_snippets'), 30);
         }
         if ($this->page_visible(self::PAGE_MEDIA)) {
