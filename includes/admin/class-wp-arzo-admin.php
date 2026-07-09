@@ -101,13 +101,17 @@ class WP_Arzo_Admin
         // Import / Export (file downloads/uploads → admin-post.php).
         add_action('admin_post_wp_arzo_email_log_export', array($this, 'handle_email_log_export'));
         add_action('admin_post_wp_arzo_activity_export', array($this, 'handle_activity_export'));
-        add_action('admin_post_wp_arzo_snippets_export', array($this, 'handle_snippets_export'));
-        add_action('admin_post_wp_arzo_snippets_import', array($this, 'handle_snippets_import'));
         add_action('wp_ajax_wp_arzo_email_log_detail', array($this, 'ajax_email_log_detail'));
         add_action('wp_ajax_wp_arzo_email_log_query', array($this, 'ajax_email_log_query'));
-        add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
-        add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
-        add_action('wp_ajax_wp_arzo_snippets_list', array($this, 'ajax_snippets_list'));
+        // Code Snippets hooks — registered only when the engine ships (it is stripped from the
+        // WordPress.org build, where snippets are unavailable). See wp-arzo.php require guard.
+        if (class_exists('WP_Arzo_Snippets')) {
+            add_action('admin_post_wp_arzo_snippets_export', array($this, 'handle_snippets_export'));
+            add_action('admin_post_wp_arzo_snippets_import', array($this, 'handle_snippets_import'));
+            add_action('wp_ajax_wp_arzo_snippet_toggle', array($this, 'ajax_snippet_toggle'));
+            add_action('wp_ajax_wp_arzo_snippet_delete', array($this, 'ajax_snippet_delete'));
+            add_action('wp_ajax_wp_arzo_snippets_list', array($this, 'ajax_snippets_list'));
+        }
         add_action('wp_ajax_wp_arzo_send_test_email', array($this, 'ajax_send_test_email'));
         add_action('wp_ajax_wp_arzo_email_resend', array($this, 'ajax_email_resend'));
         add_action('wp_ajax_wp_arzo_email_queue_retry', array($this, 'ajax_email_queue_retry'));

@@ -60,51 +60,9 @@ class WP_Arzo_Feature_Last_Login extends WP_Arzo_Feature
     }
 }
 
-class WP_Arzo_Feature_Custom_Code extends WP_Arzo_Feature
-{
-    public function id()
-    {
-        return 'custom_code';
-    }
-    public function title()
-    {
-        return 'Header / Body / Footer Code';
-    }
-    public function description()
-    {
-        return 'Insert custom code (analytics, verification tags, scripts) into the head, after <body>, or before </body>.';
-    }
-    public function group()
-    {
-        return 'developer';
-    }
-    public function icon()
-    {
-        return 'code';
-    }
-    public function settings_schema()
-    {
-        return array(
-            array('key' => 'head', 'type' => 'code', 'label' => 'Inside <head>'),
-            array('key' => 'body_open', 'type' => 'code', 'label' => 'After opening <body>'),
-            array('key' => 'footer', 'type' => 'code', 'label' => 'Before closing </body>'),
-        );
-    }
-    public function boot()
-    {
-        // Insert-Headers-and-Footers pattern: raw custom code entered by an admin
-        // (manage_options) is output verbatim by design; escaping would defeat the feature.
-        add_action('wp_head', function () {
-            echo (string) $this->get_setting('head', ''); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        }, 99);
-        add_action('wp_body_open', function () {
-            echo (string) $this->get_setting('body_open', ''); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        });
-        add_action('wp_footer', function () {
-            echo (string) $this->get_setting('footer', ''); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        }, 99);
-    }
-}
+// WP_Arzo_Feature_Custom_Code (Header/Body/Footer script insertion) moved to its own
+// file — includes/features-registry/class-feature-custom-code.php — so it can be stripped
+// from the WordPress.org build (script-insertion plugins are not accepted there).
 
 class WP_Arzo_Feature_Custom_CSS extends WP_Arzo_Feature
 {
