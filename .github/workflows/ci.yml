@@ -7,9 +7,9 @@ name: CI
 
 on:
   push:
-    branches: [wp-plugin]
+    branches: [main]
   pull_request:
-    branches: [wp-plugin]
+    branches: [main]
 
 permissions:
   contents: read
