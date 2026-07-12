@@ -34,8 +34,15 @@ jobs:
             --exclude='AI_RULES.md' \
             --exclude='node_modules' \
             --exclude='build' \
+            --exclude='bin' \
+            --exclude='scratchpad' \
+            --exclude='.distignore' \
             --exclude='.gitignore' \
             --exclude='.gitattributes' \
+            --exclude='*.zip' \
+            --exclude='*.map' \
+            --exclude='*secret*' \
+            --exclude='.env' \
             ./ build/wp-arzo/
           (cd build && zip -rq wp-arzo.zip wp-arzo)
           ls -la build
