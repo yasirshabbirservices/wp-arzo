@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.160.0
+Stable tag: 6.161.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -16,7 +16,7 @@ One suite to run, secure, optimize, and rescue your WordPress site — replace 2
 Three reasons sites switch:
 
 * **Replace 20+ plugins.** ~50 site-enhancement features in one dashboard — SMTP with fallback,
-  code snippets, backups, security hardening, login protection, media tools, performance tweaks,
+  cookieless analytics, backups, security hardening, login protection, media tools, performance
   role/capability editing, REST API keys, and dozens more. Enable only what you need; disabled
   features load zero code.
 * **Analytics without Site Kit.** A built-in, cookieless, first-party analytics engine — traffic,
@@ -45,6 +45,12 @@ existing WordPress session (administrators only).
 == Changelog ==
 
 See CHANGELOG.md for the full history.
+
+= 6.161.0 =
+* Changed: **Code Snippets** and **Header / Body / Footer Code** are now Pro-only. These let an
+  administrator run arbitrary PHP / inject arbitrary HTML+JS, so they are not part of the free
+  WordPress.org build — they live in the WP Arzo Pro add-on. Everything else is unchanged, and the
+  free plugin no longer executes any user-supplied code.
 
 = 6.155.0 =
 * Changed: **Enhance List Tables** now makes clear it applies to classic list tables (posts, pages,

@@ -38,12 +38,3 @@ includes/features-registry/class-feature-disable-updates.php
 # file_exists() include guard (features/site-modes.php), so the .org build never
 # exposes the endpoint or the Emergency Mode UI.
 wp-arzo-emergency
-
-# Script-insertion features — NOT accepted on WordPress.org (they let an admin run
-# arbitrary PHP / inject arbitrary HTML+JS). Stripped from the .org build; they remain
-# in the self-hosted / Pro build, where the free core advertises them as PRO-tier power
-# features. Registration is file_exists()-guarded and the admin coupling is
-# class_exists('WP_Arzo_Snippets')-guarded, so the .org build never exposes them.
-includes/class-wp-arzo-snippets.php
-includes/features-registry/class-feature-snippets.php
-includes/features-registry/class-feature-custom-code.php

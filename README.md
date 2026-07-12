@@ -7,7 +7,7 @@ One dark, modern dashboard to run, secure, optimize, and rescue your site — pl
 break‑glass power‑tools console and a standalone emergency recovery tool for when
 WordPress won't even load.
 
-![Version](https://img.shields.io/badge/version-6.160.0-16e791)
+![Version](https://img.shields.io/badge/version-6.161.0-16e791)
 ![WordPress](https://img.shields.io/badge/WordPress-%E2%89%A5%205.0-21759b)
 ![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%207.2-777bb4)
 ![Admin only](https://img.shields.io/badge/access-administrators%20only-ff4d4f)
@@ -32,12 +32,12 @@ Everything is **administrators‑only** and authenticates with your existing Wor
 session. The optional **WP Arzo Pro** add‑on registers premium modules into the same
 dashboard (shown as locked **PRO** cards until unlocked).
 
-- **Current version:** `6.160.0` — see [CHANGELOG.md](CHANGELOG.md)
+- **Current version:** `6.161.0` — see [CHANGELOG.md](CHANGELOG.md)
 - **Requires:** WordPress ≥ 5.0 · PHP ≥ 7.2
 - **Highlights:** a built‑in **cookieless analytics** engine (no Site Kit needed), multi‑provider
-  SMTP with fallback **+ auto‑retry queue**, a CodeMirror **Code Snippets** editor with **smart
-  conditional logic**, local **+ scheduled backups** with file snapshots & diff, **REST API
-  authentication**, a **role/capability editor**, and dozens of performance, security, and admin
+  SMTP with fallback **+ auto‑retry queue**, local **+ scheduled backups** with file snapshots &
+  diff, **REST API authentication**, a **role/capability editor**, and dozens of performance,
+  security, and admin
   refinements. Heavy power‑tools (File Manager, Database manager) ship with **WP Arzo Pro** to keep
   the free core lean.
 
@@ -49,8 +49,8 @@ The native **WP Arzo** admin menu is the modern home base:
 
 - A grouped, searchable **toggle grid** — flip features on/off with modern switches; each
   carries its own schema‑driven settings panel and a real SVG icon.
-- A **left sidebar** for page navigation (Dashboard, Email, Backups, Snippets, Media
-  Cleanup, Activity Log, Content Types, Login Security, Advanced Tools…) and a live
+- A **left sidebar** for page navigation (Dashboard, Email, Backups, Media
+  Cleanup, Activity Log, Login Security, Advanced Tools…) and a live
   **category filter** that scopes the grid.
 - A **⌘/Ctrl‑K command palette** (WordPress‑native) with every WP Arzo destination.
 - A **light / dark theme** toggle (dark by default), WCAG 2.2 AA throughout.
@@ -110,10 +110,11 @@ The native **WP Arzo** admin menu is the modern home base:
 ### ✍️ Content & Developer
 | Feature | What it does |
 |---|---|
-| **Code Snippets** | A CodeMirror editor for PHP/CSS/JS/HTML snippets, fatal‑guarded (auto‑disables a snippet that errors), with **Smart Conditional Logic** (run only on chosen roles / post types / page types / URLs / devices / schedules) and Import/Export |
 | **Custom CSS** | Site‑wide custom CSS without touching the theme |
-| **Header / Body / Footer Code** | Inject scripts/markup into `<head>`, after `<body>`, or the footer |
 | **Custom Body Class** | Add custom classes to `<body>` |
+
+> **Code Snippets** and **Header / Body / Footer Code** run/inject arbitrary code, so they are
+> **Pro‑only** (WordPress.org does not accept script‑insertion features) — see [WP Arzo Pro](#-wp-arzo-pro).
 
 ### 🖼️ Media
 | Feature | What it does |
@@ -196,6 +197,7 @@ The optional Pro add‑on registers these modules into the same dashboard:
 |---|---|
 | **Marketing & Tracking** | Meta (Facebook) Pixel · TikTok Pixel · LinkedIn Insight Tag · Pinterest Tag · Snapchat Pixel · X (Twitter) Pixel · Microsoft/Bing UET _(GA4 · Tag Manager · Google Ads are now **free** — see Analytics)_ |
 | **Analytics** | Analytics Pro — a **UTM Campaigns** report and a live **Real-time** visitor view on top of the free built-in engine _(more coming: click/event/form tracking, email reports, eCommerce, GA4 in‑dashboard reporting)_ |
+| **Developer** | **Code Snippets** (CodeMirror PHP/CSS/JS/HTML editor, fatal‑guarded, smart conditional logic, import/export, `[wp_arzo_snippet]` shortcode) · **Header / Body / Footer Code** |
 | **Content Modeling** | Content Types (CPT/CCT builder) · Custom Fields (meta‑box builder) |
 | **Media** | Media Folders (nestable library folders + filters) |
 | **Branding** | Admin Branding & Custom Dashboard · Text Replacement (white‑label) |

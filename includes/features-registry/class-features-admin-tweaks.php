@@ -60,9 +60,9 @@ class WP_Arzo_Feature_Last_Login extends WP_Arzo_Feature
     }
 }
 
-// WP_Arzo_Feature_Custom_Code (Header/Body/Footer script insertion) moved to its own
-// file — includes/features-registry/class-feature-custom-code.php — so it can be stripped
-// from the WordPress.org build (script-insertion plugins are not accepted there).
+// WP_Arzo_Feature_Custom_Code (Header/Body/Footer script insertion) moved to the Pro add-on
+// (WordPress.org does not accept script-insertion plugins). See wp-arzo-pro:
+// includes/features/class-feature-custom-code.php.
 
 class WP_Arzo_Feature_Custom_CSS extends WP_Arzo_Feature
 {

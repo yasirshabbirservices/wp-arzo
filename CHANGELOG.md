@@ -4,6 +4,24 @@ All notable changes to **WP Arzo – Administration Suite** are documented
 in this file. This project loosely follows [Keep a Changelog](https://keepachangelog.com/)
 and [Semantic Versioning](https://semver.org/).
 
+## [6.161.0] — 2026-07-09
+
+### Changed — Code Snippets + Custom Code moved fully into the Pro add-on
+
+Completes the move started in 6.160.0. The two script-insertion features are now **removed
+from the free core entirely** (not just excluded from the `.org` build) and live in the
+`wp-arzo-pro` add-on (Pro v1.74.0), which registers the engine, the Snippets admin page + AJAX
++ import/export, and the Header/Body/Footer Code feature.
+
+- Deleted from free: `includes/class-wp-arzo-snippets.php`, `class-feature-snippets.php`,
+  `class-feature-custom-code.php`, the snippet admin methods + submenu registration, and the
+  `code_snippets` / `custom_code` registry entries. Reverted the `.distignore` entries and the
+  temporary `class_exists` guards.
+- Kept in free: the shared admin editor plumbing the Pro Snippets page reuses (CodeMirror
+  enqueue + `snippetNonce`) and the locked **PRO** placeholder cards. Config Import/Export still
+  round-trips snippets when the Pro engine is present (`class_exists`-guarded).
+- The readme no longer advertises Code Snippets / Custom Code as free features.
+
 ## [6.160.0] — 2026-07-09
 
 ### Changed — Code Snippets + Custom Code moved out of the WordPress.org build

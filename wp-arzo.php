@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.160.0
+ * Version: 6.161.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: arzo-administration-suite
@@ -30,7 +30,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.160.0');
+    define('WP_ARZO_VERSION', '6.161.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -502,12 +502,11 @@ require_once(WP_ARZO_PLUGIN_DIR . 'includes/maintenance-frontend.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-feature-registry.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-backup-manager.php');
-// Code Snippets engine (PHP/CSS/JS/HTML execution) — a script-insertion feature stripped
-// from the WordPress.org build via `.distignore`; guard the require so the .org build,
-// where the file is absent, doesn't fatal. The admin coupling is class_exists()-guarded.
-if (file_exists(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-snippets.php')) {
-    require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-snippets.php');
-}
+// Code Snippets + Header/Body/Footer Code are script-insertion features that WordPress.org
+// does not accept — they now live in the Pro add-on, not the free core. The free dashboard
+// advertises them as locked PRO cards (see class-feature-pro-placeholders.php). The shared
+// admin JS/CSS + CodeMirror enqueue for the Pro Snippets page still ship in the free core's
+// generic admin assets, exactly like every other Pro admin page.
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-media-cleanup.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-temp-login.php');
 require_once(WP_ARZO_PLUGIN_DIR . 'includes/class-wp-arzo-email-connections.php');
@@ -577,15 +576,13 @@ function wp_arzo_bootstrap_features()
         'disable_archives'          => array('WP_Arzo_Feature_Disable_Archives', 'class-feature-disable-archives.php'),
         'content_order'             => array('WP_Arzo_Feature_Content_Order', 'class-feature-content-order.php'),
 
-        // Developer
-        'code_snippets'             => array('WP_Arzo_Feature_Snippets', 'class-feature-snippets.php'),
+        // Developer — Code Snippets moved to the Pro add-on (script insertion; not on wp.org).
 
         // Security & Access — audit trail
         'activity_log'              => array('WP_Arzo_Feature_Activity_Log', 'class-feature-activity-log.php'),
 
         // Admin tweaks
         'last_login'                => array('WP_Arzo_Feature_Last_Login', 'class-features-admin-tweaks.php'),
-        'custom_code'               => array('WP_Arzo_Feature_Custom_Code', 'class-feature-custom-code.php'),
         'custom_css'                => array('WP_Arzo_Feature_Custom_CSS', 'class-features-admin-tweaks.php'),
         'login_redirect'            => array('WP_Arzo_Feature_Login_Redirect', 'class-features-admin-tweaks.php'),
         'custom_body_class'         => array('WP_Arzo_Feature_Custom_Body_Class', 'class-features-cleanup.php'),
