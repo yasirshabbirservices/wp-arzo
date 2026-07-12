@@ -626,7 +626,7 @@ unchanged. Empty categories are hidden (show-only-when-needed).
   submits a `<form method="post">`; the handler then echoed `location.reload()`, and reloading a
   POST-loaded page **re-submits the POST**, which re-emits the reload script — so the page refreshed
   itself forever. Switched to **Post/Redirect/Get**: after saving it now navigates once to the clean
-  GET URL (`window.location.replace`). Added a standing rule to CLAUDE.md (never `location.reload()`
+  GET URL (`window.location.replace`). Added a standing rule to the dev docs (never `location.reload()`
   on a POST-loaded page). Other console actions (Plugins/Themes/Site Modes/Users/debug-log) already
   use AJAX and don't reload.
 - **Advanced Tools launcher page rendered cut-off.** The `WP Arzo → Advanced Tools` menu opens the
@@ -923,7 +923,7 @@ and the data is surfaced across wp-admin.
 
 ### Added — Analytics pillar, Phase 1: built-in cookieless analytics (NEW)
 
-First slice of the **Analytics initiative** ([`.claude/analytics-plan.md`](.claude/analytics-plan.md)) —
+First slice of the **Analytics initiative** (the analytics plan) —
 a built-in, first-party, **cookieless** website-analytics engine so you don't need Site Kit,
 Independent Analytics, or MonsterInsights.
 
@@ -1076,9 +1076,9 @@ Independent Analytics, or MonsterInsights.
   every control's color already matched its intent (Pro: zero mismatches). One fix on the free
   side: the **Unlock / Unlock all** lockout buttons wore a misleading `trash` glyph (they *unblock*
   users, they don't delete) — new **`unlock`** icon added and applied.
-- **Command registry** added under `.claude/commands/` (gitignored): `/enrich-feature`,
+- **Command registry** added under the command registry (gitignored): `/enrich-feature`,
   `/consistency-pass`, `/color-audit`, `/handoff-docs` — reusable trigger phrases documented so any
-  session recognizes them (see CLAUDE.md).
+  session recognizes them (see the dev docs).
 
 ## [6.102.1] — 2026-07-03
 
@@ -1091,7 +1091,7 @@ Independent Analytics, or MonsterInsights.
 
 ### Added — Semantic action colors (color = intent) + continued icon sweep
 
-- New standing rule in the **Surface Consistency Bar** (CLAUDE.md #7): a control's **color
+- New standing rule in the **Surface Consistency Bar** (the dev docs #7): a control's **color
   matches what it does** — destructive/data-losing = red, primary = accent, neutral (incl.
   filter reset) = ghost/secondary, cautionary = amber. Applies across both plugins.
 - New **`.wpa-btn--danger-soft`** component: a red-glyph button (transparent/bordered) that
@@ -1118,7 +1118,7 @@ Independent Analytics, or MonsterInsights.
 
 ### Added — Surface Consistency Bar (standing directive + trigger phrase)
 
-- Documented a repo-wide **Surface Consistency Bar** in CLAUDE.md with the reusable trigger
+- Documented a repo-wide **Surface Consistency Bar** in the dev docs with the reusable trigger
   phrase **"arzo consistency pass"** — one line the maintainer can drop in any session to bring
   any surface (console, emergency tool, public pages, Free/Pro feature page) to exact dashboard
   parity: same dark tokens (inputs sink to `--arzo-bg-input`, never the lighter gray), same
@@ -1518,7 +1518,7 @@ Independent Analytics, or MonsterInsights.
 - **Brevo** is now the **Recommended** provider (green badge) and appears at the top of the
   provider picker + onboarding wizard — a reliable free-tier API sender that avoids SMTP
   port/auth headaches.
-- Documented two structural conventions in CLAUDE.md: **consolidate menus** (group related
+- Documented two structural conventions in the dev docs: **consolidate menus** (group related
   config into one tabbed parent page rather than a menu per feature) and **keep the docs
   learning** (record new patterns/gotchas/dedup checks every change set).
 
@@ -1545,7 +1545,7 @@ Independent Analytics, or MonsterInsights.
   manager).
 - **Convention:** list/table pages that paginate, search, or filter should now use
   **AJAX (fetch → JSON, update in place)** rather than `?paged=` GET reloads — documented in
-  CLAUDE.md and the feature-module skill.
+  the dev docs and the feature-module skill.
 
 ## [6.72.1] — 2026-07-02
 
@@ -2026,7 +2026,7 @@ Independent Analytics, or MonsterInsights.
   `.btn-edit` uses brand tokens.
 - **Card/form widths are consistent** — settings & snippet forms fill the content column
   instead of being arbitrarily narrower than the header. Documented the rule (and the
-  no-blue rule) in `CLAUDE.md` + `design.md`.
+  no-blue rule) in the dev docs + `design.md`.
 - **Branding**: the “by Yasir Shabbir” line (dashboard, console, emergency tool) now links to
   https://yasirshabbir.com instead of an email address.
 - **Config Import / Export** is now a permanent tool — always available in the sidebar, no
@@ -2130,7 +2130,7 @@ Independent Analytics, or MonsterInsights.
   plugins' options or your content.
 
 ### Conventions
-- Documented two standing rules in `CLAUDE.md`, `design.md`, the feature-module skill, and
+- Documented two standing rules in the dev docs, `design.md`, the feature-module skill, and
   the session brief: **check for duplicates before adding anything**, and **use a real icon
   on every feature card, page header, and sidebar nav item** (never emoji/none).
 
@@ -2439,7 +2439,7 @@ Independent Analytics, or MonsterInsights.
   hard-coded magic numbers so the UI scales smoothly across viewports.
 
 ### Docs
-- `CLAUDE.md`: added a **Working agreement** (always update roadmap/docs/skills + version +
+- the dev docs: added a **Working agreement** (always update roadmap/docs/skills + version +
   commit/tag/release/push) and CSS conventions (`clamp`/`calc`/variables).
 
 ## [6.6.3] — 2026-06-30
@@ -2536,7 +2536,7 @@ The backbone of the suite: a native wp-admin feature manager that everything plu
 
 ### Added — design-system foundation
 
-Groundwork for the larger feature-suite roadmap ([.claude/ROADMAP.md](.claude/ROADMAP.md)).
+Groundwork for the larger feature-suite roadmap (the roadmap).
 No feature behavior changes; this is the design/UI foundation everything else builds on.
 
 ### Added
@@ -2550,7 +2550,7 @@ No feature behavior changes; this is the design/UI foundation everything else bu
   (progressive-enhanced from a native `<select>`), Badge/Status, Card, Field, Toast.
 - **Icon system** (`includes/wp-arzo-icons.php`): `wp_arzo_icon()` inline-SVG registry
   (currentColor, 24×24 stroke) — real icons for states/actions, no emoji/default glyphs.
-- `.claude/ROADMAP.md` — product & engineering roadmap (feature-registry architecture,
+- the roadmap — product & engineering roadmap (feature-registry architecture,
   freemium split, component plan, AI/MCP/snippets modules, phasing).
 
 ### Changed
@@ -2656,10 +2656,10 @@ migrations are required.
 
 ### Added
 
-- `CLAUDE.md` — architecture / routing / conventions / security baseline for
+- the dev docs — architecture / routing / conventions / security baseline for
   contributors and AI agents.
-- `.claude/` — committed agent docs: `design.md` (design system) and task-specific
-  skills under `.claude/skills/`.
+- the dev docs — committed agent docs: `design.md` (design system) and task-specific
+  skills under the dev skills.
 - This `CHANGELOG.md`.
 
 ### Notes / known follow-ups
