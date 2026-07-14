@@ -247,7 +247,7 @@ class WP_Arzo_Setup_Wizard
                     <div class="wpa-wiz__welcome">
                         <img class="wpa-wiz__welcome-logo" src="<?php echo esc_url($logo); ?>" alt="WP Arzo">
                         <h1>Welcome to WP Arzo</h1>
-                        <p class="wpa-wiz__welcome-sub">Your all-in-one maintenance &amp; administration suite — performance, security, backups, email, a full database manager, and dozens of one-click tweaks. Let’s set up your site in under a minute.</p>
+                        <p class="wpa-wiz__welcome-sub">Your all-in-one maintenance &amp; administration suite — performance, security, backups, email, role management, and dozens of one-click tweaks. Let’s set up your site in under a minute.</p>
                         <div class="wpa-wiz__highlights">
                             <div class="wpa-wiz__highlight"><?php wp_arzo_icon_e('bolt', array('class' => 'wpa-icon')); ?><strong>Faster</strong><span>Trim bloat &amp; control Heartbeat</span></div>
                             <div class="wpa-wiz__highlight"><?php wp_arzo_icon_e('shield', array('class' => 'wpa-icon')); ?><strong>Safer</strong><span>2FA, login limits, REST keys</span></div>

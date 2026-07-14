@@ -130,8 +130,8 @@ function wp_arzo_pro_feature_catalog()
 
         // Backup & Restore
         array('id' => 'backup_ftp', 'title' => 'Off-site Backups: FTP', 'group' => 'backup', 'icon' => 'upload', 'description' => 'Automatically upload each new database snapshot (zipped) to an FTP server.'),
-        array('id' => 'backup_gdrive', 'title' => 'Off-site Backups: Google Drive', 'group' => 'backup', 'icon' => 'cloud', 'description' => 'Connect Google Drive (OAuth) and automatically upload each new database snapshot, with retention and a remote-file manager.'),
-        array('id' => 'backup_pcloud', 'title' => 'Off-site Backups: pCloud', 'group' => 'backup', 'icon' => 'cloud', 'description' => 'Connect pCloud (OAuth) and automatically upload each new database snapshot, with retention and a remote-file manager.'),
+        array('id' => 'backup_gdrive', 'title' => 'Off-site Backups: Google Drive', 'group' => 'backup', 'icon' => 'cloud', 'description' => 'Connect Google Drive (OAuth) and automatically upload each new database snapshot, with retention and a remote backup browser.'),
+        array('id' => 'backup_pcloud', 'title' => 'Off-site Backups: pCloud', 'group' => 'backup', 'icon' => 'cloud', 'description' => 'Connect pCloud (OAuth) and automatically upload each new database snapshot, with retention and a remote backup browser.'),
     );
 }
 
