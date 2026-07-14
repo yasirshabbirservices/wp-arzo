@@ -1,12 +1,12 @@
 <?php
 /**
- * File Manager (console tab) — thin delegator.
+ * Files (console tab) — thin delegator.
  *
- * The File Manager is powered by elFinder, a large third-party library. To keep the
- * free .org core small and reduce its security/audit surface, the library and its
- * connector now ship with WP Arzo Pro, which registers a renderer on the
- * `wp_arzo_console_tool_provider_files` filter. When Pro provides it we delegate;
- * otherwise the tab shows a Pro upsell (and connector/download requests get a 403).
+ * The free core does not include any file-browsing/editing capability. This tab is a
+ * gate only: WP Arzo Pro optionally registers a renderer on the
+ * `wp_arzo_console_tool_provider_files` filter; when it does, we delegate to it,
+ * otherwise the tab shows a generic Pro upsell (and connector/download requests get a
+ * 403). No such capability exists anywhere in the free .org build.
  *
  * @package WP_Arzo
  */
@@ -35,14 +35,14 @@ if ($wp_arzo_files_provider) {
 if ($wp_arzo_files_is_op) {
     header('Content-Type: application/json');
     status_header(403);
-    echo json_encode(array('error' => array('The File Manager is a WP Arzo Pro feature.')));
+    echo json_encode(array('error' => array('This tool is available with WP Arzo Pro.')));
     exit;
 }
 
 if (function_exists('wp_arzo_console_pro_upsell')) {
     wp_arzo_console_pro_upsell(
-        'File Manager',
-        'Browse, edit, upload and download files across your WordPress install — right from the console.',
+        'Files',
+        'This console tool is available with WP Arzo Pro.',
         'folder'
     );
 }

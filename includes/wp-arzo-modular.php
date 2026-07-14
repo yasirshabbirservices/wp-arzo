@@ -52,17 +52,17 @@ if (function_exists('wp_arzo_console_tool_for_request')) {
 
 // Check for file download or AJAX file operations which need to run before headers if they happen to be in a feature file
 if (isset($_GET['tab'])) {
-    // Handle File operations (support both 'files' tab and legacy 'ajax' tab calls).
-    // The file manager is powered by elFinder; only the connector + downloads are
-    // served as raw responses here.
+    // Handle Files-tool raw requests (support both 'files' tab and legacy 'ajax' tab
+    // calls). The free core has no file-browsing capability; features/files.php only
+    // routes to a WP Arzo Pro-supplied renderer when one is registered.
     if (($_GET['tab'] === 'files' || $_GET['tab'] === 'ajax') && (isset($_GET['download']) || (isset($_GET['operation']) && $_GET['operation'] === 'elfinder_connector'))) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/files.php')) {
             include(WP_ARZO_PLUGIN_DIR . 'features/files.php');
             exit;
         }
     }
-    // (Database: the AdminNeo manager runs in its own WP-gated iframe loader supplied by
-    // WP Arzo Pro — there is no console AJAX operation to intercept here.)
+    // (Database: the Pro-supplied tool runs in its own iframe loader — there is no
+    // console AJAX operation to intercept here.)
     // Handle Plugin operations
     if (($_GET['tab'] === 'plugins' || $_GET['tab'] === 'ajax') && isset($_GET['operation']) && in_array($_GET['operation'], ['get_plugins_page', 'toggle_plugin'])) {
         if (file_exists(WP_ARZO_PLUGIN_DIR . 'features/plugins.php')) {

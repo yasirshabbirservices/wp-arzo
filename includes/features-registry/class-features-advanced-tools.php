@@ -3,16 +3,18 @@
 /**
  * Free features: Advanced Tools (standalone console) toggles.
  *
- * Each power-tool in the standalone console (Users, Database, File Manager,
- * Plugins, Themes, Debug, Site Modes, Extra Options, Quick Login) is exposed as
- * a dashboard toggle so it can be individually enabled/disabled — useful for
- * locking down dangerous tools (file/DB access) on production.
+ * Each tool in the standalone console (Users, Database, Files, Plugins, Themes,
+ * Debug, Site Modes, Extra Options, Quick Login) is exposed as a dashboard toggle
+ * so it can be individually enabled/disabled — useful for locking down
+ * higher-privilege tools on production. The Files and Database tools are gates
+ * only: the free core ships no file-browsing or database-query capability at all;
+ * those tools are provided entirely by the separate WP Arzo Pro add-on.
  *
  * The toggles live in the normal feature registry (group "advanced_tools"), so
  * they persist in `wp_arzo_features` like every other feature. The console reads
  * that state via wp_arzo_console_tool_enabled() to gate both its nav and its
- * AJAX/file/DB operations. "Site Info" is intentionally NOT toggleable — it is
- * the console's always-available home.
+ * AJAX operations. "Site Info" is intentionally NOT toggleable — it is the
+ * console's always-available home.
  *
  * @package WP_Arzo
  */
@@ -104,8 +106,8 @@ function wp_arzo_console_tool_catalog()
 {
     return array(
         'users'         => array('id' => 'tool_users', 'title' => 'Users (Console)', 'icon' => 'users', 'description' => 'Advanced Tools → Users: browse, search, and manage all site users.'),
-        'database'      => array('id' => 'tool_database', 'title' => 'Database (Console)', 'icon' => 'database', 'description' => 'Advanced Tools → Database: a full database manager (AdminNeo) — browse, edit, export/import, run SQL. A WP Arzo Pro power-tool; disable to lock down direct DB access.'),
-        'files'         => array('id' => 'tool_files', 'title' => 'File Manager (Console)', 'icon' => 'folder', 'description' => 'Advanced Tools → Files: the elFinder file manager (browse/edit/upload/download). A WP Arzo Pro power-tool; disable to block file access entirely.'),
+        'database'      => array('id' => 'tool_database', 'title' => 'Database (Console)', 'icon' => 'database', 'description' => 'Advanced Tools → Database: shows this console tab. The underlying tool is provided by the separate WP Arzo Pro add-on and is not included here; disable to hide the tab entirely.'),
+        'files'         => array('id' => 'tool_files', 'title' => 'Files (Console)', 'icon' => 'folder', 'description' => 'Advanced Tools → Files: shows this console tab. The underlying tool is provided by the separate WP Arzo Pro add-on and is not included here; disable to hide the tab entirely.'),
         'plugins'       => array('id' => 'tool_plugins', 'title' => 'Plugins (Console)', 'icon' => 'plugin', 'description' => 'Advanced Tools → Plugins: activate/deactivate plugins from the console.'),
         'themes'        => array('id' => 'tool_themes', 'title' => 'Themes (Console)', 'icon' => 'theme', 'description' => 'Advanced Tools → Themes: switch the active theme from the console.'),
         'debug'         => array('id' => 'tool_debug', 'title' => 'Debug Tools (Console)', 'icon' => 'bug', 'description' => 'Advanced Tools → Debug: toggle WP_DEBUG and view/clear the debug log.'),
@@ -189,11 +191,10 @@ function wp_arzo_register_console_tools($registry)
 }
 
 /**
- * The heavy console power-tools (File Manager = elFinder, Database = AdminNeo) are
- * provided by WP Arzo Pro, which ships the bundled libraries and registers a renderer
- * on these filters. Keeping the large third-party libraries out of the free .org core
- * shrinks its download size and security/audit surface. When Pro is absent, the free
- * console shows an upsell in place of the tool.
+ * The Files and Database console tools ship no capability of their own in the free
+ * .org core — WP Arzo Pro, a separate add-on, optionally registers a renderer on
+ * these filters. When Pro is absent, the free console shows a generic upsell in
+ * place of the tool.
  *
  * @param string $tool 'files' | 'database'
  * @return callable|null Renderer supplied by Pro, or null when Pro is not providing it.
@@ -205,10 +206,10 @@ function wp_arzo_console_tool_provider($tool)
 }
 
 /**
- * Render the "this is a Pro power-tool" upsell panel inside the standalone console.
+ * Render a generic "available with Pro" upsell panel inside the standalone console.
  * Used by features/files.php and features/database.php when Pro isn't providing the tool.
  *
- * @param string $title Tool name (e.g. "File Manager").
+ * @param string $title Tool name (e.g. "Files").
  * @param string $desc  One-line description of what it does.
  * @param string $icon  wp_arzo_icon() key.
  */

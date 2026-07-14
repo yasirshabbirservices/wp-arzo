@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.161.0
+Stable tag: 6.162.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -17,7 +17,7 @@ Three reasons sites switch:
 
 * **Replace 20+ plugins.** ~50 site-enhancement features in one dashboard — SMTP with fallback,
   cookieless analytics, backups, security hardening, login protection, media tools, performance
-  role/capability editing, REST API keys, and dozens more. Enable only what you need; disabled
+  tweaks, role/capability editing, REST API keys, and dozens more. Enable only what you need; disabled
   features load zero code.
 * **Analytics without Site Kit.** A built-in, cookieless, first-party analytics engine — traffic,
   top pages, referrers, geo, devices and behaviour, recorded in your own database. No external
@@ -28,10 +28,8 @@ Three reasons sites switch:
 Everything is administrator-only and built for modern WordPress: accessible (WCAG 2.2 AA),
 token-themed, and modular so your site only ever loads what it uses.
 
-**Advanced Tools console** — a standalone dark console of hands-on power tools: Site Info, Users,
-Debug, Site Modes, Extra Options, Temporary Logins, plus (with WP Arzo Pro) a full **File Manager**
-and **Database manager**. **Emergency Recovery** — a self-contained script that works even when
-WordPress is fully down.
+**Advanced Tools console** — a standalone dark console of day-to-day admin tools: Site Info, Users,
+Plugins, Themes, Debug, Site Modes, Extra Options, and Temporary Logins.
 
 The console opens in its own tab via the WordPress admin menu and authenticates with your
 existing WordPress session (administrators only).
@@ -44,7 +42,14 @@ existing WordPress session (administrators only).
 
 == Changelog ==
 
-See CHANGELOG.md for the full history.
+Full history: https://github.com/yasirshabbirservices/wp-arzo/blob/main/CHANGELOG.md
+
+= 6.162.0 =
+* Changed: the Advanced Tools console's **Files** and **Database** tabs no longer describe or
+  advertise any file-management or database-query capability. Both tabs are, and always were,
+  empty gates in the free plugin — WP Arzo Pro optionally supplies a renderer for them; without
+  Pro they simply show a generic "available with Pro" notice. The free plugin ships no
+  file-manager or SQL-runner code or library of any kind.
 
 = 6.161.0 =
 * Changed: **Code Snippets** and **Header / Body / Footer Code** are now Pro-only. These let an

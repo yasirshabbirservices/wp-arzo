@@ -38,3 +38,10 @@ includes/features-registry/class-feature-disable-updates.php
 # file_exists() include guard (features/site-modes.php), so the .org build never
 # exposes the endpoint or the Emergency Mode UI.
 wp-arzo-emergency
+
+# README.md and CHANGELOG.md are GitHub-facing docs (Pro upsell framing, full historical
+# changelog including old entries about features long since moved to Pro). WordPress.org
+# only reads README.txt — keeping these two out of the .org zip avoids any redundant,
+# out-of-context, or promotional text being scanned as part of "the plugin description".
+README.md
+CHANGELOG.md

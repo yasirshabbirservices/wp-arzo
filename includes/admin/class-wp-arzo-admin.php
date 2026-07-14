@@ -545,7 +545,7 @@ class WP_Arzo_Admin
             'info'          => array('label' => __('Site Info', 'arzo-administration-suite'),        'icon' => 'info'),
             'users'         => array('label' => __('Users', 'arzo-administration-suite'),            'icon' => 'admin-users'),
             'database'      => array('label' => __('Database', 'arzo-administration-suite'),         'icon' => 'database'),
-            'files'         => array('label' => __('File Manager', 'arzo-administration-suite'),     'icon' => 'media-default'),
+            'files'         => array('label' => __('Files', 'arzo-administration-suite'),            'icon' => 'media-default'),
             'plugins'       => array('label' => __('Plugins', 'arzo-administration-suite'),          'icon' => 'admin-plugins'),
             'themes'        => array('label' => __('Themes', 'arzo-administration-suite'),           'icon' => 'admin-appearance'),
             'debug'         => array('label' => __('Debug', 'arzo-administration-suite'),            'icon' => 'buddicons-replies'),

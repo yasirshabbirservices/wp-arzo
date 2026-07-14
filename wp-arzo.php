@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: Ultimate WordPress Maintenance & Administration Suite
- * Version: 6.161.0
+ * Version: 6.162.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: arzo-administration-suite
@@ -30,7 +30,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.161.0');
+    define('WP_ARZO_VERSION', '6.162.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
@@ -431,9 +431,9 @@ function wp_arzo_uninstall()
         wp_delete_file($config_file);
     }
 
-    // (The AdminNeo database manager — and its runtime-generated adminneo-config.php that
-    // holds DB credentials — moved to WP Arzo Pro, which cleans up its own copy. A legacy
-    // config from an older free build is removed here for good measure.)
+    // (The Pro-supplied Database tool's runtime-generated connection config — which holds
+    // DB credentials — moved to WP Arzo Pro, which cleans up its own copy. A legacy config
+    // from an older free build is removed here for good measure.)
     $adminneo_config = WP_ARZO_PLUGIN_DIR . 'assets/libs/adminneo/adminneo-config.php';
     if (file_exists($adminneo_config)) {
         wp_delete_file($adminneo_config);
