@@ -431,14 +431,6 @@ function wp_arzo_uninstall()
         wp_delete_file($config_file);
     }
 
-    // (The Pro-supplied Database tool's runtime-generated connection config — which holds
-    // DB credentials — moved to WP Arzo Pro, which cleans up its own copy. A legacy config
-    // from an older free build is removed here for good measure.)
-    $adminneo_config = WP_ARZO_PLUGIN_DIR . 'assets/libs/adminneo/adminneo-config.php';
-    if (file_exists($adminneo_config)) {
-        wp_delete_file($adminneo_config);
-    }
-
     // Remove the emergency-tool brute-force throttle file if present.
     $throttle_file = WP_ARZO_PLUGIN_DIR . '.arzo-throttle.json';
     if (file_exists($throttle_file)) {
