@@ -4,7 +4,7 @@ Tags: maintenance, administration, analytics, smtp, security
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.162.0
+Stable tag: 6.163.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 

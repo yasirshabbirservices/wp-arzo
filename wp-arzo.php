@@ -4,7 +4,7 @@
  * Plugin Name: WP Arzo - Administration Suite
  * Plugin URI: https://github.com/yasirshabbirservices/wp-arzo
  * Description: An administration and site-enhancement dashboard for WordPress — analytics, email delivery, backups, security, and admin tools in one place.
- * Version: 6.162.0
+ * Version: 6.163.0
  * Author: Yasir Shabbir
  * Author URI: https://yasirshabbir.com
  * Text Domain: arzo-administration-suite
@@ -30,7 +30,7 @@ if (!defined('WP_ARZO_PLUGIN_FILE')) {
 
 // Define plugin constants (allowing overrides for advanced setups)
 if (!defined('WP_ARZO_VERSION')) {
-    define('WP_ARZO_VERSION', '6.162.0');
+    define('WP_ARZO_VERSION', '6.163.0');
 }
 
 if (!defined('WP_ARZO_PLUGIN_DIR')) {
