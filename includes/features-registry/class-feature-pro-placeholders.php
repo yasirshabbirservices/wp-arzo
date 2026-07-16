@@ -98,9 +98,10 @@ function wp_arzo_pro_feature_catalog()
         array('id' => 'analytics_rollups', 'title' => 'Analytics Rollups', 'group' => 'analytics', 'icon' => 'database', 'description' => 'For busy sites: keep a tiny daily rollup so you can shorten raw-data retention (faster queries, leaner database) while keeping the daily trend and totals forever — old ranges still report after their raw hits are pruned.'),
         array('id' => 'google_tags_pro', 'title' => 'Advanced Google Tags', 'group' => 'analytics', 'icon' => 'shield', 'description' => 'Consent Mode v2 (GDPR-friendly defaults for your GA4 / GTM / Ads tags) and server-side GTM (route tags through your own tagging server).'),
 
-        // Developer — script-insertion power tools (Pro-only; not on the WordPress.org build)
+        // Developer — code-insertion power tools (Pro-only; not on the WordPress.org build)
         array('id' => 'code_snippets', 'title' => 'Code Snippets', 'group' => 'developer', 'icon' => 'editor-code', 'description' => 'Run your own PHP, CSS, JS or HTML snippets with a syntax-highlighted editor, per-snippet run location and priority, smart conditional logic, a safe error guard that auto-disables a broken snippet, and a front-end shortcode. An advanced-scripts-class power tool.'),
         array('id' => 'custom_code', 'title' => 'Header / Body / Footer Code', 'group' => 'developer', 'icon' => 'code', 'description' => 'Insert custom code (analytics, verification tags, scripts) into the &lt;head&gt;, after &lt;body&gt;, or before &lt;/body&gt; site-wide.'),
+        array('id' => 'custom_css', 'title' => 'Custom CSS', 'group' => 'developer', 'icon' => 'sparkles', 'description' => 'Add custom CSS to the front end and/or the WordPress admin.'),
 
         // Content & Modeling
         array('id' => 'content_types', 'title' => 'Content Types (CPT/CCT)', 'group' => 'content', 'icon' => 'file', 'description' => 'Build custom post types and taxonomies from a UI.'),

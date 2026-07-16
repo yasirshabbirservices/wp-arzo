@@ -60,57 +60,11 @@ class WP_Arzo_Feature_Last_Login extends WP_Arzo_Feature
     }
 }
 
-// WP_Arzo_Feature_Custom_Code (Header/Body/Footer script insertion) moved to the Pro add-on
-// (WordPress.org does not accept script-insertion plugins). See wp-arzo-pro:
-// includes/features/class-feature-custom-code.php.
-
-class WP_Arzo_Feature_Custom_CSS extends WP_Arzo_Feature
-{
-    public function id()
-    {
-        return 'custom_css';
-    }
-    public function title()
-    {
-        return 'Custom CSS';
-    }
-    public function description()
-    {
-        return 'Add custom CSS to the front end and/or the WordPress admin.';
-    }
-    public function group()
-    {
-        return 'branding';
-    }
-    public function icon()
-    {
-        return 'sparkles';
-    }
-    public function settings_schema()
-    {
-        return array(
-            array('key' => 'frontend_css', 'type' => 'code', 'label' => 'Front-end CSS'),
-            array('key' => 'admin_css', 'type' => 'code', 'label' => 'Admin CSS'),
-        );
-    }
-    public function boot()
-    {
-        add_action('wp_head', function () {
-            $this->emit('frontend_css');
-        }, 100);
-        add_action('admin_head', function () {
-            $this->emit('admin_css');
-        }, 100);
-    }
-    private function emit($key)
-    {
-        $css = trim((string) $this->get_setting($key, ''));
-        if ($css !== '') {
-            // Admin-supplied (manage_options) custom CSS; tags stripped so it can't break out of <style>.
-            echo "\n<style id='wp-arzo-" . esc_attr($key) . "'>" . wp_strip_all_tags($css) . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        }
-    }
-}
+// WP_Arzo_Feature_Custom_Code (Header/Body/Footer script insertion) and
+// WP_Arzo_Feature_Custom_CSS (raw CSS code-editor field) moved to the Pro add-on —
+// WordPress.org treats any raw code-entry field, including CSS, as arbitrary code
+// insertion that a free directory listing may not offer. See wp-arzo-pro:
+// includes/features/class-feature-custom-code.php and class-feature-custom-css.php.
 
 class WP_Arzo_Feature_Login_Redirect extends WP_Arzo_Feature
 {

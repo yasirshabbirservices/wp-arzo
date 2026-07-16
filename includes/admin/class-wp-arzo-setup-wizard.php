@@ -145,9 +145,9 @@ class WP_Arzo_Setup_Wizard
                 'icon'    => 'edit',
                 'features' => array(
                     'duplicate_posts', 'limit_revisions', 'svg_upload', 'webp_convert',
-                    'missed_schedule', 'media_cleanup', 'custom_code', 'custom_css',
+                    'missed_schedule', 'media_cleanup',
                     // Pro (skipped if unavailable):
-                    'content_types', 'custom_fields', 'media_folders',
+                    'custom_code', 'custom_css', 'content_types', 'custom_fields', 'media_folders',
                 ),
             ),
             'growth' => array(
@@ -166,14 +166,14 @@ class WP_Arzo_Setup_Wizard
                 'tagline' => 'Power tools for admins and developers.',
                 'icon'    => 'tools',
                 'features' => array(
-                    'code_snippets', 'custom_code', 'custom_css', 'heartbeat_control',
+                    'heartbeat_control',
                     'auto_snapshots', 'scheduled_backups', 'media_cleanup',
                     'role_manager', 'rest_api_auth',
                     'tool_users', 'tool_database', 'tool_files', 'tool_plugins',
                     'tool_themes', 'tool_debug', 'tool_site_modes', 'tool_extra_options',
                     'tool_login',
                     // Pro (skipped if unavailable):
-                    'cron_manager', 'redirects',
+                    'code_snippets', 'custom_code', 'custom_css', 'cron_manager', 'redirects',
                 ),
             ),
             'the_works' => array(

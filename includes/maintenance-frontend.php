@@ -62,7 +62,6 @@ function wp_arzo_maintenance_display_mode()
 
     $custom_title = get_option('maintenance_tool_custom_title', '');
     $custom_message = get_option('maintenance_tool_custom_message', '');
-    $custom_css = get_option('maintenance_tool_custom_css', '');
     $show_social_contacts = get_option('maintenance_tool_show_social_contacts', 1);
     $developer_email = get_option('maintenance_tool_developer_email', '');
     $developer_phone = get_option('maintenance_tool_developer_phone', '');
@@ -244,10 +243,6 @@ function wp_arzo_maintenance_display_mode()
                 color: var(--arzo-text-secondary);
             }
 
-            <?php
-            // Admin-supplied (manage_options) custom CSS; tags stripped so it can't break out of <style>.
-            echo wp_strip_all_tags($custom_css); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ?>
         </style>
     </head>
 

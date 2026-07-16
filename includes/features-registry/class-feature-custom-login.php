@@ -48,7 +48,6 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
             array('key' => 'accent', 'type' => 'color', 'label' => 'Accent (button, links, focus)', 'default' => '#16e791'),
             array('key' => 'button_text', 'type' => 'color', 'label' => 'Button text', 'default' => '#121212'),
             array('key' => 'rounded', 'type' => 'toggle', 'label' => 'Rounded corners', 'default' => 1),
-            array('key' => 'custom_css', 'type' => 'code', 'label' => 'Additional CSS'),
         );
     }
 
@@ -80,7 +79,6 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
         $btext  = $this->c('button_text', '#121212');
         $radius = $this->get_setting('rounded', 1) ? '10px' : '0';
         $ir     = $this->get_setting('rounded', 1) ? '6px' : '0';
-        $extra  = (string) $this->get_setting('custom_css', '');
 
         $logo_css = '';
         if ($logo !== '') {
@@ -198,8 +196,6 @@ class WP_Arzo_Feature_Custom_Login extends WP_Arzo_Feature
             <?php
             // $logo_css is built entirely from static CSS + esc_url($logo); safe to print as-is.
             echo $logo_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            // $extra is admin-only (manage_options) custom CSS; tags stripped so it can't break out of <style>.
-            echo wp_strip_all_tags($extra); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             ?>
         </style>
         <?php

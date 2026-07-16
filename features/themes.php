@@ -92,105 +92,12 @@ if (isset($_GET['operation'])) {
 
 function showThemes()
 {
-    $message = '';
-    
-    // Handle File Upload
-    if (isset($_FILES['theme_zip']) && isset($_POST['upload_theme_action'])) {
-        if (!function_exists('wp_handle_upload')) require_once(ABSPATH . 'wp-admin/includes/file.php');
-        if (!function_exists('unzip_file')) require_once(ABSPATH . 'wp-admin/includes/file.php');
-        if (!function_exists('request_filesystem_credentials')) require_once(ABSPATH . 'wp-admin/includes/file.php');
-        
-        $uploadedfile = $_FILES['theme_zip'];
-        $upload_overrides = array('test_form' => false);
-        
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['theme_upload_nonce'], 'theme_upload_action')) {
-            $message = '<div class="alert alert-error">Security check failed.</div>';
-        } else {
-             // Check file type
-            $file_type = wp_check_filetype($uploadedfile['name']);
-            if ($file_type['ext'] !== 'zip') {
-                $message = '<div class="alert alert-error">Only ZIP files are allowed.</div>';
-            } else {
-                $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
-                
-                if ($movefile && !isset($movefile['error'])) {
-                    $zip_path = $movefile['file'];
-                    $to = get_theme_root();
-                    
-                    // Initialize Filesystem
-                    if (false === ($creds = request_filesystem_credentials(site_url()))) {
-                         $message = '<div class="alert alert-error">Filesystem credentials required.</div>';
-                         wp_delete_file($zip_path);
-                    } else {
-                        if (!WP_Filesystem($creds)) {
-                            $message = '<div class="alert alert-error">Filesystem initialization failed.</div>';
-                            wp_delete_file($zip_path);
-                        } else {
-                            // Unzip
-                            $result = unzip_file($zip_path, $to);
-                            if (is_wp_error($result)) {
-                                $message = '<div class="alert alert-error">Unzip failed: ' . $result->get_error_message() . '</div>';
-                            } else {
-                                $message = '<div class="alert alert-success">Theme installed successfully.</div>';
-                                
-                                // Activate immediately
-                                if (isset($_POST['activate_immediately']) && $_POST['activate_immediately'] == '1') {
-                                    $zip = new ZipArchive;
-                                    if ($zip->open($zip_path) === TRUE) {
-                                         $stat = $zip->statIndex(0);
-                                         $root_folder = explode('/', $stat['name'])[0];
-                                         $zip->close();
-
-                                         if ($root_folder) {
-                                             // Refresh the theme cache and verify the stylesheet
-                                             // really exists before switching, so we never point
-                                             // the site at a missing/invalid theme.
-                                             wp_clean_themes_cache();
-                                             $new_theme = wp_get_theme($root_folder);
-                                             if ($new_theme->exists() && !$new_theme->errors()) {
-                                                 switch_theme($root_folder);
-                                                 $message .= ' And activated.';
-                                             } else {
-                                                 $message .= ' <span style="color:var(--arzo-error)">Installed, but could not auto-activate (theme folder/stylesheet not found).</span>';
-                                             }
-                                         }
-                                    }
-                                }
-                                // Cleanup zip
-                                wp_delete_file($zip_path);
-                            }
-                        }
-                    }
-                } else {
-                    $message = '<div class="alert alert-error">Upload failed: ' . $movefile['error'] . '</div>';
-                }
-            }
-        }
-    }
-
+    // Installing a new theme from an uploaded ZIP is core WordPress functionality
+    // (Appearance → Themes → Add New → Upload Theme); this console intentionally does
+    // not duplicate it. This tab only lists and activates themes already installed.
     ?>
     <div class="content">
         <h1>Theme Management</h1>
-        <?php echo wp_kses_post($message); ?>
-
-        <!-- Upload Form -->
-        <div style="background:var(--arzo-bg-elev); border:1px solid var(--arzo-border); padding:15px; margin:15px 0; border-radius:var(--arzo-radius-sm);">
-            <h4 style="margin-top:0;">Upload Theme (ZIP)</h4>
-            <form method="post" enctype="multipart/form-data">
-                <?php wp_nonce_field('theme_upload_action', 'theme_upload_nonce'); ?>
-                <input type="hidden" name="upload_theme_action" value="1">
-                <input type="file" name="theme_zip" required accept=".zip" style="color:var(--arzo-text-strong);">
-                <div style="margin-top:10px; display:flex; align-items:center;">
-                    <label class="switch">
-                        <input type="checkbox" name="activate_immediately" value="1">
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="toggle-label">Activate immediately</span>
-                </div>
-                <button type="submit" class="btn btn-sm" style="margin-top:10px;">Install</button>
-            </form>
-        </div>
 
         <!-- Search -->
         <div class="form-group">

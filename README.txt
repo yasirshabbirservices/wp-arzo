@@ -8,31 +8,54 @@ Stable tag: 6.162.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-One suite to run, secure, optimize, and rescue your WordPress site — replace 20+ single-purpose plugins.
+An administration and site-enhancement dashboard for WordPress: analytics, email delivery, backups, security, and admin tools in one place.
 
 == Description ==
 
-**WP Arzo replaces a drawer full of single-purpose plugins with one cohesive, lightweight suite.**
-Three reasons sites switch:
+WP Arzo is a dashboard of site-enhancement features you enable individually — a disabled feature
+loads no code. It includes:
 
-* **Replace 20+ plugins.** ~50 site-enhancement features in one dashboard — SMTP with fallback,
-  cookieless analytics, backups, security hardening, login protection, media tools, performance
-  tweaks, role/capability editing, REST API keys, and dozens more. Enable only what you need; disabled
-  features load zero code.
-* **Analytics without Site Kit.** A built-in, cookieless, first-party analytics engine — traffic,
-  top pages, referrers, geo, devices and behaviour, recorded in your own database. No external
-  service, no cookie banner, no MonsterInsights.
-* **AI-agent ready.** WP Arzo Pro exposes a governed MCP (Model Context Protocol) server so AI
-  assistants can safely read and act on your site — permissioned, audited, and confirm-gated.
+* A built-in, cookieless, first-party analytics engine — traffic, top pages, referrers, geo,
+  devices and behaviour, recorded in your own database. No external service and no cookie banner
+  are required.
+* Multi-provider SMTP email delivery with fallback, local and scheduled backups, login and
+  security hardening, media tools, performance tweaks, role/capability editing, and REST API key
+  management.
+* An optional MCP (Model Context Protocol) server (WP Arzo Pro) that lets AI assistants read and
+  act on your site through permissioned, audited, confirm-gated tools.
 
-Everything is administrator-only and built for modern WordPress: accessible (WCAG 2.2 AA),
-token-themed, and modular so your site only ever loads what it uses.
+Every feature is administrator-only. The interface is built for modern WordPress: accessible
+(WCAG 2.2 AA) and token-themed.
 
 **Advanced Tools console** — a standalone dark console of day-to-day admin tools: Site Info, Users,
 Plugins, Themes, Debug, Site Modes, Extra Options, and Temporary Logins.
 
 The console opens in its own tab via the WordPress admin menu and authenticates with your
 existing WordPress session (administrators only).
+
+== External services ==
+
+This plugin can connect to external services that you choose to configure. No external service is
+contacted unless you enable and set up the corresponding feature with your own account or API key.
+
+**Email delivery providers.** The Email feature can send outgoing mail through a provider you
+configure with your own account: SendGrid, Brevo (Sendinblue), Mailgun, Postmark, Amazon SES,
+Gmail / Google Workspace, Outlook / Microsoft 365, Zoho Mail, Yahoo Mail, Fastmail, or any custom
+SMTP server. When an email is sent, its contents (recipient, subject, body, headers) are transmitted
+to the provider you selected, authenticated with the credentials you supplied, so it can deliver the
+message. Nothing is sent unless you have configured and enabled that connection.
+- SendGrid: https://sendgrid.com/policies/tos/ · https://www.twilio.com/en-us/legal/privacy
+- Brevo: https://www.brevo.com/legal/termsofuse/ · https://www.brevo.com/legal/privacypolicy/
+- Mailgun: https://www.mailgun.com/legal/terms/ · https://www.mailgun.com/legal/privacy-policy/
+- Postmark: https://postmarkapp.com/eula · https://postmarkapp.com/privacy-policy
+- Amazon SES: https://aws.amazon.com/service-terms/ · https://aws.amazon.com/privacy/
+
+**Google Analytics 4 / Google Tag Manager / Google Ads.** These are optional tags. If you enable one
+and enter your own Measurement ID, Container ID, or Conversion ID, the plugin loads Google's tagging
+script (gtag.js / gtm.js) from googletagmanager.com on the front end, and visitor browsers then send
+standard analytics/advertising events directly to Google under the ID you provided. Nothing is sent
+unless you have entered an ID for that tag.
+- Google: https://policies.google.com/terms · https://policies.google.com/privacy
 
 == Installation ==
 
